@@ -1,0 +1,24 @@
+/*******************************************************************************
+ *  Copyright 2014-2015 Qualcomm Technologies International, Ltd.
+ *  Part of CSR uEnergy SDK 2.5.1
+ *  Application version 2.5.1.0
+ *
+ *
+ *  FILE
+ *      app_gatt_db.db
+ *
+ *  DESCRIPTION
+ *      Master database file containing all the includes of service specific 
+ *      database files
+ *
+ *  NOTES
+ *
+ ****************************************************************************/
+#include "user_config.h"
+
+/* Including all the service specific database files */
+#include "gatt_service_db.db"
+#include "gap_service_db.db"
+#include "csr_ota_db.db"
+#include "dev_info_service_db.db"
+#include "battery_service_db.db"
