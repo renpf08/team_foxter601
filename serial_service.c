@@ -178,15 +178,14 @@ extern void SerialHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
     {
         case HANDLE_SERIAL_DATA_TRANSFER:
         {
-            /* Send the received data to the UART */
-            m_printf("%s\r\n", (const char *)p_ind->value);
         }
         break;
         
         case HANDLE_SERIAL_DATA_ATDR:
         {
             /* Send the received data to the UART */
-            m_printf("%s\r\n", (const char *)p_ind->value);
+            p_ind->value[p_ind->size_value] = '\0';
+            m_printf("%s", (const char *)p_ind->value);
         }
         break;
         

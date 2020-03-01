@@ -64,4 +64,6 @@ extern void GattBondingNotify(void);
 extern void WriteGattServiceDataInNvm(void);
 #endif /* NVM_TYPE_FLASH */
 
+void m_devname_init(void);
+
 #endif /* __GATT_SERVICE_H__ */

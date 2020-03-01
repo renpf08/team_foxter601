@@ -2098,6 +2098,15 @@ void AppInit(sleep_state last_sleep_state)
     /* Initialise the application timers */
     TimerInit(MAX_APP_TIMERS, (void*)app_timers);
 
+#ifdef ENABLE_UART  
+    /* Initialise the UART interface */
+    m_uart_init();
+    //m_printf_test();
+#endif /* ENABLE_UART */
+    
+    m_devname_init();
+    //m_timer_init();
+    
     /* Initialise GATT entity */
     GattInit();
 
@@ -2117,12 +2126,6 @@ void AppInit(sleep_state last_sleep_state)
 
     Nvm_Disable();
 
-#ifdef ENABLE_UART  
-    /* Initialise the UART interface */
-    m_uart_init();
-    //UartInitialize();
-    //m_printf_test();
-#endif /* ENABLE_UART */
     /*Initialise application hardware */
     InitAncsHardware();
 
@@ -2160,8 +2163,6 @@ void AppInit(sleep_state last_sleep_state)
     p_gatt_db = GattGetDatabase(&gatt_db_length);
 
     GattAddDatabaseReq(gatt_db_length, p_gatt_db);
-    
-    //m_timer_init();
 }
 
 /*----------------------------------------------------------------------------*
