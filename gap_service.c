@@ -29,6 +29,8 @@
 #include "nvm_access.h"
 #include "ancs_client_gatt.h"
 #include "app_gatt.h"
+#include "m_printf.h"
+#include "config_store.h"
 
 /*============================================================================*
  *  Private Data Types
@@ -56,8 +58,8 @@ typedef struct
 static GAP_DATA_T gap_data;
 
 /* Default device name - Added two for storing AD Type and Null ('\0') */ 
-uint8 g_device_name[DEVICE_NAME_MAX_LENGTH + 2] = {
-AD_TYPE_LOCAL_NAME_COMPLETE, 'f', 'o', 'x', 't', 'e', 'r', '6', '0','1','\0'};
+uint8 g_device_name[DEVICE_NAME_MAX_LENGTH + 2];/* = {
+AD_TYPE_LOCAL_NAME_COMPLETE, 'f', 'o', 'x', 't', 'e', 'r', '6', '0','1','\0'};*/
 
 /*============================================================================*
  *  Private Definitions
@@ -405,4 +407,37 @@ extern void WriteGapServiceDataInNVM(void)
     /* Gap Service has only device name to write into NVM */
     gapWriteDeviceNameToNvm();
 }
+
 #endif /* NVM_TYPE_FLASH */
+
+/**
+* @brief get ble adv name
+* @param [in] none
+* @param [out] none
+* @return none
+* @data 2020/03/01 18:06
+* @author maliwen
+* @note none
+*/
+void m_devname_init(void);
+void m_devname_init(void)
+{
+    uint8 addrBuf[6] = {0,0,0,0,0,0};
+    BD_ADDR_T bdaddr;           /* Device's Bluetooth address */
+
+    if(CSReadBdaddr(&bdaddr))
+    {
+        /* Manufacturer-defined identifier */
+        addrBuf[0] = (uint8)(bdaddr.lap)&0x00FF;
+        addrBuf[1] = (uint8)(bdaddr.lap >> 8);
+        addrBuf[2] = (uint8)(bdaddr.lap >> 16);
+
+        /* Organizationally Unique Identifier */
+        addrBuf[3] = (uint8)(bdaddr.uap);
+        addrBuf[4] = (uint8)(bdaddr.nap);
+        addrBuf[5] = (uint8)(bdaddr.nap >> 8);
+        
+        //m_printf("addr: %02X:%02X:%02X:%02X:%02X:%02X\r\n",addrBuf[0],addrBuf[1],addrBuf[2],addrBuf[3],addrBuf[4],addrBuf[5]);
+    }
+    m_sprintf((char*)g_device_name, "%c%s_%02X%02X", AD_TYPE_LOCAL_NAME_COMPLETE, "foxter", addrBuf[1], addrBuf[0]);
+}

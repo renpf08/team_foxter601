@@ -14,7 +14,7 @@
 #define FORMAT_FLAG_ALTERNATE      (1u << 3)
 
 void m_uart_out(char c);
-int m_vprintf(const char * sFormat, va_list * pParamList);
+int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList);
 //int m_printf(const char * sFormat, ...);
 
 void m_uart_out(char c)
@@ -24,7 +24,7 @@ void m_uart_out(char c)
 }
 
 char hexCharTbl[2][16] = {{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}, {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' }};
-int m_vprintf(const char * sFormat, va_list * pParamList) {
+int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList) {
   unsigned letter = 0; //! 十六进制大小写选择
   unsigned shift = 0;
   signed tmpVal = 0;
@@ -44,7 +44,9 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
   unsigned FormatFlags;
   static unsigned FieldWidth; //! static for testing...
   FieldWidth = 0;
-  char strBuf[256];
+  //char strBuf[256]; //! used for sprintf
+  char tmpBuf[32];
+  int len = 0;
   int width = 0;
   unsigned pos = 0;
   do {
@@ -119,8 +121,8 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
         char c0;
         v = va_arg(*pParamList, int);
         c0 = (char)v;
-        //strBuf[len++] = c0;
-		m_uart_out(c0);
+        if(strBuf != 0) strBuf[len++] = c0;
+		else m_uart_out(c0);
         break;
       }
       case 'd':
@@ -137,15 +139,15 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
         }
         do/** 注意格式化最长顺序为64个字符 */
         {/** 倒叙格式化 */
-            strBuf[i++] = hexCharTbl[0][tmpVal%10];
+            tmpBuf[i++] = hexCharTbl[0][tmpVal%10];
             tmpVal /= 10;
         } while(tmpVal != 0);
         FieldWidth = (FieldWidth>(unsigned)i)?FieldWidth:(unsigned)i; //! 取最长位域
         i--;
 //        if(flag == '-')
 //        {
-//            strBuf[len++] = flag;
-//			  m_uart_out(flag);
+//            if(strBuf != 0) strBuf[len++] = flag;
+//			  else m_uart_out(flag);
 //        }
         if((FormatFlags&FORMAT_FLAG_PAD_ZERO) == FORMAT_FLAG_PAD_ZERO) //! 默认空格填充或者0字符填充
         {
@@ -165,12 +167,12 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
                 {
                     if((flag == '-') && (inserChar == '0'))
                     {/** 防止‘-’在0中间出现 */
-                        //strBuf[len++] = flag;
-                        m_uart_out(flag);
+                        if(strBuf != 0) strBuf[len++] = flag;
+                        else m_uart_out(flag);
                         flag = '+'; //! 对齐后再添加‘-’号
                     }
-                    //strBuf[len++] = inserChar;
-                    m_uart_out(inserChar);
+                    if(strBuf != 0) strBuf[len++] = inserChar;
+                    else m_uart_out(inserChar);
                 }
                 else if(((FormatFlags&FORMAT_FLAG_PRINT_SIGN) != FORMAT_FLAG_PRINT_SIGN) && (inserChar != '0'))
                 {
@@ -181,18 +183,18 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
             {
                 if(flag == '-')
                 {
-                    //strBuf[len++] = flag;
-                    m_uart_out(flag);
+                    if(strBuf != 0) strBuf[len++] = flag;
+                    else m_uart_out(flag);
                     flag = '+'; //! 对齐后再添加‘-’号
                 }
-                //strBuf[len++] = tmpStr[shift];
-                m_uart_out(strBuf[shift]);
+                if(strBuf != 0) strBuf[len++] = tmpBuf[shift];
+                else m_uart_out(tmpBuf[shift]);
             }
         }
         for(i = 0; i < (justify-1); i++)
         {
-            //strBuf[len++] = ' '; //! 左对齐，非0补齐时，则用空格在末尾填充
-            m_uart_out(' ');
+            if(strBuf != 0) strBuf[len++] = ' '; //! 左对齐，非0补齐时，则用空格在末尾填充
+            else m_uart_out(' ');
         }
         break;
       case 'u':
@@ -203,7 +205,7 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
         uTmpVal = (unsigned)v;
         do/** 注意格式化最长顺序为64个字符 */
         {/** 倒叙格式化 */
-            strBuf[i++] = hexCharTbl[0][uTmpVal%10];
+            tmpBuf[i++] = hexCharTbl[0][uTmpVal%10];
             uTmpVal /= 10;
         } while(uTmpVal != 0);
         FieldWidth = (FieldWidth>(unsigned)i)?FieldWidth:(unsigned)i; //! 取最长位域
@@ -224,8 +226,8 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
                 if(((FormatFlags&FORMAT_FLAG_PRINT_SIGN) == FORMAT_FLAG_PRINT_SIGN) ||  //! 右对齐
                     (((FormatFlags&FORMAT_FLAG_PRINT_SIGN) != FORMAT_FLAG_PRINT_SIGN) && (inserChar == '0'))) //! 左对齐补0处理
                 {
-                    //strBuf[len++] = inserChar;
-                    m_uart_out(inserChar);
+                    if(strBuf != 0) strBuf[len++] = inserChar;
+                    else m_uart_out(inserChar);
                 }
                 else if(((FormatFlags&FORMAT_FLAG_PRINT_SIGN) != FORMAT_FLAG_PRINT_SIGN) && (inserChar != '0'))
                 {
@@ -234,14 +236,14 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
             }
             else
             {
-                //strBuf[len++] = tmpStr[shift];
-                m_uart_out(strBuf[shift]);
+                if(strBuf != 0) strBuf[len++] = tmpBuf[shift];
+                else m_uart_out(tmpBuf[shift]);
             }
         }
         for(i = 0; i < (justify-1); i++)
         {
-            //strBuf[len++] = ' '; //! 左对齐，右边不用0补齐
-            m_uart_out(' ');
+            if(strBuf != 0) strBuf[len++] = ' '; //! 左对齐，右边不用0补齐
+            else m_uart_out(' ');
         }
         break;
       case 'x':
@@ -279,8 +281,8 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
                 if(((FormatFlags&FORMAT_FLAG_PRINT_SIGN) == FORMAT_FLAG_PRINT_SIGN) ||  //! 右对齐
                     (((FormatFlags&FORMAT_FLAG_PRINT_SIGN) != FORMAT_FLAG_PRINT_SIGN) && (inserChar == '0'))) //! 左对齐补0处理
                 {
-                    //strBuf[len++] = inserChar;
-                    m_uart_out(inserChar);
+                    if(strBuf != 0) strBuf[len++] = inserChar;
+                    else m_uart_out(inserChar);
                 }
                 else if(((FormatFlags&FORMAT_FLAG_PRINT_SIGN) != FORMAT_FLAG_PRINT_SIGN) && (inserChar != '0'))
                 {
@@ -289,20 +291,20 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
             }
             else
             {
-                //strBuf[len++] = (unsigned)(hexCharTbl[letter][(v>>shift)&0x0000000F]);
-                m_uart_out(hexCharTbl[letter][(v>>shift)&0x0000000F]);
+                if(strBuf != 0) strBuf[len++] = (unsigned)(hexCharTbl[letter][(v>>shift)&0x0000000F]);
+                else m_uart_out(hexCharTbl[letter][(v>>shift)&0x0000000F]);
             }
         }
         for(i = 0; i < (justify-1); i++)
         {
-            //strBuf[len++] = ' '; //! 左对齐，右边不用0补齐
-            m_uart_out(' ');
+            if(strBuf != 0) strBuf[len++] = ' '; //! 左对齐，右边不用0补齐
+            else m_uart_out(' ');
         }
 //        for(width = 0; width < FieldWidth; width++)
 //        {
 //            shift = (unsigned)(FieldWidth-width-1)*4;
-//            strBuf[len++] = (unsigned)(hexCharTbl[0][(v>>shift)&0x0000000F]);
-//			  m_uart_out(hexCharTbl[0][(v>>shift)&0x0000000F]);
+//            if(strBuf != 0) strBuf[len++] = (unsigned)(hexCharTbl[0][(v>>shift)&0x0000000F]);
+//			  else m_uart_out(hexCharTbl[0][(v>>shift)&0x0000000F]);
 //        }
         break;
       case 's':
@@ -314,8 +316,8 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
             if (c == '\0') {
               break;
             }
-            //strBuf[len++] = c;
-			m_uart_out(c);
+            if(strBuf != 0) strBuf[len++] = c;
+			else m_uart_out(c);
           } while(1);
         }
         break;
@@ -338,8 +340,8 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
         for(width = 0; width < (int)FieldWidth; width++)
         {
             shift = (unsigned)(FieldWidth-width-1)*4;
-            //strBuf[len++] = (unsigned)(hexCharTbl[letter][(v>>shift)&0x0000000F]);
-			m_uart_out(hexCharTbl[letter][(v>>shift)&0x0000000F]);
+            if(strBuf != 0) strBuf[len++] = (unsigned)(hexCharTbl[letter][(v>>shift)&0x0000000F]);
+			else m_uart_out(hexCharTbl[letter][(v>>shift)&0x0000000F]);
         }
         break;
       #ifdef USE_32BIT_MCU
@@ -362,34 +364,34 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
         }
         do/** 注意格式化最长顺序为64个字符 */
         {/** 倒叙格式化 */
-            strBuf[i++] = hexCharTbl[0][tmpVal%10];
+            tmpBuf[i++] = hexCharTbl[0][tmpVal%10];
             tmpVal /= 10;
         } while(tmpVal != 0);
         FieldWidth = (FieldWidth>((unsigned)i+NumDigits+1))?(FieldWidth-(NumDigits+1)):(unsigned)i; //! 取最长位域
         i--;
 //        if(flag == '-')
 //        {
-//            strBuf[len++] = flag;
-//			  m_uart_out(flag);
+//            if(strBuf != 0) strBuf[len++] = flag;
+//			  else m_uart_out(flag);
 //        }
         for(width = 0; width < (int)FieldWidth; width++)
         {/** 顺序格式化 */
             shift = (unsigned)(FieldWidth-width-1);
             if(shift > (unsigned)i)
             {
-                //strBuf[len++] = ' ';
-				m_uart_out(' ');
+                if(strBuf != 0) strBuf[len++] = ' ';
+				else m_uart_out(' ');
             }
             else
             {
                 if(flag == '-')
                 {
-                    //strBuf[len++] = flag;
-                    m_uart_out(flag);
+                    if(strBuf != 0) strBuf[len++] = flag;
+                    else m_uart_out(flag);
                     flag = '+';
                 }
-                //strBuf[len++] = tmpStr[shift];
-				m_uart_out(strBuf[shift]);
+                if(strBuf != 0) strBuf[len++] = tmpBuf[shift];
+				else m_uart_out(tmpBuf[shift]);
             }
         }
         /** 拼接小数部分 */
@@ -403,12 +405,12 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
             if((tmpVal%10) != 0) break;
             tmpVal /= 10; //! 去掉小数后面无效的0值位
         }while(tmpVal != 0);
-        //strBuf[len++] = '.';
-		m_uart_out('.');
+        if(strBuf != 0) strBuf[len++] = '.';
+		else m_uart_out('.');
         i = 0;
         do/** 注意格式化最长顺序为64个字符 */
         {/** 倒叙格式化 */
-            strBuf[i++] = hexCharTbl[0][tmpVal%10];
+            tmpBuf[i++] = hexCharTbl[0][tmpVal%10];
             tmpVal /= 10;
         } while(tmpVal != 0);
 //        i = (i > NumDigits)?NumDigits:i;
@@ -418,13 +420,13 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
             shift = (unsigned)(i-width-1);
             if(shift > (unsigned)i)
             {
-                //strBuf[len++] = '0';
-				m_uart_out('0');
+                if(strBuf != 0) strBuf[len++] = '0';
+				else m_uart_out('0');
             }
             else
             {
-                //strBuf[len++] = tmpStr[shift];
-				m_uart_out(strBuf[shift]);
+                if(strBuf != 0) strBuf[len++] = tmpBuf[shift];
+				else m_uart_out(tmpBuf[shift]);
             }
         }
         if(width < (int)NumDigits)
@@ -432,30 +434,29 @@ int m_vprintf(const char * sFormat, va_list * pParamList) {
             width = NumDigits-width;
             for(i = 0; i < width; i++)
             {
-                //strBuf[len++] = '0';
-				m_uart_out('0');
+                if(strBuf != 0) strBuf[len++] = '0';
+				else m_uart_out('0');
             }
         }
         break;
       #endif
       case '%':
-        //strBuf[len++] = '%';
-		m_uart_out('%');
+        if(strBuf != 0) strBuf[len++] = '%';
+		else m_uart_out('%');
         break;
       default:
         break;
       }
       sFormat++;
     } else {
-        //strBuf[len++] = c;
-        m_uart_out(c);
+        if(strBuf != 0) strBuf[len++] = c;
+        else m_uart_out(c);
     }
   } while(1);
 
-  return 0;
+  return len;
 }
 
-char acBuffer[M_PRINT_BUFF_SIZE];
 int m_printf(const char * sFormat, ...)
 {
     int r = 0;
@@ -463,8 +464,21 @@ int m_printf(const char * sFormat, ...)
 
     va_start(ParamList, sFormat);
     r = va_arg(ParamList, int); //! 测试发现，参数列表的第一个参数是乱码，此处需要做一次读操作相当于去掉第一个参数！！！
-    r = m_vprintf(sFormat, &ParamList);
+    r = m_vprintf(0, sFormat, &ParamList);
     va_end(ParamList);
+    return r;
+}
+
+int m_sprintf(char *buf, const char * sFormat, ...)
+{
+    int r = 0;
+    va_list ParamList;
+
+    va_start(ParamList, sFormat);
+    //r = va_arg(ParamList, int); //! 测试发现，参数列表的第一个参数是乱码，此处需要做一次读操作相当于去掉第一个参数！！！
+    r = m_vprintf(buf, sFormat, &ParamList);
+    va_end(ParamList);
+    buf[r] = '\0';
     return r;
 }
 

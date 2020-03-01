@@ -25,6 +25,7 @@
 
 #include "app_gatt_db.h"    
 #include "dev_info_service.h"
+#include "m_printf.h"
 
 /*============================================================================*
  *  Private Definitions
@@ -110,6 +111,9 @@ static bool getSystemId(SYSTEM_ID_T * sys_id)
         sys_id->byte[5] = (uint8)(bdaddr.uap);
         sys_id->byte[6] = (uint8)(bdaddr.nap);
         sys_id->byte[7] = (uint8)(bdaddr.nap >> 8);
+        
+        m_printf("addr: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n",
+                 sys_id->byte[0],sys_id->byte[1],sys_id->byte[2],sys_id->byte[3],sys_id->byte[4],sys_id->byte[5],sys_id->byte[6],sys_id->byte[7]);
 
         return TRUE;
     }

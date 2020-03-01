@@ -21,6 +21,7 @@ typedef char *  va_list;
 #define M_PRINT_BUFF_SIZE   64 //! 输出到串口前，用于格式化数据的缓存区长度
 
 int m_printf(const char * sFormat, ...);
+int m_sprintf(char *buf, const char * sFormat, ...);
 void m_printf_test(void);
 
 #endif /** end of __M_PRINTF_H__ */
