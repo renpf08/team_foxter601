@@ -20,8 +20,14 @@ typedef char *  va_list;
 #define M_RECV_BUFF_SIZE    255 //! 接收串口输入的最大数据长度
 #define M_PRINT_BUFF_SIZE   64 //! 输出到串口前，用于格式化数据的缓存区长度
 
+#define M_LOG_ERROR(...)    m_log(__FILE__, __func__, __LINE__, "<error>", __VA_ARGS__)
+#define M_LOG_WARNING(...)  m_log(__FILE__, __func__, __LINE__, "<warning>", __VA_ARGS__)
+#define M_LOG_INFO(...)     m_log(__FILE__, __func__, __LINE__, "<info>", __VA_ARGS__)
+#define M_LOG_DEBUG(...)    m_log(__FILE__, __func__, __LINE__, "<debug>", __VA_ARGS__)
+
 int m_printf(const char * sFormat, ...);
 int m_sprintf(char *buf, const char * sFormat, ...);
+int m_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
 void m_printf_test(void);
 
 #endif /** end of __M_PRINTF_H__ */
