@@ -58,8 +58,8 @@ int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList)
 	char tmpBuf[32]; //! 数值转字符串临时数组
 	int len = 0; //! 当使用sprintf时，用于指示存放格式化字符存放的下标
     bool bReady = FALSE; //! 是否有数据格式化完成
-    char fmtBuf2[64] = {0}; //! 格式化数字为字符串
-    unsigned fmtPos2 = 0; //! 格式化数字到字符串buf的位置
+    char fmtBuf[64] = {0}; //! 格式化数字为字符串
+    unsigned fmtPos = 0; //! 格式化数字到字符串buf的位置
 	
 	do
 	{
@@ -144,7 +144,7 @@ int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList)
 					inserChar = ((FormatFlags&FORMAT_FLAG_PAD_ZERO) == FORMAT_FLAG_PAD_ZERO)?'0':' '; //! 占位符使用空格还是0字符填充
 					if(tmpVal < 0)
 					{
-						if(inserChar != '0')fmtBuf2[fmtPos2++] = '-';
+						if(inserChar != '0')fmtBuf[fmtPos++] = '-';
                         else if(inserChar == '0') //! 如果占位符是0，需要特殊处理
                         {
 						    if(strBuf != 0) strBuf[len++] = '-';
@@ -161,6 +161,7 @@ int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList)
                     FieldWidth = (FieldWidth>0&&v<0)?(FieldWidth-1):FieldWidth; //! 如果数值为负数，则占位符要减一
 					justify = ((FormatFlags&FORMAT_FLAG_LEFT_JUSTIFY) == FORMAT_FLAG_LEFT_JUSTIFY)?1:0; //! 1 - 左对齐；0 - 右对齐
 					if(i > 0) i--; //! 上面倒叙格式化时，i的位置最后对了1，故此减一
+                    else break; //! 没有任何内容序号格式化输出
                     bReady = TRUE;
 					break;
 				}
@@ -178,6 +179,7 @@ int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList)
 					FieldWidth = (FieldWidth>(unsigned)i)?(FieldWidth-(unsigned)i):0; //! 计算可插入空格的位域
 					justify = ((FormatFlags&FORMAT_FLAG_LEFT_JUSTIFY) == FORMAT_FLAG_LEFT_JUSTIFY)?1:0; //! 1 - 左对齐；0 - 右对齐
 					if(i > 0) i--; //! 上面倒叙格式化时，i的位置最后对了1，故此减一
+                    else break; //! 没有任何内容序号格式化输出
                     bReady = TRUE;
 					break;
 				}
@@ -200,6 +202,7 @@ int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList)
 					FieldWidth = (FieldWidth>(unsigned)i)?(FieldWidth-(unsigned)i):0; //! 计算可插入空格的位域
 					justify = ((FormatFlags&FORMAT_FLAG_LEFT_JUSTIFY) == FORMAT_FLAG_LEFT_JUSTIFY)?1:0; //! 1 - 左对齐；0 - 右对齐
 					if(i > 0) i--; //! 上面倒叙格式化时，i的位置最后对了1，故此减一
+                    else break; //! 没有任何内容序号格式化输出
                     bReady = TRUE;
 					break;
 				}
@@ -207,40 +210,17 @@ int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList)
 				{
 					const char * s = va_arg(*pParamList, const char *);
 					justify = 0;
+                    inserChar = ' '; //! 字符串的占位符强制为空格
 					i = 0; //! 字符串长度
                     while(s[i] != '\0')
                     {
-                        fmtBuf2[fmtPos2++] = s[i++];
+                        fmtBuf[fmtPos++] = s[i++];
                     }
 					FieldWidth = (FieldWidth>(unsigned)i)?(FieldWidth-(unsigned)i):0; //! 计算可插入空格的位域
 					justify = ((FormatFlags&FORMAT_FLAG_LEFT_JUSTIFY) == FORMAT_FLAG_LEFT_JUSTIFY)?1:0; //! 1 - 左对齐；0 - 右对齐
-					if(i > 0) i--; //! 上面倒叙格式化时，i的位置最后对了1，故此减一
-					if(justify == 0) //! 右对齐，则左边插入空格
-					{
-						for(i = 0; i < (int)FieldWidth; i++)
-						{
-							if(strBuf != 0) strBuf[len++] = ' ';
-							else m_uart_out(' ');
-						}
-					}
-                    
-                    /** 目前%s的打印无法放到bReady == TRUE处打印输出，还有bug，暂时保留在此处理 */
-                    i = 0;
-					while(i < (int)fmtPos2)
-					{
-						if(strBuf != 0) strBuf[len++] = fmtBuf2[i++];
-						else m_uart_out(fmtBuf2[i++]);
-					}
-                    for(i = 0; i < (int)sizeof(fmtBuf2); i++) fmtBuf2[i] = '\0';
-                    fmtPos2 = 0;
-					if(justify == 1) //! 左对齐，则右边插入空格
-					{
-						for(i = 0; i < (int)FieldWidth; i++)
-						{
-							if(strBuf != 0) strBuf[len++] = ' ';
-							else m_uart_out(' ');
-						}
-					}
+					if(i > 0) i = -1; //! 后面格式化处理是不用倒序，设为-1便会跳过
+                    else break; //! 没有任何内容序号格式化输出
+                    bReady = TRUE;
 					break;
 				}
 				case '%':
@@ -256,7 +236,7 @@ int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList)
             {
 				while(i >= 0)
 				{
-					fmtBuf2[fmtPos2++] = tmpBuf[i--];
+					fmtBuf[fmtPos++] = tmpBuf[i--];
 				}
 				if((justify == 0) || ((justify == 1) && (inserChar == '0'))) //! 右对齐，则左边插入空格（或者左对齐并且为0填充时，则强制为右对齐，即只在左边填充0，不能在右边填充0，会改变显示数值）
 				{
@@ -267,11 +247,11 @@ int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList)
 					}
 				}
 				i = 0;
-				while(i < (int)fmtPos2)
+				while(i < (int)fmtPos)
 				{
-					if(strBuf != 0) strBuf[len++] = fmtBuf2[i++];
-					else m_uart_out(fmtBuf2[i++]);
-				}// while(i < (int)fmtPos2);//while(fmtBuf2[i] != '\0');
+					if(strBuf != 0) strBuf[len++] = fmtBuf[i++];
+					else m_uart_out(fmtBuf[i++]);
+				}
 				if((justify == 1) && (inserChar != '0')) //! 左对齐，并且占位符不是数字0时，则右边插入空格（为0不能在右边插入占位符，会改变显示数值）
 				{
 					for(i = 0; i < (int)FieldWidth; i++)
@@ -281,9 +261,9 @@ int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList)
 					}
 				}
                 
-                for(i = 0; i < (int)sizeof(fmtBuf2); i++) fmtBuf2[i] = '\0';
+                for(i = 0; i < (int)sizeof(fmtBuf); i++) fmtBuf[i] = '\0';
                 for(i = 0; i < (int)sizeof(tmpBuf); i++) tmpBuf[i] = '\0';
-                fmtPos2 =  0;
+                fmtPos =  0;
                 //len = 0;
                 i = 0;
                 FieldWidth = 0;
@@ -404,8 +384,10 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
 */
 void m_printf_test(void)
 { 
-    char buf[16] = {"12345\r\n"};
+    m_printf("%05d|%6d|%7d|\r\n", 123, -456, 789);
     m_printf("%5s|%6s|%7s|\r\n", "test", "test", "test");
+    #if 1
+    char buf[16] = {"12345\r\n"};
     //-----------------------------------------------
     M_LOG_ERROR("error test\r\n");
     M_LOG_WARNING("warning test\r\n");
@@ -413,7 +395,6 @@ void m_printf_test(void)
     M_LOG_DEBUG("debug test\r\n");
     m_printf(buf);
     //-----------------------------------------------
-    m_printf("%05d|%6d|%7d|\r\n", 123, -456, 789);
     m_printf("%05d|%6d|%7d|\r\n", -123, 456, -789);
     m_printf("%-05d|%-6d|%-7d|\r\n", 123, -456, 789);
     m_printf("%-05d|%-6d|%-7d|\r\n", -123, 456, -789);
@@ -443,4 +424,5 @@ void m_printf_test(void)
     M_LOG_DEBUG("debug test\r\n");
     m_printf("abc\r\n");
     m_printf("%s\r\n","abc");/**/
+    #endif
 }
