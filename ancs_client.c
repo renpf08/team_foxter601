@@ -2101,7 +2101,8 @@ void AppInit(sleep_state last_sleep_state)
 #ifdef ENABLE_UART  
     /* Initialise the UART interface */
     m_uart_init();
-    //m_printf_test();
+    //m_printf("maliwen test\r\n");
+    m_printf_test();
 #endif /* ENABLE_UART */
     
     m_devname_init();
