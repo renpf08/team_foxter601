@@ -26,7 +26,9 @@ typedef char *  va_list;
 #define M_LOG_DEBUG(...)    m_log(__FILE__, __func__, __LINE__, "<debug>", __VA_ARGS__)
 
 int m_printf(const char * sFormat, ...);
+int m_nprintf(unsigned size, const char * sFormat, ...);
 int m_sprintf(char *buf, const char * sFormat, ...);
+int m_snprintf(char *buf, unsigned size, const char * sFormat, ...);
 int m_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
 void m_printf_test(void);
 

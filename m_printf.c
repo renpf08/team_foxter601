@@ -14,7 +14,7 @@
 #define FORMAT_FLAG_ALTERNATE      (1u << 3)
 
 void m_uart_out(char c);
-int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList);
+int m_vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pParamList);
 
 /**
 * @brief 当使用printf时，m_vprintf每格式化一个字符就输出一个字符（也可以全部格式化到一个buffer完之后整体输出，此处涉及到效率问题，后期可以根据实际情况再做优化）
@@ -40,7 +40,7 @@ void m_uart_out(char c)
 * @note none
 */
 //! 注：调试串口打印函数时，可能不能正常进入m_vprintf函数，此时可以尝试把hexCharTbl定义为全局变量
-int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList) 
+int m_vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pParamList) 
 {
     char hexCharTbl[2][16] = {{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}, 
                               {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' }};
@@ -65,10 +65,7 @@ int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList)
 	{
 		c = *sFormat;
 		sFormat++;
-		if (c == 0u)
-		{
-			break;
-		}
+		if ((c == 0u) && (size == 0)) break; //! 当遇到字符为0值时，如果长度未结束，则继续输出(当m_nprintf中未使用“%s”格式化时，会直接逐个字符输出)
 		if (c == '%')
 		{
 			FormatFlags = 0u;
@@ -212,10 +209,9 @@ int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList)
 					justify = 0;
                     inserChar = ' '; //! 字符串的占位符强制为空格
 					i = 0; //! 字符串长度
-                    while(s[i] != '\0')
-                    {
-                        fmtBuf[fmtPos++] = s[i++];
-                    }
+                    if(size > 0) while((unsigned)i < size) fmtBuf[fmtPos++] = s[i++]; //! 如果指定了按长度格式化，则格式化指定长度的字符
+                    else while(s[i] != '\0') fmtBuf[fmtPos++] = s[i++]; //! 如果没指定格式化长度，则逐个格式化，直到遇到0值则结束
+                    if(size > 0) size = 0; //! 不要忘了当指定长度格式化完毕之后，要把长度值size清零，否则函数将永远跳不出去
 					FieldWidth = (FieldWidth>(unsigned)i)?(FieldWidth-(unsigned)i):0; //! 计算可插入空格的位域
 					justify = ((FormatFlags&FORMAT_FLAG_LEFT_JUSTIFY) == FORMAT_FLAG_LEFT_JUSTIFY)?1:0; //! 1 - 左对齐；0 - 右对齐
 					if(i > 0) i = -1; //! 后面格式化处理是不用倒序，设为-1便会跳过
@@ -273,6 +269,7 @@ int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList)
 		}
 		else
 		{
+            if(size > 0) size--; //! 如果是带长度的格式化输出，则每输出一个字符，长度减一(当m_nprintf中未使用“%s”格式化时，会直接逐个字符输出)
 			if(strBuf != 0) strBuf[len++] = c;
 			else m_uart_out(c);
 		}
@@ -297,7 +294,29 @@ int m_printf(const char * sFormat, ...)
 
     va_start(ParamList, sFormat);
     r = va_arg(ParamList, int); //! 测试发现，参数列表的第一个参数是乱码，此处需要做一次读操作相当于去掉第一个参数！！！
-    r = m_vprintf(0, sFormat, &ParamList);
+    r = m_vprintf(0, 0, sFormat, &ParamList);
+    va_end(ParamList);
+    return r;
+}
+
+/**
+* @brief 带指定长度的格式化字符串，并输出到串口
+* @param [in] size - 指定格式化的参数长度；sFormat - 格式化字符串；... - 格式化数值列表
+* @param [out] none
+* @return dont care
+* @data 2020/03/05 09:19
+* @author maliwen
+* @note 参数size用于指定长度的格式化字符串的输出，以保证输出字符串中间有0值时不会被截断
+*       如果待格式化输出的字符串中可能包含0值时，需要使用此函数(指定格式化的长度)
+*/
+int m_nprintf(unsigned size, const char * sFormat, ...)
+{
+    int r = 0;
+    va_list ParamList;
+
+    va_start(ParamList, sFormat);
+    //r = va_arg(ParamList, int); //! 测试发现，参数列表的第一个参数是乱码，此处需要做一次读操作相当于去掉第一个参数！！！
+    r = m_vprintf(0, size, sFormat, &ParamList);
     va_end(ParamList);
     return r;
 }
@@ -318,7 +337,30 @@ int m_sprintf(char *buf, const char * sFormat, ...)
 
     va_start(ParamList, sFormat);
     //r = va_arg(ParamList, int); //! 测试发现，参数列表的第一个参数是乱码，此处需要做一次读操作相当于去掉第一个参数！！！
-    r = m_vprintf(buf, sFormat, &ParamList);
+    r = m_vprintf(buf, 0, sFormat, &ParamList);
+    va_end(ParamList);
+    buf[r] = '\0';
+    return r;
+}
+
+/**
+* @brief 带指定长度的格式化字符串到指定buffer，并输出该buffer
+* @param [in] size - 指定格式化的参数长度；buf - 格式化后的字符串存于该buffer，用于输出
+* @param [out] buf
+* @return dont care
+* @data 2020/03/05 10:57
+* @author maliwen
+* @note 参数size用于指定长度的格式化字符串的输出，以保证输出字符串中间有0值时不会被截断
+*       如果待格式化输出的字符串中可能包含0值时，需要使用此函数(指定格式化的长度)
+*/
+int m_snprintf(char *buf, unsigned size, const char * sFormat, ...)
+{
+    int r = 0;
+    va_list ParamList;
+
+    va_start(ParamList, sFormat);
+    //r = va_arg(ParamList, int); //! 测试发现，参数列表的第一个参数是乱码，此处需要做一次读操作相当于去掉第一个参数！！！
+    r = m_vprintf(buf, size, sFormat, &ParamList);
     va_end(ParamList);
     buf[r] = '\0';
     return r;
@@ -368,7 +410,7 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
 
     va_start(ParamList, sFormat);
     r = va_arg(ParamList, int); //! 测试发现，参数列表的第一个参数是乱码，此处需要做一次读操作相当于去掉第一个参数！！！
-    r = m_vprintf(0, str, &ParamList);
+    r = m_vprintf(0, 0, str, &ParamList);
     va_end(ParamList);
     return r;
 }
@@ -384,45 +426,54 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
 */
 void m_printf_test(void)
 { 
-    m_printf("%05d|%6d|%7d|\r\n", 123, -456, 789);
-    m_printf("%5s|%6s|%7s|\r\n", "test", "test", "test");
-    #if 1
-    char buf[16] = {"12345\r\n"};
-    //-----------------------------------------------
-    M_LOG_ERROR("error test\r\n");
-    M_LOG_WARNING("warning test\r\n");
-    M_LOG_INFO("info test\r\n");
-    M_LOG_DEBUG("debug test\r\n");
-    m_printf(buf);
-    //-----------------------------------------------
+    #if 0
+    //--------------------------------------------------------------------------
+    //十六进制带长度控制的格式化输出，用于测试字符串中间有0值的输出情况
+    char buf[16] = {"\x12\x34\x00\x56\x00\x78\x00\x00\x91\x00\x00\x00"};
+    m_nprintf(12, buf); //! 指定长度并且不带格式控制的格式化输出
+    m_nprintf(12, "%s", buf); //! 指定长度且带格式控制的格式化输出
+    m_snprintf(buf, 12, "%s", buf); //! 指定长度（必去带格式控制）的格式化到指定buffer
+    m_nprintf(12, buf); //! 格式化到指定的buffer后，再格式化输出到串口
+    //--------------------------------------------------------------------------
+    //字符串输出，用于测试打个字符输出，以及单个字符加回车换行数处等
+    m_printf("a");
+    m_printf("a\r\n");
+    m_printf("abc\r\n");
+    m_printf("%s\r\n","abc");
+    //--------------------------------------------------------------------------
+    //十进制带符号数格式化输出，包括左对齐、右对齐、占位符0填充等输出测试
     m_printf("%05d|%6d|%7d|\r\n", -123, 456, -789);
     m_printf("%-05d|%-6d|%-7d|\r\n", 123, -456, 789);
     m_printf("%-05d|%-6d|%-7d|\r\n", -123, 456, -789);
-    //-----------------------------------------------
+    //--------------------------------------------------------------------------
+    //十进制无符号数格式化输出，包括左对齐、右对齐、占位符0填充等输出测试
     m_printf("%05u|%6u|%7u|\r\n", 123, -456, 789);
     m_printf("%05u|%6u|%7u|\r\n", -123, 456, -789);
     m_printf("%-05u|%-6u|%-7u|\r\n", 123, -456, 789);
     m_printf("%-05u|%-6u|%-7u|\r\n", -123, 456, -789);
-    //-----------------------------------------------
+    //--------------------------------------------------------------------------
+    //十六进制数格式化输出，包括左对齐、右对齐、占位符0填充等输出测试
     m_printf("%05x|%6x|%7x|\r\n", 123, -456, 789);
     m_printf("%05x|%6x|%7x|\r\n", -123, 456, -789);
     m_printf("%-05X|%-6X|%-7X|\r\n", 123, -456, 789);
     m_printf("%-05X|%-6X|%-7X|\r\n", -123, 456, -789);
-    //-----------------------------------------------
+    //--------------------------------------------------------------------------
+    //字符串格式化输出，包括左对齐、右对齐、占位符0填充等输出测试（字符串的占位符强制为空格）
     m_printf("%5s|%6s|%7s|\r\n", "test", "test", "test");
     m_printf("%05s|%06s|%07s|\r\n", "test", "test", "test");
     m_printf("%-5s|%-6s|%-7s|\r\n", "test", "test", "test");
     m_printf("%-05s|%-06s|%-07s|\r\n", "test", "test", "test");
-    //-----------------------------------------------
+    //--------------------------------------------------------------------------
+    //指针地址格式化输出，包括大小写十六进制显示，以及空格符、0字符占位符
     m_printf("addr:%p\r\n", buf);
     m_printf("addr:%P\r\n", buf);
+    m_printf("addr:%8P\r\n", buf);
     m_printf("addr:%08p\r\n", buf);
-    //-----------------------------------------------
+    //--------------------------------------------------------------------------
+    //格式化日志输出，包括路径名、函数名、行号、调试等级等（后续可看情况添加，如线程名，时间等）
     M_LOG_ERROR("error test\r\n");
     M_LOG_WARNING("warning test\r\n");
-    M_LOG_INFO("info test\r\n");/**/
+    M_LOG_INFO("info test\r\n");
     M_LOG_DEBUG("debug test\r\n");
-    m_printf("abc\r\n");
-    m_printf("%s\r\n","abc");/**/
     #endif
 }
