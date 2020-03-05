@@ -55,7 +55,7 @@ int m_vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pPara
 	unsigned NumDigits; //! 主要用于浮点数（该平台不支持浮点类型）
 	unsigned FormatFlags; //! 用于格式化控制的字符
 	unsigned FieldWidth = 0; //! 格式化后数据显示的占位数
-	char tmpBuf[M_PRINT_BUFF_SIZE]; //! 数值转字符串临时数组
+	char tmpBuf[16]; //! 数值转字符串临时数组
 	int len = 0; //! 当使用sprintf时，用于指示存放格式化字符存放的下标
     bool bReady = FALSE; //! 是否有数据格式化完成
     char fmtBuf[M_PRINT_BUFF_SIZE] = {0}; //! 格式化数字为字符串
@@ -209,7 +209,7 @@ int m_vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pPara
 					justify = 0;
                     inserChar = ' '; //! 字符串的占位符强制为空格
 					i = 0; //! 字符串长度
-                    if(size > 0) while((unsigned)i < size) fmtBuf[fmtPos++] = s[i++]; //! 如果指定了按长度格式化，则格式化指定长度的字符
+                    if(size > 0) while((unsigned)i < size) {if(fmtPos >= M_PRINT_BUFF_SIZE) break; fmtBuf[fmtPos++] = s[i++];} //! 如果指定了按长度格式化，则格式化指定长度的字符
                     else while(s[i] != '\0') {if(fmtPos >= M_PRINT_BUFF_SIZE) break; fmtBuf[fmtPos++] = s[i++];} //! 如果没指定格式化长度，则逐个格式化，直到遇到0值则结束
                     if(size > 0) size = 0; //! 不要忘了当指定长度格式化完毕之后，要把长度值size清零，否则函数将永远跳不出去
 					FieldWidth = (FieldWidth>(unsigned)i)?(FieldWidth-(unsigned)i):0; //! 计算可插入空格的位域
@@ -379,14 +379,13 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
 {
     int r = 0;
     va_list ParamList;
-    char preStr[M_PRINT_BUFF_SIZE] = {0};
+    char preStr[64] = {0};
     char str[M_PRINT_BUFF_SIZE] = {0};
     unsigned len = 0;
     
-    
     do
     {
-        if(len >= M_PRINT_BUFF_SIZE) break;
+        if(len >= sizeof(preStr)) break;
         preStr[len++] = *file;
         if(*file == '\\')
         {
@@ -396,7 +395,7 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
     } while(*++file != '\0');
     preStr[len] = '\0';
     
-    m_sprintf(str, "%-25s%-25s%6d%25s ", preStr, func, line, level);
+    m_sprintf(str, "%-30s%-40s%6d%10s: ", preStr, func, line, level);
     
     len = 0;
     while(str[len] != 0u)

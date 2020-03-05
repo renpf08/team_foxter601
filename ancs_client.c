@@ -633,7 +633,7 @@ static void handleBondingChanceTimerExpiry(timer_id tid)
          * encrypted the link using old keys. Disconnect the link.
          */
         AppSetState(app_disconnecting);
-        M_LOG_DEBUG("handleBondingChanceTimerExpiry() -> AppSetState(app_disconnecting)\r\n");
+        M_LOG_DEBUG("app_disconnecting\r\n");
     }/* else it may be due to some race condition. Ignore it. */
 }
 
@@ -673,7 +673,7 @@ static void handleSignalGattCancelConnectCfm(GATT_CANCEL_CONNECT_CFM_T
         else
         {
             AppSetState(app_fast_advertising);
-            M_LOG_DEBUG("handleSignalGattCancelConnectCfm() -> AppSetState(app_fast_advertising)\r\n");
+            M_LOG_DEBUG("app_fast_advertising\r\n");
         }
     }
     else
@@ -687,13 +687,13 @@ static void handleSignalGattCancelConnectCfm(GATT_CANCEL_CONNECT_CFM_T
             case app_fast_advertising:
             {
                 AppSetState(app_slow_advertising);
-                M_LOG_DEBUG("handleSignalGattCancelConnectCfm() -> AppSetState(app_slow_advertising)\r\n");
+                M_LOG_DEBUG("app_slow_advertising\r\n");
             }
             break;
             case app_slow_advertising:
             {
                 AppSetState(app_idle);
-                M_LOG_DEBUG("handleSignalGattCancelConnectCfm() -> AppSetState(app_idle)\r\n");
+                M_LOG_DEBUG("app_idle\r\n");
             }
             break;
             default:
@@ -753,7 +753,7 @@ static void handleSignalLmDisconnectComplete(
                 appDataInit();
                 /* Restart advertising */
                 AppSetState(app_fast_advertising);
-                M_LOG_DEBUG("handleSignalLmDisconnectComplete() -> AppSetState(app_fast_advertising)\r\n");
+                M_LOG_DEBUG("app_fast_advertising\r\n");
 
             }
             break;
@@ -795,7 +795,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                 g_app_data.st_ucid = p_event_data->cid;
 
                 AppSetState(app_connected);
-                M_LOG_DEBUG("handleSignalGattConnectCfm() -> AppSetState(app_connected)\r\n");
+                M_LOG_DEBUG("app_connected\r\n");
       
 
                 if(g_app_data.bonded == TRUE && 
@@ -812,7 +812,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                      */
                     g_app_data.auth_failure = TRUE;
                     AppSetState(app_disconnecting);
-                    M_LOG_DEBUG("handleSignalGattConnectCfm() -> AppSetState(app_disconnecting)\r\n");
+                    M_LOG_DEBUG("app_disconnecting\r\n");
                 }
                 else
                 {
@@ -853,7 +853,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                  * again
                  */
                 AppSetState(app_idle);
-                M_LOG_DEBUG("handleSignalGattConnectCfm() -> AppSetState(app_idle)\r\n");
+                M_LOG_DEBUG("app_idle\r\n");
             }
         }
         break;
@@ -1183,7 +1183,7 @@ static void handleSignalSmSimplePairingCompleteInd(
                  if(p_event_data->status == sm_status_repeated_attempts)
                  {
                     AppSetState(app_disconnecting);
-                    M_LOG_DEBUG("handleSignalSmSimplePairingCompleteInd() -> AppSetState(app_disconnecting)\r\n");
+                    M_LOG_DEBUG("app_disconnecting\r\n");
                  }
                  else if(g_app_data.bonded)
                  {
@@ -1293,7 +1293,7 @@ static void handleSignalGattDbCfm(GATT_ADD_DB_CFM_T *p_event_data)
             {
                  /* Database is set up. So start advertising */
                 AppSetState(app_fast_advertising);
-                M_LOG_DEBUG("handleSignalGattDbCfm() -> AppSetState(app_fast_advertising)\r\n");
+                M_LOG_DEBUG("app_fast_advertising\r\n");
             }
             else
             {
@@ -1460,7 +1460,7 @@ static void handleGattReadCharValCfm(GATT_READ_CHAR_VAL_CFM_T *p_event_data)
 
         /* Something went wrong. We can't recover, so disconnect */
         AppSetState(app_disconnecting);
-        M_LOG_DEBUG("handleGattReadCharValCfm() -> AppSetState(app_disconnecting)\r\n");
+        M_LOG_DEBUG("app_disconnecting\r\n");
     }
 }
 
@@ -1535,7 +1535,7 @@ static void handleGattWriteCharValCfm(GATT_WRITE_CHAR_VAL_CFM_T *p_event_data)
         {
             /* Something went wrong. We can't recover, so disconnect */
             AppSetState(app_disconnecting);
-            M_LOG_DEBUG("handleGattWriteCharValCfm() -> AppSetState(app_disconnecting)\r\n");
+            M_LOG_DEBUG("app_disconnecting\r\n");
         }
     }
 }
@@ -1633,7 +1633,7 @@ extern void OtaTimerHandler(timer_id tid)
          * Disconnect and wait for some one else to connect.
          */
         AppSetState(app_disconnecting);
-        M_LOG_DEBUG("OtaTimerHandler() -> AppSetState(app_disconnecting)\r\n");
+        M_LOG_DEBUG("app_disconnecting\r\n");
 
     }
 }
@@ -1742,7 +1742,7 @@ extern void HandleShortButtonPress(void)
         {
              /* Start fast undirected advertisements. */
              AppSetState(app_fast_advertising);
-             M_LOG_DEBUG("HandleShortButtonPress() -> AppSetState(app_fast_advertising)\r\n");
+             M_LOG_DEBUG("app_fast_advertising\r\n");
         }
         break;
         default:
@@ -1797,7 +1797,7 @@ extern void HandlePairingRemoval(void)
                  * updated while exiting disconnecting state
                  */
                 AppSetState(app_disconnecting);
-                M_LOG_DEBUG("HandlePairingRemoval() -> AppSetState(app_disconnecting)\r\n");
+                M_LOG_DEBUG("app_disconnecting\r\n");
 
                 /* Reset and clear the whitelist */
                 LsResetWhiteList();
@@ -1843,7 +1843,7 @@ extern void HandlePairingRemoval(void)
 
                 /* Start fast undirected advertisements. */
                 AppSetState(app_fast_advertising);
-                M_LOG_DEBUG("HandlePairingRemoval() -> AppSetState(app_fast_advertising)\r\n");
+                M_LOG_DEBUG("app_fast_advertising\r\n");
             }
             break;
 
@@ -2117,7 +2117,7 @@ void AppInit(sleep_state last_sleep_state)
 #ifdef ENABLE_UART  
     /* Initialise the UART interface */
     m_uart_init();
-    //m_printf("maliwen test\r\n");
+    m_printf("system started.\r\n");
     m_printf_test();
 #endif /* ENABLE_UART */
     
@@ -2424,7 +2424,7 @@ void HandleConnectReq(void)
     if(g_app_data.state == app_idle)
     {
         AppSetState(app_fast_advertising);
-        M_LOG_DEBUG("HandleConnectReq() -> AppSetState(app_fast_advertising)\r\n");
+        M_LOG_DEBUG("app_fast_advertising\r\n");
     }
 }
 
@@ -2445,7 +2445,7 @@ void HandleDisconnectReq(void)
     {
         /* Initiate a disconnect */
         AppSetState(app_disconnecting);
-        M_LOG_DEBUG("HandleDisconnectReq() -> AppSetState(app_disconnecting)\r\n");
+        M_LOG_DEBUG("app_disconnecting\r\n");
     }
 }
 

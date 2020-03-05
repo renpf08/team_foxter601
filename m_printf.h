@@ -16,7 +16,7 @@ typedef char *  va_list;
 #define va_arg(ap,t)	(*(t *)((ap += _INTSIZEOF(t)) - _INTSIZEOF(t)))  
 #define va_end(ap)		(ap = (va_list)0)
 
-#define M_PRINT_BUFF_SIZE    255 //! printf格式化buffer最大长度
+#define M_PRINT_BUFF_SIZE    128 //! printf格式化buffer最大长度
 
 #define M_LOG_ERROR(...)    m_log(__FILE__, __func__, __LINE__, "<error>", __VA_ARGS__)
 #define M_LOG_WARNING(...)  m_log(__FILE__, __func__, __LINE__, "<warning>", __VA_ARGS__)

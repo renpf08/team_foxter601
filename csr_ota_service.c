@@ -357,7 +357,7 @@ extern void OtaHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
 
                 /* Disconnect from the remote device */
                 AppSetState(app_disconnecting);
-                M_LOG_DEBUG("OtaHandleAccessWrite() -> AppSetState(app_disconnecting)\r\n");
+//                M_LOG_DEBUG("OtaHandleAccessWrite() -> AppSetState(app_disconnecting)\r\n");
 
             }
             break;
