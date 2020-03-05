@@ -55,10 +55,10 @@ int m_vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pPara
 	unsigned NumDigits; //! 主要用于浮点数（该平台不支持浮点类型）
 	unsigned FormatFlags; //! 用于格式化控制的字符
 	unsigned FieldWidth = 0; //! 格式化后数据显示的占位数
-	char tmpBuf[32]; //! 数值转字符串临时数组
+	char tmpBuf[M_PRINT_BUFF_SIZE]; //! 数值转字符串临时数组
 	int len = 0; //! 当使用sprintf时，用于指示存放格式化字符存放的下标
     bool bReady = FALSE; //! 是否有数据格式化完成
-    char fmtBuf[64] = {0}; //! 格式化数字为字符串
+    char fmtBuf[M_PRINT_BUFF_SIZE] = {0}; //! 格式化数字为字符串
     unsigned fmtPos = 0; //! 格式化数字到字符串buf的位置
 	
 	do
@@ -210,7 +210,7 @@ int m_vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pPara
                     inserChar = ' '; //! 字符串的占位符强制为空格
 					i = 0; //! 字符串长度
                     if(size > 0) while((unsigned)i < size) fmtBuf[fmtPos++] = s[i++]; //! 如果指定了按长度格式化，则格式化指定长度的字符
-                    else while(s[i] != '\0') fmtBuf[fmtPos++] = s[i++]; //! 如果没指定格式化长度，则逐个格式化，直到遇到0值则结束
+                    else while(s[i] != '\0') {if(fmtPos >= M_PRINT_BUFF_SIZE) break; fmtBuf[fmtPos++] = s[i++];} //! 如果没指定格式化长度，则逐个格式化，直到遇到0值则结束
                     if(size > 0) size = 0; //! 不要忘了当指定长度格式化完毕之后，要把长度值size清零，否则函数将永远跳不出去
 					FieldWidth = (FieldWidth>(unsigned)i)?(FieldWidth-(unsigned)i):0; //! 计算可插入空格的位域
 					justify = ((FormatFlags&FORMAT_FLAG_LEFT_JUSTIFY) == FORMAT_FLAG_LEFT_JUSTIFY)?1:0; //! 1 - 左对齐；0 - 右对齐
@@ -379,13 +379,14 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
 {
     int r = 0;
     va_list ParamList;
-    char preStr[32] = {0};
-    char str[128] = {0};
+    char preStr[M_PRINT_BUFF_SIZE] = {0};
+    char str[M_PRINT_BUFF_SIZE] = {0};
     unsigned len = 0;
     
     
     do
     {
+        if(len >= M_PRINT_BUFF_SIZE) break;
         preStr[len++] = *file;
         if(*file == '\\')
         {
@@ -400,10 +401,12 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
     len = 0;
     while(str[len] != 0u)
     {
+        if(len >= M_PRINT_BUFF_SIZE) break;
         len++;
     }
     while(*sFormat != 0u)
     {
+        if(len >= M_PRINT_BUFF_SIZE) break;
         str[len++] = *sFormat++;
     }
     str[len] = '\0';

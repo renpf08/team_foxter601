@@ -29,8 +29,8 @@
  *============================================================================*/
 
 #include "ota_customisation.h"
-
 #include "app_gatt.h"
+#include "m_printf.h"
 
 #if defined(USE_STATIC_RANDOM_ADDRESS) || defined(USE_RESOLVABLE_RANDOM_ADDRESS)
 #include <gap_app_if.h>
@@ -357,6 +357,7 @@ extern void OtaHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
 
                 /* Disconnect from the remote device */
                 AppSetState(app_disconnecting);
+                M_LOG_DEBUG("OtaHandleAccessWrite() -> AppSetState(app_disconnecting)\r\n");
 
             }
             break;
