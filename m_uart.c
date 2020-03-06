@@ -59,6 +59,7 @@ static void m_timer_uart_recev_handler(const timer_id id)
     uint8 len = uartCtrl.bufLen>20?20:uartCtrl.bufLen;
     SerialSendNotification(uartCtrl.uartBuf, len); //! ·¢ËÍBLEÍ¨Öª
     m_nprintf((unsigned)uartCtrl.bufLen, (char *)uartCtrl.uartBuf);
+    //M_LOG_DEBUG((char *)uartCtrl.uartBuf);
     //m_printf("%s", uartCtrl.uartBuf);
     uartCtrl.bUartTimerStart = FALSE;
     MemSet(uartCtrl.uartBuf, 0, sizeof(uartCtrl.uartBuf));

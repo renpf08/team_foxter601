@@ -7,6 +7,7 @@
 */
 #include <uart.h>
 #include "m_printf.h"
+#include "m_timer.h"
 
 #define FORMAT_FLAG_LEFT_JUSTIFY   (1u << 0)
 #define FORMAT_FLAG_PAD_ZERO       (1u << 1)
@@ -382,6 +383,7 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
     char preStr[64] = {0};
     char str[M_PRINT_BUFF_SIZE] = {0};
     unsigned len = 0;
+    time_t* time = m_get_time();
     
     do
     {
@@ -395,7 +397,7 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
     } while(*++file != '\0');
     preStr[len] = '\0';
     
-    m_sprintf(str, "%-30s%-40s%6d%10s: ", preStr, func, line, level);
+    m_sprintf(str, "<%02d:%02d:%02d> %-30s%-40s%6d%10s: ", time->hour, time->minute, time->second, preStr, func, line, level);
     
     len = 0;
     while(str[len] != 0u)

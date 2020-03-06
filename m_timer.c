@@ -32,6 +32,7 @@
 
 /* Declare timer buffer to be managed by firmware library */
 //static uint16 app_timers[SIZEOF_APP_TIMER * MAX_TIMERS];
+static time_t time;
 
 /*============================================================================*
  *  Private Function Prototypes
@@ -219,10 +220,26 @@ static uint8 writeASCIICodedNumber(uint32 value)
 //------------------------------------------------------------------------------
 static void m_timer_clock_handler(timer_id const id);
 void m_timer_clock_init(void);
+time_t* m_get_time(void) { return &time; }
 
 static void m_timer_clock_handler(timer_id const id)
 {
-    m_printf("m_timer_clock_handler\r\n");
+    time.second++;
+    if(time.second >= 60)
+    {
+        time.second = 0;
+        time.minute++;
+    }
+    if(time.minute >= 60)
+    {
+        time.minute = 0;
+        time.hour++;
+    }
+    if(time.hour >= 24)
+    {
+        time.hour = 0;
+    }
+    //m_printf("time %02d:%02d:%02d\r\n", time.hour, time.minute, time.second);
     m_timer_clock_init();
 }
 /**

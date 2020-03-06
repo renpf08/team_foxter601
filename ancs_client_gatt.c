@@ -267,7 +267,6 @@ static void gattAdvertTimerHandler(timer_id tid)
         if(g_app_data.state == app_fast_advertising)
         {
             /* Advertisement timer for reduced power connections */
-            M_LOG_DEBUG("fast adv timeout, set slow adv timer value.\r\n");
             g_app_data.advert_timer_value = 
                                 SLOW_CONNECTION_ADVERT_TIMEOUT_VALUE;
         }

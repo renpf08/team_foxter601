@@ -71,6 +71,7 @@
   <file path="csr_ota_db.db" />
   <file path="gatt_service_db.db" />
  </folder>
+ <file path="datetime.h" />
  <file path="ancs_csr101x_A05.keyr" />
  <file path="bootloader.keyr" />
  <properties currentconfiguration="Debug" >
