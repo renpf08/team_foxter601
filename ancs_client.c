@@ -632,8 +632,8 @@ static void handleBondingChanceTimerExpiry(timer_id tid)
         /* The bonding chance timer has expired. This means the remote has not
          * encrypted the link using old keys. Disconnect the link.
          */
-        AppSetState(app_disconnecting);
         M_LOG_DEBUG("app_disconnecting\r\n");
+        AppSetState(app_disconnecting);
     }/* else it may be due to some race condition. Ignore it. */
 }
 
@@ -668,12 +668,13 @@ static void handleSignalGattCancelConnectCfm(GATT_CANCEL_CONNECT_CFM_T
         /* Trigger fast advertisements */
         if(g_app_data.state == app_fast_advertising)
         {
+            M_LOG_DEBUG("trigger fast advertisements\r\n");
             GattTriggerFastAdverts();
         }
         else
         {
-            AppSetState(app_fast_advertising);
             M_LOG_DEBUG("app_fast_advertising\r\n");
+            AppSetState(app_fast_advertising);
         }
     }
     else
@@ -686,14 +687,14 @@ static void handleSignalGattCancelConnectCfm(GATT_CANCEL_CONNECT_CFM_T
              */
             case app_fast_advertising:
             {
-                AppSetState(app_slow_advertising);
                 M_LOG_DEBUG("app_slow_advertising\r\n");
+                AppSetState(app_slow_advertising);
             }
             break;
             case app_slow_advertising:
             {
-                AppSetState(app_idle);
                 M_LOG_DEBUG("app_idle\r\n");
+                AppSetState(app_idle);
             }
             break;
             default:
@@ -752,8 +753,8 @@ static void handleSignalLmDisconnectComplete(
                 g_app_data.notif_configuring = FALSE;
                 appDataInit();
                 /* Restart advertising */
-                AppSetState(app_fast_advertising);
                 M_LOG_DEBUG("app_fast_advertising\r\n");
+                AppSetState(app_fast_advertising);
 
             }
             break;
@@ -794,8 +795,8 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                 /* Store received UCID */
                 g_app_data.st_ucid = p_event_data->cid;
 
-                AppSetState(app_connected);
                 M_LOG_DEBUG("app_connected\r\n");
+                AppSetState(app_connected);
       
 
                 if(g_app_data.bonded == TRUE && 
@@ -811,8 +812,8 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                      * connected. So disconnect and start advertising again
                      */
                     g_app_data.auth_failure = TRUE;
-                    AppSetState(app_disconnecting);
                     M_LOG_DEBUG("app_disconnecting\r\n");
+                    AppSetState(app_disconnecting);
                 }
                 else
                 {
@@ -852,8 +853,8 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                 /* Else wait for user activity before we start advertising 
                  * again
                  */
-                AppSetState(app_idle);
                 M_LOG_DEBUG("app_idle\r\n");
+                AppSetState(app_idle);
             }
         }
         break;
@@ -1182,8 +1183,8 @@ static void handleSignalSmSimplePairingCompleteInd(
                  */
                  if(p_event_data->status == sm_status_repeated_attempts)
                  {
-                    AppSetState(app_disconnecting);
                     M_LOG_DEBUG("app_disconnecting\r\n");
+                    AppSetState(app_disconnecting);
                  }
                  else if(g_app_data.bonded)
                  {
@@ -1292,8 +1293,13 @@ static void handleSignalGattDbCfm(GATT_ADD_DB_CFM_T *p_event_data)
             if(p_event_data->result == sys_status_success)
             {
                  /* Database is set up. So start advertising */
-                AppSetState(app_fast_advertising);
+                /**original advertise mode: fast adv 30s -> slow adv 60s -> idle*/
                 M_LOG_DEBUG("app_fast_advertising\r\n");
+                AppSetState(app_fast_advertising);
+                
+                /** new advertise mode: slow adv mode with no fast adv or idle*/
+                /*M_LOG_DEBUG("app_slow_advertising\r\n");
+                AppSetState(app_slow_advertising);*/
             }
             else
             {
@@ -1459,8 +1465,8 @@ static void handleGattReadCharValCfm(GATT_READ_CHAR_VAL_CFM_T *p_event_data)
            when we receive disconnect indication */
 
         /* Something went wrong. We can't recover, so disconnect */
-        AppSetState(app_disconnecting);
         M_LOG_DEBUG("app_disconnecting\r\n");
+        AppSetState(app_disconnecting);
     }
 }
 
@@ -1534,8 +1540,8 @@ static void handleGattWriteCharValCfm(GATT_WRITE_CHAR_VAL_CFM_T *p_event_data)
         else
         {
             /* Something went wrong. We can't recover, so disconnect */
-            AppSetState(app_disconnecting);
             M_LOG_DEBUG("app_disconnecting\r\n");
+            AppSetState(app_disconnecting);
         }
     }
 }
@@ -1632,8 +1638,8 @@ extern void OtaTimerHandler(timer_id tid)
         /* The remote device does not support anything interesting.
          * Disconnect and wait for some one else to connect.
          */
-        AppSetState(app_disconnecting);
         M_LOG_DEBUG("app_disconnecting\r\n");
+        AppSetState(app_disconnecting);
 
     }
 }
@@ -1741,8 +1747,8 @@ extern void HandleShortButtonPress(void)
         case app_idle:
         {
              /* Start fast undirected advertisements. */
-             AppSetState(app_fast_advertising);
              M_LOG_DEBUG("app_fast_advertising\r\n");
+             AppSetState(app_fast_advertising);
         }
         break;
         default:
@@ -1796,8 +1802,8 @@ extern void HandlePairingRemoval(void)
                  * and services data related to bonding status will get 
                  * updated while exiting disconnecting state
                  */
-                AppSetState(app_disconnecting);
                 M_LOG_DEBUG("app_disconnecting\r\n");
+                AppSetState(app_disconnecting);
 
                 /* Reset and clear the whitelist */
                 LsResetWhiteList();
@@ -1842,8 +1848,8 @@ extern void HandlePairingRemoval(void)
                 LsResetWhiteList();
 
                 /* Start fast undirected advertisements. */
-                AppSetState(app_fast_advertising);
                 M_LOG_DEBUG("app_fast_advertising\r\n");
+                AppSetState(app_fast_advertising);
             }
             break;
 
@@ -1868,6 +1874,8 @@ void AppSetState(app_state new_state)
 {
     app_state old_state = g_app_data.state;
 
+    M_LOG_DEBUG("new: %d, old: %d\r\n", new_state, old_state);
+    
     /* Check if the new state to be set is not the same as the present state
      * of the application. 
      */
@@ -2423,8 +2431,8 @@ void HandleConnectReq(void)
     /* Start advertising */
     if(g_app_data.state == app_idle)
     {
-        AppSetState(app_fast_advertising);
         M_LOG_DEBUG("app_fast_advertising\r\n");
+        AppSetState(app_fast_advertising);
     }
 }
 
@@ -2444,8 +2452,8 @@ void HandleDisconnectReq(void)
    if(app_connected == AppGetState())
     {
         /* Initiate a disconnect */
-        AppSetState(app_disconnecting);
         M_LOG_DEBUG("app_disconnecting\r\n");
+        AppSetState(app_disconnecting);
     }
 }
 

@@ -37,8 +37,8 @@
 /*#define ENABLE_LCD_DISPLAY*/
 
 /* Timer values for fast and slow advertisements. */
-#define FAST_CONNECTION_ADVERT_TIMEOUT_VALUE      (30 * SECOND)
-#define SLOW_CONNECTION_ADVERT_TIMEOUT_VALUE      (1 * MINUTE)
+//#define FAST_CONNECTION_ADVERT_TIMEOUT_VALUE      (30 * SECOND)
+//#define SLOW_CONNECTION_ADVERT_TIMEOUT_VALUE      (1 * MINUTE)
 
 /* Defines the High Baud Rate. 115K2 is the maximum supported baud rate */
 #define HIGH_BAUD_RATE                   (0x01d9) /* 115K2*/
