@@ -50,7 +50,8 @@
 #include "m_timer.h"
 #include "m_uart.h"
 #include "m_printf.h"
-
+#include "common/common.h"
+#include "driver/driver.h"
 /*============================================================================*
  *  Private Definitions
  *============================================================================*/
@@ -62,7 +63,7 @@
  * using OTA service.If no OTA update is there for OTA_WAIT_TIME,disconnect and
  * wait for some one else to connect.
  */
-#define MAX_APP_TIMERS                 (6)
+#define MAX_APP_TIMERS                 (10)
 
 /* Magic value to check the sanity of NVM region used by the application */
 #define NVM_SANITY_MAGIC               (0xAB1B)
@@ -108,7 +109,7 @@
  *============================================================================*/
 
 /* Declare space for application timers. */
-static uint16 app_timers[SIZEOF_APP_TIMER * MAX_APP_TIMERS];
+//static uint16 app_timers[SIZEOF_APP_TIMER * MAX_APP_TIMERS];
 
 /*============================================================================*
  *  Public Data
@@ -222,6 +223,7 @@ static void handleNotificationData(GATT_CHAR_VAL_IND_T *p_event_data);
 /* This function configures the discovered GATT service changed characteristic*/
 static sys_status ConfigureGattIndications(void);
 
+void csr_timer_cb(u16 id);
 /*============================================================================*
  *  Private Function Implementations
  *============================================================================*/
@@ -2075,6 +2077,11 @@ void AppPowerOnReset(void)
     /* Configure the application constants */
 }
 
+void csr_timer_cb(u16 id)
+{
+	m_printf("this is timer cb test\r\n");
+}
+
 /*----------------------------------------------------------------------------*
  *  NAME
  *      AppInit
@@ -2095,18 +2102,21 @@ void AppInit(sleep_state last_sleep_state)
     uint16 gatt_db_length = 0;
     uint16 *p_gatt_db = NULL;
 
+	driver_t *driver = get_driver();
+	driver->timer->timer_init(NULL);
+	
     /* Initialise the application timers */
-    TimerInit(MAX_APP_TIMERS, (void*)app_timers);
+    //TimerInit(MAX_APP_TIMERS, (void*)app_timers);
 
 #ifdef ENABLE_UART  
     /* Initialise the UART interface */
     m_uart_init();
     //m_printf_test();
 #endif /* ENABLE_UART */
-    
+    driver->timer->timer_start(2000, csr_timer_cb);
     m_devname_init();
     //m_timer_init();
-    
+	
     /* Initialise GATT entity */
     GattInit();
 
@@ -2154,7 +2164,6 @@ void AppInit(sleep_state last_sleep_state)
     g_app_data.state = app_init;
     
     g_app_data.pairing_in_progress = FALSE;
-
 
 
     /* Tell GATT about our database. We will get a GATT_ADD_DB_CFM event when

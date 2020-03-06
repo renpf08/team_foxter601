@@ -1,6 +1,17 @@
 <project buildenvironment="{067c869e-5bd9-4595-9f4c-60348133ad8e}" buildenvironmentname="uEnergy" executionenvironmentoption="XAP2+ P0 ELF DWARF BINUTILS UENERGYSDK" buildenvironmentoption="UENERGYSDK" executionenvironmentname="uEnergy" name="CSR uEnergy" executionenvironment="{39e65239-59f4-4d78-b84a-26eaebfaa4de}" >
  <folder name="C Files" >
   <extension name="c" />
+  <folder name="common" >
+   <file path="common/common.h" />
+   <file path="common/typedef.h" />
+  </folder>
+  <folder name="driver" >
+   <folder name="timer" >
+    <file path="driver/timer/timer.c" />
+   </folder>
+   <file path="driver/driver.c" />
+   <file path="driver/driver.h" />
+  </folder>
   <file path="ancs_client.c" />
   <file path="ancs_client_gatt.c" />
   <file path="ancs_client_hw.c" />

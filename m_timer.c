@@ -18,7 +18,7 @@
  *============================================================================*/
 
 /* Number of timers used in this application */
-#define MAX_TIMERS 8
+#define MAX_TIMERS 40
 
 /* First timeout at which the timer has to fire a callback */
 #define TIMER_TIMEOUT1 (1 * SECOND)
@@ -247,6 +247,7 @@ void m_timer_clock_init(void)
         /* Panic with panic code 0xfe */
         Panic(0xfe);
     }
+	m_printf("timer clock id[%u]\r\n",tId);
 }
 //------------------------------------------------------------------------------
 static void m_timer_clock_handler1(timer_id const id);
@@ -254,7 +255,7 @@ void m_timer_clock_init1(void);
 
 static void m_timer_clock_handler1(timer_id const id)
 {
-    m_printf("m_timer_clock_handler1\r\n");
+    //m_printf("m_timer_clock_handler1\r\n");
     m_timer_clock_init1();
 }
 /**
@@ -279,6 +280,7 @@ void m_timer_clock_init1(void)
         /* Panic with panic code 0xfe */
         Panic(0xfe);
     }
+	m_printf("timer clock1 id[%u]\r\n",tId);
 }
 
 //------------------------------------------------------------------------------
@@ -287,7 +289,7 @@ void m_timer_clock_init2(void);
 
 static void m_timer_clock_handler2(timer_id const id)
 {
-    m_printf("m_timer_clock_handler2\r\n");
+    //m_printf("m_timer_clock_handler2\r\n");
     m_timer_clock_init2();
 }
 /**
@@ -312,6 +314,7 @@ void m_timer_clock_init2(void)
         /* Panic with panic code 0xfe */
         Panic(0xfe);
     }
+	m_printf("timer clock2 id[%u]\r\n",tId);
 }
 
 //------------------------------------------------------------------------------
@@ -320,7 +323,7 @@ void m_timer_clock_init3(void);
 
 static void m_timer_clock_handler3(timer_id const id)
 {
-    m_printf("m_timer_clock_handler3\r\n");
+    //m_printf("m_timer_clock_handler3\r\n");
     m_timer_clock_init3();
 }
 /**
@@ -345,6 +348,7 @@ void m_timer_clock_init3(void)
         /* Panic with panic code 0xfe */
         Panic(0xfe);
     }
+	m_printf("timer clock3 id[%u]\r\n",tId);
 }
 
 //------------------------------------------------------------------------------
@@ -377,7 +381,8 @@ void m_timer_clock_init4(void)
         
         /* Panic with panic code 0xfe */
         Panic(0xfe);
-    }
+    }	
+	m_printf("timer clock4 id[%u]\r\n",tId);
 }
 
 //------------------------------------------------------------------------------
@@ -410,7 +415,8 @@ void m_timer_clock_init5(void)
         
         /* Panic with panic code 0xfe */
         Panic(0xfe);
-    }
+    }	
+	m_printf("timer clock5 id[%u]\r\n",tId);
 }
 
 //------------------------------------------------------------------------------
@@ -443,7 +449,8 @@ void m_timer_clock_init6(void)
         
         /* Panic with panic code 0xfe */
         Panic(0xfe);
-    }
+    }	
+	m_printf("timer clock6 id[%u]\r\n",tId);
 }
 
 
@@ -461,12 +468,12 @@ void m_timer_init(void)
     //TimerInit(MAX_TIMERS, (void *)app_timers);
     
     m_timer_clock_init();
-    /*m_timer_clock_init1();
+    m_timer_clock_init1();
     m_timer_clock_init2();
     m_timer_clock_init3();
     m_timer_clock_init4();
     m_timer_clock_init5();
-    m_timer_clock_init6();*/
+    m_timer_clock_init6();
 
     /* Report current time */
     //printCurrentTime();

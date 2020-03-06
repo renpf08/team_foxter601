@@ -3,14 +3,6 @@
 
 #include"../common/common.h"
 
-typedef int (*event_callback)(EVENT_E ev);
-
-typedef int (*init)(void *args);
-typedef int (*run)(void);
-typedef int (*uninit)(void);
-typedef int (*read)(void *args);
-typedef int (*write)(void *args);
-
 typedef struct {
 	init uart_init;
 	read uart_read;
@@ -18,10 +10,17 @@ typedef struct {
 	uninit uart_uninit;
 }uart_t;
 
+typedef struct {
+	init             timer_init;
+	timer_start_func timer_start;
+	uninit           timer_uninit;
+}timer_t;
 
 typedef struct {
-	uart_t uart;
-	
+	uart_t *uart;
+	timer_t *timer;
 }driver_t;
+
+driver_t *get_driver(void);
 
 #endif

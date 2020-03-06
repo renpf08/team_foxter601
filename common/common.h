@@ -1,5 +1,5 @@
 #ifndef COMMON_H
-#include COMMON_H
+#define COMMON_H
 
 #include "typedef.h"
 
@@ -27,5 +27,15 @@ typedef struct {
 
 }cfg_t;
 
+typedef int (*event_callback)(EVENT_E ev);
+
+typedef int (*init)(void *args);
+typedef int (*run)(void);
+typedef int (*uninit)(void);
+typedef int (*read)(void *args);
+typedef int (*write)(void *args);
+
+typedef void(*timer_cb)(u16 id);
+typedef int (*timer_start_func)(unsigned ms, timer_cb cb);
 
 #endif
