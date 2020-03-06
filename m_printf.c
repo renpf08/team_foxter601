@@ -127,11 +127,12 @@ int m_vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pPara
 			{
 				case 'c':
 				{
-					char c0;
-					v = va_arg(*pParamList, int);
-					c0 = (char)v;
-					if(strBuf != 0) strBuf[len++] = c0;
-					else m_uart_out(c0);
+					tmpBuf[0] = (char)va_arg(*pParamList, int);
+					inserChar = ' '; //! 打印字符时，占位符使用空格字符填充
+					FieldWidth--; //! 总会输出一个字符，所以默认占位数减一
+					justify = ((FormatFlags&FORMAT_FLAG_LEFT_JUSTIFY) == FORMAT_FLAG_LEFT_JUSTIFY)?1:0; //! 1 - 左对齐；0 - 右对齐
+					i = 0; //! 字符插入，永远插入下标为零的位置
+                    bReady = TRUE;
 					break;
 				}
 				case 'd':
@@ -381,7 +382,6 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
     int r = 0;
     va_list ParamList;
     char preStr[64] = {0};
-    char str[M_PRINT_BUFF_SIZE] = {0};
     unsigned len = 0;
     time_t* time = m_get_time();
     
@@ -397,24 +397,10 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
     } while(*++file != '\0');
     preStr[len] = '\0';
     
-    m_sprintf(str, "<%02d:%02d:%02d> %-30s%-40s%6d%10s: ", time->hour, time->minute, time->second, preStr, func, line, level);
-    
-    len = 0;
-    while(str[len] != 0u)
-    {
-        if(len >= M_PRINT_BUFF_SIZE) break;
-        len++;
-    }
-    while(*sFormat != 0u)
-    {
-        if(len >= M_PRINT_BUFF_SIZE) break;
-        str[len++] = *sFormat++;
-    }
-    str[len] = '\0';
-
+    m_printf("<%02d:%02d:%02d> %-30s%-40s%6d%10s:", time->hour, time->minute, time->second, preStr, func, line, level);
     va_start(ParamList, sFormat);
     r = va_arg(ParamList, int); //! 测试发现，参数列表的第一个参数是乱码，此处需要做一次读操作相当于去掉第一个参数！！！
-    r = m_vprintf(0, 0, str, &ParamList);
+    r = m_vprintf(0, 0, sFormat, &ParamList);
     va_end(ParamList);
     return r;
 }

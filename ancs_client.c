@@ -1284,10 +1284,10 @@ static void handleSignalGattDbCfm(GATT_ADD_DB_CFM_T *p_event_data)
             {
                  /* Database is set up. So start advertising */
                 /**original advertise mode: fast adv 30s -> slow adv 60s -> idle*/
-                AppSetState(app_fast_advertising);
+                /*AppSetState(app_fast_advertising);*/
                 
                 /** new advertise mode: slow adv mode with no fast adv or idle*/
-                /*AppSetState(app_slow_advertising);*/
+                AppSetState(app_slow_advertising);
             }
             else
             {
@@ -2098,6 +2098,7 @@ void AppInit(sleep_state last_sleep_state)
 {
     uint16 gatt_db_length = 0;
     uint16 *p_gatt_db = NULL;
+    uint8 devName[20] = {0};
 
     /* Initialise the application timers */
     TimerInit(MAX_APP_TIMERS, (void*)app_timers);
@@ -2105,11 +2106,11 @@ void AppInit(sleep_state last_sleep_state)
 #ifdef ENABLE_UART  
     /* Initialise the UART interface */
     m_uart_init();
-    m_printf("system started.\r\n");
+    m_devname_init(devName);
+    m_printf("system started: %s\r\n", devName);
     m_printf_test();
 #endif /* ENABLE_UART */
     
-    m_devname_init();
     m_timer_init();
     
     /* Initialise GATT entity */
