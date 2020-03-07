@@ -1284,10 +1284,10 @@ static void handleSignalGattDbCfm(GATT_ADD_DB_CFM_T *p_event_data)
             {
                  /* Database is set up. So start advertising */
                 /**original advertise mode: fast adv 30s -> slow adv 60s -> idle*/
-                /*AppSetState(app_fast_advertising);*/
+                AppSetState(app_fast_advertising);
                 
                 /** new advertise mode: slow adv mode with no fast adv or idle*/
-                AppSetState(app_slow_advertising);
+                /*AppSetState(app_slow_advertising);*/
             }
             else
             {
