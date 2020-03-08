@@ -6,6 +6,15 @@
    <file path="common/typedef.h" />
   </folder>
   <folder name="driver" >
+   <folder name="key" >
+    <file path="driver/key/keyA.c" />
+   </folder>
+   <folder name="uart" >
+    <file path="driver/uart/uart.c" />
+   </folder>
+   <folder name="battery" >
+    <file path="driver/bat_detect/bat_detect.c" />
+   </folder>
    <folder name="timer" >
     <file path="driver/timer/timer.c" />
    </folder>

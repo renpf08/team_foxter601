@@ -224,6 +224,8 @@ static void handleNotificationData(GATT_CHAR_VAL_IND_T *p_event_data);
 static sys_status ConfigureGattIndications(void);
 
 void csr_timer_cb(u16 id);
+s16 csr_event_callback(EVENT_E ev);
+
 /*============================================================================*
  *  Private Function Implementations
  *============================================================================*/
@@ -2082,6 +2084,12 @@ void csr_timer_cb(u16 id)
 	m_printf("this is timer cb test\r\n");
 }
 
+s16 csr_event_callback(EVENT_E ev)
+{
+	m_printf("this is key callback test[%d]\r\n",ev);
+	return 0;
+}
+
 /*----------------------------------------------------------------------------*
  *  NAME
  *      AppInit
@@ -2102,9 +2110,17 @@ void AppInit(sleep_state last_sleep_state)
     uint16 gatt_db_length = 0;
     uint16 *p_gatt_db = NULL;
 
+	cfg_t args = {
+			.keya_cfg = {
+				.group = 0,
+				.num = 11,
+			},
+		};
+
 	driver_t *driver = get_driver();
-	driver->timer->timer_init(NULL);
-	
+	driver->timer->timer_init(NULL, NULL);
+	driver->battery->battery_init(NULL, NULL);
+	driver->keya->key_init(&args, csr_event_callback);
     /* Initialise the application timers */
     //TimerInit(MAX_APP_TIMERS, (void*)app_timers);
 
@@ -2112,8 +2128,10 @@ void AppInit(sleep_state last_sleep_state)
     /* Initialise the UART interface */
     m_uart_init();
     //m_printf_test();
-#endif /* ENABLE_UART */
     driver->timer->timer_start(2000, csr_timer_cb);
+	m_printf("battery voltage[%d]\r\n",driver->battery->battery_voltage_read(NULL));
+#endif /* ENABLE_UART */
+
     m_devname_init();
     //m_timer_init();
 	
@@ -2206,7 +2224,8 @@ void AppProcessSystemEvent(sys_event_id id, void *data)
         case sys_event_pio_changed:
         {
             /* Handle PIO events */
-            HandlePIOChangedEvent(((pio_changed_data*)data)->pio_cause);
+            //HandlePIOChangedEvent(((pio_changed_data*)data)->pio_cause);
+			csr_keya_event_handler();
         }
         break;
 

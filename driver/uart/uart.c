@@ -6,20 +6,21 @@
 #include "user_config.h"
 #include "../driver.h"
 
-static int csr_uart_read(void *args)
+static s16 csr_uart_read(void *args)
 {
-
+	return 0;
 }
 
-static int csr_uart_write(void *args)
+static s16 csr_uart_write(void *args)
 {
-
+	return 0;
 }
 
-static int csr_uart_init(void *args)
+static s16 csr_uart_init(cfg_t *args, event_callback cb)
 {
+#if 0
     /* Initialise host interface driver */
-    UartInit(m_uart_recev_irq, 
+    UartInit(0, 
              0, /* uart_data_out_fn */
              uartRxBuffer, UART_BUF_SIZE_BYTES_32,
              uartTxBuffer, UART_BUF_SIZE_BYTES_64,
@@ -38,12 +39,12 @@ static int csr_uart_init(void *args)
      * to form a message header. 
      */
     UartRead(1, 0);
+#endif	
 	return 0;
 }
 
-static int csr_uart_uninit(void)
+static s16 csr_uart_uninit(void)
 {
-
 	return 0;
 }
 

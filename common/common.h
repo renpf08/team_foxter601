@@ -3,13 +3,16 @@
 
 #include "typedef.h"
 
+#define PIO_DIR_OUTPUT  TRUE        /* PIO direction configured as output */
+#define PIO_DIR_INPUT   FALSE       /* PIO direction configured as input */
+
 typedef enum {
 	KEY_A_UP,
 	KEY_A_DOWN,
 	KEY_B_UP,
 	KEY_B_DOWN,
 	KEY_M_UP,
-	KEY_DOWN
+	KEY_M_DOWN
 }EVENT_E;
 
 typedef struct {
@@ -24,18 +27,17 @@ typedef struct {
 
 typedef struct {
 	uart_cfg_t uart_cfg;
-
+	pin_t      keya_cfg;
 }cfg_t;
 
-typedef int (*event_callback)(EVENT_E ev);
+typedef s16 (*event_callback)(EVENT_E ev);
 
-typedef int (*init)(void *args);
-typedef int (*run)(void);
-typedef int (*uninit)(void);
-typedef int (*read)(void *args);
-typedef int (*write)(void *args);
+typedef s16 (*init)(cfg_t *args, event_callback cb);
+typedef s16 (*uninit)(void);
+typedef s16 (*read)(void *args);
+typedef s16 (*write)(void *args);
 
 typedef void(*timer_cb)(u16 id);
-typedef int (*timer_start_func)(unsigned ms, timer_cb cb);
+typedef s16 (*timer_start_func)(u16 ms, timer_cb cb);
 
 #endif

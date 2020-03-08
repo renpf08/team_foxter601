@@ -39,19 +39,19 @@ static timer_id csr_timer_create(uint32 timeout, timer_callback_arg handler)
 	return tId;
 }
 
-static int csr_timer_start(unsigned ms, timer_cb cb)
+static s16 csr_timer_start(u16 ms, timer_cb cb)
 {
 	csr_timer_create(ms*MILLISECOND, cb);
     return 0;
 }
 
-static int csr_timer_init(void *args)
+static s16 csr_timer_init(cfg_t *args, event_callback cb)
 {
 	TimerInit(MAX_TIMERS, (void *)app_timers);
 	return 0;
 }
 
-static int csr_timer_unint(void)
+static s16 csr_timer_unint(void)
 {
 	return 0;
 }
