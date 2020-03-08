@@ -34,7 +34,7 @@ typedef struct {
 	key_t     	*keya;
 }driver_t;
 
-s16 csr_keya_event_handler(void);
+s16 csr_keya_event_handler(u16 key_num, u16 key_status);
 driver_t *get_driver(void);
 
 #endif

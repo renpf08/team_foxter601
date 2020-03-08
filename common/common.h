@@ -7,13 +7,25 @@
 #define PIO_DIR_INPUT   FALSE       /* PIO direction configured as input */
 
 typedef enum {
+	KEY_A_UNKNOWN,
 	KEY_A_UP,
 	KEY_A_DOWN,
+	KEY_B_UNKNOWN,
 	KEY_B_UP,
 	KEY_B_DOWN,
+	KEY_M_UNKNOWN,
 	KEY_M_UP,
 	KEY_M_DOWN
 }EVENT_E;
+
+#if 0
+typedef enum
+{
+    BUTTON_STATE_DOWN,       /* Button was pressed */
+    BUTTON_STATE_UP,         /* Button was released */
+    BUTTON_STATE_UNKNOWN,    /* Button state is unknown */
+} BUTTON_STATE_E;
+#endif
 
 typedef struct {
 	u8 group;

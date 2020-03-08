@@ -2223,9 +2223,13 @@ void AppProcessSystemEvent(sys_event_id id, void *data)
 
         case sys_event_pio_changed:
         {
+            /* The PIO data is defined by struct pio_changed_data */
+        	const pio_changed_data *pPioData = (const pio_changed_data *)data;
+
+			
             /* Handle PIO events */
             //HandlePIOChangedEvent(((pio_changed_data*)data)->pio_cause);
-			csr_keya_event_handler();
+			csr_keya_event_handler(pPioData->pio_cause, pPioData->pio_state);
         }
         break;
 

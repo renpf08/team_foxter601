@@ -2,10 +2,10 @@
 #include <pio.h>            /* Programmable I/O configuration and control */
 #include "../driver.h"
 
-
 typedef struct {
 	pin_t pin;
 	event_callback keya_cb;
+	EVENT_E last_state;
 }csr_keya_cfg_t;
 
 static csr_keya_cfg_t csr_keya_cfg = {
@@ -14,14 +14,27 @@ static csr_keya_cfg_t csr_keya_cfg = {
 				.num = 0,
            },
 	.keya_cb = NULL,
+	.last_state = KEY_A_UNKNOWN,
 };
 
-s16 csr_keya_event_handler(void)
+s16 csr_keya_event_handler(u16 key_num, u16 key_status)
 {
+	EVENT_E now_state;
+	if(key_num & (1UL << csr_keya_cfg.pin.num)) {
+		if(key_status & (1 << csr_keya_cfg.pin.num)) {
+			now_state = KEY_A_UP;
+		} else {
+			now_state = KEY_A_DOWN;
+		}
 
-
-	if(NULL != csr_keya_cfg.keya_cb) {
-		csr_keya_cfg.keya_cb(KEY_A_UP);
+		if(csr_keya_cfg.last_state == now_state) {
+			return 0;
+		} else {
+			if(NULL != csr_keya_cfg.keya_cb) {
+				csr_keya_cfg.keya_cb(now_state);
+			}
+			csr_keya_cfg.last_state = now_state;
+		}
 	}
 	return 0;
 }
