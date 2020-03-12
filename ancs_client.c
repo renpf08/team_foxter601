@@ -335,6 +335,7 @@ static void readPersistentStore(void)
      */
 
     Nvm_Read(&nvm_sanity, sizeof(nvm_sanity), NVM_OFFSET_SANITY_WORD);
+    M_LOG_DEBUG("read bonding flag(bond flag: %d).\r\n", g_app_data.bonded);
 
     if(nvm_sanity == NVM_SANITY_MAGIC)
     {
@@ -351,6 +352,7 @@ static void readPersistentStore(void)
             Nvm_Read((uint16*)&g_app_data.bonded_bd_addr, 
                        sizeof(TYPED_BD_ADDR_T),
                        NVM_OFFSET_BONDED_ADDR);
+            M_LOG_DEBUG("device has bonded, read host addrs(bond flag: %d).\r\n", g_app_data.bonded);
         }
 
         else /* Case when we have only written NVM_SANITY_MAGIC to NVM but 
@@ -359,6 +361,7 @@ static void readPersistentStore(void)
               */
         {
             g_app_data.bonded = FALSE;
+            M_LOG_DEBUG("device has not bonded.\r\n");
         }
 
         /* Read the diversifier associated with the presently bonded/last 
@@ -390,7 +393,7 @@ static void readPersistentStore(void)
           * discard the data and start fresh.
           */
     {
-
+        M_LOG_DEBUG("NVM sanity check failed.\r\n");
         nvm_sanity = NVM_SANITY_MAGIC;
 
         /* Write NVM sanity word to the NVM */
@@ -403,6 +406,7 @@ static void readPersistentStore(void)
         /* Write bonded status to NVM */
         Nvm_Write((uint16*)&g_app_data.bonded, sizeof(g_app_data.bonded), 
                             NVM_OFFSET_BONDED_FLAG);
+        M_LOG_DEBUG("Write bonded status to NVM(bond flag: %d).\r\n", g_app_data.bonded);
 
         /* When the application is coming up for the first time after flashing 
          * the image to it, it will not have bonded to any device. So, no LTK 
@@ -444,6 +448,7 @@ static void readPersistentStore(void)
         Nvm_Read((uint16*)g_app_data.central_device_irk.irk,
                             MAX_WORDS_IRK,
                             NVM_OFFSET_SM_IRK);
+        M_LOG_DEBUG("read the bonded device's IRK.\r\n");
     }
     /* Read Battery service data from NVM if the devices are bonded and  
      * update the offset with the number of word of NVM required by 
@@ -633,6 +638,7 @@ static void handleBondingChanceTimerExpiry(timer_id tid)
          * encrypted the link using old keys. Disconnect the link.
          */
         AppSetState(app_disconnecting);
+        M_LOG_DEBUG("bonding chance timer expiried.\r\n");
     }/* else it may be due to some race condition. Ignore it. */
 }
 
@@ -806,9 +812,11 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                      */
                     g_app_data.auth_failure = TRUE;
                     AppSetState(app_disconnecting);
+                    M_LOG_DEBUG("application was bonded to a remote device, so disconnect and start advertising again.\r\n");
                 }
                 else
                 {
+                    M_LOG_DEBUG("others1.\r\n");
                     /* If we are bonded to this host, then it may be appropriate
                      * to indicate that the database is not now what it had
                      * previously.
@@ -816,6 +824,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                     if(g_app_data.bonded)
                     {
                         GattOnConnection(p_event_data->cid);
+                        M_LOG_DEBUG("001.\r\n");
                     }
 
                     /* Initiate slave security request if the remote host 
@@ -828,20 +837,24 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                     {
                         /* Non-Apple Device.Initiate Security request */
                         SMRequestSecurityLevel(&g_app_data.con_bd_addr);
+                        M_LOG_DEBUG("002.\r\n");
                     }
                     else /* APPLE Device */
                     {
+                        M_LOG_DEBUG("003.\r\n");
                         /* Check if have the remote gatt handles cached */
                         if(!g_app_data.remote_gatt_handles_present)
                         {
                             /* Start Gatt Database discovery. */
-                            DiscoverServices();   
+                            DiscoverServices(); 
+                            M_LOG_DEBUG("004.\r\n");  
                         }
                     }
                 }
             }
             else
             {
+                M_LOG_DEBUG("others2.\r\n");
                 /* Else wait for user activity before we start advertising 
                  * again
                  */
@@ -851,6 +864,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
         break;
         default:
         {
+            M_LOG_DEBUG("others3.\r\n");
             /* Control should never come here */
             ReportPanic(app_panic_invalid_state);
         }
@@ -1071,15 +1085,18 @@ static void handleSignalGattAccessInd(GATT_ACCESS_IND_T *p_event_data)
 static void handleSignalSmPairingAuthInd(SM_PAIRING_AUTH_IND_T *p_event_data)
 {
     bool status = FALSE;
+    M_LOG_DEBUG("others4.\r\n");
     /* Handling signal as per current state */
     switch(g_app_data.state)
     {
         case app_connected: /* FALLTHROUGH */
         {
+            M_LOG_DEBUG("others5.\r\n");
             /* Authorise the pairing request if the application is NOT bonded */
             if(!g_app_data.bonded)
             {
-                g_app_data.pairing_in_progress = TRUE;
+                M_LOG_DEBUG("Authorise the pairing request if the application is NOT bonded.\r\n");
+                //g_app_data.pairing_in_progress = TRUE;
                 status = TRUE;
             } /* else reject the pairing request */
 
@@ -1088,6 +1105,7 @@ static void handleSignalSmPairingAuthInd(SM_PAIRING_AUTH_IND_T *p_event_data)
         break;
 
         default:
+            M_LOG_DEBUG("others6.\r\n");
             ReportPanic(app_panic_invalid_state);
         break;
     }
@@ -1125,6 +1143,7 @@ static void handleSignalSmSimplePairingCompleteInd(
                     g_app_data.bonding_reattempt_tid = TIMER_INVALID;
                 }
 
+                #if USE_WHITELIST //! add by mlw at 20200312 14:47
                 g_app_data.bonded = TRUE;
                 g_app_data.bonded_bd_addr = p_event_data->bd_addr;
                 g_app_data.pairing_in_progress = FALSE;
@@ -1134,6 +1153,7 @@ static void handleSignalSmSimplePairingCompleteInd(
                 Nvm_Write((uint16*)&g_app_data.bonded, 
                           sizeof(g_app_data.bonded),
                           NVM_OFFSET_BONDED_FLAG);
+                M_LOG_DEBUG("Write one word bonded flag(bond flag: %d).\r\n", g_app_data.bonded);
 
                 /* Write typed Bluetooth address of bonded host */
                 Nvm_Write((uint16*)&g_app_data.bonded_bd_addr, 
@@ -1150,7 +1170,8 @@ static void handleSignalSmSimplePairingCompleteInd(
                 }
 
                 /* Notify the Gatt service about the pairing */
-                GattBondingNotify();           
+                GattBondingNotify();     
+                #endif
                 
                 /* Notify the Battery service about the pairing */
                 BatteryBondingNotify();
@@ -1175,6 +1196,7 @@ static void handleSignalSmSimplePairingCompleteInd(
                  if(p_event_data->status == sm_status_repeated_attempts)
                  {
                     AppSetState(app_disconnecting);
+                    M_LOG_DEBUG("Pairing has failed.\r\n");
                  }
                  else if(g_app_data.bonded)
                  {
@@ -1328,6 +1350,7 @@ static void handleSignalSmKeysInd(SM_KEYS_IND_T *p_event_data)
             /* If keys are present, save them */
             if((p_event_data->keys)->keys_present & (1 << SM_KEY_TYPE_DIV))
             {
+                M_LOG_DEBUG("Store the diversifier.\r\n");
                 /* Store the diversifier which will be used for accepting/
                  * rejecting the encryption requests.
                  */
@@ -1344,6 +1367,7 @@ static void handleSignalSmKeysInd(SM_KEYS_IND_T *p_event_data)
              */
             if((p_event_data->keys)->keys_present & (1 << SM_KEY_TYPE_ID))
             {
+                M_LOG_DEBUG("Store the IRK.\r\n");
                 /* If bonded device is resolvable random, store the IRK */
                 MemCopy(g_app_data.central_device_irk.irk, 
                             (p_event_data->keys)->irk,
@@ -1385,10 +1409,13 @@ static void handleSignalLMEncryptionChange(
     /*Handling signal as per current state */
     switch(g_app_data.state)
     {
+        M_LOG_DEBUG("switch(g_app_data.state)\r\n");
         case app_connected: 
         {
+            M_LOG_DEBUG("case app_connected:\r\n");
             if(p_event_data->data.status == sys_status_success)
             {
+                M_LOG_DEBUG("if(p_event_data->data.status == sys_status_success)\r\n");
                 /* Delete the bonding chance timer */
                 TimerDelete(g_app_data.bonding_reattempt_tid);
                 g_app_data.bonding_reattempt_tid = TIMER_INVALID;
@@ -1396,14 +1423,17 @@ static void handleSignalLMEncryptionChange(
                 /*Initiate configuring ANCS notification handle */
                 if( GetAncsNotificationCCDHandle() != INVALID_ATT_HANDLE)
                 {
+                    M_LOG_DEBUG("if( GetAncsNotificationCCDHandle() != INVALID_ATT_HANDLE)\r\n");
                     if(!g_app_data.notif_configuring)
                     {
+                       M_LOG_DEBUG("if(!g_app_data.notif_configuring)\r\n");
                        g_app_data.notif_configuring = TRUE;
                        appConfigureNotifications(g_app_data.st_ucid,FALSE);
                     }
                 }
                 else
                 {
+                    M_LOG_DEBUG("else: Start Gatt Database discovery\r\n");
                    /* Start Gatt Database discovery */
                    DiscoverServices();   
                 }
@@ -1413,6 +1443,7 @@ static void handleSignalLMEncryptionChange(
 
         default:
         {
+            M_LOG_DEBUG("default: Control should never come here\r\n");
             /* Control should never come here */
             ReportPanic(app_panic_invalid_state);
         }
@@ -1501,6 +1532,7 @@ static void handleGattWriteCharValCfm(GATT_WRITE_CHAR_VAL_CFM_T *p_event_data)
     else if((p_event_data->result == GATT_RESULT_INSUFFICIENT_ENCRYPTION) ||
          (p_event_data->result == GATT_RESULT_INSUFFICIENT_AUTHENTICATION))
     {
+        M_LOG_DEBUG("start a slave security request.\r\n");
         /* If we have received an insufficient encryption error code, 
          * we will start a slave security request
          */
@@ -1510,6 +1542,7 @@ static void handleGattWriteCharValCfm(GATT_WRITE_CHAR_VAL_CFM_T *p_event_data)
         if(!g_app_data.pairing_in_progress)
         {
            SMRequestSecurityLevel(&g_app_data.con_bd_addr);
+           M_LOG_DEBUG("security supported by the remote host.\r\n");
         }
     }
     else if(p_event_data->result != GATT_RESULT_TIMEOUT) 
@@ -1647,6 +1680,8 @@ extern void WriteApplicationAndServiceDataToNVM(void)
 {
     uint16 nvm_sanity = 0xffff;
     nvm_sanity = NVM_SANITY_MAGIC;
+    
+    M_LOG_DEBUG("writes the application data to NVM\r\n");
 
     /* Write NVM sanity word to the NVM */
     Nvm_Write(&nvm_sanity, sizeof(nvm_sanity), NVM_OFFSET_SANITY_WORD);
@@ -1655,6 +1690,7 @@ extern void WriteApplicationAndServiceDataToNVM(void)
     Nvm_Write((uint16*)&g_app_data.bonded, 
                sizeof(g_app_data.bonded),
                NVM_OFFSET_BONDED_FLAG);
+    M_LOG_DEBUG(" Write Bonded flag to NVM.(bond flag: %d).\r\n", g_app_data.bonded);
 
 
     /* Write Bonded address to NVM. */
@@ -1764,6 +1800,7 @@ extern void HandlePairingRemoval(void)
         Nvm_Write((uint16*)&g_app_data.bonded, 
                   sizeof(g_app_data.bonded), 
                   NVM_OFFSET_BONDED_FLAG);
+        M_LOG_DEBUG(" Write bonded status to NVM(bond flag: %d).\r\n", g_app_data.bonded);
         
         /* Reset the cached handles database */        
         ResetDiscoveredHandlesDatabase();
@@ -2232,15 +2269,18 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
     switch (event_code)
     {
         case GATT_ADD_DB_CFM:
+            M_LOG_DEBUG("GATT_ADD_DB_CFM\r\n");
             handleSignalGattDbCfm((GATT_ADD_DB_CFM_T*)event_data);
         break;
 
         case LM_EV_CONNECTION_COMPLETE:
+            M_LOG_DEBUG("LM_EV_CONNECTION_COMPLETE\r\n");
             handleSignalLmEvConnectionComplete(
                     (LM_EV_CONNECTION_COMPLETE_T*)event_data);
         break;
 
         case GATT_CONNECT_CFM:
+            M_LOG_DEBUG("GATT_CONNECT_CFM\r\n");
             handleSignalGattConnectCfm((GATT_CONNECT_CFM_T *)event_data);
         break;
 
@@ -2250,6 +2290,7 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
          */
         case GATT_DISC_PRIM_SERV_BY_UUID_IND:
         {
+            M_LOG_DEBUG("GATT_DISC_PRIM_SERV_BY_UUID_IND\r\n");
             HandleGenericDiscoverPrimaryServiceInd(
                 (GATT_DISC_PRIM_SERV_BY_UUID_IND_T*)event_data);
         }
@@ -2258,51 +2299,61 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         /* Discover primary service by UUID confirmation */
         case GATT_DISC_PRIM_SERV_BY_UUID_CFM:
         {
+            M_LOG_DEBUG("GATT_DISC_PRIM_SERV_BY_UUID_CFM\r\n");
             HandleGenericServiceDiscoverPrimaryServiceByUuidCfm(
             (GATT_DISC_PRIM_SERV_BY_UUID_CFM_T*)event_data, g_app_data.st_ucid);
         }
         break;
 
         case GATT_CHAR_DECL_INFO_IND:
+            M_LOG_DEBUG("GATT_CHAR_DECL_INFO_IND\r\n");
                HandleGenericGattServiceCharacteristicDeclarationInfoInd(
                 (GATT_CHAR_DECL_INFO_IND_T*)event_data);
         break;
 
         case GATT_DISC_SERVICE_CHAR_CFM:
+            M_LOG_DEBUG("GATT_DISC_SERVICE_CHAR_CFM\r\n");
                     HandleGenericGattDiscoverServiceCharacteristicCfm(
                 (GATT_DISC_SERVICE_CHAR_CFM_T*)event_data, g_app_data.st_ucid);
         break;
 
         case GATT_CHAR_DESC_INFO_IND:
+            M_LOG_DEBUG("GATT_CHAR_DESC_INFO_IND\r\n");
             HandleGenericGattCharacteristicDescriptorInfoInd(
                                 (GATT_CHAR_DESC_INFO_IND_T *)event_data);
         break;
 
         case GATT_DISC_ALL_CHAR_DESC_CFM:
+            M_LOG_DEBUG("GATT_DISC_ALL_CHAR_DESC_CFM\r\n");
             HandleGenericGattCharacteristicDescriptorCfm(
                     (GATT_DISC_ALL_CHAR_DESC_CFM_T *) event_data, 
                     g_app_data.st_ucid);
         break;
 
         case GATT_READ_CHAR_VAL_CFM:
+            M_LOG_DEBUG("GATT_READ_CHAR_VAL_CFM\r\n");
             handleGattReadCharValCfm((GATT_READ_CHAR_VAL_CFM_T *)event_data);
         break;
 
         case GATT_WRITE_CHAR_VAL_CFM:
+            M_LOG_DEBUG("GATT_WRITE_CHAR_VAL_CFM\r\n");
             handleGattWriteCharValCfm((GATT_WRITE_CHAR_VAL_CFM_T *)event_data);
         break;
 
         case LM_EV_ENCRYPTION_CHANGE:
+            M_LOG_DEBUG("LM_EV_ENCRYPTION_CHANGE\r\n");
             handleSignalLMEncryptionChange(
                     (LM_EV_ENCRYPTION_CHANGE_T *)event_data);
         break;
 
         case LS_CONNECTION_PARAM_UPDATE_CFM:
+            M_LOG_DEBUG("LS_CONNECTION_PARAM_UPDATE_CFM\r\n");
             handleSignalLsConnUpdateSignalCfm(
                     (LS_CONNECTION_PARAM_UPDATE_CFM_T *)event_data);
         break;
 
         case LM_EV_CONNECTION_UPDATE:
+            M_LOG_DEBUG("LM_EV_CONNECTION_UPDATE\r\n");
             /* This event is sent by the controller on connection parameter 
              * update. 
              */
@@ -2311,29 +2362,35 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case LS_CONNECTION_PARAM_UPDATE_IND:
+            M_LOG_DEBUG("LS_CONNECTION_PARAM_UPDATE_IND\r\n");
             handleSignalLsConnParamUpdateInd(
                     (LS_CONNECTION_PARAM_UPDATE_IND_T *)event_data);
         break;
 
         case SM_DIV_APPROVE_IND:
+            M_LOG_DEBUG("SM_DIV_APPROVE_IND\r\n");
             handleSignalSmDivApproveInd((SM_DIV_APPROVE_IND_T *)event_data);
         break;
 
         case SM_KEYS_IND:
+            M_LOG_DEBUG("SM_KEYS_IND\r\n");
             handleSignalSmKeysInd((SM_KEYS_IND_T *)event_data);
         break;
 
         case SM_PAIRING_AUTH_IND:
+            M_LOG_DEBUG("SM_PAIRING_AUTH_IND\r\n");
             /* Authorize or Reject the pairing request */
             handleSignalSmPairingAuthInd((SM_PAIRING_AUTH_IND_T*)event_data);
         break;
 
         case SM_SIMPLE_PAIRING_COMPLETE_IND:
+            M_LOG_DEBUG("SM_SIMPLE_PAIRING_COMPLETE_IND\r\n");
             handleSignalSmSimplePairingCompleteInd(
                     (SM_SIMPLE_PAIRING_COMPLETE_IND_T *)event_data);
         break;
 
         case GATT_DISCONNECT_IND:
+            M_LOG_DEBUG("GATT_DISCONNECT_IND\r\n");
             /* Disconnect procedure triggered by remote host or due to 
              * link loss is considered complete on reception of 
              * LM_EV_DISCONNECT_COMPLETE event. So, it gets handled on 
@@ -2342,6 +2399,7 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case GATT_DISCONNECT_CFM:
+            M_LOG_DEBUG("GATT_DISCONNECT_CFM\r\n");
             /* Confirmation for the completion of GattDisconnectReq()
              * procedure is ignored as the procedure is considered complete 
              * on reception of LM_EV_DISCONNECT_COMPLETE event. So, it gets 
@@ -2351,6 +2409,7 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
 
         case LM_EV_DISCONNECT_COMPLETE:
         {
+            M_LOG_DEBUG("LM_EV_DISCONNECT_COMPLETE\r\n");
             /* Disconnect procedures either triggered by application or remote
              * host or link loss case are considered completed on reception 
              * of LM_EV_DISCONNECT_COMPLETE event
@@ -2361,11 +2420,13 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case GATT_CANCEL_CONNECT_CFM:
+            M_LOG_DEBUG("GATT_CANCEL_CONNECT_CFM\r\n");
             handleSignalGattCancelConnectCfm(
                     (GATT_CANCEL_CONNECT_CFM_T*)event_data);
         break;
 
         case GATT_NOT_CHAR_VAL_IND:
+            M_LOG_DEBUG("GATT_NOT_CHAR_VAL_IN\r\nD");
             /* A notification has been received */
             /* Depending on the handle , it will get handled in corresponding
              * function.
@@ -2375,9 +2436,11 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
 
         case LM_EV_NUMBER_COMPLETED_PACKETS: /* FALLTHROUGH */ 
         case GATT_CHAR_VAL_NOT_CFM: /* FALLTHROUGH */ 
+            M_LOG_DEBUG("LM_EV_NUMBER_COMPLETED_PACKETS or GATT_CHAR_VAL_NOT_CFM(%d)\r\n", event_code);
         break;
 
         case GATT_ACCESS_IND: 
+            M_LOG_DEBUG("GATT_ACCESS_IND\r\n");
             /* Indicates that an attribute controlled directly by the
              * application (ATT_ATTR_IRQ attribute flag is set) is being 
              * read from or written to.
@@ -2387,6 +2450,7 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
 
         default:
         {
+            M_LOG_DEBUG("default(%d\r\n)", event_code);
             /* Control should never come here */
             break;
         }

@@ -19,6 +19,16 @@
  *  Public Definitions
  *============================================================================*/
 
+/**
+* The USE_WHITELIST macro controls whether device advertising in a whitelist
+* when after bonded. care must be taken when in ANCS mode, this would lead the
+* device can't be scanning and discovering by other peer device when set to 1
+* (as ANCS mode need the device to be bonded before the message can be retrieved
+*  successfully).
+* add by mlw at 20200312 09:53
+*/
+#define USE_WHITELIST 0
+
 /* The PAIRING_SUPPORT macro controls whether pairing and encryption code is
  * compiled. This flag may be disabled for the applications that do not require
  * pairing.
