@@ -355,6 +355,7 @@ static void readPersistentStore(void)
         #if !USE_WHITELIST
         /* Read single bonded flag from NVM */
         Nvm_Read((uint16*)&g_app_data.single_bonded, sizeof(g_app_data.single_bonded), NVM_OFFSET_SINGLE_BONDED_FLAG);
+        ANCSC_LOG_INFO("read sindle bonded flag = %d\r\n", g_app_data.single_bonded);
         #endif
 
         if(g_app_data.bonded)
@@ -660,7 +661,7 @@ static void handleBondingChanceTimerExpiry(timer_id tid)
         /* The bonding chance timer has expired. This means the remote has not
          * encrypted the link using old keys. Disconnect the link.
          */
-        AppSetState(app_disconnecting);
+        AppSetState(app_disconnecting, 0x01);
         ANCSC_LOG_DEBUG("bonding chance timer expiried.\r\n");
     }/* else it may be due to some race condition. Ignore it. */
 }
@@ -700,7 +701,7 @@ static void handleSignalGattCancelConnectCfm(GATT_CANCEL_CONNECT_CFM_T
         }
         else
         {
-            AppSetState(app_fast_advertising);
+            AppSetState(app_fast_advertising, 0x02);
         }
     }
     else
@@ -713,12 +714,12 @@ static void handleSignalGattCancelConnectCfm(GATT_CANCEL_CONNECT_CFM_T
              */
             case app_fast_advertising:
             {
-                AppSetState(app_slow_advertising);
+                AppSetState(app_slow_advertising, 0x03);
             }
             break;
             case app_slow_advertising:
             {
-                AppSetState(app_idle);
+                AppSetState(app_idle, 0x04);
             }
             break;
             default:
@@ -777,7 +778,7 @@ static void handleSignalLmDisconnectComplete(
                 g_app_data.notif_configuring = FALSE;
                 appDataInit();
                 /* Restart advertising */
-                AppSetState(app_fast_advertising);
+                AppSetState(app_fast_advertising, 0x05);
 
             }
             break;
@@ -818,7 +819,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                 /* Store received UCID */
                 g_app_data.st_ucid = p_event_data->cid;
 
-                AppSetState(app_connected);
+                AppSetState(app_connected, 0x06);
       
 
                 if(g_app_data.bonded == TRUE && 
@@ -834,7 +835,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                      * connected. So disconnect and start advertising again
                      */
                     g_app_data.auth_failure = TRUE;
-                    AppSetState(app_disconnecting);
+                    AppSetState(app_disconnecting, 0x07);
                     ANCSC_LOG_DEBUG("application was bonded to a remote device, so disconnect and start advertising again.\r\n");
                 }
                 else
@@ -881,7 +882,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                 /* Else wait for user activity before we start advertising 
                  * again
                  */
-                AppSetState(app_idle);
+                AppSetState(app_idle, 0x08);
             }
         }
         break;
@@ -1232,7 +1233,7 @@ static void handleSignalSmSimplePairingCompleteInd(
                  */
                  if(p_event_data->status == sm_status_repeated_attempts)
                  {
-                    AppSetState(app_disconnecting);
+                    AppSetState(app_disconnecting, 0x09);
                     ANCSC_LOG_INFO("pairing has failed.\r\n");
                  }
                  else if(g_app_data.bonded)
@@ -1314,6 +1315,10 @@ static void handleSignalSmDivApproveInd(SM_DIV_APPROVE_IND_T *p_event_data)
                 {
                     approve_div = SM_DIV_APPROVED;
                 }
+                else
+                {
+                    M_LOG_WARNING("diversifier is not the same.\r\n");
+                }
             }
             #endif
 
@@ -1323,7 +1328,7 @@ static void handleSignalSmDivApproveInd(SM_DIV_APPROVE_IND_T *p_event_data)
             }
             else
             {
-                 M_LOG_WARNING("bonding disapproved.\r\n");   
+                 M_LOG_WARNING("bonding disapproved(bond = %d).\r\n", g_app_data.single_bonded);   
             }
             SMDivApproval(p_event_data->cid, approve_div);
         }
@@ -1361,7 +1366,7 @@ static void handleSignalGattDbCfm(GATT_ADD_DB_CFM_T *p_event_data)
             {
                  /* Database is set up. So start advertising */
                 /**original advertise mode: fast adv 30s -> slow adv 60s -> idle*/
-                AppSetState(app_fast_advertising);
+                AppSetState(app_fast_advertising, 0x0A);
                 
                 /** new advertise mode: slow adv mode with no fast adv or idle*/
                 /*AppSetState(app_slow_advertising);*/
@@ -1536,7 +1541,7 @@ static void handleGattReadCharValCfm(GATT_READ_CHAR_VAL_CFM_T *p_event_data)
            when we receive disconnect indication */
 
         /* Something went wrong. We can't recover, so disconnect */
-        AppSetState(app_disconnecting);
+        AppSetState(app_disconnecting, 0x0B);
     }
 }
 
@@ -1617,13 +1622,13 @@ static void handleGattWriteCharValCfm(GATT_WRITE_CHAR_VAL_CFM_T *p_event_data)
         {
             #if USE_WHITELIST_RESET
             /* Reset and clear the whitelist */
-            ANCSC_LOG_WARNING("now reset the whitelist, please try to connect later.\r\n");
+            ANCSC_LOG_WARNING("reset the whitelist, now please try to connect again.\r\n");
             LsResetWhiteList();
             HandlePairingRemoval();
             #else
             /* Something went wrong. We can't recover, so disconnect */
             ANCSC_LOG_WARNING("something went wrong. we can't recover, so disconnect.\r\n");
-            AppSetState(app_disconnecting);
+            AppSetState(app_disconnecting, 0x0C);
             #endif
     
         }
@@ -1722,7 +1727,7 @@ extern void OtaTimerHandler(timer_id tid)
         /* The remote device does not support anything interesting.
          * Disconnect and wait for some one else to connect.
          */
-        AppSetState(app_disconnecting);
+        AppSetState(app_disconnecting, 0x0D);
 
     }
 }
@@ -1830,17 +1835,30 @@ extern void ReportPanic(app_panic_code panic_code)
  *----------------------------------------------------------------------------*/
 extern void HandleShortButtonPress(void)
 {
-    ANCSC_LOG_WARNING("(short button)force ble to fast advertising mode(0x%02X).\r\n", g_app_data.state);
-    
     #if 0
     /* Handle signal as per current state */
     switch(g_app_data.state)
     {
+        case app_fast_advertising: /* FALLTHROUGH */
+            ANCSC_LOG_INFO("(short button)current is fast advertising mode.\r\n");
+        break;
+        case app_slow_advertising:
+        {
+            ANCSC_LOG_INFO("(short button)advertising state: restart advertisements.\r\n");
+
+            /* Stop advertisements first as it may be making use of white 
+             * list. Once advertisements are stopped, reset the whitelist
+             * and trigger advertisements again for any host to connect
+             */
+            //! AppSetState(app_fast_advertising, 0x0E); //! there is bug to lead the system reboot when set to fast advertising mode
+            GattStopAdverts();
+        }
+        break;
         case app_idle:
         {
              ANCSC_LOG_INFO("(short button)app_idle state: set disconnect, reset and clear whitelist.\r\n");
              /* Start fast undirected advertisements. */
-             AppSetState(app_fast_advertising);
+             AppSetState(app_fast_advertising, 0x0F);
         }
         break;
         default:
@@ -1903,7 +1921,7 @@ extern void HandlePairingRemoval(void)
                  * and services data related to bonding status will get 
                  * updated while exiting disconnecting state
                  */
-                AppSetState(app_disconnecting);
+                AppSetState(app_disconnecting, 0x10);
 
                 /* Reset and clear the whitelist */
                 LsResetWhiteList();
@@ -1951,7 +1969,7 @@ extern void HandlePairingRemoval(void)
                 LsResetWhiteList();
 
                 /* Start fast undirected advertisements. */
-                AppSetState(app_fast_advertising);
+                AppSetState(app_fast_advertising, 0x11);
             }
             break;
 
@@ -1972,9 +1990,11 @@ extern void HandlePairingRemoval(void)
  *      Nothing.
  *
  *----------------------------------------------------------------------------*/
-void AppSetState(app_state new_state)
+void AppSetState(app_state new_state, uint8 caller)
 {
     app_state old_state = g_app_data.state;
+    
+    ANCSC_LOG_DEBUG("app set state caller: 0x%02X, old state: %d, new state: %d\r\n", caller, old_state, new_state);
 
     /* Check if the new state to be set is not the same as the present state
      * of the application. 
@@ -2226,8 +2246,6 @@ void AppInit(sleep_state last_sleep_state)
 #ifdef ENABLE_UART  
     /* Initialise the UART interface */
     m_uart_init();
-    m_devname_init(devName);
-    ANCSC_LOG_INFO("system started: %s\r\n", devName);
     m_printf_test();
 #endif /* ENABLE_UART */
     
@@ -2263,6 +2281,15 @@ void AppInit(sleep_state last_sleep_state)
 
     /* Read persistent storage */
     readPersistentStore();
+    
+    /** Set the device advertising name, it's important that set device name 
+      * must behind read NVM(m_devname_init() behind readPersistentStore()), or
+      * a read NVM operation, which is after OTA, would overwrite the current
+      * device name!!!!
+      * add by mlw at 20200314 01:37
+      */
+    m_devname_init(devName);
+    m_printf("system started: %s\r\n", devName);
 
     /* Tell Security Manager module about the value it needs to initialise it's
      * diversifier to.
@@ -2559,7 +2586,7 @@ void HandleConnectReq(void)
     /* Start advertising */
     if(g_app_data.state == app_idle)
     {
-        AppSetState(app_fast_advertising);
+        AppSetState(app_fast_advertising, 0x12);
     }
 }
 
@@ -2579,7 +2606,7 @@ void HandleDisconnectReq(void)
    if(app_connected == AppGetState())
     {
         /* Initiate a disconnect */
-        AppSetState(app_disconnecting);
+        AppSetState(app_disconnecting, 0x13);
     }
 }
 

@@ -19,6 +19,10 @@
  *  Public Definitions
  *============================================================================*/
 
+/** The USE_WHITELIST macro */
+#define BLE_ADVERTISING_NAME    "foxter02"
+#define BLE_HARDWARE_VERSION    "v1.0.0.2"
+
 /**
 * The USE_WHITELIST macro controls whether device advertising in a whitelist
 * when after bonded. care must be taken when in ANCS mode, this would lead the
