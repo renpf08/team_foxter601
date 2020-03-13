@@ -77,6 +77,11 @@ typedef struct
     /* Boolean flag to indicated whether the device is bonded */
     bool                                    bonded;
 
+    /** Boolean flag to indicated whether the device is bonded, just for apple
+     *  device ANCS use, add by mlw at 20200313 16:49  
+     */
+    bool                                    single_bonded;
+
     /* TYPED_BD_ADDR_T of the host to which application is bonded.*/
     TYPED_BD_ADDR_T                         bonded_bd_addr;
 

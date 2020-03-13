@@ -26,6 +26,11 @@
 /* Subsequent timeout at which the timer has to fire next callback */
 #define TIMER_TIMEOUT2 (3 * SECOND)
 
+#define TIMER_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
+#define TIMER_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
+#define TIMER_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
+#define TIMER_LOG_DEBUG(...)        M_LOG_DEBUG(__VA_ARGS__)
+
 /*============================================================================*
  *  Private Data
  *============================================================================*/
@@ -79,7 +84,7 @@ static void startTimer(uint32 timeout, timer_callback_arg handler)
     /* If a timer could not be created, panic to restart the app */
     if (tId == TIMER_INVALID)
     {
-        DebugWriteString("\r\nFailed to start timer");
+        TIMER_LOG_DEBUG("\r\nFailed to start timer");
         
         /* Panic with panic code 0xfe */
         Panic(0xfe);
@@ -105,11 +110,11 @@ static void timerCallback1(timer_id const id)
     const uint32 elapsed = TIMER_TIMEOUT1 / SECOND;
     
     if (elapsed == 1)
-        m_printf("1 second elapsed\r\n");
+        TIMER_LOG_DEBUG("1 second elapsed\r\n");
     else          
     {
         writeASCIICodedNumber(elapsed);
-        m_printf(" seconds elapsed\r\n");
+        TIMER_LOG_DEBUG(" seconds elapsed\r\n");
     }
 
     /* Now start a new timer for second callback */
@@ -135,11 +140,11 @@ static void timerCallback2(timer_id const id)
     const uint32 elapsed = TIMER_TIMEOUT2 / SECOND;
     
     if (elapsed == 1)
-        m_printf("1 second elapsed\r\n");
+        TIMER_LOG_DEBUG("1 second elapsed\r\n");
     else          
     {
         writeASCIICodedNumber(elapsed);
-        m_printf(" seconds elapsed\r\n");
+        TIMER_LOG_DEBUG(" seconds elapsed\r\n");
     }
 
     /* Report current system time */
@@ -168,11 +173,11 @@ static void printCurrentTime(void)
     const uint32 now = TimeGet32();
     
     /* Report current system time */
-    m_printf("\n\nCurrent system time: ");
+    TIMER_LOG_DEBUG("\n\nCurrent system time: ");
     writeASCIICodedNumber(now / MINUTE);
-    m_printf("m ");
+    TIMER_LOG_DEBUG("m ");
     writeASCIICodedNumber((now % MINUTE)/SECOND);
-    m_printf("s\r\n");
+    TIMER_LOG_DEBUG("s\r\n");
 }
 
 /*----------------------------------------------------------------------------*
@@ -211,7 +216,7 @@ static uint8 writeASCIICodedNumber(uint32 value)
     } while (remainder > 0);
 
     /* Send the string to the UART */
-    DebugWriteString(buffer + i);
+    TIMER_LOG_DEBUG(buffer + i);
     
     /* Return length of ASCII string sent to UART */
     return (BUFFER_SIZE - 1) - i;
@@ -239,7 +244,7 @@ static void m_timer_clock_handler(timer_id const id)
     {
         time.hour = 0;
     }
-    //m_printf("time %02d:%02d:%02d\r\n", time.hour, time.minute, time.second);
+    //TIMER_LOG_DEBUG("time %02d:%02d:%02d\r\n", time.hour, time.minute, time.second);
     m_timer_clock_init();
 }
 /**
@@ -259,7 +264,7 @@ void m_timer_clock_init(void)
     /* If a timer could not be created, panic to restart the app */
     if (tId == TIMER_INVALID)
     {
-        m_printf("m_timer_clock_init failed\r\n");
+        TIMER_LOG_DEBUG("m_timer_clock_init failed\r\n");
         
         /* Panic with panic code 0xfe */
         Panic(0xfe);
@@ -271,7 +276,7 @@ void m_timer_clock_init1(void);
 
 static void m_timer_clock_handler1(timer_id const id)
 {
-    m_printf("m_timer_clock_handler1\r\n");
+    TIMER_LOG_DEBUG("m_timer_clock_handler1\r\n");
     m_timer_clock_init1();
 }
 /**
@@ -291,7 +296,7 @@ void m_timer_clock_init1(void)
     /* If a timer could not be created, panic to restart the app */
     if (tId == TIMER_INVALID)
     {
-        m_printf("m_timer_clock_init failed1\r\n");
+        TIMER_LOG_DEBUG("m_timer_clock_init failed1\r\n");
         
         /* Panic with panic code 0xfe */
         Panic(0xfe);
@@ -304,7 +309,7 @@ void m_timer_clock_init2(void);
 
 static void m_timer_clock_handler2(timer_id const id)
 {
-    m_printf("m_timer_clock_handler2\r\n");
+    TIMER_LOG_DEBUG("m_timer_clock_handler2\r\n");
     m_timer_clock_init2();
 }
 /**
@@ -324,7 +329,7 @@ void m_timer_clock_init2(void)
     /* If a timer could not be created, panic to restart the app */
     if (tId == TIMER_INVALID)
     {
-        m_printf("m_timer_clock_init failed2\r\n");
+        TIMER_LOG_DEBUG("m_timer_clock_init failed2\r\n");
         
         /* Panic with panic code 0xfe */
         Panic(0xfe);
@@ -337,7 +342,7 @@ void m_timer_clock_init3(void);
 
 static void m_timer_clock_handler3(timer_id const id)
 {
-    m_printf("m_timer_clock_handler3\r\n");
+    TIMER_LOG_DEBUG("m_timer_clock_handler3\r\n");
     m_timer_clock_init3();
 }
 /**
@@ -357,7 +362,7 @@ void m_timer_clock_init3(void)
     /* If a timer could not be created, panic to restart the app */
     if (tId == TIMER_INVALID)
     {
-        m_printf("m_timer_clock_init failed3\r\n");
+        TIMER_LOG_DEBUG("m_timer_clock_init failed3\r\n");
         
         /* Panic with panic code 0xfe */
         Panic(0xfe);
@@ -370,7 +375,7 @@ void m_timer_clock_init4(void);
 
 static void m_timer_clock_handler4(timer_id const id)
 {
-    m_printf("m_timer_clock_handler4\r\n");
+    TIMER_LOG_DEBUG("m_timer_clock_handler4\r\n");
     m_timer_clock_init4();
 }
 /**
@@ -390,7 +395,7 @@ void m_timer_clock_init4(void)
     /* If a timer could not be created, panic to restart the app */
     if (tId == TIMER_INVALID)
     {
-        m_printf("m_timer_clock_init failed4\r\n");
+        TIMER_LOG_DEBUG("m_timer_clock_init failed4\r\n");
         
         /* Panic with panic code 0xfe */
         Panic(0xfe);
@@ -403,7 +408,7 @@ void m_timer_clock_init5(void);
 
 static void m_timer_clock_handler5(timer_id const id)
 {
-    m_printf("m_timer_clock_handler5\r\n");
+    TIMER_LOG_DEBUG("m_timer_clock_handler5\r\n");
     m_timer_clock_init5();
 }
 /**
@@ -423,7 +428,7 @@ void m_timer_clock_init5(void)
     /* If a timer could not be created, panic to restart the app */
     if (tId == TIMER_INVALID)
     {
-        m_printf("m_timer_clock_init failed5\r\n");
+        TIMER_LOG_DEBUG("m_timer_clock_init failed5\r\n");
         
         /* Panic with panic code 0xfe */
         Panic(0xfe);
@@ -436,7 +441,7 @@ void m_timer_clock_init6(void);
 
 static void m_timer_clock_handler6(timer_id const id)
 {
-    m_printf("m_timer_clock_handler6\r\n");
+    TIMER_LOG_DEBUG("m_timer_clock_handler6\r\n");
     m_timer_clock_init6();
 }
 /**
@@ -456,7 +461,7 @@ void m_timer_clock_init6(void)
     /* If a timer could not be created, panic to restart the app */
     if (tId == TIMER_INVALID)
     {
-        m_printf("m_timer_clock_init failed6\r\n");
+        TIMER_LOG_DEBUG("m_timer_clock_init failed6\r\n");
         
         /* Panic with panic code 0xfe */
         Panic(0xfe);

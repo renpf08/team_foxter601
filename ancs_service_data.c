@@ -50,6 +50,11 @@
  */
 #define ANCS_MAX_NOTIF_ATT_LENGTH                     (20)
 
+#define ANCSS_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
+#define ANCSS_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
+#define ANCSS_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
+#define ANCSS_LOG_DEBUG(...)        M_LOG_DEBUG(__VA_ARGS__)
+
 /*============================================================================*
  *  Private Data Types
  *===========================================================================*/

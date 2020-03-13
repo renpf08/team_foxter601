@@ -36,6 +36,11 @@
 #define SYSTEM_ID_FIXED_CONSTANT    (0xFFFE)
 #define SYSTEM_ID_LENGTH            (8)
 
+#define DINFO_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
+#define DINFO_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
+#define DINFO_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
+#define DINFO_LOG_DEBUG(...)        //! M_LOG_DEBUG(__VA_ARGS__)
+
 /*============================================================================*
  *  Private Datatypes
  *============================================================================*/
@@ -112,7 +117,7 @@ static bool getSystemId(SYSTEM_ID_T * sys_id)
         sys_id->byte[6] = (uint8)(bdaddr.nap);
         sys_id->byte[7] = (uint8)(bdaddr.nap >> 8);
         
-        m_printf("addr: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n",
+        DINFO_LOG_DEBUG("addr: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n",
                  sys_id->byte[0],sys_id->byte[1],sys_id->byte[2],sys_id->byte[3],sys_id->byte[4],sys_id->byte[5],sys_id->byte[6],sys_id->byte[7]);
 
         return TRUE;

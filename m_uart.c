@@ -33,6 +33,12 @@
 /* The maximum buffer used to store and send data from the target application
    to the host */
 #define MAXIMUM_TX_BUFFER_SIZE_WORDS    (64)
+
+#define UART_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
+#define UART_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
+#define UART_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
+#define UART_LOG_DEBUG(...)        M_LOG_DEBUG(__VA_ARGS__)
+
 /*============================================================================
  *  Private Data
  *============================================================================*/
@@ -59,8 +65,8 @@ static void m_timer_uart_recev_handler(const timer_id id)
     uint8 len = uartCtrl.bufLen>20?20:uartCtrl.bufLen;
     SerialSendNotification(uartCtrl.uartBuf, len); //! ·¢ËÍBLEÍ¨Öª
     m_nprintf((unsigned)uartCtrl.bufLen, (char *)uartCtrl.uartBuf);
-    //M_LOG_DEBUG((char *)uartCtrl.uartBuf);
-    //m_printf("%s", uartCtrl.uartBuf);
+    //UART_LOG_DEBUG((char *)uartCtrl.uartBuf);
+    //UART_LOG_DEBUG("%s", uartCtrl.uartBuf);
     uartCtrl.bUartTimerStart = FALSE;
     MemSet(uartCtrl.uartBuf, 0, sizeof(uartCtrl.uartBuf));
     uartCtrl.bufLen = 0;
@@ -82,7 +88,7 @@ void m_timer_uart_recev_init(void)
     /* If a timer could not be created, panic to restart the app */
     if (tId == TIMER_INVALID)
     {
-        m_printf("m_timer_uart_recev_init failed\r\n");
+        UART_LOG_DEBUG("m_timer_uart_recev_init failed\r\n");
         
         /* Panic with panic code 0xfe */
         Panic(0xfe);
