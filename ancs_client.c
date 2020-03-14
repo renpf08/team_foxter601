@@ -375,7 +375,7 @@ static void readPersistentStore(void)
         #else
         /* Read single bonded flag from NVM */
         Nvm_Read((uint16*)&g_app_data.single_bonded, sizeof(g_app_data.single_bonded), NVM_OFFSET_SINGLE_BONDED_FLAG);
-        ANCSC_LOG_INFO("read sindle bonded flag = %d\r\n", g_app_data.single_bonded);
+        ANCSC_LOG_DEBUG("read single bonded flag = %d\r\n", g_app_data.single_bonded);
         #endif
 
 
@@ -2286,7 +2286,9 @@ void AppInit(sleep_state last_sleep_state)
       * add by mlw at 20200314 01:37
       */
     m_devname_init(devName);
-    m_printf("system started: %s\r\n", devName);
+    m_printf("\r\n");
+    m_printf("\r\n");
+    ANCSC_LOG_INFO("system started: %s\r\n", devName);
 
     /* Tell Security Manager module about the value it needs to initialise it's
      * diversifier to.

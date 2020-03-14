@@ -62,11 +62,19 @@ void m_timer_uart_recev_init(void);
 
 static void m_timer_uart_recev_handler(const timer_id id)
 {
+    uint8 i = 0;
     uint8 len = uartCtrl.bufLen>20?20:uartCtrl.bufLen;
+    
     SerialSendNotification(uartCtrl.uartBuf, len); //! 发送BLE通知
-    m_nprintf((unsigned)uartCtrl.bufLen, (char *)uartCtrl.uartBuf);
-    //UART_LOG_DEBUG((char *)uartCtrl.uartBuf);
-    //UART_LOG_DEBUG("%s", uartCtrl.uartBuf);
+    for(i = 0; i < uartCtrl.bufLen; i++)
+    {
+        m_printf("%c", uartCtrl.uartBuf[i]);
+    }
+    //! 当串口接收到数值字符串中出现数值0x25时，调用该函数打印时，该数值会被识别成格式
+    //! 控制符%，导致输出结果出错，是故不采用m_nprintf进行格式化控制输出
+    //! mlw, 20200315 00:01
+    //! m_nprintf((unsigned)uartCtrl.bufLen, (char *)uartCtrl.uartBuf);
+    
     uartCtrl.bUartTimerStart = FALSE;
     MemSet(uartCtrl.uartBuf, 0, sizeof(uartCtrl.uartBuf));
     uartCtrl.bufLen = 0;

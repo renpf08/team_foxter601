@@ -38,7 +38,8 @@ void m_uart_out(char c)
 * @return dont care
 * @data 2020/03/03 17:03
 * @author maliwen
-* @note none
+* @note 有bug：当打印字符串为数值字符串，而字符串中间有数值0x25（十进制37）时，会被识别成格式控
+*       制符：%，进而导致输出出错，目前尚未对此bug进行修复（该问题发现与20200314 23:47）
 */
 //! 注：调试串口打印函数时，可能不能正常进入m_vprintf函数，此时可以尝试把hexCharTbl定义为全局变量
 int m_vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pParamList) 
@@ -61,12 +62,18 @@ int m_vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pPara
     bool bReady = FALSE; //! 是否有数据格式化完成
     char fmtBuf[M_PRINT_BUFF_SIZE] = {0}; //! 格式化数字为字符串
     unsigned fmtPos = 0; //! 格式化数字到字符串buf的位置
+    bool bSize = (size>0)?TRUE:FALSE; //! 如果指定输出字符串长度，那么即使未到字符串结尾，都停止输出（调试发现，蓝牙串口接收字符串buffer不会自动清空，可能会错误输出上一次多余的内容
 	
 	do
 	{
 		c = *sFormat;
 		sFormat++;
-		if ((c == 0u) && (size == 0)) break; //! 当遇到字符为0值时，如果长度未结束，则继续输出(当m_nprintf中未使用“%s”格式化时，会直接逐个字符输出)
+        
+        /**
+          * 条件1：((c == 0u) && (size == 0)) - 防止数据buffer中间有0值时，被错误终止输出 
+          * 条件2：((bSize == TRUE) && (size == 0)) - 当数据buffer有多余字符串时，保证指输出指定长度的字符 
+          */
+		if (((c == 0u) && (size == 0)) || ((bSize == TRUE) && (size == 0))) break; //! 当遇到字符为0值时，如果长度未结束，则继续输出(当m_nprintf中未使用“%s”格式化时，会直接逐个字符输出)
 		if (c == '%')
 		{
 			FormatFlags = 0u;
@@ -399,7 +406,7 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
     
     m_printf("<%02d:%02d:%02d> %-30s%-40s%6d%10s:", time->hour, time->minute, time->second, preStr, func, line, level);
     va_start(ParamList, sFormat);
-    r = va_arg(ParamList, int); //! 测试发现，参数列表的第一个参数是乱码，此处需要做一次读操作相当于去掉第一个参数！！！
+    //r = va_arg(ParamList, int); //! 测试发现，参数列表的第一个参数是乱码，此处需要做一次读操作相当于去掉第一个参数！！！
     r = m_vprintf(0, 0, sFormat, &ParamList);
     va_end(ParamList);
     return r;
@@ -415,8 +422,12 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
 * @note none
 */
 void m_printf_test(void)
-{ 
+{
     #if 0
+    //--------------------------------------------------------------------------
+    //当输出字符串中间有数值0x25时，会被当成格式控制符%，进而会导致输出出错，此bug暂不修复
+    //mlw 20200315 00:11
+    m_printf("\x12\x25\x35\x56\x78\x0d\x0a");
     //--------------------------------------------------------------------------
     //十六进制带长度控制的格式化输出，用于测试字符串中间有0值的输出情况
     char buf[16] = {"\x12\x34\x00\x56\x00\x78\x00\x00\x91\x00\x00\x00"};
@@ -459,6 +470,56 @@ void m_printf_test(void)
     m_printf("addr:%P\r\n", buf);
     m_printf("addr:%8P\r\n", buf);
     m_printf("addr:%08p\r\n", buf);
+    //--------------------------------------------------------------------------
+    //格式化日志输出，包括路径名、函数名、行号、调试等级等（后续可看情况添加，如线程名，时间等）
+    M_LOG_ERROR("error test\r\n");
+    M_LOG_WARNING("warning test\r\n");
+    M_LOG_INFO("info test\r\n");
+    M_LOG_DEBUG("debug test\r\n");
+    #endif
+    #if 0
+    //--------------------------------------------------------------------------
+    //十六进制带长度控制的格式化输出，用于测试字符串中间有0值的输出情况
+    char buf[16] = {"\x12\x34\x00\x56\x00\x78\x00\x00\x91\x00\x00\x00"};
+    m_nprintf(12, buf); //! 指定长度并且不带格式控制的格式化输出
+    m_nprintf(12, "%s", buf); //! 指定长度且带格式控制的格式化输出
+    m_snprintf(buf, 12, "%s", buf); //! 指定长度（必去带格式控制）的格式化到指定buffer
+    m_nprintf(12, buf); //! 格式化到指定的buffer后，再格式化输出到串口
+    //--------------------------------------------------------------------------
+    //字符串输出，用于测试打个字符输出，以及单个字符加回车换行数处等
+    M_LOG_INFO("a");
+    M_LOG_INFO("a\r\n");
+    M_LOG_INFO("abc\r\n");
+    M_LOG_INFO("%s\r\n","abc");
+    //--------------------------------------------------------------------------
+    //十进制带符号数格式化输出，包括左对齐、右对齐、占位符0填充等输出测试
+    M_LOG_INFO("%05d|%6d|%7d|\r\n", -123, 456, -789);
+    M_LOG_INFO("%-05d|%-6d|%-7d|\r\n", 123, -456, 789);
+    M_LOG_INFO("%-05d|%-6d|%-7d|\r\n", -123, 456, -789);
+    //--------------------------------------------------------------------------
+    //十进制无符号数格式化输出，包括左对齐、右对齐、占位符0填充等输出测试
+    M_LOG_INFO("%05u|%6u|%7u|\r\n", 123, -456, 789);
+    M_LOG_INFO("%05u|%6u|%7u|\r\n", -123, 456, -789);
+    M_LOG_INFO("%-05u|%-6u|%-7u|\r\n", 123, -456, 789);
+    M_LOG_INFO("%-05u|%-6u|%-7u|\r\n", -123, 456, -789);
+    //--------------------------------------------------------------------------
+    //十六进制数格式化输出，包括左对齐、右对齐、占位符0填充等输出测试
+    M_LOG_INFO("%05x|%6x|%7x|\r\n", 123, -456, 789);
+    M_LOG_INFO("%05x|%6x|%7x|\r\n", -123, 456, -789);
+    M_LOG_INFO("%-05X|%-6X|%-7X|\r\n", 123, -456, 789);
+    M_LOG_INFO("%-05X|%-6X|%-7X|\r\n", -123, 456, -789);
+    //--------------------------------------------------------------------------
+    //字符串格式化输出，包括左对齐、右对齐、占位符0填充等输出测试（字符串的占位符强制为空格）
+    M_LOG_INFO("%5s|%6s|%7s|\r\n", "test", "test", "test");
+    M_LOG_INFO("%05s|%06s|%07s|\r\n", "test", "test", "test");
+    M_LOG_INFO("%-5s|%-6s|%-7s|\r\n", "test", "test", "test");
+    M_LOG_INFO("%-05s|%-06s|%-07s|\r\n", "test", "test", "test");
+    //--------------------------------------------------------------------------
+    //指针地址格式化输出，包括大小写十六进制显示，以及空格符、0字符占位符
+    M_LOG_INFO("addr:%p\r\n", buf);
+    M_LOG_INFO("addr:%P\r\n", buf);
+    M_LOG_INFO("addr:%8P\r\n", buf);
+    M_LOG_INFO("addr:%08p\r\n", buf);
     //--------------------------------------------------------------------------
     //格式化日志输出，包括路径名、函数名、行号、调试等级等（后续可看情况添加，如线程名，时间等）
     M_LOG_ERROR("error test\r\n");
