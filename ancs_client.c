@@ -85,11 +85,6 @@
 #define NVM_OFFSET_SM_IRK              (NVM_OFFSET_SM_DIV + \
                                         sizeof(g_app_data.diversifier))
 
-/** NVM offset for single bonded flag, add by mlw at 20200313 16:49 */
-#define NVM_OFFSET_SINGLE_BONDED_FLAG   (NVM_OFFSET_SM_IRK + \
-                                        sizeof(g_app_data.single_bonded))
-
-
 /* NVM offset where the application stores the boolean flag which tells if the 
  * remote GATT database handles are present or not.
  */
@@ -101,6 +96,10 @@
  */
 #define NVM_MAX_APP_MEMORY_WORDS (NVM_OFFSET_DISC_HANDLES_PRESENT + \
                                  sizeof(g_app_data.remote_gatt_handles_present))
+
+/** NVM offset for single bonded flag, add by mlw at 20200313 16:49 */
+#define NVM_OFFSET_SINGLE_BONDED_FLAG   (NVM_MAX_APP_MEMORY_WORDS + \
+                                        sizeof(g_app_data.single_bonded))
 
 /* Macro value may need to be changed if 0x0000 UUID 
  * is assigned by Bluetooth SIG 
@@ -348,15 +347,10 @@ static void readPersistentStore(void)
 
     if(nvm_sanity == NVM_SANITY_MAGIC)
     {
+        #if USE_WHITELIST
         /* Read bonded flag from NVM */
         Nvm_Read((uint16*)&g_app_data.bonded, sizeof(g_app_data.bonded),
                            NVM_OFFSET_BONDED_FLAG);
-        
-        #if !USE_WHITELIST
-        /* Read single bonded flag from NVM */
-        Nvm_Read((uint16*)&g_app_data.single_bonded, sizeof(g_app_data.single_bonded), NVM_OFFSET_SINGLE_BONDED_FLAG);
-        ANCSC_LOG_INFO("read sindle bonded flag = %d\r\n", g_app_data.single_bonded);
-        #endif
 
         if(g_app_data.bonded)
         {
@@ -375,12 +369,15 @@ static void readPersistentStore(void)
               * session.
               */
         {
-            g_app_data.bonded = FALSE;       
-            #if !USE_WHITELIST
-            g_app_data.single_bonded = FALSE;
-            #endif
+            g_app_data.bonded = FALSE;
             ANCSC_LOG_DEBUG("device has not bonded.\r\n");
-        }
+        }        
+        #else
+        /* Read single bonded flag from NVM */
+        Nvm_Read((uint16*)&g_app_data.single_bonded, sizeof(g_app_data.single_bonded), NVM_OFFSET_SINGLE_BONDED_FLAG);
+        ANCSC_LOG_INFO("read sindle bonded flag = %d\r\n", g_app_data.single_bonded);
+        #endif
+
 
         /* Read the diversifier associated with the presently bonded/last 
          * bonded device.

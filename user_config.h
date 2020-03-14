@@ -20,8 +20,8 @@
  *============================================================================*/
 
 /** The USE_WHITELIST macro */
-#define BLE_ADVERTISING_NAME    "foxter02"
-#define BLE_HARDWARE_VERSION    "v1.0.0.2"
+#define BLE_ADVERTISING_NAME    "foxter01"
+#define BLE_HARDWARE_VERSION    "v1.0.0.1"
 
 /**
 * The USE_WHITELIST macro controls whether device advertising in a whitelist
