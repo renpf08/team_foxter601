@@ -6,6 +6,9 @@
    <file path="common/typedef.h" />
   </folder>
   <folder name="driver" >
+   <folder name="flash" >
+    <file path="driver/flash/flash.c" />
+   </folder>
    <folder name="key" >
     <file path="driver/key/keyA.c" />
    </folder>

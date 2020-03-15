@@ -2121,6 +2121,7 @@ void AppInit(sleep_state last_sleep_state)
 	driver->timer->timer_init(NULL, NULL);
 	driver->battery->battery_init(NULL, NULL);
 	driver->keya->key_init(&args, csr_event_callback);
+	driver->flash->flash_init(NULL, NULL);
     /* Initialise the application timers */
     //TimerInit(MAX_APP_TIMERS, (void*)app_timers);
 
@@ -2144,6 +2145,7 @@ void AppInit(sleep_state last_sleep_state)
     GattInstallClientRole();
     GattInstallServerWrite();
 
+#if 0
 #ifdef NVM_TYPE_EEPROM
     /* Configure the NVM manager to use I2C EEPROM for NVM store */
     NvmConfigureI2cEeprom();
@@ -2151,8 +2153,8 @@ void AppInit(sleep_state last_sleep_state)
     /* Configure the NVM Manager to use SPI flash for NVM store. */
     NvmConfigureSpiFlash();
 #endif /* NVM_TYPE_EEPROM */
-
     Nvm_Disable();
+#endif
 
     /*Initialise application hardware */
     InitAncsHardware();
