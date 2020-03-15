@@ -413,14 +413,14 @@ extern void WriteGapServiceDataInNVM(void)
 /**
 * @brief get ble adv name
 * @param [in] none
-* @param [out] none
+* @param [out] devName - ble adv name
 * @return none
 * @data 2020/03/01 18:06
 * @author maliwen
 * @note none
 */
-void m_devname_init(void);
-void m_devname_init(void)
+void m_devname_init(uint8* devName);
+void m_devname_init(uint8* devName)
 {
     uint8 addrBuf[6] = {0,0,0,0,0,0};
     BD_ADDR_T bdaddr;           /* Device's Bluetooth address */
@@ -439,5 +439,6 @@ void m_devname_init(void)
         
         //m_printf("addr: %02X:%02X:%02X:%02X:%02X:%02X\r\n",addrBuf[0],addrBuf[1],addrBuf[2],addrBuf[3],addrBuf[4],addrBuf[5]);
     }
-    m_sprintf((char*)g_device_name, "%c%s_%02X%02X", AD_TYPE_LOCAL_NAME_COMPLETE, "foxter", addrBuf[1], addrBuf[0]);
+    m_sprintf((char*)g_device_name, "%c%s_%02X%02X", AD_TYPE_LOCAL_NAME_COMPLETE, BLE_ADVERTISING_NAME, addrBuf[1], addrBuf[0]);
+    m_sprintf((char*)devName, "%s_%02X%02X", BLE_ADVERTISING_NAME, addrBuf[1], addrBuf[0]);
 }

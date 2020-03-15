@@ -33,6 +33,7 @@
 #include "gatt_service.h"
 #include "csr_ota_service.h"
 #include "serial_service.h"
+#include "m_printf.h"
 
 /*============================================================================*
  *  Private Definitions

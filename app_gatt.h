@@ -33,7 +33,7 @@
 #define FAST_CONNECTION_ADVERT_TIMEOUT_VALUE        (30 * SECOND)
 
 /* Time out values for slow advertisements */
-#define SLOW_CONNECTION_ADVERT_TIMEOUT_VALUE        (1 * MINUTE)
+#define SLOW_CONNECTION_ADVERT_TIMEOUT_VALUE        (0 * MINUTE)
 
 /* Maximum length of Device Name
  * Note: Do not increase device name length beyond (DEFAULT_ATT_MTU -3 = 20)

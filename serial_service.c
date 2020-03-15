@@ -173,6 +173,7 @@ extern void SerialHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
     uint16 client_config;
     uint8 *p_value = p_ind->value;
     sys_status rc = sys_status_success;
+    uint8 i = 0;
 
     switch(p_ind->handle)
     {
@@ -184,8 +185,15 @@ extern void SerialHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
         case HANDLE_SERIAL_DATA_ATDR:
         {
             /* Send the received data to the UART */
-            p_ind->value[p_ind->size_value] = '\0';
-            m_printf("%s", (const char *)p_ind->value);
+            for(i = 0; i < p_ind->size_value; i++)
+            {
+                m_printf("%c", p_ind->value[i]);
+            }
+            
+            //! 当接收到蓝牙数值字符串中出现数值0x25时，调用该函数打印时，该数值会被识别成格式
+            //! 控制符%，导致输出结果出错，是故不采用m_nprintf进行格式化控制输出
+            //! mlw, 20200314 23:50
+            //! m_nprintf(p_ind->size_value, (char *)p_ind->value);
         }
         break;
         

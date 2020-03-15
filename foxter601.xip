@@ -73,11 +73,11 @@
  </folder>
  <file path="ancs_csr101x_A05.keyr" />
  <file path="bootloader.keyr" />
- <properties currentconfiguration="Release" >
+ <properties currentconfiguration="Debug" >
   <configuration name="Debug" >
    <property key="csr100x_keyr" >ancs_csr100x.keyr</property>
    <property key="csr101x_a05_keyr" >ancs_csr101x_A05.keyr</property>
-   <property key="debugtransport" ></property>
+   <property key="debugtransport" >[SPITRANS=USB SPIPORT=0]</property>
    <property key="defines" ></property>
    <property key="erase_nvm" >1</property>
    <property key="flash_clock" ></property>

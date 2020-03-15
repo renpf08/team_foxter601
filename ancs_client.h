@@ -77,6 +77,11 @@ typedef struct
     /* Boolean flag to indicated whether the device is bonded */
     bool                                    bonded;
 
+    /** Boolean flag to indicated whether the device is bonded, just for apple
+     *  device ANCS use, add by mlw at 20200313 16:49  
+     */
+    bool                                    single_bonded;
+
     /* TYPED_BD_ADDR_T of the host to which application is bonded.*/
     TYPED_BD_ADDR_T                         bonded_bd_addr;
 
@@ -162,7 +167,7 @@ extern APP_DATA_T g_app_data;
  *  Public Function Prototypes
  *============================================================================*/
 /* This function is used to set the state of the application*/
-extern void AppSetState(app_state new_state);
+extern void AppSetState(app_state new_state, uint8 caller);
 
 /* HandleShortButtonPress handles short button presses */
 extern void HandleShortButtonPress(void);
