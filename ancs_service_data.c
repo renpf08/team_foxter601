@@ -182,219 +182,223 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
     uint16 state = attribute_data.ds_decoder_state;
     uint16 data_len = 0;
     bool b_skip_reserved = FALSE;
-
-   while(count < size_value)
-   {
+    
+    while(count < size_value)
+    {
         if(b_skip_reserved)
-            break;
-
+        break;
+        
         switch(state)
         {
             case ds_decoder_hdr :
-                count = ANCS_DS_HDR_LEN;
-                state = ds_decoder_attrid;
-                break;
-
+            count = ANCS_DS_HDR_LEN;
+            state = ds_decoder_attrid;
+            break;
+            
             case ds_decoder_attrid :
                 /* Get the Attribute ID */
                 attrId = p_data[count++];
                 attribute_data.attr_id = attrId;
-
-                m_printf("\r\n\r\n Attr ID = ");
-
+                
+                //m_printf("\r\n\r\n Attr ID = ");
+                ANCSS_LOG_DEBUG("** \r\n");
+                
                 switch(attrId)
                 {
                     case ancs_notif_att_id_app_id :
-                        m_printf(" App ID");
-                        break;
-
+                    ANCSS_LOG_DEBUG("** Attr ID = App ID\r\n");
+                    break;
+                    
                     case ancs_notif_att_id_title :
-                        m_printf(" Title ");
-                        break;
-
+                    ANCSS_LOG_DEBUG("** Attr ID = Title\r\n");
+                    break;
+                    
                     case ancs_notif_att_id_subtitle :
-                        m_printf(" Sub Title");
-                        break;
-
+                    ANCSS_LOG_DEBUG("** Attr ID = Sub Title\r\n");
+                    break;
+                    
                     case ancs_notif_att_id_message :
-                        m_printf(" Message");
-                        break;
-
+                    ANCSS_LOG_DEBUG("** Attr ID = Message\r\n");
+                    break;
+                    
                     case ancs_notif_att_id_message_size :
-                        m_printf(" Message Size");
-                        break;
-
+                    ANCSS_LOG_DEBUG("** Attr ID = Message Size\r\n");
+                    break;
+                    
                     case ancs_notif_att_id_date :
-                        m_printf(" Date");
-                        break;
-
-                     default :
-                         m_printf(" Reserved");
-                         b_skip_reserved = TRUE;
-                         break;
+                    ANCSS_LOG_DEBUG("** Attr ID = Date\r\n");
+                    break;
+                    
+                    default :
+                    ANCSS_LOG_DEBUG("** Attr ID = Reserved\r\n");
+                    b_skip_reserved = TRUE;
+                    break;
                 }
-
+                
                 if(!b_skip_reserved)
                 {
-                  state = ds_decoder_attrlen;
+                    state = ds_decoder_attrlen;
                 }
                 else
                 {
-                   state = ds_decoder_attrid;
-
-                   /* Invalid */
-                   attribute_data.attr_id = 0xff;
+                    state = ds_decoder_attrid;
+                    
+                    /* Invalid */
+                    attribute_data.attr_id = 0xff;
                 }
-                break;
-
+            break;
+            
             case ds_decoder_attrlen :
-
+            
                 if(attribute_data.pending_len)
                 {
                     /* Length was incomplete in the last fragment,
-                       so the first byte will complete the length
-                       data */
+                    so the first byte will complete the length
+                    data */
                     attribute_data.attr_len = ((p_data[count++]<< 8) | \
-                         attribute_data.rem_attr_len);
+                    attribute_data.rem_attr_len);
                     attribute_data.rem_attr_len = 0;
                     attribute_data.pending_len = FALSE;
-
+                
                 }
                 else if((count + 1) < size_value)
                 {
                     /* Get the Attribute length ( 2 bytes size) */
                     attribute_data.attr_len = (p_data[count] |\
-                                      (p_data[count + 1] << 8));
+                    (p_data[count + 1] << 8));
                     count += 2;
                 }
                 else
                 {
                     attribute_data.rem_attr_len = p_data[count++];
                     /* Length is 2 bytes, so copy the byte and wait for
-                       the next byte in the new fragment*/
+                    the next byte in the new fragment*/
                     attribute_data.pending_len = TRUE;
                 }
-
+                
                 if(!attribute_data.pending_len)
                 {
-                    m_printf("\r\n Attr Len = 0x%04X", attribute_data.attr_len);
-
+                    ANCSS_LOG_DEBUG("** Attr Len = 0x%04X\r\n", attribute_data.attr_len);
+                    
                     if(attribute_data.attr_len > 0)
                     {
-                        m_printf("\r\n Attribute Data = ");
+                        //m_printf("\r\n Attribute Data = "); //! comment by mlw at 20200316 17:01
+                                                              //! let this work to be done bellow
                     }
                     else
                     {
-                        m_printf("\r\n ");
+                        ANCSS_LOG_DEBUG("** \r\n");
                     }
                     state = ds_decoder_attrdata;
                 }
-                break;
-
-                case ds_decoder_attrdata:
+            break;
+            
+            case ds_decoder_attrdata:
+            {
+                /* Data was incomplete in the last fragment */
+                if(attribute_data.pending_attr_data)
                 {
-                    /* Data was incomplete in the last fragment */
-                    if(attribute_data.pending_attr_data)
+                    /* Get the actual data length */
+                    data_len = size_value - count;
+                    
+                    
+                    /* If the received length is greater than
+                    * the overall attribute length, just copy
+                    * data till attribute length
+                    */
+                    if(attribute_data.pending_attr_data < data_len)
+                    {
+                        data_len  = attribute_data.pending_attr_data;
+                    }
+                    
+                    /* Reset the g_ancs_data */
+                    MemSet(g_ancs_data,0,ANCS_MAX_NOTIF_ATT_LENGTH + 1);
+                    
+                    /* Copy the data */
+                    for(i=0;i<data_len;i++)
+                    {
+                        g_ancs_data[i] = p_data[count + i];
+                    }
+                    g_ancs_data[i] = '\0';
+                    
+                    /* Display to UART */
+                    //m_printf((const char *)&g_ancs_data[0]);
+                    ANCSS_LOG_DEBUG("** Attribute Data = %s\r\n", (const char *)&g_ancs_data[0]);
+                    #ifdef ENABLE_LCD_DISPLAY
+                    if(attribute_data.attr_id  == ancs_notif_att_id_subtitle)
+                    {
+                        WriteDataToLcdDisplay((const char*)&g_ancs_data[0],
+                        data_len,
+                        TRUE);
+                    }
+                    #endif /* ENABLE_LCD_DISPLAY */
+                    
+                    /* Update till, what we have read */
+                    count += data_len;
+                    attribute_data.pending_attr_data -= data_len;
+                }
+                else
+                {
+                    if(attribute_data.attr_len > 0)
                     {
                         /* Get the actual data length */
                         data_len = size_value - count;
-
-
+                        
                         /* If the received length is greater than
-                         * the overall attribute length, just copy
-                         * data till attribute length
-                         */
+                        * the overall attribute length, just copy
+                        * data till attribute length
+                        */
                         if(attribute_data.pending_attr_data < data_len)
                         {
                             data_len  = attribute_data.pending_attr_data;
                         }
-
+                        
                         /* Reset the g_ancs_data */
                         MemSet(g_ancs_data,0,ANCS_MAX_NOTIF_ATT_LENGTH + 1);
-
+                        
                         /* Copy the data */
                         for(i=0;i<data_len;i++)
                         {
-                          g_ancs_data[i] = p_data[count + i];
+                            g_ancs_data[i] = p_data[count + i];
                         }
+                        
                         g_ancs_data[i] = '\0';
-
+                        
                         /* Display to UART */
-                        m_printf((const char *)&g_ancs_data[0]);
-#ifdef ENABLE_LCD_DISPLAY
-if(attribute_data.attr_id  == ancs_notif_att_id_subtitle)
+                        //m_printf((const char*)&g_ancs_data[0]);
+                        ANCSS_LOG_DEBUG("** Attribute Data = %s\r\n", (const char*)&g_ancs_data[0]);
+                        
+                        #ifdef ENABLE_LCD_DISPLAY
+                        if(attribute_data.attr_id  == ancs_notif_att_id_subtitle)
                         {
-                    WriteDataToLcdDisplay((const char*)&g_ancs_data[0],
-                                          data_len,
-                                          TRUE);
-                }
-#endif /* ENABLE_LCD_DISPLAY */
-
-                        /* Update till, what we have read */
-                        count += data_len;
-                        attribute_data.pending_attr_data -= data_len;
-                    }
-                    else
-                    {
-                        if(attribute_data.attr_len > 0)
-                        {
-                            /* Get the actual data length */
-                            data_len = size_value - count;
-
-                            /* If the received length is greater than
-                             * the overall attribute length, just copy
-                             * data till attribute length
-                             */
-                            if(attribute_data.pending_attr_data < data_len)
-                            {
-                              data_len  = attribute_data.pending_attr_data;
-                            }
-
-                            /* Reset the g_ancs_data */
-                            MemSet(g_ancs_data,0,ANCS_MAX_NOTIF_ATT_LENGTH + 1);
-
-                            /* Copy the data */
-                            for(i=0;i<data_len;i++)
-                            {
-                                g_ancs_data[i] = p_data[count + i];
-                            }
-
-                            g_ancs_data[i] = '\0';
-
-                            /* Display to UART */
-                            m_printf((const char*)&g_ancs_data[0]);
-
-#ifdef ENABLE_LCD_DISPLAY
-if(attribute_data.attr_id  == ancs_notif_att_id_subtitle)
-                        {
-                    WriteDataToLcdDisplay((const char*)&g_ancs_data[0],
-                                          data_len,
-                                          TRUE);
-                }
-#endif /* ENABLE_LCD_DISPLAY */
-
-                           /* Is more data remaining? */
-                            attribute_data.pending_attr_data =
-                                        (attribute_data.attr_len - data_len);
-                            attribute_data.attr_len = 0;
-                            count += data_len;
+                            WriteDataToLcdDisplay((const char*)&g_ancs_data[0],
+                            data_len,
+                            TRUE);
                         }
-                    }
-
-                    if((attribute_data.pending_attr_data == 0) &&
-                        (attribute_data.attr_len == 0))
-                    {
-                        /* We are done reading data.Move to next attribute */
-                         state = ds_decoder_attrid;
-                         /* Invalid */
-                         attribute_data.attr_id = 0xff;
-                    }
-                    break;
-              }
+                        #endif /* ENABLE_LCD_DISPLAY */
+                        
+                        /* Is more data remaining? */
+                        attribute_data.pending_attr_data =
+                        (attribute_data.attr_len - data_len);
+                        attribute_data.attr_len = 0;
+                        count += data_len;
+                    }   
+                }
+                
+                if((attribute_data.pending_attr_data == 0) &&
+                (attribute_data.attr_len == 0))
+                {
+                    /* We are done reading data.Move to next attribute */
+                    state = ds_decoder_attrid;
+                    /* Invalid */
+                    attribute_data.attr_id = 0xff;
+                }
+                break;
+            }
         }
     }
     attribute_data.ds_decoder_state = state;
-
+    
     return TRUE;
 }
 
@@ -428,13 +432,13 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
     {
         g_cid = p_ind->cid;
 
-        m_printf("\r\n");
-        m_printf("\r\n Event ID = ");
+        ANCSS_LOG_DEBUG("** \r\n");
+        //m_printf("\r\n Event ID = ");
         /* 1st byte of the Notification - Event ID */
         curr_data = p_ind->value[ANCS_NS_OFFSET_EVENT_ID];
         if(curr_data == ancs_event_id_notif_added)
         {
-            m_printf(" Added");
+            ANCSS_LOG_DEBUG("** Event ID = Added\r\n");
 
 #ifdef ENABLE_LCD_DISPLAY
         ClearLCDDisplay();
@@ -442,7 +446,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
         }
         else if(curr_data == ancs_event_id_notif_modified)
         {
-            m_printf(" Modified");
+            ANCSS_LOG_DEBUG("** Event ID = Modified\r\n");
 #ifdef ENABLE_LCD_DISPLAY
         ClearLCDDisplay();
 #endif  /* ENABLE_LCD_DISPLAY */
@@ -450,32 +454,32 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
         else if(curr_data == ancs_event_id_notif_removed)
         {
             notif_removed = TRUE;
-            m_printf(" Removed");
+            ANCSS_LOG_DEBUG("** Event ID = Removed\r\n");
         }
         else
         {
-            m_printf(" Reserved");
+            ANCSS_LOG_DEBUG("** Event ID = Reserved\r\n");
         }
 
-        m_printf("\r\n Event Flags = ");
+        //m_printf("\r\n Event Flags = ");
 
         /* 2nd byte of the Notification- Event Flags */
         curr_data = p_ind->value[ANCS_NS_OFFSET_EVENT_FLAGS];
 
         if(curr_data == ANCS_NS_EVENTFLAG_SILENT)
         {
-            m_printf("Silent");
+            ANCSS_LOG_DEBUG("** Event Flags = Silent\r\n");
         }
         else if(curr_data == ANCS_NS_EVENTFLAG_IMPORTANT)
         {
-            m_printf("Important");
+            ANCSS_LOG_DEBUG("** Event Flags = Important\r\n");
         }
         else /* Reserved */
         {
-            m_printf("Reserved");
+            ANCSS_LOG_DEBUG("** Event Flags = Reserved\r\n");
         }
 
-        m_printf("\r\n Cat ID = ");
+        //m_printf("\r\n Cat ID = ");
 
         /* 3rd byte of the Notification - Cat ID */
         curr_data = p_ind->value[ANCS_NS_OFFSET_CAT_ID];
@@ -483,11 +487,11 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
         switch(curr_data)
         {
             case ancs_cat_id_other:
-                m_printf("Other");
+                ANCSS_LOG_DEBUG("** Cat ID = Other\r\n");
                 break;
 
             case ancs_cat_id_incoming_call:
-                m_printf("Incoming call");
+                ANCSS_LOG_DEBUG("** Cat ID = Incoming call\r\n");
 
 #ifdef ENABLE_LCD_DISPLAY
                 if(!notif_removed)
@@ -500,7 +504,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
                 break;
 
             case ancs_cat_id_missed_call:
-                m_printf("Missed call");
+                ANCSS_LOG_DEBUG("** Cat ID = Missed call\r\n");
 #ifdef ENABLE_LCD_DISPLAY
                 if(!notif_removed)
                 {
@@ -512,7 +516,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
                 break;
 
             case ancs_cat_id_vmail:
-                m_printf("vmail");
+                ANCSS_LOG_DEBUG("** Cat ID = vmail\r\n");
 #ifdef ENABLE_LCD_DISPLAY
                 if(!notif_removed)
                 {
@@ -524,7 +528,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
                 break;
 
             case ancs_cat_id_social:
-                m_printf("social");
+                ANCSS_LOG_DEBUG("** Cat ID = social\r\n");
 #ifdef ENABLE_LCD_DISPLAY
                 if(!notif_removed)
                 {
@@ -536,7 +540,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
                 break;
 
             case ancs_cat_id_schedule:
-                m_printf("schedule");
+                ANCSS_LOG_DEBUG("** Cat ID = schedule\r\n");
 #ifdef ENABLE_LCD_DISPLAY
                 if(!notif_removed)
                 {
@@ -548,7 +552,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
                 break;
 
             case ancs_cat_id_email:
-                m_printf("email");
+                ANCSS_LOG_DEBUG("** Cat ID = email\r\n");
 #ifdef ENABLE_LCD_DISPLAY
                 if(!notif_removed)
                 {
@@ -560,7 +564,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
                 break;
 
             case ancs_cat_id_news:
-                m_printf("news");
+                ANCSS_LOG_DEBUG("** Cat ID = news\r\n");
 #ifdef ENABLE_LCD_DISPLAY
                 if(!notif_removed)
                 {
@@ -572,7 +576,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
                 break;
 
             case ancs_cat_id_hnf:
-                m_printf("hnf");
+                ANCSS_LOG_DEBUG("** Cat ID = hnf\r\n");
 #ifdef ENABLE_LCD_DISPLAY
                 if(!notif_removed)
                 {
@@ -584,7 +588,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
                 break;
 
             case ancs_cat_id_bnf:
-                m_printf("bnf");
+                ANCSS_LOG_DEBUG("** Cat ID = bnf\r\n");
 #ifdef ENABLE_LCD_DISPLAY
                 if(!notif_removed)
                 {
@@ -596,7 +600,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
                 break;
 
             case ancs_cat_id_location:
-                m_printf("location");
+                ANCSS_LOG_DEBUG("** Cat ID = location\r\n");
 #ifdef ENABLE_LCD_DISPLAY
                 if(!notif_removed)
                 {
@@ -608,7 +612,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
                 break;
 
             case ancs_cat_id_entertainment:
-                m_printf("entertainment");
+                ANCSS_LOG_DEBUG("** Cat ID = entertainment\r\n");
 #ifdef ENABLE_LCD_DISPLAY
                 if(!notif_removed)
                 {
@@ -619,7 +623,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 #endif /* ENABLE_LCD_DISPLAY */
                 break;
            default:
-                m_printf("reserved");
+                ANCSS_LOG_DEBUG("** Cat ID = reserved\r\n");
                 break;
         }
 
@@ -634,22 +638,23 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 #endif /* ENABLE_LCD_DISPLAY */
 
         /* 4rd byte of the Notification - Cat Count */
-        m_printf("\r\n Cat Count = %02X", p_ind->value[ANCS_NS_OFFSET_CAT_COUNT]);
+        ANCSS_LOG_DEBUG("** Cat Count = %02X\r\n", p_ind->value[ANCS_NS_OFFSET_CAT_COUNT]);
 
         if(!notif_removed)
         {
           /* 5th to 8th bytes (4 bytes) of the Notification-Notification UUID */
-          m_printf("\r\n UUID = ");
+          //m_printf("\r\n UUID = ");
 
           /* Clear the UUID notification buffer */
           MemSet(uuid_data.data,0,ANCS_NS_NOTIF_UUID_SIZE);
 
           for(count = 0;count < ANCS_NS_NOTIF_UUID_SIZE;count++)
           {
-           m_printf("%02X", p_ind->value[ANCS_NS_OFFSET_NOTIF_UUID + count]);
+          // m_printf("%02X", p_ind->value[ANCS_NS_OFFSET_NOTIF_UUID + count]);
            uuid_data.data[count]=p_ind->value[ANCS_NS_OFFSET_NOTIF_UUID+count];
           }
-          m_printf("\r\n");
+          //m_printf("\r\n");
+          ANCSS_LOG_DEBUG("** UUID = %02X%02X%02X%02X\r\n", uuid_data.data[0],uuid_data.data[1],uuid_data.data[2],uuid_data.data[3]);
 
           g_last_received_notification = curr_data;
 
@@ -696,9 +701,11 @@ static bool ancsHandleDataSourceData(GATT_CHAR_VAL_IND_T *p_ind)
     {
         /* if cmd id = 1*/
         /* Check for APP ID */
-        m_printf("\r\nDisplay Name ");
-        m_printf((char *)p_ind->value + 1);
-        m_printf("\r\n");
+        //m_printf("\r\nDisplay Name ");
+        //m_printf((char *)p_ind->value + 1);
+        //m_printf("\r\n");
+        ANCSS_LOG_DEBUG("** \r\n");
+        ANCSS_LOG_DEBUG("** Display Name %s\r\n", ((char *)p_ind->value + 1));
     }
     return TRUE;
 }
@@ -769,9 +776,13 @@ extern void AncsGetNotificationAttributeCmd(uint16 cid)
   /* "ancs_notif_att_id_app_id" is not added as it is sent by default by the IOS
    * device
    */
+  #if USE_ONLY_APPID
+  uint16 features = 0;
+  #else
   uint16 features =(ancs_notif_att_id_title|ancs_notif_att_id_subtitle | \
                     ancs_notif_att_id_message|ancs_notif_att_id_message_size| \
                     ancs_notif_att_id_date);
+  #endif
 
    /* Clear the buffer each time */
    MemSet(notif_attr_req.data,0,ANCS_MAX_NOTIF_ATT_LENGTH + 1);
@@ -794,12 +805,17 @@ extern void AncsGetNotificationAttributeCmd(uint16 cid)
     * attribute separately. Attribute App Identifier has no length to be filled
     * in
     */
+    #if USE_ONLY_APPID
+    /* Add ancs_notif_att_id_app_id */  
+    value[count++] = ancs_notif_att_id_app_id;
+	#else 
     /* Add Attribute ID for Title */
     value[count++] = ancs_notif_att_id_title;
 
     /* Add Attribute size for Title - 0x14 bytes requested */
     value[count++] = 0x14;
     value[count++] = 0;
+    #endif
 
 
     if(features & ancs_notif_att_id_subtitle)

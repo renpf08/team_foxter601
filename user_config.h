@@ -20,8 +20,14 @@
  *============================================================================*/
 
 /** The USE_WHITELIST macro */
-#define BLE_ADVERTISING_NAME    "foxter02"
-#define BLE_HARDWARE_VERSION    "v1.0.0.2"
+#define BLE_ADVERTISING_NAME    "foxter01"
+#define BLE_HARDWARE_VERSION    "v1.0.0.1"
+
+/**
+*  In this application, in ANCS message, we just only need attrid's app id 
+*  add by mlw at 20200316 16:39
+*/
+#define USE_ONLY_APPID      0
 
 /**
 * The USE_WHITELIST macro controls whether device advertising in a whitelist
