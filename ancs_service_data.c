@@ -143,6 +143,13 @@ uint8 g_ancs_data[ANCS_MAX_NOTIF_ATT_LENGTH + 1];
 
 /* variable to track the last received notification */
 uint16 g_last_received_notification;
+
+/** use to indicate the ancs message. add by mlw at 20200316 23:05 */
+uint8 ancsData[ANCS_MAX_NOTIF_ATT_LENGTH + 1] = {0};
+uint8 ancsLen = 0;
+uint8 eventId = 0xFF;
+uint8 eventIdStr[4][8] = {"Added","Modified","Removed","Reserved"};
+bool packFin = FALSE; //! did a packet finished?
 /*=============================================================================*
  *  Private Function Prototypes
  *============================================================================*/
@@ -318,12 +325,21 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                     for(i=0;i<data_len;i++)
                     {
                         g_ancs_data[i] = p_data[count + i];
+                        ancsData[ancsLen++] = p_data[count + i];
+                        ancsLen = (ancsLen >= (ANCS_MAX_NOTIF_ATT_LENGTH + 1))?ANCS_MAX_NOTIF_ATT_LENGTH:ancsLen;
                     }
                     g_ancs_data[i] = '\0';
+                    ancsData[ancsLen] = '\0';
+                    
+                    /** to place this print here, just for print for once */
+                    if((packFin == FALSE) && (eventId < 4))
+                    {
+                        packFin = TRUE;
+                        ANCSS_LOG_INFO("** Event ID: %s\r\n", eventIdStr[eventId]);
+                    }
                     
                     /* Display to UART */
                     //m_printf((const char *)&g_ancs_data[0]);
-                    ANCSS_LOG_DEBUG("** Attribute Data = %s\r\n", (const char *)&g_ancs_data[0]);
                     #ifdef ENABLE_LCD_DISPLAY
                     if(attribute_data.attr_id  == ancs_notif_att_id_subtitle)
                     {
@@ -360,13 +376,22 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                         for(i=0;i<data_len;i++)
                         {
                             g_ancs_data[i] = p_data[count + i];
+                            ancsData[ancsLen++] = p_data[count + i];
+                            ancsLen = (ancsLen >= (ANCS_MAX_NOTIF_ATT_LENGTH + 1))?ANCS_MAX_NOTIF_ATT_LENGTH:ancsLen;
                         }
                         
                         g_ancs_data[i] = '\0';
+                        ancsData[ancsLen] = '\0';
                         
+                        /** to place this print here, just for print for once */
+                        if((packFin == FALSE) && (eventId < 4))
+                        {
+                            packFin = TRUE;
+                            ANCSS_LOG_INFO("** Event ID = %s\r\n", eventIdStr[eventId]);
+                        }
+                    
                         /* Display to UART */
                         //m_printf((const char*)&g_ancs_data[0]);
-                        ANCSS_LOG_DEBUG("** Attribute Data = %s\r\n", (const char*)&g_ancs_data[0]);
                         
                         #ifdef ENABLE_LCD_DISPLAY
                         if(attribute_data.attr_id  == ancs_notif_att_id_subtitle)
@@ -388,6 +413,14 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                 if((attribute_data.pending_attr_data == 0) &&
                 (attribute_data.attr_len == 0))
                 {
+                    ANCSS_LOG_INFO("** Attribute Data = %s\r\n", (const char*)&ancsData[0]);
+                    for(i = 0; i < (ANCS_MAX_NOTIF_ATT_LENGTH + 1); i++)
+                    {
+                        ancsData[i] = '\0';
+                    }
+                    ancsLen = 0;
+                    eventId = 0xFF;
+                    packFin = FALSE;
                     /* We are done reading data.Move to next attribute */
                     state = ds_decoder_attrid;
                     /* Invalid */
@@ -427,10 +460,10 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
      * |   1B    |   1B    |   1B  |   1B   |   4B           |
      * -------------------------------------------------------
      */
-
     if(p_ind->value != NULL)
     {
         g_cid = p_ind->cid;
+        eventId = p_ind->value[ANCS_NS_OFFSET_EVENT_ID];
 
         ANCSS_LOG_DEBUG("** \r\n");
         //m_printf("\r\n Event ID = ");

@@ -27,7 +27,7 @@
 *  In this application, in ANCS message, we just only need attrid's app id 
 *  add by mlw at 20200316 16:39
 */
-#define USE_ONLY_APPID      0
+#define USE_ONLY_APPID      1
 
 /**
 * The USE_WHITELIST macro controls whether device advertising in a whitelist
