@@ -2115,6 +2115,12 @@ void AppInit(sleep_state last_sleep_state)
 				.group = 0,
 				.num = 11,
 			},
+			.uart_cfg = {
+				.tx = {
+					.group = 0,
+					.num = 0,
+				},
+			},
 		};
 
 	driver_t *driver = get_driver();
@@ -2122,10 +2128,14 @@ void AppInit(sleep_state last_sleep_state)
 	driver->battery->battery_init(NULL, NULL);
 	driver->keya->key_init(&args, csr_event_callback);
 	driver->flash->flash_init(NULL, NULL);
+	driver->uart->uart_init(&args, NULL);
+	u8 test[20] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xAA};
+	driver->uart->uart_write(test, 12);
+
     /* Initialise the application timers */
     //TimerInit(MAX_APP_TIMERS, (void*)app_timers);
 
-#ifdef ENABLE_UART  
+#ifdef ENABLE_UART
     /* Initialise the UART interface */
     m_uart_init();
     //m_printf_test();

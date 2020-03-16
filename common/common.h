@@ -47,7 +47,7 @@ typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*init)(cfg_t *args, event_callback cb);
 typedef s16 (*uninit)(void);
 typedef s16 (*read)(void *args);
-typedef s16 (*write)(void *args);
+typedef s16 (*write)(u8 *buf, u16 num);
 
 typedef s16 (*fread)(u16 *buffer, u16 length, u16 offset);
 typedef s16 (*fwrite)(u16 *buffer, u16 length, u16 offset);

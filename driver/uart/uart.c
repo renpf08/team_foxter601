@@ -3,43 +3,166 @@
 #include <panic.h>
 #include <mem.h>
 #include <uart.h>
+#include <pio.h>            /* Programmable I/O configuration and control */
+#include <timer.h>          /* Chip timer functions */
 #include "user_config.h"
 #include "../driver.h"
+
+#define TIMEOUT 45
+#define UART_TX_HIGH(num) PioSets(1UL << num, 1UL)
+#define UART_TX_LOW(num) PioSets(1UL << num, 0UL)
+
+typedef enum {
+	UART_IDLE,
+	UART_START,
+	UART_TRANSFERRING,
+	UART_PARITY,
+	UART_STOP,
+}UART_STATE_E;
+
+/// parity mode
+typedef enum {
+    GPIO_UART_PARITY_MODE_NONE = 0,
+    GPIO_UART_PARITY_MODE_ODD,
+    GPIO_UART_PARITY_MODE_EVEN
+}UART_PARITY_MODE;
+
+typedef struct {
+	pin_t rx;
+	pin_t tx;
+	u8 data_bit;
+	u8 stop;
+	u8 parity;
+	u8 bit_send_index;
+	u16 bitrate;
+	UART_STATE_E state;
+	u8 *buf_ptr;
+	u8 size;
+	u8 end_flag;
+}uart_config_t;
+
+static uart_config_t uart_config = {
+	.rx = {
+			.group = 0,
+			.num = 0,
+		},
+	.tx = {
+			.group = 0,
+			.num = 0,
+		},
+	.data_bit = 8,
+	.stop = 1,
+	.parity = 0,
+	.bit_send_index = 0,
+	.bitrate = 2400,
+	.state = UART_IDLE,
+	.buf_ptr = NULL,
+	.size = 0,
+	.end_flag = 0,
+};
+
+static int uart_send_handler(void)
+{
+	u8 bit_send = 0;
+	
+    switch(uart_config.state) {
+		case UART_IDLE:
+			uart_config.state = UART_START;
+			break;
+	    case UART_START:
+			//Put GPIO to logic 0 to indicate the start
+			UART_TX_LOW(uart_config.tx.num);
+			uart_config.bit_send_index = 0;
+			uart_config.state = UART_TRANSFERRING;
+			break;
+		case UART_TRANSFERRING:
+			bit_send = (*uart_config.buf_ptr >> uart_config.bit_send_index) & 0x1;
+			//Put GPIO to the logic level according to the bit value. 0 for low, and 1 for high;
+			if(bit_send) {
+				UART_TX_HIGH(uart_config.tx.num);
+			} else {
+				UART_TX_LOW(uart_config.tx.num);
+			}
+
+			uart_config.bit_send_index++;
+			if(uart_config.bit_send_index == 8) {
+				uart_config.state = UART_STOP;
+			}
+			break;
+		case UART_PARITY:
+			break;
+		case UART_STOP:
+			//Put GPIO to logic 1 to stop the transferring
+			UART_TX_HIGH(uart_config.tx.num);
+			
+			uart_config.size--;
+			if(uart_config.size > 0) { /* Continue to send the next data */
+				uart_config.state = UART_START;
+				uart_config.buf_ptr++;
+			}else {   /* Finish data sending */
+				uart_config.state = UART_IDLE;
+				return 1;
+			}	
+			break;
+		default :
+			break;
+    }
+	return 0;
+}
+
+static timer_id csr_uart_timer_create(uint32 timeout, timer_callback_arg handler)
+{
+    const timer_id tId = TimerCreate(timeout, TRUE, handler);
+    
+    /* If a timer could not be created, panic to restart the app */
+    if (tId == TIMER_INVALID)
+    {
+        //DebugWriteString("\r\nFailed to start timer");
+        /* Panic with panic code 0xfe */
+        Panic(0xfe);
+    }
+	return tId;
+}
+
+static void uart_timer_cb(u16 id)
+{
+	u8 done = 0;
+	done = uart_send_handler();
+	if(1 != done) {
+		csr_uart_timer_create(TIMEOUT, uart_timer_cb);
+	}
+}
 
 static s16 csr_uart_read(void *args)
 {
 	return 0;
 }
 
-static s16 csr_uart_write(void *args)
+static s16 csr_uart_write(u8 *buf, u16 num)
 {
+	//uart state change to START
+	uart_config.buf_ptr = buf;
+	uart_config.size = num;
+	uart_config.state = UART_IDLE;
+	uart_config.bit_send_index = 0;
+	//timer start and regitster callback
+	csr_uart_timer_create(TIMEOUT, uart_timer_cb);
 	return 0;
 }
 
 static s16 csr_uart_init(cfg_t *args, event_callback cb)
 {
-#if 0
-    /* Initialise host interface driver */
-    UartInit(0, 
-             0, /* uart_data_out_fn */
-             uartRxBuffer, UART_BUF_SIZE_BYTES_32,
-             uartTxBuffer, UART_BUF_SIZE_BYTES_64,
-             uart_data_unpacked);
-             
-    /* Configure the UART for high baud rate */
-    UartConfig(HIGH_BAUD_RATE,0);
-        
-    /* Enable UART interface */
-    UartEnable(TRUE);
-    
-    /* Initialise local variables */
-    //req_buffer_level_in_words = 0;
-    
-    /* Request notification from the UART when enough data arrives 
-     * to form a message header. 
-     */
-    UartRead(1, 0);
-#endif	
+	uart_config.tx.group = args->uart_cfg.tx.group;
+	uart_config.tx.num = args->uart_cfg.tx.num;
+	uart_config.rx.group = args->uart_cfg.rx.group;
+	uart_config.rx.num = args->uart_cfg.rx.num;
+
+	//tx gpio init and set to high
+    PioSetModes((1UL << uart_config.tx.num) | (1UL << uart_config.tx.num), pio_mode_user);
+	PioSetDir(uart_config.tx.num, PIO_DIR_OUTPUT);
+	PioSetPullModes(1UL << uart_config.tx.num, pio_mode_strong_pull_up);
+	UART_TX_HIGH(uart_config.tx.num);
+	uart_config.end_flag = 0;
 	return 0;
 }
 
