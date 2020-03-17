@@ -459,6 +459,7 @@ int m_vprintf(char *strBuf, const char * sFormat, va_list * pParamList) {
 
 int m_printf(const char * sFormat, ...)
 {
+	return 0;
     int r = 0;
     va_list ParamList;
 

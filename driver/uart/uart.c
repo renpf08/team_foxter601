@@ -168,6 +168,11 @@ static s16 csr_uart_init(cfg_t *args, event_callback cb)
 
 static s16 csr_uart_uninit(void)
 {
+	UART_TX_HIGH(uart_config.tx.num);
+	uart_config.tx.group = 0;
+	uart_config.tx.num = 0;
+	uart_config.rx.group = 0;
+	uart_config.rx.num = 0;
 	return 0;
 }
 

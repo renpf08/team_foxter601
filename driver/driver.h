@@ -34,12 +34,20 @@ typedef struct {
 	uninit			flash_uninit;
 }flash_t;
 
+typedef struct{
+	init			vibrator_init;
+	on			    vibrator_on;
+	off			    vibrator_off;
+	uninit			vibrator_uninit;
+}vibrator_t;
+
 typedef struct {
 	uart_t 		*uart;
 	timer_t 	*timer;
 	battery_t 	*battery;
 	key_t     	*keya;
 	flash_t     *flash;
+	vibrator_t  *vibrator;
 }driver_t;
 
 s16 csr_keya_event_handler(u16 key_num, u16 key_status);

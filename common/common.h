@@ -40,6 +40,7 @@ typedef struct {
 typedef struct {
 	uart_cfg_t uart_cfg;
 	pin_t      keya_cfg;
+	pin_t      vibrator_cfg;
 }cfg_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);
@@ -48,6 +49,9 @@ typedef s16 (*init)(cfg_t *args, event_callback cb);
 typedef s16 (*uninit)(void);
 typedef s16 (*read)(void *args);
 typedef s16 (*write)(u8 *buf, u16 num);
+
+typedef s16 (*on)(void *args);
+typedef s16 (*off)(void *args);
 
 typedef s16 (*fread)(u16 *buffer, u16 length, u16 offset);
 typedef s16 (*fwrite)(u16 *buffer, u16 length, u16 offset);
