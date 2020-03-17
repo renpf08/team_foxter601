@@ -1613,7 +1613,7 @@ static void handleGattWriteCharValCfm(GATT_WRITE_CHAR_VAL_CFM_T *p_event_data)
            (p_event_data->result == ANCS_ERROR_INVALID_PARAMETER))
         {
 
-            ANCSC_LOG_INFO("unable to retrieve Notification Data");
+            ANCSC_LOG_WARNING("unable to retrieve Notification Data");
         }
         else
         {

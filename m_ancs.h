@@ -26,8 +26,14 @@ typedef struct
   uint8 evtFlag;
   uint8 catId;
   uint8 catCnt;
-  uint8 notiUuid[4];
-} noti_source_t;
+  uint8 uuid[4];
+} source_t;
+
+typedef struct
+{
+  uint8 cid;
+  source_t source;
+} noti_t;
 
 void m_ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind);
 

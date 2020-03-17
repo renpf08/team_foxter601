@@ -679,7 +679,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
         /* 4rd byte of the Notification - Cat Count */
         ANCSS_LOG_DEBUG("** Cat Count = %02X\r\n", p_ind->value[ANCS_NS_OFFSET_CAT_COUNT]);
 
-        if(!notif_removed)
+        //if(!notif_removed) //! comment by mlw at 20200318 00:03
         {
           /* 5th to 8th bytes (4 bytes) of the Notification-Notification UUID */
           //m_printf("\r\n UUID = ");
