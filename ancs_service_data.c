@@ -27,6 +27,8 @@
 #include "app_gatt.h"
 #include "ancs_client_hw.h"
 #include "m_printf.h"
+#include "m_timer.h"
+#include "m_ancs.h"
 /*============================================================================*
  *  Private Definitions
  *===========================================================================*/
@@ -145,7 +147,8 @@ uint8 g_ancs_data[ANCS_MAX_NOTIF_ATT_LENGTH + 1];
 uint16 g_last_received_notification;
 
 /** use to indicate the ancs message. add by mlw at 20200316 23:05 */
-uint8 ancsData[ANCS_MAX_NOTIF_ATT_LENGTH + 1] = {0};
+#define ANCS_DATA_MAX_LEN   (ANCS_MAX_NOTIF_ATT_LENGTH + 1 + 16)
+uint8 ancsData[ANCS_DATA_MAX_LEN] = {0};
 uint8 ancsLen = 0;
 uint8 eventId = 0xFF;
 uint8 eventIdStr[4][8] = {"Added","Modified","Removed","Reserved"};
@@ -214,6 +217,8 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                 {
                     case ancs_notif_att_id_app_id :
                     ANCSS_LOG_DEBUG("** Attr ID = App ID\r\n");
+                    MemCopy(ancsData, "id:", 3);
+                    ancsLen = 3;
                     break;
                     
                     case ancs_notif_att_id_title :
@@ -234,6 +239,8 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                     
                     case ancs_notif_att_id_date :
                     ANCSS_LOG_DEBUG("** Attr ID = Date\r\n");
+                    MemCopy(ancsData, "date:", 5);
+                    ancsLen = 5;
                     break;
                     
                     default :
@@ -326,7 +333,7 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                     {
                         g_ancs_data[i] = p_data[count + i];
                         ancsData[ancsLen++] = p_data[count + i];
-                        ancsLen = (ancsLen >= (ANCS_MAX_NOTIF_ATT_LENGTH + 1))?ANCS_MAX_NOTIF_ATT_LENGTH:ancsLen;
+                        ancsLen = (ancsLen >= (ANCS_DATA_MAX_LEN))?(ANCS_DATA_MAX_LEN-1):ancsLen;
                     }
                     g_ancs_data[i] = '\0';
                     ancsData[ancsLen] = '\0';
@@ -377,7 +384,7 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                         {
                             g_ancs_data[i] = p_data[count + i];
                             ancsData[ancsLen++] = p_data[count + i];
-                            ancsLen = (ancsLen >= (ANCS_MAX_NOTIF_ATT_LENGTH + 1))?ANCS_MAX_NOTIF_ATT_LENGTH:ancsLen;
+                            ancsLen = (ancsLen >= (ANCS_DATA_MAX_LEN))?(ANCS_DATA_MAX_LEN-1):ancsLen;
                         }
                         
                         g_ancs_data[i] = '\0';
@@ -414,10 +421,9 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                 (attribute_data.attr_len == 0))
                 {
                     ANCSS_LOG_INFO("** Attribute Data = %s\r\n", (const char*)&ancsData[0]);
-                    for(i = 0; i < (ANCS_MAX_NOTIF_ATT_LENGTH + 1); i++)
-                    {
-                        ancsData[i] = '\0';
-                    }
+                    if(MemCmp(ancsData, "date:", 5) == 0) 
+                        m_timer_set((uint8*)&ancsData[5]);
+                    MemSet(ancsData, 0, ANCS_DATA_MAX_LEN);
                     ancsLen = 0;
                     eventId = 0xFF;
                     packFin = FALSE;
@@ -973,6 +979,7 @@ bool AncsHandlerNotifInd(GATT_CHAR_VAL_IND_T *p_ind)
     if(p_ind->handle == GetAncsNotificationHandle())
     {  /* Notification has arrived */
        ancsHandleNotificationSourceData(p_ind);
+       m_ancs_noti_source_handle(p_ind);
        return TRUE;
     }
     else if(p_ind->handle == GetAncsDataSourceHandle())

@@ -9,6 +9,7 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <timer.h>          /* Chip timer functions */
 #include <panic.h>          /* Support for applications to panic */
+#include <mem.h>
 
 #include "m_timer.h"
 #include "m_printf.h"
@@ -226,9 +227,10 @@ static uint8 writeASCIICodedNumber(uint32 value)
 static void m_timer_clock_handler(timer_id const id);
 void m_timer_clock_init(void);
 time_t* m_get_time(void) { return &time; }
-
+uint8 days[13] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
 static void m_timer_clock_handler(timer_id const id)
 {
+    days[2] = (0 == (time.year % 400) || (0 == (time.year % 4) && (0 != (time.year % 100))))?29:28;
     time.second++;
     if(time.second >= 60)
     {
@@ -243,6 +245,17 @@ static void m_timer_clock_handler(timer_id const id)
     if(time.hour >= 24)
     {
         time.hour = 0;
+        time.day++;
+    }
+    if(time.day > days[time.month])
+    {
+        time.day = 1;
+        time.month++;
+    }
+    if(time.month > 12)
+    {
+        time.month = 1;
+        time.year++;
     }
     //TIMER_LOG_DEBUG("time %02d:%02d:%02d\r\n", time.hour, time.minute, time.second);
     m_timer_clock_init();
@@ -468,7 +481,6 @@ void m_timer_clock_init6(void)
     }
 }
 
-
 /**
 * @brief uart initialize
 * @param [in] none
@@ -495,4 +507,51 @@ void m_timer_init(void)
 
     /* Start the first timer */
     //startTimer(TIMER_TIMEOUT1, timerCallback1);
+}
+
+/**
+* @brief use ancs massage to set the system time
+* @param [in] ancs time string
+* @param [out] none
+* @return none
+* @data 2020/03/17 10:56
+* @author maliwen
+* @note none
+*/
+void m_timer_set(uint8* timeStr)
+{
+    time_t tm;
+    bool bReFuesh = TRUE;
+    
+    tm.year = (uint8)((timeStr[0]-'0')*1000 + (timeStr[1]-'0')*1000 + (timeStr[2]-'0')*10 + (timeStr[3]-'0'));
+    tm.month = (uint8)((timeStr[4]-'0')*10 + (timeStr[5]-'0'));
+    tm.day = (uint8)((timeStr[6]-'0')*10 + (timeStr[7]-'0'));
+    tm.hour = (uint8)((timeStr[9]-'0')*10 + (timeStr[10]-'0'));
+    tm.minute = (uint8)((timeStr[11]-'0')*10 + (timeStr[12]-'0'));
+    tm.second = (uint8)((timeStr[13]-'0')*10 + (timeStr[14]-'0'));
+    
+    if(tm.year <= time.year)
+        if(tm.month <= time.month)
+            if(tm.day <= time.day)
+                if(tm.hour <= time.hour)
+                    if(tm.minute <= time.minute)
+                        if(tm.second <= time.second)
+                            bReFuesh = FALSE;
+    
+    if((tm.year > 2099) || (tm.month > 12) || (tm.day > 31) || 
+       (tm.hour > 23) || (tm.minute > 59) || (tm.second > 59))
+        bReFuesh = FALSE;
+    
+    if(bReFuesh == TRUE)
+    {
+        MemCopy(&time, &tm, sizeof(time_t));
+        TIMER_LOG_DEBUG("set time ok from %s to %02d/%02d/%02d %02d:%02d:%02d\r\n", 
+                        timeStr, time.year, time.month, time.day, time.hour, time.minute, time.second);
+    }
+    else
+    {
+        TIMER_LOG_DEBUG("set time faild from %s to %02d/%02d/%02d %02d:%02d:%02d\r\n", 
+                        timeStr, time.year, time.month, time.day, time.hour, time.minute, time.second);
+    }
+    
 }

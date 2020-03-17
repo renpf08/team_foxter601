@@ -19,9 +19,11 @@
   <file path="m_timer.c" />
   <file path="m_uart.c" />
   <file path="m_printf.c" />
+  <file path="m_ancs.c" />
  </folder>
  <folder name="Header Files" >
   <extension name="h" />
+  <file path="m_ancs.h" />
   <file path="m_printf.h" />
   <file path="display.h" />
   <file path="m_uart.h" />
