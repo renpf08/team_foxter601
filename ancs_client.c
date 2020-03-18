@@ -2538,7 +2538,7 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case GATT_NOT_CHAR_VAL_IND:
-            ANCSC_LOG_INFO("GATT_NOT_CHAR_VAL_IN\r\n");
+            ANCSC_LOG_DEBUG("GATT_NOT_CHAR_VAL_IN\r\n");
             /* A notification has been received */
             /* Depending on the handle , it will get handled in corresponding
              * function.

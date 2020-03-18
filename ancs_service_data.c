@@ -191,6 +191,7 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
     uint16 state = attribute_data.ds_decoder_state;
     uint16 data_len = 0;
     bool b_skip_reserved = FALSE;
+    static data_source_t dataSrc;
     
     while(count < size_value)
     {
@@ -202,48 +203,70 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
             case ds_decoder_hdr :
             count = ANCS_DS_HDR_LEN;
             state = ds_decoder_attrid;
+            MemSet(&dataSrc, 0, sizeof(data_source_t));
+            for(i = 0; i < ANCS_NS_NOTIF_UUID_SIZE; i++)
+            {
+                dataSrc.uuid[i] = p_data[i+1];
+            }
+            #if !USE_MY_ANCS
             ANCSS_LOG_DEBUG("## uuid = %02X%02X%02X%02X\r\n", p_data[1], p_data[2], p_data[3], p_data[4]);
+            #endif
             break;
             
             case ds_decoder_attrid :
                 /* Get the Attribute ID */
                 attrId = p_data[count++];
                 attribute_data.attr_id = attrId;
+                dataSrc.attrId = attrId;
                 
                 //m_printf("\r\n\r\n Attr ID = ");
                 
                 switch(attrId)
                 {
                     case ancs_notif_att_id_app_id :
+                    #if !USE_MY_ANCS
                     ANCSS_LOG_DEBUG("** Attr ID = App ID\r\n");
+                    #endif
                     MemCopy(ancsData, "id:", 3);
                     ancsLen = 3;
                     break;
                     
                     case ancs_notif_att_id_title :
+                    #if !USE_MY_ANCS
                     ANCSS_LOG_DEBUG("** Attr ID = Title\r\n");
+                    #endif
                     break;
                     
                     case ancs_notif_att_id_subtitle :
+                    #if !USE_MY_ANCS
                     ANCSS_LOG_DEBUG("** Attr ID = Sub Title\r\n");
+                    #endif
                     break;
                     
                     case ancs_notif_att_id_message :
+                    #if !USE_MY_ANCS
                     ANCSS_LOG_DEBUG("** Attr ID = Message\r\n");
+                    #endif
                     break;
                     
                     case ancs_notif_att_id_message_size :
+                    #if !USE_MY_ANCS
                     ANCSS_LOG_DEBUG("** Attr ID = Message Size\r\n");
+                    #endif
                     break;
                     
                     case ancs_notif_att_id_date :
+                    #if !USE_MY_ANCS
                     ANCSS_LOG_DEBUG("** Attr ID = Date\r\n");
+                    #endif
                     MemCopy(ancsData, "date:", 5);
                     ancsLen = 5;
                     break;
                     
                     default :
+                    #if !USE_MY_ANCS
                     ANCSS_LOG_DEBUG("** Attr ID = Reserved\r\n");
+                    #endif
                     b_skip_reserved = TRUE;
                     break;
                 }
@@ -291,7 +314,9 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                 
                 if(!attribute_data.pending_len)
                 {
+                    #if !USE_MY_ANCS
                     ANCSS_LOG_DEBUG("** Attr Len = 0x%04X\r\n", attribute_data.attr_len);
+                    #endif
                     
                     if(attribute_data.attr_len > 0)
                     {
@@ -300,7 +325,9 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                     }
                     else
                     {
+                        #if !USE_MY_ANCS
                         ANCSS_LOG_DEBUG("** \r\n");
+                        #endif
                     }
                     state = ds_decoder_attrdata;
                 }
@@ -333,6 +360,7 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                         g_ancs_data[i] = p_data[count + i];
                         ancsData[ancsLen++] = p_data[count + i];
                         ancsLen = (ancsLen >= (ANCS_DATA_MAX_LEN))?(ANCS_DATA_MAX_LEN-1):ancsLen;
+                        dataSrc.attrData[dataSrc.attrLen++] = p_data[count + i];
                     }
                     g_ancs_data[i] = '\0';
                     ancsData[ancsLen] = '\0';
@@ -377,6 +405,7 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                             g_ancs_data[i] = p_data[count + i];
                             ancsData[ancsLen++] = p_data[count + i];
                             ancsLen = (ancsLen >= (ANCS_DATA_MAX_LEN))?(ANCS_DATA_MAX_LEN-1):ancsLen;
+                            dataSrc.attrData[dataSrc.attrLen++] = p_data[count + i];
                         }
                         
                         g_ancs_data[i] = '\0';
@@ -405,9 +434,13 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                 if((attribute_data.pending_attr_data == 0) &&
                 (attribute_data.attr_len == 0))
                 {
+                    #if !USE_MY_ANCS
                     ANCSS_LOG_INFO("** Attribute Data = %s\r\n", (const char*)&ancsData[0]);
-                    if(MemCmp(ancsData, "date:", 5) == 0) 
-                        m_timer_set((uint8*)&ancsData[5]);
+                    #endif
+                    m_ancs_data_source_handle(p_data, size_value, &dataSrc);
+                    MemSet(&dataSrc.attrData, 0, sizeof(dataSrc.attrData));
+                    dataSrc.attrLen = 0;
+                    if(MemCmp(ancsData, "date:", 5) == 0) m_timer_set((uint8*)&ancsData[5]);
                     MemSet(ancsData, 0, ANCS_DATA_MAX_LEN);
                     ancsLen = 0;
                     /* We are done reading data.Move to next attribute */

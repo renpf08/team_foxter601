@@ -45,11 +45,11 @@ typedef enum
 /* enum for notification attribute id */
 typedef enum
 {
-    app_id = 0x0,
+    appId = 0x0,
     title,
     subtitle,
     message,
-    message_size,
+    messageSize,
     date
 }att_id_str;
 
@@ -93,15 +93,15 @@ static const char * ancs_category_id_str[] =
     M_VALUE_TO_STR(entertainment),
     M_VALUE_TO_STR(reserved2)
 };
-/*static const char * ancs_notif_att_id_str[] =
+static const char * ancs_notif_att_id_str[] =
 {
-    M_VALUE_TO_STR(app_id),
+    M_VALUE_TO_STR(appId),
     M_VALUE_TO_STR(title),
     M_VALUE_TO_STR(subtitle),
     M_VALUE_TO_STR(message),
-    M_VALUE_TO_STR(message_size),
+    M_VALUE_TO_STR(messageSize),
     M_VALUE_TO_STR(date)
-};*/
+};
 static const char * ancs_notif_event_flag_str[] =
 {
     M_VALUE_TO_STR(none),
@@ -110,6 +110,26 @@ static const char * ancs_notif_event_flag_str[] =
     M_VALUE_TO_STR(reserved3)
 };
 
+/**
+* @brief ANCS通知源处理
+* @param [in] p_data - ancs data source original packet
+              size_value - ancs data source original packet length
+              p_data_source - ancs data source parsed packet
+* @param [out] none
+* @return none
+* @data 2020/03/18 21:24
+* @author maliwen
+* @note none
+*/
+void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *p_data_source)
+{
+    //return;
+    uint8 *pUuid = p_data_source->uuid;
+    MANCS_LOG_DEBUG("++ uuid       = %02X%02X%02X%02X\r\n", pUuid[0],pUuid[1],pUuid[2],pUuid[3]);
+    MANCS_LOG_DEBUG("++ attr id    = %s\r\n", ancs_notif_att_id_str[p_data_source->attrId]);
+    MANCS_LOG_DEBUG("++ attr len   = %d\r\n", p_data_source->attrLen);
+    MANCS_LOG_DEBUG("++ attr data  = %s\r\n", p_data_source->attrData);
+}
 
 /**
 * @brief ANCS通知源处理
@@ -155,13 +175,13 @@ void m_ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, uint8 *p_data)
         p_data[i] = noti.source.uuid[i];
     }
 
+    uint8 *pUuid = noti.source.uuid;
     MANCS_LOG_DEBUG("-- event id   = %s\r\n", ancs_event_id_str[noti.source.evtId]);
     MANCS_LOG_DEBUG("-- event flag = %s\r\n", ancs_notif_event_flag_str[noti.source.evtFlag]);
     MANCS_LOG_DEBUG("-- cat id     = %s\r\n", ancs_category_id_str[noti.source.catId]);
     MANCS_LOG_DEBUG("-- cat cnt    = %d\r\n", noti.source.catCnt);
-    if(noti.source.evtId != ancs_event_id_notif_removed)
-        MANCS_LOG_DEBUG("-- uuid       = %02X%02X%02X%02X\r\n", noti.source.uuid[0],
-                        noti.source.uuid[1],noti.source.uuid[2],noti.source.uuid[3]);
+    MANCS_LOG_DEBUG("-- uuid       = %02X%02X%02X%02X\r\n", pUuid[0],pUuid[1],pUuid[2],pUuid[3]);
     
-    AncsGetNotificationAttributeCmd(noti.cid);
+    if(noti.source.evtId != ancs_event_id_notif_removed)
+        AncsGetNotificationAttributeCmd(noti.cid);
 }

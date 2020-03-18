@@ -37,11 +37,13 @@ typedef struct
 
 typedef struct
 {
+  uint8 uuid[4];
   uint8 attrId;
   uint16 attrLen;
-  uint8 attrData[20]; //! maybe 20 is the MAX length, add by mlw, 20200318 17:04
-} data_t;
+  uint8 attrData[32]; //! maybe 20 is the MAX length, add by mlw, 20200318 17:04
+} data_source_t;
 
+void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *p_data_source);
 void m_ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, uint8 *p_data);
 
 #endif /** end of __M_ANCS_H__ */
