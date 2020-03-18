@@ -521,7 +521,8 @@ void m_timer_init(void)
 void m_timer_set(uint8* timeStr)
 {
     time_t tm;
-    bool bReFuesh = TRUE;
+    bool bNewTime = TRUE;
+    bool bCorrFormat = TRUE;
     
     tm.year = (uint8)((timeStr[0]-'0')*1000 + (timeStr[1]-'0')*1000 + (timeStr[2]-'0')*10 + (timeStr[3]-'0'));
     tm.month = (uint8)((timeStr[4]-'0')*10 + (timeStr[5]-'0'));
@@ -536,22 +537,22 @@ void m_timer_set(uint8* timeStr)
                 if(tm.hour <= time.hour)
                     if(tm.minute <= time.minute)
                         if(tm.second <= time.second)
-                            bReFuesh = FALSE;
+                            bNewTime = FALSE;
     
     if((tm.year > 2099) || (tm.month > 12) || (tm.day > 31) || 
        (tm.hour > 23) || (tm.minute > 59) || (tm.second > 59))
-        bReFuesh = FALSE;
+        bCorrFormat = FALSE;
     
-    if(bReFuesh == TRUE)
+    if((bNewTime == TRUE) && (bCorrFormat == TRUE))
     {
         MemCopy(&time, &tm, sizeof(time_t));
         TIMER_LOG_DEBUG("set time ok from %s to %02d/%02d/%02d %02d:%02d:%02d\r\n", 
                         timeStr, time.year, time.month, time.day, time.hour, time.minute, time.second);
     }
-    else
+    else if(bCorrFormat == FALSE)
     {
-        TIMER_LOG_DEBUG("set time faild from %s to %02d/%02d/%02d %02d:%02d:%02d\r\n", 
-                        timeStr, time.year, time.month, time.day, time.hour, time.minute, time.second);
+        TIMER_LOG_WARNING("time format error: %s to %02d/%02d/%02d %02d:%02d:%02d\r\n", 
+                        timeStr, tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second);
     }
     
 }

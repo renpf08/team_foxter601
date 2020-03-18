@@ -150,15 +150,14 @@ uint16 g_last_received_notification;
 #define ANCS_DATA_MAX_LEN   (ANCS_MAX_NOTIF_ATT_LENGTH + 1 + 16)
 uint8 ancsData[ANCS_DATA_MAX_LEN] = {0};
 uint8 ancsLen = 0;
-uint8 eventId = 0xFF;
-uint8 eventIdStr[4][8] = {"Added","Modified","Removed","Reserved"};
-bool packFin = FALSE; //! did a packet finished?
 /*=============================================================================*
  *  Private Function Prototypes
  *============================================================================*/
 
+#if !USE_MY_ANCS
 /* This function handles the NS notifications */
 static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind);
+#endif
 
 /* This function handles the DS notifications */
 static bool ancsHandleDataSourceData(GATT_CHAR_VAL_IND_T *p_ind);
@@ -203,6 +202,7 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
             case ds_decoder_hdr :
             count = ANCS_DS_HDR_LEN;
             state = ds_decoder_attrid;
+            ANCSS_LOG_DEBUG("## uuid = %02X%02X%02X%02X\r\n", p_data[1], p_data[2], p_data[3], p_data[4]);
             break;
             
             case ds_decoder_attrid :
@@ -211,7 +211,6 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                 attribute_data.attr_id = attrId;
                 
                 //m_printf("\r\n\r\n Attr ID = ");
-                ANCSS_LOG_DEBUG("** \r\n");
                 
                 switch(attrId)
                 {
@@ -337,14 +336,7 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                     }
                     g_ancs_data[i] = '\0';
                     ancsData[ancsLen] = '\0';
-                    
-                    /** to place this print here, just for print for once */
-                    if((packFin == FALSE) && (eventId < 4))
-                    {
-                        packFin = TRUE;
-                        ANCSS_LOG_INFO("** Event ID: %s\r\n", eventIdStr[eventId]);
-                    }
-                    
+
                     /* Display to UART */
                     //m_printf((const char *)&g_ancs_data[0]);
                     #ifdef ENABLE_LCD_DISPLAY
@@ -389,14 +381,7 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                         
                         g_ancs_data[i] = '\0';
                         ancsData[ancsLen] = '\0';
-                        
-                        /** to place this print here, just for print for once */
-                        if((packFin == FALSE) && (eventId < 4))
-                        {
-                            packFin = TRUE;
-                            ANCSS_LOG_INFO("** Event ID = %s\r\n", eventIdStr[eventId]);
-                        }
-                    
+
                         /* Display to UART */
                         //m_printf((const char*)&g_ancs_data[0]);
                         
@@ -425,8 +410,6 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                         m_timer_set((uint8*)&ancsData[5]);
                     MemSet(ancsData, 0, ANCS_DATA_MAX_LEN);
                     ancsLen = 0;
-                    eventId = 0xFF;
-                    packFin = FALSE;
                     /* We are done reading data.Move to next attribute */
                     state = ds_decoder_attrid;
                     /* Invalid */
@@ -441,6 +424,7 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
     return TRUE;
 }
 
+#if !USE_MY_ANCS
 /*----------------------------------------------------------------------------*
  *  NAME
  *      ancsHandleNotificationSourceData
@@ -469,9 +453,9 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
     if(p_ind->value != NULL)
     {
         g_cid = p_ind->cid;
-        eventId = p_ind->value[ANCS_NS_OFFSET_EVENT_ID];
 
         ANCSS_LOG_DEBUG("** \r\n");
+        ANCSS_LOG_DEBUG("** Conn ID = %04X\r\n", g_cid);
         //m_printf("\r\n Event ID = ");
         /* 1st byte of the Notification - Event ID */
         curr_data = p_ind->value[ANCS_NS_OFFSET_EVENT_ID];
@@ -704,6 +688,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 
     return TRUE;
 }
+#endif
 
 /*----------------------------------------------------------------------------*
  *  NAME
@@ -978,8 +963,11 @@ bool AncsHandlerNotifInd(GATT_CHAR_VAL_IND_T *p_ind)
 
     if(p_ind->handle == GetAncsNotificationHandle())
     {  /* Notification has arrived */
+       #if USE_MY_ANCS
+       m_ancs_noti_source_handle(p_ind, (uint8*)uuid_data.data);
+       #else
        ancsHandleNotificationSourceData(p_ind);
-       m_ancs_noti_source_handle(p_ind);
+       #endif
        return TRUE;
     }
     else if(p_ind->handle == GetAncsDataSourceHandle())

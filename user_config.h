@@ -24,6 +24,13 @@
 #define BLE_HARDWARE_VERSION    "v1.0.0.1"
 
 /**
+*  Original ANCS parse module is implement a little complicated, then a new one 
+*  is been used
+*  add by mlw at 20200318 14:40
+*/
+#define USE_MY_ANCS         1
+
+/**
 *  In this application, in ANCS message, we just only need attrid's app id 
 *  add by mlw at 20200316 16:39
 */

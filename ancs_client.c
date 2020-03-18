@@ -1570,7 +1570,7 @@ static void handleGattWriteCharValCfm(GATT_WRITE_CHAR_VAL_CFM_T *p_event_data)
         {
           /* Configure for GATT Service changed indication */             
           ConfigureGattIndications();
-          ANCSC_LOG_INFO("configure for GATT Service changed indication.\r\n");
+          ANCSC_LOG_DEBUG("configure for GATT Service changed indication.\r\n");
         }
         
         /* If service changed notifications are configured, we are done
@@ -1584,7 +1584,7 @@ static void handleGattWriteCharValCfm(GATT_WRITE_CHAR_VAL_CFM_T *p_event_data)
             /* Reset the notif_configuring variable */
             g_app_data.notif_configuring = FALSE;
             
-            ANCSC_LOG_INFO("configure notifications for ANCS and GATT.\r\n");
+            ANCSC_LOG_DEBUG("configure notifications for ANCS and GATT.\r\n");
         }
     }
     else if((p_event_data->result == GATT_RESULT_INSUFFICIENT_ENCRYPTION) ||
@@ -2315,6 +2315,9 @@ void AppInit(sleep_state last_sleep_state)
     p_gatt_db = GattGetDatabase(&gatt_db_length);
 
     GattAddDatabaseReq(gatt_db_length, p_gatt_db);
+    
+    /** add by mlw at 20200318 15:05(seems not necessary.) */
+    AncsServiceDataInit();
 }
 
 /*----------------------------------------------------------------------------*
@@ -2535,7 +2538,7 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case GATT_NOT_CHAR_VAL_IND:
-            ANCSC_LOG_DEBUG("GATT_NOT_CHAR_VAL_IN\r\nD");
+            ANCSC_LOG_INFO("GATT_NOT_CHAR_VAL_IN\r\n");
             /* A notification has been received */
             /* Depending on the handle , it will get handled in corresponding
              * function.

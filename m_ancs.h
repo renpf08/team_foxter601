@@ -35,6 +35,13 @@ typedef struct
   source_t source;
 } noti_t;
 
-void m_ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind);
+typedef struct
+{
+  uint8 attrId;
+  uint16 attrLen;
+  uint8 attrData[20]; //! maybe 20 is the MAX length, add by mlw, 20200318 17:04
+} data_t;
+
+void m_ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, uint8 *p_data);
 
 #endif /** end of __M_ANCS_H__ */
