@@ -556,3 +556,72 @@ void m_timer_set(uint8* timeStr)
     }
     
 }
+
+/**
+* @brief compare the incomming msg time with the system time
+* @param [in] inTime - incomming msg time string
+* @param [out] none
+* @return -1 - if incomming msg time is earllier than system time(or time error)
+*          0 - if incomming msg time is equal to system time
+*          1 - if incomming msg time is later than system time
+* @data 2020/03/19 15:47
+* @author maliwen
+* @note none
+*/
+int8 m_timer_cmp(uint8* inTime)
+{
+    time_t tm;
+    int8 res = -2;
+    
+    tm.year = (uint8)((inTime[0]-'0')*1000 + (inTime[1]-'0')*1000 + (inTime[2]-'0')*10 + (inTime[3]-'0'));
+    tm.month = (uint8)((inTime[4]-'0')*10 + (inTime[5]-'0'));
+    tm.day = (uint8)((inTime[6]-'0')*10 + (inTime[7]-'0'));
+    tm.hour = (uint8)((inTime[9]-'0')*10 + (inTime[10]-'0'));
+    tm.minute = (uint8)((inTime[11]-'0')*10 + (inTime[12]-'0'));
+    tm.second = (uint8)((inTime[13]-'0')*10 + (inTime[14]-'0'));
+        
+    /** time format error */
+    if((tm.year > 2099) || (tm.month > 12) || (tm.day > 31) || 
+       (tm.hour > 23) || (tm.minute > 59) || (tm.second > 59))
+        res = -1;
+    /** incomming msg time is earllier than system time */
+    if(res == -2)
+    {
+        if(tm.year < time.year)
+            if(tm.month < time.month)
+                if(tm.day < time.day)
+                    if(tm.hour < time.hour)
+                        if(tm.minute < time.minute)
+                            if(tm.second < time.second)
+                                res = -1;
+    }
+    /** incomming msg time is equal to system time */
+    if(res == -2)
+    {
+        if(tm.year == time.year)
+            if(tm.month == time.month)
+                if(tm.day == time.day)
+                    if(tm.hour == time.hour)
+                        if(tm.minute == time.minute)
+                            if(tm.second == time.second)
+                                res = 0;
+    }
+    /** incomming msg time is later than system time */
+    if(res == -2)
+    {
+        if((tm.year > time.year) ||
+           (tm.month > time.month) ||
+           (tm.day > time.day) ||
+           (tm.hour > time.hour) ||
+           (tm.minute > time.minute) ||
+           (tm.second > time.second))
+            res = 1;
+    }
+    if(res < 0)
+    {
+        TIMER_LOG_WARNING("currnt time: %02d/%02d/%02d %02d:%02d:%02d(%s)\r\n", tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second, inTime);   
+        TIMER_LOG_WARNING("system time: %02d/%02d/%02d %02d:%02d:%02d\r\n", time.year, time.month, time.day, time.hour, time.minute, time.second);               
+    }
+    
+    return res;
+}
