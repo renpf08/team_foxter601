@@ -22,7 +22,7 @@ typedef struct
 
 time_t* m_get_time(void);
 void m_timer_init(void);
-void m_timer_set(uint8* timeStr);
-int8 m_timer_cmp(uint8* inTime);
+bool m_ancs_set_time(uint8* timeStr);
+int8 m_ancs_cmp_time(uint8* inTime);
 
 #endif /** end of __M_TIMER_H__ */

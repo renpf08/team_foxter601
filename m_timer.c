@@ -59,6 +59,15 @@ static void printCurrentTime(void);
 /* Convert an integer value into an ASCII string and send to the UART */
 static uint8 writeASCIICodedNumber(uint32 value);
 
+static void m_timer_clock_handler(timer_id const id);
+void m_timer_clock_init(void);
+time_t* m_get_time(void) { return &time; }
+static bool m_time_check(time_t *tm);
+static bool m_sync_time(time_t *tm);
+static int8 m_timer_cmp(time_t* curTime, time_t* sysTime);
+bool m_time_formating(uint8* timeStr, time_t* tm);
+
+uint8 days[13] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
 /*============================================================================*
  *  Private Function Implementations
  *============================================================================*/
@@ -224,10 +233,6 @@ static uint8 writeASCIICodedNumber(uint32 value)
 }
 
 //------------------------------------------------------------------------------
-static void m_timer_clock_handler(timer_id const id);
-void m_timer_clock_init(void);
-time_t* m_get_time(void) { return &time; }
-uint8 days[13] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
 static void m_timer_clock_handler(timer_id const id)
 {
     days[2] = (0 == (time.year % 400) || (0 == (time.year % 4) && (0 != (time.year % 100))))?29:28;
@@ -492,6 +497,8 @@ void m_timer_clock_init6(void)
 */
 void m_timer_init(void)
 {
+    MemSet(&time, 0, sizeof(time_t));
+    
     //TimerInit(MAX_TIMERS, (void *)app_timers);
     
     m_timer_clock_init();
@@ -510,118 +517,201 @@ void m_timer_init(void)
 }
 
 /**
-* @brief use ancs massage to set the system time
-* @param [in] ancs time string
+* @brief check the time format is valid
+* @param [in] tm - time format to be check
 * @param [out] none
-* @return none
+* @return bool - time format correct or not
+* @data 2020/03/20 10:35
+* @author maliwen
+* @note none
+*/
+static bool m_time_check(time_t *tm)
+{
+    days[2] = (0 == (time.year % 400) || (0 == (time.year % 4) && (0 != (time.year % 100))))?29:28;
+    
+    /** check if the time format is correct */
+    if((tm->year > 2099) || (tm->month > 12) || (tm->day > days[tm->month]) || 
+       (tm->hour > 23) || (tm->minute > 59) || (tm->second > 59))
+        return FALSE;
+    
+    return TRUE;
+}
+
+/**
+* @brief use current time to sync the system time
+* @param [in] tm - current time
+* @param [out] none
+* @return bool time sync ok or not
 * @data 2020/03/17 10:56
 * @author maliwen
 * @note none
 */
-void m_timer_set(uint8* timeStr)
+static bool m_sync_time(time_t *tm)
 {
-    time_t tm;
     bool bNewTime = TRUE;
-    bool bCorrFormat = TRUE;
-    
-    tm.year = (uint8)((timeStr[0]-'0')*1000 + (timeStr[1]-'0')*1000 + (timeStr[2]-'0')*10 + (timeStr[3]-'0'));
-    tm.month = (uint8)((timeStr[4]-'0')*10 + (timeStr[5]-'0'));
-    tm.day = (uint8)((timeStr[6]-'0')*10 + (timeStr[7]-'0'));
-    tm.hour = (uint8)((timeStr[9]-'0')*10 + (timeStr[10]-'0'));
-    tm.minute = (uint8)((timeStr[11]-'0')*10 + (timeStr[12]-'0'));
-    tm.second = (uint8)((timeStr[13]-'0')*10 + (timeStr[14]-'0'));
-    
-    if(tm.year <= time.year)
-        if(tm.month <= time.month)
-            if(tm.day <= time.day)
-                if(tm.hour <= time.hour)
-                    if(tm.minute <= time.minute)
-                        if(tm.second <= time.second)
-                            bNewTime = FALSE;
-    
-    if((tm.year > 2099) || (tm.month > 12) || (tm.day > 31) || 
-       (tm.hour > 23) || (tm.minute > 59) || (tm.second > 59))
-        bCorrFormat = FALSE;
-    
-    if((bNewTime == TRUE) && (bCorrFormat == TRUE))
+        
+    /** check if the time format is correct */
+    if(m_time_check(tm) == FALSE)
     {
-        MemCopy(&time, &tm, sizeof(time_t));
-        TIMER_LOG_DEBUG("set time ok from %s to %02d/%02d/%02d %02d:%02d:%02d\r\n", 
-                        timeStr, time.year, time.month, time.day, time.hour, time.minute, time.second);
-    }
-    else if(bCorrFormat == FALSE)
-    {
-        TIMER_LOG_WARNING("time format error: %s to %02d/%02d/%02d %02d:%02d:%02d\r\n", 
-                        timeStr, tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second);
+        bNewTime = FALSE;
     }
     
+    /** check if current time is later then system time */
+    if(bNewTime == TRUE)
+        if(tm->year <= time.year)
+            if(tm->month <= time.month)
+                if(tm->day <= time.day)
+                    if(tm->hour <= time.hour)
+                        if(tm->minute <= time.minute)
+                            if(tm->second <= time.second)
+                                bNewTime = FALSE;
+
+    /** current time is ready to sync the system time */
+    if(bNewTime == TRUE)
+    {
+        MemCopy(&time, tm, sizeof(time_t));
+        TIMER_LOG_DEBUG("set time ok to %02d/%02d/%02d %02d:%02d:%02d\r\n", time.year, time.month, time.day, time.hour, time.minute, time.second);
+    }
+    
+    return bNewTime;
 }
 
 /**
-* @brief compare the incomming msg time with the system time
-* @param [in] inTime - incomming msg time string
+* @brief compare two time who is early or later
+* @param [in] curTime - time needs to compare
+*             sysTime - time needs to be compared(usually the system time)
 * @param [out] none
-* @return -1 - if incomming msg time is earllier than system time(or time error)
-*          0 - if incomming msg time is equal to system time
-*          1 - if incomming msg time is later than system time
+* @return -2 - curTime format error
+*         -1 - if curTime is earllier than sysTime(or time error)
+*          0 - if curTime is equal to sysTime
+*          1 - if curTime is sysTime
 * @data 2020/03/19 15:47
 * @author maliwen
 * @note none
 */
-int8 m_timer_cmp(uint8* inTime)
+static int8 m_timer_cmp(time_t* curTime, time_t* sysTime)
 {
-    time_t tm;
     int8 res = -2;
+
+    /** check if the time format is correct */
+    if(m_time_check(curTime) == FALSE)
+    {
+        return res;
+    }
     
-    tm.year = (uint8)((inTime[0]-'0')*1000 + (inTime[1]-'0')*1000 + (inTime[2]-'0')*10 + (inTime[3]-'0'));
-    tm.month = (uint8)((inTime[4]-'0')*10 + (inTime[5]-'0'));
-    tm.day = (uint8)((inTime[6]-'0')*10 + (inTime[7]-'0'));
-    tm.hour = (uint8)((inTime[9]-'0')*10 + (inTime[10]-'0'));
-    tm.minute = (uint8)((inTime[11]-'0')*10 + (inTime[12]-'0'));
-    tm.second = (uint8)((inTime[13]-'0')*10 + (inTime[14]-'0'));
-        
-    /** time format error */
-    if((tm.year > 2099) || (tm.month > 12) || (tm.day > 31) || 
-       (tm.hour > 23) || (tm.minute > 59) || (tm.second > 59))
-        res = -1;
+    /** check if the time format is correct */
+    if(m_time_check(sysTime) == FALSE)
+    {
+        return res;
+    }
+    
     /** incomming msg time is earllier than system time */
     if(res == -2)
     {
-        if(tm.year < time.year)
-            if(tm.month < time.month)
-                if(tm.day < time.day)
-                    if(tm.hour < time.hour)
-                        if(tm.minute < time.minute)
-                            if(tm.second < time.second)
+        if(curTime->year < sysTime->year)
+            if(curTime->month < sysTime->month)
+                if(curTime->day < sysTime->day)
+                    if(curTime->hour < sysTime->hour)
+                        if(curTime->minute < sysTime->minute)
+                            if(curTime->second < sysTime->second)
                                 res = -1;
     }
     /** incomming msg time is equal to system time */
     if(res == -2)
     {
-        if(tm.year == time.year)
-            if(tm.month == time.month)
-                if(tm.day == time.day)
-                    if(tm.hour == time.hour)
-                        if(tm.minute == time.minute)
-                            if(tm.second == time.second)
+        if(curTime->year == sysTime->year)
+            if(curTime->month == sysTime->month)
+                if(curTime->day == sysTime->day)
+                    if(curTime->hour == sysTime->hour)
+                        if(curTime->minute == sysTime->minute)
+                            if(curTime->second == sysTime->second)
                                 res = 0;
     }
     /** incomming msg time is later than system time */
     if(res == -2)
     {
-        if((tm.year > time.year) ||
-           (tm.month > time.month) ||
-           (tm.day > time.day) ||
-           (tm.hour > time.hour) ||
-           (tm.minute > time.minute) ||
-           (tm.second > time.second))
+        if((curTime->year > sysTime->year) ||
+           (curTime->month > sysTime->month) ||
+           (curTime->day > sysTime->day) ||
+           (curTime->hour > sysTime->hour) ||
+           (curTime->minute > sysTime->minute) ||
+           (curTime->second > sysTime->second))
             res = 1;
     }
     if(res < 0)
     {
-        TIMER_LOG_WARNING("currnt time: %02d/%02d/%02d %02d:%02d:%02d(%s)\r\n", tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second, inTime);   
-        TIMER_LOG_WARNING("system time: %02d/%02d/%02d %02d:%02d:%02d\r\n", time.year, time.month, time.day, time.hour, time.minute, time.second);               
+        TIMER_LOG_WARNING("currnt time: %02d/%02d/%02d %02d:%02d:%02d\r\n", curTime->year, curTime->month, curTime->day, curTime->hour, curTime->minute, curTime->second);   
+        TIMER_LOG_WARNING("system time: %02d/%02d/%02d %02d:%02d:%02d\r\n", sysTime->year, time.month, sysTime->day, sysTime->hour, sysTime->minute, sysTime->second);               
     }
     
     return res;
+}
+
+/**
+* @brief formating the current time string to system time format
+* @param [in] timeStr - time string
+* @param [out] tm - system time format
+* @return bool - whether the time convert succeed.
+* @data 2020/03/20 09:22
+* @author maliwen
+* @note none
+*/
+bool m_time_formating(uint8* timeStr, time_t* tm)
+{
+    tm->year = (uint8)((timeStr[0]-'0')*1000 + (timeStr[1]-'0')*1000 + (timeStr[2]-'0')*10 + (timeStr[3]-'0'));
+    tm->month = (uint8)((timeStr[4]-'0')*10 + (timeStr[5]-'0'));
+    tm->day = (uint8)((timeStr[6]-'0')*10 + (timeStr[7]-'0'));
+    tm->hour = (uint8)((timeStr[9]-'0')*10 + (timeStr[10]-'0'));
+    tm->minute = (uint8)((timeStr[11]-'0')*10 + (timeStr[12]-'0'));
+    tm->second = (uint8)((timeStr[13]-'0')*10 + (timeStr[14]-'0'));
+        
+    /** check if the time format is correct */
+    if(m_time_check(tm) == FALSE)
+    {
+        TIMER_LOG_WARNING("time format error: %s to %02d/%02d/%02d %02d:%02d:%02d\r\n", 
+                        timeStr, tm->year, tm->month, tm->day, tm->hour, tm->minute, tm->second);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
+* @brief use ancs massage to set the system time
+* @param [in] ancs time string
+* @param [out] none
+* @return bool time sync ok or not
+* @data 2020/03/20 10:05
+* @author maliwen
+* @note none
+*/
+bool m_ancs_set_time(uint8* timeStr)
+{
+    time_t tm;
+        
+    if(m_time_formating(timeStr, &tm) == TRUE)
+    {
+        return m_sync_time(&tm);
+    }
+    
+    return FALSE;
+}
+
+/**
+* @brief compare the ancs msg time with the system time
+* @param [in] inTime - incomming msg time string
+* @param [out] none
+* @return -1 - if incomming msg time is earllier than system time(or time error)
+*          0 - if incomming msg time is equal to system time
+*          1 - if incomming msg time is later than system time
+* @data 2020/03/20 10:15
+* @author maliwen
+* @note none
+*/
+int8 m_ancs_cmp_time(uint8* inTime)
+{
+    time_t tm;
+
+    m_time_formating(inTime, &tm); //! don't worry about the return value
+    return m_timer_cmp(&tm, &time);
 }

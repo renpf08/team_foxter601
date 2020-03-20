@@ -194,7 +194,7 @@ void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *
     else if(p_data_source->attrId == date)
     {
         /** msg time error, dont do any followed handle */
-        if(m_timer_cmp(p_data_source->attrData) < 0)
+        if(m_ancs_set_time(p_data_source->attrData) == FALSE)
         {
             MANCS_LOG_WARNING("msg time error!\r\n");
             MemSet(&pckMsg, 0, sizeof(packing_msg_t));
@@ -210,7 +210,7 @@ void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *
     }
     
     if(p_data_source->attrId == date)
-        m_timer_set((uint8*)&p_data_source->attrData);
+        m_ancs_cmp_time((uint8*)&p_data_source->attrData);
 }
 
 /**
