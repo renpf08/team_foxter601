@@ -42,12 +42,19 @@ typedef struct{
 }vibrator_t;
 
 typedef struct {
+	init 			gsensor_init;
+	read			gsensor_read;
+	uninit			gsensor_uninit;
+}gsensor_t;
+
+typedef struct {
 	uart_t 		*uart;
 	timer_t 	*timer;
 	battery_t 	*battery;
 	key_t     	*keya;
 	flash_t     *flash;
 	vibrator_t  *vibrator;
+	gsensor_t   *gsensor;
 }driver_t;
 
 s16 csr_keya_event_handler(u16 key_num, u16 key_status);

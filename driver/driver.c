@@ -7,6 +7,8 @@ extern battery_t csr_battery;
 extern key_t csr_keyA;
 extern flash_t csr_flash;
 extern vibrator_t csr_vibrator;
+extern gsensor_t csr_gsensor;
+
 
 static driver_t csr_driver = {
 	.timer = &csr_timer,
@@ -14,7 +16,8 @@ static driver_t csr_driver = {
 	.battery = &csr_battery,
 	.keya = &csr_keyA,
 	.flash = &csr_flash,
-	.vibrator = &csr_vibrator;
+	.vibrator = &csr_vibrator,
+	.gsensor = &csr_gsensor,
 };
 
 driver_t *get_driver(void)
