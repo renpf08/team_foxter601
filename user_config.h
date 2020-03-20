@@ -29,10 +29,10 @@
 *  add by mlw at 20200319 12:47
 */
 #define REQ_ANCS_NOTIF_ATT_ID_APP_ID		1
-#define REQ_ANCS_NOTIF_ATT_ID_TITLE			1
-#define REQ_ANCS_NOTIF_ATT_ID_SUBTITLE		1
-#define REQ_ANCS_NOTIF_ATT_ID_MESSAGE		1
-#define REQ_ANCS_NOTIF_ATT_ID_MESSAGE_SIZE	1
+#define REQ_ANCS_NOTIF_ATT_ID_TITLE			0
+#define REQ_ANCS_NOTIF_ATT_ID_SUBTITLE		0
+#define REQ_ANCS_NOTIF_ATT_ID_MESSAGE		0
+#define REQ_ANCS_NOTIF_ATT_ID_MESSAGE_SIZE	0
 #define REQ_ANCS_NOTIF_ATT_ID_DATE			1
 #define REQ_ANCS_NOTIF_ATT_ID_TOTAL         (REQ_ANCS_NOTIF_ATT_ID_APP_ID+     \
                                              REQ_ANCS_NOTIF_ATT_ID_TITLE+      \
@@ -42,17 +42,18 @@
                                              REQ_ANCS_NOTIF_ATT_ID_MESSAGE_SIZE)
 
 /**
+*  Did application handle the old message from ANCS? 
+*  add by mlw at 20200321 00:26
+*/
+#define HANDLE_OLD_MSG      0
+
+/**
 *  Original ANCS parse module is implement a little complicated, then a new one 
 *  is been used
 *  add by mlw at 20200318 14:40
 */
 #define USE_MY_ANCS         1
-
-/**
-*  In this application, in ANCS message, we just only need attrid's app id 
-*  add by mlw at 20200316 16:39
-*/
-#define USE_ONLY_APPID      1
+#define USE_MY_ANCS_DEBUG   0
 
 /**
 * The USE_WHITELIST macro controls whether device advertising in a whitelist

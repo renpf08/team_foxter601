@@ -102,6 +102,7 @@ static const char * ancs_category_id_str[] =
     M_VALUE_TO_STR(entertainment),
     M_VALUE_TO_STR(reserved2)
 };
+#if USE_MY_ANCS_DEBUG
 static const char * ancs_notif_att_id_str[] =
 {
     M_VALUE_TO_STR(appId),
@@ -118,6 +119,7 @@ static const char * ancs_notif_event_flag_str[] =
     M_VALUE_TO_STR(important),
     M_VALUE_TO_STR(reserved3)
 };
+#endif
 
 static packing_msg_t pckMsg;
 
@@ -133,17 +135,33 @@ static packing_msg_t pckMsg;
 void m_ancs_business_handle(packing_msg_t* packMsg);
 void m_ancs_business_handle(packing_msg_t* packMsg)
 {
+    #if USE_MY_ANCS_DEBUG
     MANCS_LOG_INFO("-> uuid              = %02X%02X%02X%02X\r\n", packMsg->uuid[0],packMsg->uuid[1],packMsg->uuid[2],packMsg->uuid[3]);
+    #endif
     MANCS_LOG_INFO("-> event id          = %s\r\n", ancs_event_id_str[packMsg->evtId]);
+    #if USE_MY_ANCS_DEBUG
     MANCS_LOG_INFO("-> event flag        = %s\r\n", ancs_notif_event_flag_str[packMsg->evtFlag]);
+    #endif
     MANCS_LOG_INFO("-> cat id            = %s\r\n", ancs_category_id_str[packMsg->catId]);
-    MANCS_LOG_INFO("-> cat cnt           = %04d\r\n", packMsg->catCnt);
+    MANCS_LOG_INFO("-> cat cnt           = %d\r\n", packMsg->catCnt);
+    #if REQ_ANCS_NOTIF_ATT_ID_APP_ID
     MANCS_LOG_INFO("-> attr app id       = %s\r\n", packMsg->attrIdAppIdData);
+    #endif
+    #if REQ_ANCS_NOTIF_ATT_ID_TITLE
     MANCS_LOG_INFO("-> attr title        = %s\r\n", packMsg->attrIdTitleData);
+    #endif
+    #if REQ_ANCS_NOTIF_ATT_ID_SUBTITLE
     MANCS_LOG_INFO("-> attr sub title    = %s\r\n", packMsg->attrIdSubTitleData);
+    #endif
+    #if REQ_ANCS_NOTIF_ATT_ID_MESSAGE
     MANCS_LOG_INFO("-> attr message      = %s\r\n", packMsg->attrIdMessageData);
-    MANCS_LOG_INFO("-> attr message size = %02d\r\n", packMsg->attrIdMessageSize);
+    #endif
+    #if REQ_ANCS_NOTIF_ATT_ID_MESSAGE_SIZE
+    MANCS_LOG_INFO("-> attr message size = %d\r\n", packMsg->attrIdMessageSize);
+    #endif
+    #if REQ_ANCS_NOTIF_ATT_ID_DATE
     MANCS_LOG_INFO("-> attr date         = %s\r\n", packMsg->attrIdDateData);
+    #endif
 }
 
 /**
@@ -159,13 +177,14 @@ void m_ancs_business_handle(packing_msg_t* packMsg)
 */
 void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *p_data_source)
 {
-    //return;
     uint8 i = 0;
-    uint8 *pUuid = p_data_source->uuid;
-    MANCS_LOG_DEBUG("++ uuid       = %02X%02X%02X%02X\r\n", pUuid[0],pUuid[1],pUuid[2],pUuid[3]);
+    #if USE_MY_ANCS_DEBUG
+    uint8 *uuid = p_data_source->uuid;
+    MANCS_LOG_DEBUG("++ uuid       = %02X%02X%02X%02X\r\n", uuid[0],uuid[1],uuid[2],uuid[3]);
     MANCS_LOG_DEBUG("++ attr id    = %s\r\n", ancs_notif_att_id_str[p_data_source->attrId]);
     MANCS_LOG_DEBUG("++ attr len   = %d\r\n", p_data_source->attrLen);
     MANCS_LOG_DEBUG("++ attr data  = %s\r\n", p_data_source->attrData);
+    #endif
 
     if(p_data_source->attrId == appId)
     {
@@ -196,9 +215,10 @@ void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *
         /** msg time error, dont do any followed handle */
         if(m_ancs_set_time(p_data_source->attrData) == FALSE)
         {
-            MANCS_LOG_WARNING("msg time error!\r\n");
+            #if HANDLE_OLD_MSG
             MemSet(&pckMsg, 0, sizeof(packing_msg_t));
             return;
+            #endif
         }
         for(i = 0; i < p_data_source->attrLen; i++) pckMsg.attrIdDateData[i] = p_data_source->attrData[i];
     }
@@ -208,9 +228,6 @@ void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *
         m_ancs_business_handle(&pckMsg);
         MemSet(&pckMsg, 0, sizeof(packing_msg_t));
     }
-    
-    if(p_data_source->attrId == date)
-        m_ancs_cmp_time((uint8*)&p_data_source->attrData);
 }
 
 /**
@@ -242,13 +259,14 @@ void m_ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source
 
     /** if noti.source.evtFlag is other value than 1 and 2, then just set it to 3 */
     notiSrc->evtFlag = ((notiSrc->evtFlag>2)||(notiSrc->evtFlag<1))?3:notiSrc->evtFlag;
-
+    #if USE_MY_ANCS_DEBUG
     MANCS_LOG_DEBUG("-- event id   = %s\r\n", ancs_event_id_str[notiSrc->evtId]);
     MANCS_LOG_DEBUG("-- event flag = %s\r\n", ancs_notif_event_flag_str[notiSrc->evtFlag]);
     MANCS_LOG_DEBUG("-- cat id     = %s\r\n", ancs_category_id_str[notiSrc->catId]);
     MANCS_LOG_DEBUG("-- cat cnt    = %d\r\n", notiSrc->catCnt);
     MANCS_LOG_DEBUG("-- uuid       = %02X%02X%02X%02X\r\n", notiSrc->uuid[0],notiSrc->uuid[1],notiSrc->uuid[2],notiSrc->uuid[3]);
-    
+    #endif
+
     /** packing stage 1: pack the notif soure */
     uint8 i = 0;
     MemSet(&pckMsg, 0, sizeof(packing_msg_t));
