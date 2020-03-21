@@ -16,6 +16,66 @@
 #define MANCS_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
 #define MANCS_LOG_DEBUG(...)        M_LOG_DEBUG(__VA_ARGS__)
 
+#define MESSAGE_POSITION_NONE           0
+#define MESSAGE_POSITION_LINE           3
+#define MESSAGE_POSITION_QQ             7
+#define MESSAGE_POSITION_FACEMESSAGE    1
+#define MESSAGE_POSITION_WECHAT         2
+#define MESSAGE_POSITION_FACEBOOK       5
+#define MESSAGE_POSITION_EMAIL          4
+#define MESSAGE_POSITION_SMS            6
+#define MESSAGE_POSITION_SKYPE          0xFF
+#define MESSAGE_POSITION_COMMING_CALL   8
+#define MESSAGE_POSITION_TWITTER        0xFF
+#define MESSAGE_POSITION_WHATSAPP       0xFF
+#define MESSAGE_POSITION_CALENDAR       0xFF
+#define MESSAGE_POSITION_LINKEDIN       0xFF
+#define MESSAGE_POSITION_NEWS           0xFF
+
+#define APP_ID_STRING_NONE          "none"
+#define APP_ID_STRING_LINE          "jp.naver.line"
+#define APP_ID_STRING_QQ_IPAD       "com.tencent.mipadqq"     //! iPad QQ message ID
+#define APP_ID_STRING_QQ_IPHONE     "com.tencent.mqq"         //! iPhone QQ message ID
+#define APP_ID_STRING_FACEMESSAGE   "com.facebook.Messenger"  //! Messenger(Facebook) message ID
+#define APP_ID_STRING_WECHAT        "com.tencent.xin"
+#define APP_ID_STRING_FACEBOOK      "com.facebook.Facebook"   //! Facebook message ID
+#define APP_ID_STRING_EMAIL         "email"
+#define APP_ID_STRING_SMS           "com.apple.MobileSMS"
+#define APP_ID_STRING_SKYPE         "com.skype.tomskype"
+#define APP_ID_STRING_COMMING_CALL  "com.apple.mobilephone"
+#define APP_ID_STRING_TWITTER       "com.atebits.Tweetie2"
+#define APP_ID_STRING_WHATSAPP      "net.whatsapp.WhatsApp"
+#define APP_ID_STRING_CALENDAR      "calendar"
+#define APP_ID_STRING_LINKEDIN      "com.linkedin.LinkedIn"
+#define APP_ID_STRING_NEWS          "news"
+
+typedef struct AppidIndex_T
+{
+	const uint8 appIndex;
+	const uint8 appId[25];
+}APPIDINDEX;
+static const APPIDINDEX appMsgList[] =
+{
+    {MESSAGE_POSITION_NONE,         APP_ID_STRING_NONE},
+    {MESSAGE_POSITION_LINE,         APP_ID_STRING_LINE},
+    {MESSAGE_POSITION_QQ,           APP_ID_STRING_QQ_IPAD},     //! iPad QQ message ID
+    {MESSAGE_POSITION_QQ,           APP_ID_STRING_QQ_IPHONE},   //! iPhone QQ message ID
+    {MESSAGE_POSITION_FACEMESSAGE,  APP_ID_STRING_FACEMESSAGE}, //! Messenger(Facebook) message ID
+    {MESSAGE_POSITION_WECHAT,       APP_ID_STRING_WECHAT},
+    {MESSAGE_POSITION_FACEBOOK,     APP_ID_STRING_FACEBOOK},    //! Facebook message ID
+    {MESSAGE_POSITION_EMAIL,        APP_ID_STRING_EMAIL},
+    {MESSAGE_POSITION_SMS,          APP_ID_STRING_SMS},
+    {MESSAGE_POSITION_SKYPE,        APP_ID_STRING_SKYPE},
+    {MESSAGE_POSITION_COMMING_CALL, APP_ID_STRING_COMMING_CALL},
+    {MESSAGE_POSITION_TWITTER,      APP_ID_STRING_TWITTER},
+    {MESSAGE_POSITION_WHATSAPP,     APP_ID_STRING_WHATSAPP},
+    {MESSAGE_POSITION_CALENDAR,     APP_ID_STRING_CALENDAR},
+    {MESSAGE_POSITION_LINKEDIN,     APP_ID_STRING_LINKEDIN},
+    {MESSAGE_POSITION_NEWS,         APP_ID_STRING_NEWS},
+
+	{0, "\0"} //! Finish here
+};
+
 /* enum for event id 
  * NOTE: need to one-to-one correspondence with @ref ancs_event_id in ancs_service_data.h
 */
@@ -33,8 +93,8 @@ typedef enum
 typedef enum
 {
     other             = 0x0,   /* Other : updates */
-    incomingCall,             /*  Call: Incoming call */
-    missedCall,               /* Missed call: Missed Call */
+    incomingCall,              /*  Call: Incoming call */
+    missedCall,                /* Missed call: Missed Call */
     vmail,                     /* Voice mail: Voice mail*/
     social,                    /* Social message indications */
     schedule,                  /* Schedule: Calendar, planner */
@@ -44,7 +104,7 @@ typedef enum
     bnf,                       /* Business and Finance: updates */
     location,                  /* Location: updates */
     entertainment,             /* Entertainment: updates */
-    reserved2                   /* Reserved */
+    reserved2                  /* Reserved */
 }category_id_str;
 
 /* enum for notification attribute id 
@@ -68,7 +128,7 @@ typedef enum
     none = 0x0,
     silent,
     important,
-    reserved3
+    reserved
 }event_flag_str;
 ;
 /* Notification Source Event Flags */
@@ -112,55 +172,79 @@ static const char * ancs_notif_att_id_str[] =
     M_VALUE_TO_STR(messageSize),
     M_VALUE_TO_STR(date)
 };
+#endif
 static const char * ancs_notif_event_flag_str[] =
 {
     M_VALUE_TO_STR(none),
     M_VALUE_TO_STR(silent),
     M_VALUE_TO_STR(important),
-    M_VALUE_TO_STR(reserved3)
+    M_VALUE_TO_STR(reserved)
 };
-#endif
+typedef enum
+{
+    ANCS_MSG_TYPE_ADDED_MODIFIED_KNOWN,
+    ANCS_MSG_TYPE_ADDED_MODIFIED_UNKNOWN,
+    ANCS_MSG_TYPE_MOVED
+} ancs_msg_type_t;
 
 static packing_msg_t pckMsg;
 
 /**
 * @brief do the business handle when after a complete packet of data source receved
 * @param [in] packMsg - the complete packet of data source
+*             isDataSrc - TRUE:data source, FALSE:notif source
 * @param [out] none
 * @return none
 * @data 2020/03/19 16:16
 * @author maliwen
 * @note none
 */
-void m_ancs_business_handle(packing_msg_t* packMsg);
-void m_ancs_business_handle(packing_msg_t* packMsg)
+void m_ancs_business_handle(ancs_msg_type_t msgTpye, packing_msg_t* packMsg);
+void m_ancs_business_handle(ancs_msg_type_t msgTpye, packing_msg_t* packMsg)
 {
+    uint8 i = 0;
+
+    MANCS_LOG_INFO("-> uuid     = %02X%02X%02X%02X\r\n", packMsg->uuid[0],packMsg->uuid[1],packMsg->uuid[2],packMsg->uuid[3]);
+    MANCS_LOG_INFO("0> cat id     (notif type)      = %s\r\n", ancs_category_id_str[packMsg->catId]);
+    MANCS_LOG_INFO("1> event id   (notif state)     = %s\r\n", ancs_event_id_str[packMsg->evtId]);
+    MANCS_LOG_INFO("2> event flag (importance)      = %s\r\n", ancs_notif_event_flag_str[packMsg->evtFlag]);
+    while(appMsgList[i].appId[0] != 0)
+    {
+        if(MemCmp(packMsg->attrIdAppIdData, &appMsgList[i].appId, StrLen(ancs_event_id_str[packMsg->evtId])) == 0)
+        {
+            //MANCS_LOG_INFO("list len = %d, cmp index = %d, app index = %d\r\n", sizeof(appMsgList), i, appMsgList[i].appIndex);
+            #if REQ_ANCS_NOTIF_ATT_ID_APP_ID
+            MANCS_LOG_INFO("3> attr app id(message type)    = %s\r\n", packMsg->attrIdAppIdData);
+            #endif
+            break;
+        }
+        i++;
+    }
+    if(appMsgList[i].appId[0] == 0)
+    {
+        MANCS_LOG_INFO("3> attr app id                  = <not found>\r\n");
+    }
+    MANCS_LOG_INFO("4> cat cnt    (message count)   = %d\r\n", packMsg->catCnt); 
+
     #if USE_MY_ANCS_DEBUG
-    MANCS_LOG_INFO("-> uuid              = %02X%02X%02X%02X\r\n", packMsg->uuid[0],packMsg->uuid[1],packMsg->uuid[2],packMsg->uuid[3]);
-    #endif
-    MANCS_LOG_INFO("-> event id          = %s\r\n", ancs_event_id_str[packMsg->evtId]);
-    #if USE_MY_ANCS_DEBUG
-    MANCS_LOG_INFO("-> event flag        = %s\r\n", ancs_notif_event_flag_str[packMsg->evtFlag]);
-    #endif
-    MANCS_LOG_INFO("-> cat id            = %s\r\n", ancs_category_id_str[packMsg->catId]);
-    MANCS_LOG_INFO("-> cat cnt           = %d\r\n", packMsg->catCnt);
-    #if REQ_ANCS_NOTIF_ATT_ID_APP_ID
-    MANCS_LOG_INFO("-> attr app id       = %s\r\n", packMsg->attrIdAppIdData);
-    #endif
-    #if REQ_ANCS_NOTIF_ATT_ID_TITLE
-    MANCS_LOG_INFO("-> attr title        = %s\r\n", packMsg->attrIdTitleData);
-    #endif
-    #if REQ_ANCS_NOTIF_ATT_ID_SUBTITLE
-    MANCS_LOG_INFO("-> attr sub title    = %s\r\n", packMsg->attrIdSubTitleData);
-    #endif
-    #if REQ_ANCS_NOTIF_ATT_ID_MESSAGE
-    MANCS_LOG_INFO("-> attr message      = %s\r\n", packMsg->attrIdMessageData);
-    #endif
-    #if REQ_ANCS_NOTIF_ATT_ID_MESSAGE_SIZE
-    MANCS_LOG_INFO("-> attr message size = %d\r\n", packMsg->attrIdMessageSize);
-    #endif
-    #if REQ_ANCS_NOTIF_ATT_ID_DATE
-    MANCS_LOG_INFO("-> attr date         = %s\r\n", packMsg->attrIdDateData);
+    if(msgTpye == ANCS_MSG_TYPE_ADDED_MODIFIED_UNKNOWN)
+    {
+        #if REQ_ANCS_NOTIF_ATT_ID_TITLE
+        MANCS_LOG_INFO("-> attr title        = %s\r\n", packMsg->attrIdTitleData);
+        #endif
+        #if REQ_ANCS_NOTIF_ATT_ID_SUBTITLE
+        MANCS_LOG_INFO("-> attr sub title    = %s\r\n", packMsg->attrIdSubTitleData);
+        #endif
+        #if REQ_ANCS_NOTIF_ATT_ID_MESSAGE
+        MANCS_LOG_INFO("-> attr message      = %s\r\n", packMsg->attrIdMessageData);
+        #endif
+        #if REQ_ANCS_NOTIF_ATT_ID_MESSAGE_SIZE
+        MANCS_LOG_INFO("-> attr message size = %d\r\n", packMsg->attrIdMessageSize);
+        #endif
+        #if REQ_ANCS_NOTIF_ATT_ID_DATE
+        MANCS_LOG_INFO("-> attr date         = %s\r\n", packMsg->attrIdDateData);
+        #endif
+    }
     #endif
 }
 
@@ -186,6 +270,10 @@ void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *
     MANCS_LOG_DEBUG("++ attr data  = %s\r\n", p_data_source->attrData);
     #endif
 
+    /*for(i = 0; i < 4; i++)
+    {
+        pckMsg.uuid[i] = uuid[i];
+    }*/
     if(p_data_source->attrId == appId)
     {
         for(i = 0; i < p_data_source->attrLen; i++) pckMsg.attrIdAppIdData[i] = p_data_source->attrData[i];
@@ -225,7 +313,8 @@ void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *
     
     if(++pckMsg.recvAttrIdFragment >= REQ_ANCS_NOTIF_ATT_ID_TOTAL)
     {
-        m_ancs_business_handle(&pckMsg);
+        //MANCS_LOG_DEBUG("ANCS_MSG_TYPE_ADDED_MODIFIED_UNKNOWN\r\n");
+        m_ancs_business_handle(ANCS_MSG_TYPE_ADDED_MODIFIED_UNKNOWN, &pckMsg);
         MemSet(&pckMsg, 0, sizeof(packing_msg_t));
     }
 }
@@ -256,39 +345,74 @@ void m_ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source
     }
     
     source_t *notiSrc = (source_t*)&p_noti_source->source;
+    static uint8 lastUuid[4];
 
     /** if noti.source.evtFlag is other value than 1 and 2, then just set it to 3 */
     notiSrc->evtFlag = ((notiSrc->evtFlag>2)||(notiSrc->evtFlag<1))?3:notiSrc->evtFlag;
     #if USE_MY_ANCS_DEBUG
+    MANCS_LOG_DEBUG("-- uuid       = %02X%02X%02X%02X\r\n", notiSrc->uuid[0],notiSrc->uuid[1],notiSrc->uuid[2],notiSrc->uuid[3]);
     MANCS_LOG_DEBUG("-- event id   = %s\r\n", ancs_event_id_str[notiSrc->evtId]);
     MANCS_LOG_DEBUG("-- event flag = %s\r\n", ancs_notif_event_flag_str[notiSrc->evtFlag]);
     MANCS_LOG_DEBUG("-- cat id     = %s\r\n", ancs_category_id_str[notiSrc->catId]);
-    MANCS_LOG_DEBUG("-- cat cnt    = %d\r\n", notiSrc->catCnt);
-    MANCS_LOG_DEBUG("-- uuid       = %02X%02X%02X%02X\r\n", notiSrc->uuid[0],notiSrc->uuid[1],notiSrc->uuid[2],notiSrc->uuid[3]);
+    MANCS_LOG_DEBUG("*- cat cnt    = %d\r\n", notiSrc->catCnt);
     #endif
 
     /** packing stage 1: pack the notif soure */
-    uint8 i = 0;
     MemSet(&pckMsg, 0, sizeof(packing_msg_t));
-    for(i =  0; i < 4; i++) pckMsg.uuid[i] = notiSrc->uuid[1];
+    uint8 i =  0;
+    for(i =  0; i < 4; i++) pckMsg.uuid[i] = notiSrc->uuid[i];
     pckMsg.evtId = notiSrc->evtId;
     pckMsg.evtFlag = notiSrc->evtFlag;
     pckMsg.catId = notiSrc->catId;
     pckMsg.catCnt = notiSrc->catCnt;
     
-    if(notiSrc->evtId != ancs_event_id_notif_removed)
-        AncsGetNotificationAttributeCmd(p_noti_source->cid);
-}
-
-/**
-* @brief sent the control point to SP to ask for data source
-* @param [in] cid - current connection id
-* @param [out] none
-* @return none
-* @data 2020/03/19 12:51
-* @author maliwen
-* @note none
-*/
-void m_ancs_get_notif_attr(uint16 cid)
-{
+    /** when incoming call is rejected by receiver, there is no data source to request */
+    if(notiSrc->evtId == ancs_event_id_notif_removed)
+    {
+        MANCS_LOG_DEBUG("ANCS_MSG_TYPE_MOVED\r\n");
+        #if 1
+        if((pckMsg.catId == ancs_cat_id_incoming_call)) MemCopy(pckMsg.attrIdAppIdData, APP_ID_STRING_COMMING_CALL, sizeof(APP_ID_STRING_COMMING_CALL));
+        m_ancs_business_handle(ANCS_MSG_TYPE_MOVED, &pckMsg);
+        #else
+        /** if a removed-event uuid is equre to added-event uuid, handle the removed envent */
+        if(MemCmp(lastUuid, pckMsg.uuid, 4) == 0)
+        {
+			if((pckMsg.catId == ancs_cat_id_incoming_call)) 
+                MemCopy(pckMsg.attrIdAppIdData, APP_ID_STRING_COMMING_CALL, sizeof(APP_ID_STRING_COMMING_CALL));
+            m_ancs_business_handle(ANCS_MSG_TYPE_MOVED, &pckMsg);
+        }
+        else
+        {
+            MANCS_LOG_DEBUG("removed-event uuid is not equre to added-event uuid\r\n");
+        }
+        #endif
+    }
+    else
+    {
+        /** the cat id indicate the known app, so don't need to request to data source */
+        if((pckMsg.catId == ancs_cat_id_incoming_call)||
+           (pckMsg.catId == ancs_cat_id_missed_call)||
+           (pckMsg.catId == ancs_cat_id_email)||
+           (pckMsg.catId == ancs_cat_id_schedule)||
+           (pckMsg.catId == ancs_cat_id_news))
+        {
+            //MANCS_LOG_DEBUG("ANCS_MSG_TYPE_ADDED_MODIFIED_KNOWN\r\n");
+			if((pckMsg.catId == ancs_cat_id_incoming_call)) MemCopy(pckMsg.attrIdAppIdData, APP_ID_STRING_COMMING_CALL, sizeof(APP_ID_STRING_COMMING_CALL));
+			if((pckMsg.catId == ancs_cat_id_missed_call)) MemCopy(pckMsg.attrIdAppIdData, APP_ID_STRING_COMMING_CALL, sizeof(APP_ID_STRING_COMMING_CALL));
+			if((pckMsg.catId == ancs_cat_id_email)) MemCopy(pckMsg.attrIdAppIdData, APP_ID_STRING_EMAIL, sizeof(APP_ID_STRING_EMAIL));
+			if((pckMsg.catId == ancs_cat_id_schedule)) MemCopy(pckMsg.attrIdAppIdData, APP_ID_STRING_CALENDAR, sizeof(APP_ID_STRING_CALENDAR));
+			if((pckMsg.catId == ancs_cat_id_news)) MemCopy(pckMsg.attrIdAppIdData, APP_ID_STRING_NEWS, sizeof(APP_ID_STRING_NEWS));
+            //MANCS_LOG_DEBUG("pckMsg.attrIdAppIdData = %s\r\n", pckMsg.attrIdAppIdData);
+            m_ancs_business_handle(ANCS_MSG_TYPE_ADDED_MODIFIED_KNOWN, &pckMsg);
+        }
+        
+        /** if cat id did not indicate a known app, need to request to data source */
+        else
+        {
+            //MANCS_LOG_DEBUG("send data source request...\r\n");
+            AncsGetNotificationAttributeCmd(p_noti_source->cid);
+        }
+    }
+    
+    for(i =  0; i < 4; i++) lastUuid[i] = pckMsg.uuid[i];
 }

@@ -61,6 +61,5 @@ typedef struct
 
 void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *p_data_source);
 void m_ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source);
-void m_ancs_get_notif_attr(uint16 cid);
 
 #endif /** end of __M_ANCS_H__ */
