@@ -6,6 +6,17 @@
 #define PIO_DIR_OUTPUT  TRUE        /* PIO direction configured as output */
 #define PIO_DIR_INPUT   FALSE       /* PIO direction configured as input */
 
+#define BIT_MASK(num) (0x01 << (num))
+
+typedef struct {
+	u8 x_l;
+	u8 x_h;
+	u8 y_l;
+	u8 y_h;
+	u8 z_l;
+	u8 z_h;
+}gsensor_data_t;
+
 typedef enum {
 	KEY_A_UNKNOWN,
 	KEY_A_UP,
@@ -38,9 +49,26 @@ typedef struct {
 }uart_cfg_t;
 
 typedef struct {
+	pin_t clk;
+	pin_t mosi;
+	pin_t miso;
+	pin_t cs;
+	pin_t int1;
+	pin_t int2;
+}gsensor_cfg_t;
+
+typedef struct {
+	pin_t scl;
+	pin_t sda;
+	pin_t int;
+}magnetometer_cfg_t;
+
+typedef struct {
 	uart_cfg_t uart_cfg;
 	pin_t      keya_cfg;
 	pin_t      vibrator_cfg;
+	gsensor_cfg_t gsensor_cfg;
+	magnetometer_cfg_t magnetometer_cfg;
 }cfg_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);

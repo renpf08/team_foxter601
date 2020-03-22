@@ -2110,6 +2110,15 @@ void AppInit(sleep_state last_sleep_state)
     uint16 gatt_db_length = 0;
     uint16 *p_gatt_db = NULL;
 
+	gsensor_data_t data = {
+		.x_l = 0,
+		.x_h = 0,
+		.y_l = 0,
+		.y_h = 0,
+		.z_l = 0,
+		.z_h = 0,
+	};
+	
 	cfg_t args = {
 			.keya_cfg = {
 				.group = 0,
@@ -2118,7 +2127,33 @@ void AppInit(sleep_state last_sleep_state)
 			.uart_cfg = {
 				.tx = {
 					.group = 0,
-					.num = 0,
+					.num = 1,
+				},
+			},
+			.gsensor_cfg = {
+				.clk = {
+					.group = 0,
+					.num = 9,
+				},
+				.mosi = {
+					.group = 0,
+					.num = 10
+				},
+				.miso = {
+					.group = 0,
+					.num = 11,
+				},
+				.cs = {
+					.group = 0,
+					.num = 12,
+				},
+				.int1 = {
+					.group = 0,
+					.num = 25,
+				},
+				.int2 = {
+					.group = 0,
+					.num = 15,
 				},
 			},
 		};
@@ -2131,6 +2166,9 @@ void AppInit(sleep_state last_sleep_state)
 	driver->uart->uart_init(&args, NULL);
 	u8 test[20] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xAA};
 	driver->uart->uart_write(test, 12);
+
+	driver->gsensor->gsensor_init(&args, NULL);
+	driver->gsensor->gsensor_read((void *)&data);
 
     /* Initialise the application timers */
     //TimerInit(MAX_APP_TIMERS, (void*)app_timers);

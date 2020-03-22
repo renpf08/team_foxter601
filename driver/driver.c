@@ -8,7 +8,7 @@ extern key_t csr_keyA;
 extern flash_t csr_flash;
 extern vibrator_t csr_vibrator;
 extern gsensor_t csr_gsensor;
-
+extern magnetometer_t csr_magnetometer;
 
 static driver_t csr_driver = {
 	.timer = &csr_timer,
@@ -18,6 +18,7 @@ static driver_t csr_driver = {
 	.flash = &csr_flash,
 	.vibrator = &csr_vibrator,
 	.gsensor = &csr_gsensor,
+	.magnetometer = &csr_magnetometer,
 };
 
 driver_t *get_driver(void)

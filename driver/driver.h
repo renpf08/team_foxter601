@@ -48,6 +48,12 @@ typedef struct {
 }gsensor_t;
 
 typedef struct {
+	init 			magnetometer_init;
+	read			magnetometer_read;
+	uninit			magnetometer_uninit;
+}magnetometer_t;
+
+typedef struct {
 	uart_t 		*uart;
 	timer_t 	*timer;
 	battery_t 	*battery;
@@ -55,6 +61,7 @@ typedef struct {
 	flash_t     *flash;
 	vibrator_t  *vibrator;
 	gsensor_t   *gsensor;
+	magnetometer_t *magnetometer;
 }driver_t;
 
 s16 csr_keya_event_handler(u16 key_num, u16 key_status);

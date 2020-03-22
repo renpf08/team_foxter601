@@ -6,6 +6,13 @@
    <file path="common/typedef.h" />
   </folder>
   <folder name="driver" >
+   <folder name="vibrator" >
+    <file path="driver/vibrator/vibrator.c" />
+   </folder>
+   <folder name="gsensor" >
+    <file path="driver/gsensor/gsensor.c" />
+    <file path="driver/gsensor/gsensor.h" />
+   </folder>
    <folder name="flash" >
     <file path="driver/flash/flash.c" />
    </folder>
@@ -96,7 +103,7 @@
  </folder>
  <file path="ancs_csr101x_A05.keyr" />
  <file path="bootloader.keyr" />
- <properties currentconfiguration="Release" >
+ <properties currentconfiguration="Debug" >
   <configuration name="Debug" >
    <property key="csr100x_keyr" >ancs_csr100x.keyr</property>
    <property key="csr101x_a05_keyr" >ancs_csr101x_A05.keyr</property>
