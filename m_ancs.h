@@ -12,6 +12,9 @@
 
 #include "discovered_gatt_service.h"
 
+#define MAX_LENGTH_APPID    25
+#define MAX_LENGTH_ATTTDATA 32
+
 /*  Notification Source Data format
 * -------------------------------------------------------
 * |  Event  |  Event  |  Cat  |  Cat   |  Notification  |
@@ -40,23 +43,23 @@ typedef struct
     uint8 uuid[4];
     uint8 attrId;
     uint16 attrLen;
-    uint8 attrData[32];
+    uint8 attrData[MAX_LENGTH_ATTTDATA];
 } data_source_t;
 
 typedef struct
 {
-    uint8 recvAttrIdFragment;       //! receive msg count, total fragment = REQ_ANCS_NOTIF_ATT_ID_TOTAL
-    uint8 uuid[4];                  //! message UUID
-    uint8 evtId;                    //! added, modified, removed, reserved
-    uint8 evtFlag;                  //! silent, important, reserved
-    uint8 catId;                    //! 0other,1incomingCall,2missedCall,3vmail,4social,5schedule,6email,7news,8health,9bussiness,10location,11entertainment,12~255reserved
-    uint8 catCnt;                   //! message count indicated by catId
-    uint8 attrIdAppIdData[32];      //! app name, e.g. QQ->com.tencent.mqq
-    uint8 attrIdTitleData[32];      //! contact name
-    uint8 attrIdSubTitleData[32];   //! sub contact name
-    uint8 attrIdMessageData[32];    //! message content
-    uint16 attrIdMessageSize;       //! message length
-    uint8 attrIdDateData[32];       //! date and time that the message was received
+    uint8 recvAttrIdFragment;                       //! receive msg count, total fragment = REQ_ANCS_NOTIF_ATT_ID_TOTAL
+    uint8 uuid[4];                                  //! message UUID
+    uint8 evtId;                                    //! added, modified, removed, reserved
+    uint8 evtFlag;                                  //! silent, important, reserved
+    uint8 catId;                                    //! 0other,1incomingCall,2missedCall,3vmail,4social,5schedule,6email,7news,8health,9bussiness,10location,11entertainment,12~255reserved
+    uint8 catCnt;                                   //! message count indicated by catId
+    uint8 attrIdAppIdData[MAX_LENGTH_ATTTDATA];     //! app name, e.g. QQ->com.tencent.mqq
+    uint8 attrIdTitleData[MAX_LENGTH_ATTTDATA];     //! contact name
+    uint8 attrIdSubTitleData[MAX_LENGTH_ATTTDATA];  //! sub contact name
+    uint8 attrIdMessageData[MAX_LENGTH_ATTTDATA];   //! message content
+    uint16 attrIdMessageSize;                       //! message length
+    uint8 attrIdDateData[MAX_LENGTH_ATTTDATA];      //! date and time that the message was received
 } packing_msg_t;
 
 void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *p_data_source);

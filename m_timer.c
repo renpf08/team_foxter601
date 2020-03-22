@@ -28,9 +28,9 @@
 #define TIMER_ANCS_TIMEOUT (1000 * MILLISECOND)
 
 #define TIMER_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
-#define TIMER_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
-#define TIMER_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
-#define TIMER_LOG_DEBUG(...)        M_LOG_DEBUG(__VA_ARGS__)
+#define TIMER_LOG_WARNING(...)      //M_LOG_WARNING(__VA_ARGS__)
+#define TIMER_LOG_INFO(...)         //M_LOG_INFO(__VA_ARGS__)
+#define TIMER_LOG_DEBUG(...)        //M_LOG_DEBUG(__VA_ARGS__)
 
 /*============================================================================*
  *  Private Data
