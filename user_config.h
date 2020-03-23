@@ -23,26 +23,6 @@
 #define BLE_ADVERTISING_NAME    "foxter02"
 #define BLE_HARDWARE_VERSION    "v1.0.0.2"
 
-/**
-* The USE_WHITELIST macro controls whether device advertising in a whitelist
-* when after bonded. care must be taken when in ANCS mode, this would lead the
-* device can't be scanning and discovering by other peer device when set to 1
-* (as ANCS mode need the device to be bonded before the message can be retrieved
-*  successfully).
-* add by mlw at 20200312 09:53
-*/
-#define USE_WHITELIST       0
-
-/**
-* When the endian device was once bonded with apple device, the android device
-* would never could bonding with the endian device(no matter even if the 
-* USE_WHITELIST macro is 1), so, there is a mechanism, whenever there is a 
-* central device be about to bonding with the endian device, reset and delete 
-* the whitelist first...
-* add by mlw at 20200313 15:59
-*/
-#define USE_WHITELIST_RESET 1
-
 /* The PAIRING_SUPPORT macro controls whether pairing and encryption code is
  * compiled. This flag may be disabled for the applications that do not require
  * pairing.

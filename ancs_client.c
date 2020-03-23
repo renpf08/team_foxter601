@@ -97,10 +97,6 @@
 #define NVM_MAX_APP_MEMORY_WORDS (NVM_OFFSET_DISC_HANDLES_PRESENT + \
                                  sizeof(g_app_data.remote_gatt_handles_present))
 
-/** NVM offset for single bonded flag, add by mlw at 20200313 16:49 */
-#define NVM_OFFSET_SINGLE_BONDED_FLAG   (NVM_MAX_APP_MEMORY_WORDS + \
-                                        sizeof(g_app_data.single_bonded))
-
 /* Macro value may need to be changed if 0x0000 UUID 
  * is assigned by Bluetooth SIG 
  */
@@ -347,7 +343,6 @@ static void readPersistentStore(void)
 
     if(nvm_sanity == NVM_SANITY_MAGIC)
     {
-        #if USE_WHITELIST
         /* Read bonded flag from NVM */
         Nvm_Read((uint16*)&g_app_data.bonded, sizeof(g_app_data.bonded),
                            NVM_OFFSET_BONDED_FLAG);
@@ -371,12 +366,7 @@ static void readPersistentStore(void)
         {
             g_app_data.bonded = FALSE;
             ANCSC_LOG_DEBUG("device has not bonded.\r\n");
-        }        
-        #else
-        /* Read single bonded flag from NVM */
-        Nvm_Read((uint16*)&g_app_data.single_bonded, sizeof(g_app_data.single_bonded), NVM_OFFSET_SINGLE_BONDED_FLAG);
-        ANCSC_LOG_DEBUG("read single bonded flag = %d\r\n", g_app_data.single_bonded);
-        #endif
+        }
 
 
         /* Read the diversifier associated with the presently bonded/last 
@@ -422,13 +412,7 @@ static void readPersistentStore(void)
         Nvm_Write((uint16*)&g_app_data.bonded, sizeof(g_app_data.bonded), 
                             NVM_OFFSET_BONDED_FLAG);
         ANCSC_LOG_DEBUG("Write bonded status to NVM(bond flag: %d).\r\n", g_app_data.bonded);
-        
-        #if !USE_WHITELIST
-        g_app_data.single_bonded = FALSE;
-        /* Write one word single bonded flag */
-        Nvm_Write((uint16*)&g_app_data.single_bonded, sizeof(g_app_data.single_bonded), NVM_OFFSET_SINGLE_BONDED_FLAG);
-        #endif
-                
+   
         /* When the application is coming up for the first time after flashing 
          * the image to it, it will not have bonded to any device. So, no LTK 
          * will be associated with it. Hence, set the diversifier to 0.
@@ -831,9 +815,14 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                      * resolve the remote device address to which we just
                      * connected. So disconnect and start advertising again
                      */
+                    ANCSC_LOG_INFO("application was bonded to a remote device, so disconnect and start advertising again.\r\n");
                     g_app_data.auth_failure = TRUE;
                     AppSetState(app_disconnecting, 0x07);
-                    ANCSC_LOG_DEBUG("application was bonded to a remote device, so disconnect and start advertising again.\r\n");
+                    
+                    /** when one peer device connect to the device was bonded by other peer device, would never connect succeed,
+                     * need to clear the whitelist and connect again would succeed.
+                     */
+                    HandlePairingRemoval();
                 }
                 else
                 {
@@ -1126,6 +1115,10 @@ static void handleSignalSmPairingAuthInd(SM_PAIRING_AUTH_IND_T *p_event_data)
             else
             {
                 ANCSC_LOG_WARNING("pairing request reject.\r\n");
+                /** when peer device delete bonded msg itself, and connect to the device would failed, 
+                 *  need to clear the whitelist and connect again would succeed.
+                 */
+                HandlePairingRemoval();
             }
             SMPairingAuthRsp(p_event_data->data, status);
         }
@@ -1170,11 +1163,7 @@ static void handleSignalSmSimplePairingCompleteInd(
                     g_app_data.bonding_reattempt_tid = TIMER_INVALID;
                 }
 
-                #if USE_WHITELIST //! add by mlw at 20200312 14:47
                 g_app_data.bonded = TRUE;
-                #if !USE_WHITELIST
-                g_app_data.single_bonded = TRUE;
-                #endif
                 g_app_data.bonded_bd_addr = p_event_data->bd_addr;
                 g_app_data.pairing_in_progress = FALSE;
 
@@ -1200,13 +1189,7 @@ static void handleSignalSmSimplePairingCompleteInd(
                 }
 
                 /* Notify the Gatt service about the pairing */
-                GattBondingNotify();     
-                #else
-                g_app_data.single_bonded = TRUE;
-                /* Write one word single bonded flag */
-                Nvm_Write((uint16*)&g_app_data.single_bonded, sizeof(g_app_data.single_bonded), NVM_OFFSET_SINGLE_BONDED_FLAG);
-                ANCSC_LOG_WARNING("pairing complete, write single bonded flag to NVM.\r\n");
-                #endif
+                GattBondingNotify();
                 
                 /* Notify the Battery service about the pairing */
                 BatteryBondingNotify();
@@ -1297,7 +1280,6 @@ static void handleSignalSmDivApproveInd(SM_DIV_APPROVE_IND_T *p_event_data)
              * whether the diversifier is the same as the one stored by the 
              * application
              */
-            #if USE_WHITELIST
             if(g_app_data.bonded)
             {
                 if(g_app_data.diversifier == p_event_data->div)
@@ -1305,19 +1287,6 @@ static void handleSignalSmDivApproveInd(SM_DIV_APPROVE_IND_T *p_event_data)
                     approve_div = SM_DIV_APPROVED;
                 }
             }
-            #else
-            if(g_app_data.single_bonded)
-            {
-                if(g_app_data.diversifier == p_event_data->div)
-                {
-                    approve_div = SM_DIV_APPROVED;
-                }
-                else
-                {
-                    M_LOG_WARNING("diversifier is not the same.\r\n");
-                }
-            }
-            #endif
 
             if(approve_div == SM_DIV_APPROVED)
             {
@@ -1325,7 +1294,11 @@ static void handleSignalSmDivApproveInd(SM_DIV_APPROVE_IND_T *p_event_data)
             }
             else
             {
-                 M_LOG_WARNING("bonding disapproved(bond = %d).\r\n", g_app_data.single_bonded);   
+                 M_LOG_WARNING("bonding disapproved(bond = %d).\r\n", g_app_data.bonded);
+                 /** when the peer device has bonded to the device, and the device whitelist was cleared by some other reasons,
+                  *  then this peer device can't not connect to the device again,need to clear the whitelist and connect again would succeed.
+                  */
+                 HandlePairingRemoval();
             }
             SMDivApproval(p_event_data->cid, approve_div);
         }
@@ -1617,17 +1590,9 @@ static void handleGattWriteCharValCfm(GATT_WRITE_CHAR_VAL_CFM_T *p_event_data)
         }
         else
         {
-            #if USE_WHITELIST_RESET
-            /* Reset and clear the whitelist */
-            ANCSC_LOG_WARNING("reset the whitelist, now please try to connect again.\r\n");
-            LsResetWhiteList();
-            HandlePairingRemoval();
-            #else
             /* Something went wrong. We can't recover, so disconnect */
             ANCSC_LOG_WARNING("something went wrong. we can't recover, so disconnect.\r\n");
             AppSetState(app_disconnecting, 0x0C);
-            #endif
-    
         }
     }
 }
@@ -1757,12 +1722,7 @@ extern void WriteApplicationAndServiceDataToNVM(void)
     Nvm_Write((uint16*)&g_app_data.bonded, 
                sizeof(g_app_data.bonded),
                NVM_OFFSET_BONDED_FLAG);
-
-    #if !USE_WHITELIST
-    /* Write one word single bonded flag */
-    Nvm_Write((uint16*)&g_app_data.single_bonded, sizeof(g_app_data.single_bonded), NVM_OFFSET_SINGLE_BONDED_FLAG);
-    #endif
-            
+   
     /* Write Bonded address to NVM. */
     Nvm_Write((uint16*)&g_app_data.bonded_bd_addr,
               sizeof(TYPED_BD_ADDR_T),
@@ -1889,13 +1849,7 @@ extern void HandlePairingRemoval(void)
         Nvm_Write((uint16*)&g_app_data.bonded, 
                   sizeof(g_app_data.bonded), 
                   NVM_OFFSET_BONDED_FLAG);
-            
-        #if !USE_WHITELIST
-        g_app_data.single_bonded = FALSE;
-        /* Write one word single bonded flag */
-        Nvm_Write((uint16*)&g_app_data.single_bonded, sizeof(g_app_data.single_bonded), NVM_OFFSET_SINGLE_BONDED_FLAG);
-        #endif
-            
+
         /* Reset the cached handles database */        
         ResetDiscoveredHandlesDatabase();
         
