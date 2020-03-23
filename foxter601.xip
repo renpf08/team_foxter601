@@ -6,6 +6,10 @@
    <file path="common/typedef.h" />
   </folder>
   <folder name="driver" >
+   <folder name="magnetometer" >
+    <file path="driver/magnetometer/magnetometer.c" />
+    <file path="driver/magnetometer/magnetometer.h" />
+   </folder>
    <folder name="vibrator" >
     <file path="driver/vibrator/vibrator.c" />
    </folder>

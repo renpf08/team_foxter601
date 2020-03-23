@@ -23,6 +23,8 @@
 #define MAG3110_IIC_ADDRESS   		(0x0E)
 #define MAG3110_IIC_ADDRESS_WRITE   (0x1C)
 #define MAG3110_IIC_ADDRESS_READ    (0x1D)
+#define MAG3110_NAME				(0xC4)
+
 
 enum {
 	ack = 0,

@@ -17,6 +17,15 @@ typedef struct {
 	u8 z_h;
 }gsensor_data_t;
 
+typedef struct {
+	u8 mag_xl;
+	u8 mag_xh;
+	u8 mag_yl;
+	u8 mag_yh;
+	u8 mag_zl;
+	u8 mag_zh;
+}mag_data_t;
+
 typedef enum {
 	KEY_A_UNKNOWN,
 	KEY_A_UP,
@@ -28,6 +37,11 @@ typedef enum {
 	KEY_M_UP,
 	KEY_M_DOWN
 }EVENT_E;
+
+enum {
+	false = 0,
+	true = 1,
+};
 
 #if 0
 typedef enum
@@ -60,7 +74,7 @@ typedef struct {
 typedef struct {
 	pin_t scl;
 	pin_t sda;
-	pin_t int;
+	pin_t int1;
 }magnetometer_cfg_t;
 
 typedef struct {
