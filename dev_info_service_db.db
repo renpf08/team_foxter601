@@ -29,7 +29,9 @@ primary_service {
     characteristic {
         uuid : UUID_DEVICE_INFO_SERIAL_NUMBER,
         properties : read,      /* Characteristic can only be read */
+        #if USE_PAIRING_SUPPORT
         flags : [FLAG_IRQ,FLAG_ENCR_R],
+        #endif
         name : "DEVICE_INFO_SERIAL_NUMBER",
         value : "CSR-ANCS-CLIENT-001" 
        
@@ -39,7 +41,9 @@ primary_service {
     characteristic {
         uuid : UUID_DEVICE_INFO_HARDWARE_REVISION,
         properties : read,      /*Characteristic can only be read */
+        #if USE_PAIRING_SUPPORT
         flags : [FLAG_IRQ,FLAG_ENCR_R],
+        #endif
         name : "DEVICE_INFO_HARDWARE_REVISION",
         value : HARDWARE_REVISION
 
@@ -49,7 +53,11 @@ primary_service {
     characteristic {
         uuid : UUID_DEVICE_INFO_SYSTEM_ID,
         properties : read,          /*Characteristic can only be read */
+        #if USE_PAIRING_SUPPORT
         flags : [FLAG_IRQ, FLAG_ENCR_R],
+        #else
+        flags : [FLAG_IRQ],
+        #endif
         name : "DEVICE_INFO_SYSTEM_ID",
         size_value : 0x8
 
@@ -59,7 +67,9 @@ primary_service {
     characteristic {
         uuid : UUID_DEVICE_INFO_FIRMWARE_REVISION,
         properties : read,      /*Characteristic can only be read */
+        #if USE_PAIRING_SUPPORT
         flags : [FLAG_IRQ,FLAG_ENCR_R],
+        #endif
         name : "DEVICE_INFO_FIRMWARE_REVISION",
         value : BLE_HARDWARE_VERSION
 
@@ -69,7 +79,9 @@ primary_service {
     characteristic {
         uuid : UUID_DEVICE_INFO_SOFTWARE_REVISION,
         properties : read,      /*Characteristic can only be read */
+        #if USE_PAIRING_SUPPORT
         flags : [FLAG_IRQ,FLAG_ENCR_R],
+        #endif
         name : "DEVICE_INFO_SOFTWARE_REVISION",
         value : "Application version 2.5.1.0"
     },
@@ -78,7 +90,9 @@ primary_service {
     characteristic {
         uuid : UUID_DEVICE_INFO_MANUFACTURER_NAME,
         properties : read,      /*Characteristic can only be read */
+        #if USE_PAIRING_SUPPORT
         flags : [FLAG_IRQ,FLAG_ENCR_R],
+        #endif
         name : "DEVICE_INFO_MANUFACTURER_NAME",
         value : "Cambridge Silicon Radio"
     },
@@ -87,7 +101,9 @@ primary_service {
     characteristic {
         uuid : UUID_DEVICE_INFO_PNP_ID,
         properties : read,      /*Characteristic can only be read */
+        #if USE_PAIRING_SUPPORT
         flags : [FLAG_IRQ,FLAG_ENCR_R],
+        #endif
         name : "DEVICE_INFO_END",
         value : [VENDOR_ID_SRC_BT, VENDOR_ID,
                  PRODUCT_ID,

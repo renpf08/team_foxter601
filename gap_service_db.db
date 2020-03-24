@@ -39,8 +39,13 @@ primary_service {
     characteristic {
         uuid : UUID_DEVICE_NAME,
         name : "DEVICE_NAME",
+        #if USE_PAIRING_SUPPORT
         properties : [read, write],
         flags : [FLAG_IRQ, FLAG_ENCR_W],
+        #else
+        properties : [read],
+        flags : [FLAG_IRQ],
+        #endif
 
         /* Value is kept zero as the device name buffer is managed by 
          * application 

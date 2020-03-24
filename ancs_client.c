@@ -226,6 +226,10 @@ static void handleNotificationData(GATT_CHAR_VAL_IND_T *p_event_data);
 /* This function configures the discovered GATT service changed characteristic*/
 static sys_status ConfigureGattIndications(void);
 
+#if USE_WHITELIST_PROTECT_JIM
+void APP_Move_Bonded(uint8 caller);
+#endif
+
 /*============================================================================*
  *  Private Function Implementations
  *============================================================================*/
@@ -758,9 +762,26 @@ static void handleSignalLmDisconnectComplete(
             {
                 g_app_data.notif_configuring = FALSE;
                 appDataInit();
+                
+                #if 0//USE_WHITELIST_PROTECT_JIM
+                /** 0x13 Remote user terminated connection case */
+                if(p_event_data->data.reason == 0x13)
+                {
+                    /* If the device has not bonded but disconnected, it may just 
+                     * have discovered the services supported by the application or 
+                     * read some un-protected characteristic value like device name 
+                     * and disconnected. The application should be connectable 
+                     * because the same remote device may want to reconnect and 
+                     * bond. If not the application should be discoverable by other 
+                     * devices.
+                     */
+				    APP_Move_Bonded(1);
+				    AppSetState(app_disconnecting, 0x05);
+                }
+                #else
                 /* Restart advertising */
                 AppSetState(app_fast_advertising, 0x05);
-
+                #endif
             }
             break;
             default:
@@ -816,13 +837,17 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                      * connected. So disconnect and start advertising again
                      */
                     ANCSC_LOG_INFO("application was bonded to a remote device, so disconnect and start advertising again.\r\n");
-                    g_app_data.auth_failure = TRUE;
-                    AppSetState(app_disconnecting, 0x07);
-                    
                     /** when one peer device connect to the device was bonded by other peer device, would never connect succeed,
                      * need to clear the whitelist and connect again would succeed.
                      */
+                    #if USE_WHITELIST_PROTECT
                     HandlePairingRemoval();
+                    #elif USE_WHITELIST_PROTECT_JIM
+                    APP_Move_Bonded(2);
+                    #endif
+                    
+                    g_app_data.auth_failure = TRUE;
+                    AppSetState(app_disconnecting, 0x07);
                 }
                 else
                 {
@@ -837,6 +862,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                         ANCSC_LOG_DEBUG("001.\r\n");
                     }
 
+                    #if !USE_WHITELIST_PROTECT_JIM
                     /* Initiate slave security request if the remote host 
                      * supports security feature. This is added for this device 
                      * to work against legacy hosts that don't support security
@@ -860,6 +886,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                             ANCSC_LOG_DEBUG("004.\r\n");  
                         }
                     }
+                    #endif
                 }
             }
             else
@@ -1118,7 +1145,11 @@ static void handleSignalSmPairingAuthInd(SM_PAIRING_AUTH_IND_T *p_event_data)
                 /** when peer device delete bonded msg itself, and connect to the device would failed, 
                  *  need to clear the whitelist and connect again would succeed.
                  */
+                #if USE_WHITELIST_PROTECT
                 HandlePairingRemoval();
+                #elif USE_WHITELIST_PROTECT_JIM
+                APP_Move_Bonded(3);
+                #endif
             }
             SMPairingAuthRsp(p_event_data->data, status);
         }
@@ -1180,12 +1211,15 @@ static void handleSignalSmSimplePairingCompleteInd(
 
                 if(!GattIsAddressResolvableRandom(&g_app_data.bonded_bd_addr))
                 {
+                    ANCSC_LOG_INFO("attempt to write whitelist.\r\n");
+                    #if !USE_WHITELIST_PROTECT
                     /* White list is configured with the bonded host address */
                     if(LsAddWhiteListDevice(&g_app_data.bonded_bd_addr) != 
                                         ls_err_none)
                     {
                         ReportPanic(app_panic_add_whitelist);
                     }
+                    #endif
                 }
 
                 /* Notify the Gatt service about the pairing */
@@ -1298,7 +1332,11 @@ static void handleSignalSmDivApproveInd(SM_DIV_APPROVE_IND_T *p_event_data)
                  /** when the peer device has bonded to the device, and the device whitelist was cleared by some other reasons,
                   *  then this peer device can't not connect to the device again,need to clear the whitelist and connect again would succeed.
                   */
+                 #if USE_WHITELIST_PROTECT
                  HandlePairingRemoval();
+                 #elif USE_WHITELIST_PROTECT_JIM
+                 APP_Move_Bonded(4);
+                 #endif
             }
             SMDivApproval(p_event_data->cid, approve_div);
         }
@@ -1652,6 +1690,8 @@ static void appInitExit(void)
     if(g_app_data.bonded == TRUE && 
         (!GattIsAddressResolvableRandom(&g_app_data.bonded_bd_addr)))
     {
+        ANCSC_LOG_INFO("attempt to write whitelist.\r\n");
+        #if !USE_WHITELIST_PROTECT
         /* If the device is bonded, configure white list with the
          * bonded host address 
          */
@@ -1660,6 +1700,7 @@ static void appInitExit(void)
         {
             ReportPanic(app_panic_add_whitelist);
         }
+        #endif
     }
 }
 
@@ -2676,3 +2717,36 @@ extern void AppHandleProcedureCompletionEvent(app_procedure_code app_proc_code,
         break;
     }
 }
+
+#if USE_WHITELIST_PROTECT_JIM
+void APP_Move_Bonded(uint8 caller)
+{
+    g_app_data.bonded = FALSE;
+    
+    /* Write bonded status to NVM */
+    Nvm_Write((uint16*)&g_app_data.bonded, sizeof(g_app_data.bonded), NVM_OFFSET_BONDED_FLAG);
+    
+    /* Reset the cached handles database */        
+    ResetDiscoveredHandlesDatabase();
+    
+    /* Reset the boolean flag remote_gatt_handles_present to FALSE and store 
+    * it in NVM
+    */
+    g_app_data.remote_gatt_handles_present = FALSE;        
+    Nvm_Write((uint16 *)&g_app_data.remote_gatt_handles_present, sizeof(g_app_data.remote_gatt_handles_present), NVM_OFFSET_DISC_HANDLES_PRESENT);
+    LsResetWhiteList();
+    /* Initialise GAP Data structure */
+    GapDataInit();
+    
+    /* Battery Service data initialisation */
+    BatteryDataInit();
+    
+    /* Initialise GATT Data structure */
+    GattDataInit();
+    
+    /* OTA Service data initialisation */
+    OtaDataInit();
+    
+    ANCSC_LOG_WARNING("remove bonding ok, caller: %d.\r\n", caller);
+}
+#endif
