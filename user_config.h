@@ -32,7 +32,7 @@
 *    when after a failed connection.
 * add by mlw at 20200324 12:27
 */
-#define USE_WHITELIST_PROTECT       1
+#define USE_WHITELIST_PROTECT       0
 #define USE_WHITELIST_PROTECT_JIM   1
 
 /* The PAIRING_SUPPORT macro controls whether pairing and encryption code is

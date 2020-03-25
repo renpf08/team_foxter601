@@ -343,7 +343,7 @@ static void readPersistentStore(void)
      */
 
     Nvm_Read(&nvm_sanity, sizeof(nvm_sanity), NVM_OFFSET_SANITY_WORD);
-    ANCSC_LOG_DEBUG("read bonding flag(bond flag: %d).\r\n", g_app_data.bonded);
+    ANCSC_LOG_DEBUG("read bonding flag : %d.\r\n", g_app_data.bonded);
 
     if(nvm_sanity == NVM_SANITY_MAGIC)
     {
@@ -763,7 +763,7 @@ static void handleSignalLmDisconnectComplete(
                 g_app_data.notif_configuring = FALSE;
                 appDataInit();
                 
-                #if 0//USE_WHITELIST_PROTECT_JIM
+                #if USE_WHITELIST_PROTECT_JIM
                 /** 0x13 Remote user terminated connection case */
                 if(p_event_data->data.reason == 0x13)
                 {
@@ -775,13 +775,13 @@ static void handleSignalLmDisconnectComplete(
                      * bond. If not the application should be discoverable by other 
                      * devices.
                      */
-				    APP_Move_Bonded(1);
-				    AppSetState(app_disconnecting, 0x05);
+                    ANCSC_LOG_INFO("move bonded......\r\n");
+				    //APP_Move_Bonded(1);
+				    //AppSetState(app_disconnecting, 0x05);
                 }
-                #else
+                #endif
                 /* Restart advertising */
                 AppSetState(app_fast_advertising, 0x05);
-                #endif
             }
             break;
             default:
@@ -840,6 +840,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                     /** when one peer device connect to the device was bonded by other peer device, would never connect succeed,
                      * need to clear the whitelist and connect again would succeed.
                      */
+                    ANCSC_LOG_INFO("move bonded.\r\n");
                     #if USE_WHITELIST_PROTECT
                     HandlePairingRemoval();
                     #elif USE_WHITELIST_PROTECT_JIM
@@ -862,7 +863,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                         ANCSC_LOG_DEBUG("001.\r\n");
                     }
 
-                    #if !USE_WHITELIST_PROTECT_JIM
+                    #if 0//!USE_WHITELIST_PROTECT_JIM
                     /* Initiate slave security request if the remote host 
                      * supports security feature. This is added for this device 
                      * to work against legacy hosts that don't support security
@@ -1145,6 +1146,7 @@ static void handleSignalSmPairingAuthInd(SM_PAIRING_AUTH_IND_T *p_event_data)
                 /** when peer device delete bonded msg itself, and connect to the device would failed, 
                  *  need to clear the whitelist and connect again would succeed.
                  */
+                ANCSC_LOG_INFO("move bonded.\r\n");
                 #if USE_WHITELIST_PROTECT
                 HandlePairingRemoval();
                 #elif USE_WHITELIST_PROTECT_JIM
@@ -1332,10 +1334,11 @@ static void handleSignalSmDivApproveInd(SM_DIV_APPROVE_IND_T *p_event_data)
                  /** when the peer device has bonded to the device, and the device whitelist was cleared by some other reasons,
                   *  then this peer device can't not connect to the device again,need to clear the whitelist and connect again would succeed.
                   */
+                 ANCSC_LOG_INFO("move bonded.\r\n");
                  #if USE_WHITELIST_PROTECT
                  HandlePairingRemoval();
-                 #elif USE_WHITELIST_PROTECT_JIM
-                 APP_Move_Bonded(4);
+                 /*#elif USE_WHITELIST_PROTECT_JIM
+                 APP_Move_Bonded(4);*/
                  #endif
             }
             SMDivApproval(p_event_data->cid, approve_div);
@@ -2283,7 +2286,7 @@ void AppInit(sleep_state last_sleep_state)
     m_devname_init(devName);
     m_printf("\r\n");
     m_printf("\r\n");
-    ANCSC_LOG_INFO("system started: %s\r\n", devName);
+    ANCSC_LOG_INFO("system started: %s, bonding statu: %d\r\n", devName, g_app_data.bonded);
 
     /* Tell Security Manager module about the value it needs to initialise it's
      * diversifier to.
@@ -2747,6 +2750,8 @@ void APP_Move_Bonded(uint8 caller)
     /* OTA Service data initialisation */
     OtaDataInit();
     
-    ANCSC_LOG_WARNING("remove bonding ok, caller: %d.\r\n", caller);
+    //AppSetState(app_fast_advertising, 0x15);
+    GattStopAdverts();
+    //ANCSC_LOG_WARNING("remove bonding ok, caller: %d.\r\n", caller);
 }
 #endif
