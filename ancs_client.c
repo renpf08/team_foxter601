@@ -762,24 +762,7 @@ static void handleSignalLmDisconnectComplete(
             {
                 g_app_data.notif_configuring = FALSE;
                 appDataInit();
-                
-                #if USE_WHITELIST_PROTECT_JIM
-                /** 0x13 Remote user terminated connection case */
-                if(p_event_data->data.reason == 0x13)
-                {
-                    /* If the device has not bonded but disconnected, it may just 
-                     * have discovered the services supported by the application or 
-                     * read some un-protected characteristic value like device name 
-                     * and disconnected. The application should be connectable 
-                     * because the same remote device may want to reconnect and 
-                     * bond. If not the application should be discoverable by other 
-                     * devices.
-                     */
-                    ANCSC_LOG_INFO("move bonded......\r\n");
-				    //APP_Move_Bonded(1);
-				    //AppSetState(app_disconnecting, 0x05);
-                }
-                #endif
+
                 /* Restart advertising */
                 AppSetState(app_fast_advertising, 0x05);
             }
@@ -841,10 +824,8 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                      * need to clear the whitelist and connect again would succeed.
                      */
                     ANCSC_LOG_INFO("move bonded.\r\n");
-                    #if USE_WHITELIST_PROTECT
-                    HandlePairingRemoval();
-                    #elif USE_WHITELIST_PROTECT_JIM
-                    APP_Move_Bonded(2);
+                    #if USE_WHITELIST_PROTECT_JIM
+                    APP_Move_Bonded(1);
                     #endif
                     
                     g_app_data.auth_failure = TRUE;
@@ -852,7 +833,6 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                 }
                 else
                 {
-                    ANCSC_LOG_DEBUG("others1.\r\n");
                     /* If we are bonded to this host, then it may be appropriate
                      * to indicate that the database is not now what it had
                      * previously.
@@ -860,10 +840,9 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                     if(g_app_data.bonded)
                     {
                         GattOnConnection(p_event_data->cid);
-                        ANCSC_LOG_DEBUG("001.\r\n");
                     }
 
-                    #if 0//!USE_WHITELIST_PROTECT_JIM
+                    #if USE_CONNECT_BONDING
                     /* Initiate slave security request if the remote host 
                      * supports security feature. This is added for this device 
                      * to work against legacy hosts that don't support security
@@ -873,18 +852,24 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                     if(!GattIsAddressResolvableRandom(&g_app_data.con_bd_addr))
                     {
                         /* Non-Apple Device.Initiate Security request */
+                        ANCSC_LOG_INFO("non-apple device.initiate security request.\r\n");
                         SMRequestSecurityLevel(&g_app_data.con_bd_addr);
-                        ANCSC_LOG_DEBUG("002.\r\n");
                     }
                     else /* APPLE Device */
                     {
-                        ANCSC_LOG_DEBUG("003.\r\n");
                         /* Check if have the remote gatt handles cached */
                         if(!g_app_data.remote_gatt_handles_present)
                         {
                             /* Start Gatt Database discovery. */
+
+                            ANCSC_LOG_INFO("ancs service discovering.\r\n");
                             DiscoverServices(); 
-                            ANCSC_LOG_DEBUG("004.\r\n");  
+                        }
+                        
+                        /** ANCS service handles is useful? */
+                        else
+                        {
+                            ANCSC_LOG_INFO("ancs service handles is useful.\r\n");
                         }
                     }
                     #endif
@@ -892,7 +877,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
             }
             else
             {
-                ANCSC_LOG_DEBUG("others2.\r\n");
+                ANCSC_LOG_ERROR("system status unknown: %d\r\n", p_event_data->result);
                 /* Else wait for user activity before we start advertising 
                  * again
                  */
@@ -902,7 +887,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
         break;
         default:
         {
-            ANCSC_LOG_DEBUG("others3.\r\n");
+            ANCSC_LOG_ERROR("connect status unknown %d\r\n", g_app_data.state);
             /* Control should never come here */
             ReportPanic(app_panic_invalid_state);
         }
@@ -1147,10 +1132,8 @@ static void handleSignalSmPairingAuthInd(SM_PAIRING_AUTH_IND_T *p_event_data)
                  *  need to clear the whitelist and connect again would succeed.
                  */
                 ANCSC_LOG_INFO("move bonded.\r\n");
-                #if USE_WHITELIST_PROTECT
-                HandlePairingRemoval();
-                #elif USE_WHITELIST_PROTECT_JIM
-                APP_Move_Bonded(3);
+                #if USE_WHITELIST_PROTECT_JIM
+                APP_Move_Bonded(2);
                 #endif
             }
             SMPairingAuthRsp(p_event_data->data, status);
@@ -1334,12 +1317,13 @@ static void handleSignalSmDivApproveInd(SM_DIV_APPROVE_IND_T *p_event_data)
                  /** when the peer device has bonded to the device, and the device whitelist was cleared by some other reasons,
                   *  then this peer device can't not connect to the device again,need to clear the whitelist and connect again would succeed.
                   */
-                 ANCSC_LOG_INFO("move bonded.\r\n");
-                 #if USE_WHITELIST_PROTECT
-                 HandlePairingRemoval();
-                 /*#elif USE_WHITELIST_PROTECT_JIM
-                 APP_Move_Bonded(4);*/
-                 #endif
+                 if(g_app_data.bonded)
+                 {
+                    ANCSC_LOG_INFO("move bonded.\r\n");
+                    #if USE_WHITELIST_PROTECT_JIM
+                    APP_Move_Bonded(3);/**/
+                    #endif
+                 }
             }
             SMDivApproval(p_event_data->cid, approve_div);
         }
@@ -1544,6 +1528,7 @@ static void handleGattReadCharValCfm(GATT_READ_CHAR_VAL_CFM_T *p_event_data)
         /* If we have received an insufficient encryption error code, we will 
          * start a slave security request
          */
+        ANCSC_LOG_INFO("initiate security request.\r\n");
         SMRequestSecurityLevel(&g_app_data.con_bd_addr);
     }
     else if(p_event_data->result != GATT_RESULT_TIMEOUT) 
@@ -1613,8 +1598,8 @@ static void handleGattWriteCharValCfm(GATT_WRITE_CHAR_VAL_CFM_T *p_event_data)
         /* Security supported by the remote host */
         if(!g_app_data.pairing_in_progress)
         {
+           ANCSC_LOG_INFO("initiate security request.\r\n");
            SMRequestSecurityLevel(&g_app_data.con_bd_addr);
-           ANCSC_LOG_INFO("security supported by the remote host.\r\n");
         }
     }
     else if(p_event_data->result != GATT_RESULT_TIMEOUT) 
@@ -2751,7 +2736,7 @@ void APP_Move_Bonded(uint8 caller)
     OtaDataInit();
     
     //AppSetState(app_fast_advertising, 0x15);
-    GattStopAdverts();
-    //ANCSC_LOG_WARNING("remove bonding ok, caller: %d.\r\n", caller);
+    //GattStopAdverts();
+    ANCSC_LOG_WARNING("remove bonding ok, caller: %d.\r\n", caller);
 }
 #endif

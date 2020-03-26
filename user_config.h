@@ -23,6 +23,11 @@
 #define BLE_ADVERTISING_NAME    "foxter01"
 #define BLE_HARDWARE_VERSION    "v1.0.1.1"
 
+/* request bond when after connected.
+*  add by mlw at 20200326 11:40
+ */
+#define USE_CONNECT_BONDING         0
+
 /**
 * 1. After OTA, a whitelist would be used when advertising, then other peer would
 * can never connect to the device, so we should keep avoid to write the bonding
