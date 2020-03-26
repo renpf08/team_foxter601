@@ -8,9 +8,9 @@
 #include "user_config.h"
 #include "../driver.h"
 
-#define TIMEOUT 42
-#define UART_TX_HIGH(num) PioSets(num, 1UL)
-#define UART_TX_LOW(num)  PioSets(num, 0UL)
+#define TIMEOUT 35
+#define UART_TX_HIGH(num) PioSet((num), 1UL)
+#define UART_TX_LOW(num)  PioSet((num), 0UL)
 
 typedef enum {
 	UART_IDLE,
@@ -158,7 +158,7 @@ static s16 csr_uart_init(cfg_t *args, event_callback cb)
 	uart_config.rx.num = args->uart_cfg.rx.num;
 
 	//tx gpio init and set to high
-    PioSetModes(uart_config.tx.num, pio_mode_user);
+    PioSetModes(1UL << uart_config.tx.num, pio_mode_user);
 	PioSetDir(uart_config.tx.num, PIO_DIR_OUTPUT);
 	PioSetPullModes(1UL << uart_config.tx.num, pio_mode_strong_pull_up);
 	UART_TX_HIGH(uart_config.tx.num);
