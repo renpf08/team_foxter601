@@ -190,6 +190,13 @@ extern void SerialHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
                 m_printf("%c", p_ind->value[i]);
             }
             
+            /** initiate ANCS service discovering, for test purpose */
+            if((p_ind->size_value == 1) && (p_ind->value[0] == 0xAA))
+            {
+                M_LOG_INFO("initiate ANCS service discovering...\r\n");
+                DiscoverServices();
+            }
+            
             //! 当接收到蓝牙数值字符串中出现数值0x25时，调用该函数打印时，该数值会被识别成格式
             //! 控制符%，导致输出结果出错，是故不采用m_nprintf进行格式化控制输出
             //! mlw, 20200314 23:50
