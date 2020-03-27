@@ -814,6 +814,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                                            MAX_NUMBER_IRK_STORED, 
                                            MAX_WORDS_IRK) < 0))
                 {
+                    #if 0
                     /* Application was bonded to a remote device with
                      * resolvable random address and application has failed to
                      * resolve the remote device address to which we just
@@ -830,6 +831,15 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                     
                     g_app_data.auth_failure = TRUE;
                     AppSetState(app_disconnecting, 0x07);
+                    #else
+                    /**
+                     *  when connected, if the device is bonded with another peer, no need to remove bonded here,
+                     *  just let it to request re-encrypt, if do so, the later mechanism will do a remove job, 
+                     *  otherwise, the peer will not know the device has removed bonded and try again to connect 
+                     *  to confirm to remove  the
+                     */
+                    ANCSC_LOG_WARNING("device already be paired, would be removed later if need.\r\n");
+                    #endif
                 }
                 else
                 {
