@@ -9,14 +9,14 @@
 
 #define SDA_MODE_OUT(sda_pin)   PioSetDir(sda_pin, PIO_DIR_OUTPUT)
 #define SDA_MODE_IN(sda_pin)   	PioSetDir(sda_pin, PIO_DIR_INPUT)
-#define SDA_HIGH(sda_pin)     	PioSets(sda_pin, 1UL)
-#define SDA_LOW(sda_pin)		PioSets(sda_pin, 0UL)
+#define SDA_HIGH(sda_pin)     	PioSet(sda_pin, 1UL)
+#define SDA_LOW(sda_pin)		PioSet(sda_pin, 0UL)
 #define SDA_GET(sda_pin)      	PioGet(sda_pin)
 
 #define SCL_MODE_OUT(scl_pin)   PioSetDir(scl_pin, PIO_DIR_OUTPUT)
 #define SCL_MODE_IN(scl_pin)   	PioSetDir(scl_pin, PIO_DIR_INPUT)
-#define SCL_HIGH(scl_pin)     	PioSets(scl_pin, 1UL)
-#define SCL_LOW(scl_pin)		PioSets(scl_pin, 0UL)
+#define SCL_HIGH(scl_pin)     	PioSet(scl_pin, 1UL)
+#define SCL_LOW(scl_pin)		PioSet(scl_pin, 0UL)
 
 #define I2C_DELAY(us)			TimeDelayUSec(us)
 
@@ -172,32 +172,24 @@ static u8 read_byte(void)
 
 static void csr_magnetometer_start_i2c(void)
 {
-	//SDA CONFIGURATION
-    PioSetMode(csr_mag3110.cfg.sda.num, pio_mode_user);
-	PioSetDir(csr_mag3110.cfg.sda.num, TRUE);
-	PioSetPullModes(BIT_MASK(csr_mag3110.cfg.sda.num), pio_mode_strong_pull_up);
-	SDA_HIGH(csr_mag3110.cfg.sda.num);
-
-	//SCL CONFIGURATION
-    PioSetMode(csr_mag3110.cfg.scl.num, pio_mode_user);	 
+	//SDA SCL CONFIGURATION
+	PioSetModes((1UL << csr_mag3110.cfg.sda.num) | (1UL << csr_mag3110.cfg.scl.num), pio_mode_user);	
+	PioSetDir(csr_mag3110.cfg.sda.num, TRUE);	
 	PioSetDir(csr_mag3110.cfg.scl.num, TRUE);
-	PioSetPullModes(BIT_MASK(csr_mag3110.cfg.scl.num), pio_mode_strong_pull_up);
+	PioSetPullModes(BIT_MASK(csr_mag3110.cfg.sda.num) | BIT_MASK(csr_mag3110.cfg.scl.num), pio_mode_strong_pull_up);
+	SDA_HIGH(csr_mag3110.cfg.sda.num);
 	SCL_HIGH(csr_mag3110.cfg.scl.num);
 }
 
 static void csr_magnetometer_stop_i2c(void)
 {
 	//SDA CONFIGURATION
-    PioSetMode(csr_mag3110.cfg.sda.num, pio_mode_user);
+	PioSetModes((1UL << csr_mag3110.cfg.sda.num) | (1UL << csr_mag3110.cfg.scl.num), pio_mode_user);	
 	PioSetDir(csr_mag3110.cfg.sda.num, TRUE);
-	PioSetPullModes(BIT_MASK(csr_mag3110.cfg.sda.num), pio_mode_no_pulls);
-	SDA_HIGH(csr_mag3110.cfg.sda.num);
-
-	//SCL CONFIGURATION
-    PioSetMode(csr_mag3110.cfg.scl.num, pio_mode_user);	 
 	PioSetDir(csr_mag3110.cfg.scl.num, TRUE);
-	PioSetPullModes(BIT_MASK(csr_mag3110.cfg.scl.num), pio_mode_no_pulls);
-	SCL_HIGH(csr_mag3110.cfg.scl.num);
+	PioSetPullModes(BIT_MASK(csr_mag3110.cfg.sda.num) | BIT_MASK(csr_mag3110.cfg.scl.num), pio_mode_no_pulls);
+	SDA_HIGH(csr_mag3110.cfg.sda.num);
+	SCL_HIGH(csr_mag3110.cfg.scl.num);	
 }
 
 static u8 csr_magnetometer_reg_write(u8 reg, u8 *buf, u8 num)
@@ -318,7 +310,7 @@ static s16 csr_magnetometer_init(cfg_t *args, event_callback cb)
 	csr_mag3110.magnetometer_cb = cb;
 
 	//pin init
-	PioSetMode(csr_mag3110.cfg.int1.num, pio_mode_user);
+	PioSetModes(1UL << csr_mag3110.cfg.int1.num, pio_mode_user);	
     PioSet(csr_mag3110.cfg.int1.num, 1);
 	PioSetDir(csr_mag3110.cfg.int1.num, FALSE);
 	PioSetPullModes(BIT_MASK(csr_mag3110.cfg.int1.num), pio_mode_strong_pull_up);

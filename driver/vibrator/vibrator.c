@@ -2,8 +2,8 @@
 #include <pio.h>            /* Programmable I/O configuration and control */
 #include "../driver.h"
 
-#define VIBRATOR_HIGH(num) PioSets(1UL << num, 1UL)
-#define VIBRATOR_LOW(num) PioSets(1UL << num, 0UL)
+#define VIBRATOR_HIGH(num) PioSet((num), 1UL)
+#define VIBRATOR_LOW(num) PioSet((num), 0UL)
 
 typedef struct {
 	pin_t vib_pin;
@@ -37,7 +37,8 @@ static s16 csr_vibrator_init(cfg_t *args, event_callback cb)
 	PioSetModes(1UL << csr_vibrator_cfg.vib_pin.num, pio_mode_user);
 	PioSetDir(csr_vibrator_cfg.vib_pin.num, PIO_DIR_OUTPUT);
 	PioSetPullModes(1UL << csr_vibrator_cfg.vib_pin.num, pio_mode_strong_pull_up);
-	
+
+	VIBRATOR_LOW(csr_vibrator_cfg.vib_pin.num);
 	return 0;
 }
 

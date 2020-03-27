@@ -2129,7 +2129,7 @@ void AppInit(sleep_state last_sleep_state)
 		.mag_zh = 0,
 	};
 	#endif
-	
+
 	cfg_t args = {
 			.keya_cfg = {
 				.group = 0,
@@ -2140,6 +2140,10 @@ void AppInit(sleep_state last_sleep_state)
 					.group = 0,
 					.num = 1,
 				},
+			},
+			.vibrator_cfg = {
+				.group = 0,
+				.num = 20,
 			},
 			.gsensor_cfg = {
 				.clk = {
@@ -2191,6 +2195,9 @@ void AppInit(sleep_state last_sleep_state)
 	driver->uart->uart_init(&args, NULL);
 	u8 test[20] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xAA};
 	driver->uart->uart_write(test, 12);
+
+	//driver->vibrator->vibrator_init(&args, NULL);
+	//driver->vibrator->vibrator_on(NULL);
 
 	//driver->gsensor->gsensor_init(&args, NULL);
 	//driver->gsensor->gsensor_read((void *)&data);
