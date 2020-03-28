@@ -706,7 +706,13 @@ static void handleSignalGattCancelConnectCfm(GATT_CANCEL_CONNECT_CFM_T
             {
                 AppSetState(app_idle, 0x04);
             }
-            break;
+            break; 
+            /** add by mlw, 20200328 20:39 */
+            case app_idle:
+            {
+                /** need to do nothing here */
+            }
+            break; 
             default:
             {
                 /* Control should never come here */
@@ -1831,6 +1837,30 @@ extern void ReportPanic(app_panic_code panic_code)
  *----------------------------------------------------------------------------*/
 extern void HandleShortButtonPress(void)
 {
+    switch(g_app_data.state)
+    {
+        case app_connected:
+        {
+            ANCSC_LOG_DEBUG("(short button)ble set to disconnect mode(%d).\r\n", g_app_data.state);
+            g_app_data.pairing_remove_button_pressed = FALSE;
+            AppSetState(app_disconnecting, 0xFF);
+            break;
+        }
+        case app_fast_advertising:
+        case app_slow_advertising:
+        {
+            ANCSC_LOG_DEBUG("(short button)ble set to idle mode(%d).\r\n", g_app_data.state);
+            g_app_data.pairing_remove_button_pressed = FALSE;
+            AppSetState(app_idle, 0xFF);
+            break;
+        }
+        default:
+        {
+            ANCSC_LOG_DEBUG("(short button)ble set to fast mode(%d).\r\n", g_app_data.state);
+            AppSetState(app_fast_advertising, 0xFF);
+            break;
+        }
+    }
     #if 0
     /* Handle signal as per current state */
     switch(g_app_data.state)
@@ -1997,6 +2027,7 @@ void AppSetState(app_state new_state, uint8 caller)
             case app_init:
             {
                 appInitExit();
+                ANCSC_LOG_DEBUG("old state: app_init\r\n");
             }
             break;
 
@@ -2006,6 +2037,15 @@ void AppSetState(app_state new_state, uint8 caller)
                  * app_disconnecting state.
                  */
                 appDataInit();
+                
+                /** 
+                  when device is connect state, we press button to disconnect it,
+                  than, device woulde enter advertising mode, actually, we need
+                  the device to enter idle mode, so we force it to be...
+                  add by mlw, 20200328 21:14 
+                */
+                new_state = app_idle;
+                ANCSC_LOG_DEBUG("old state: app_disconnecting\r\n");
             }
             break;
 
@@ -2018,18 +2058,22 @@ void AppSetState(app_state new_state, uint8 caller)
                 /* Cancel advertisement timer */
                 TimerDelete(g_app_data.app_tid);
                 g_app_data.app_tid = TIMER_INVALID;
+                ANCSC_LOG_DEBUG("old state: app_advertising\r\n");
             }
             break;
 
             case app_idle:
                 /* Nothing to do */
+                ANCSC_LOG_DEBUG("old state: app_idle\r\n");
             break;
 
             case app_connected:
+                ANCSC_LOG_DEBUG("old state: app_connected\r\n");
             break;
 
             default:
                 /* Nothing to do */
+                ANCSC_LOG_DEBUG("old state: unknow:%d\r\n", old_state);
             break;
         }
 
@@ -2057,6 +2101,7 @@ void AppSetState(app_state new_state, uint8 caller)
             case app_idle:
             {
                 /* Sound long beep to indicate non connectable mode*/
+                GattStopAdverts();
                 ANCSC_LOG_INFO("BLE state: Idle\r\n");
             }
             break;

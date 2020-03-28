@@ -47,6 +47,11 @@
  */
 #define SHORTENED_DEV_NAME_LEN                   (8)
 
+#define ANCSG_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
+#define ANCSG_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
+#define ANCSG_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
+#define ANCSG_LOG_DEBUG(...)        M_LOG_DEBUG(__VA_ARGS__)
+
 /*============================================================================*
  *  Private Function Prototypes
  *============================================================================*/
