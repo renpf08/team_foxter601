@@ -1825,6 +1825,56 @@ extern void ReportPanic(app_panic_code panic_code)
 
 /*----------------------------------------------------------------------------*
  *  NAME
+ *      HandleBleStateSwitch
+ *
+ *  DESCRIPTION
+ *      Function that handles ble state switch.
+ *
+ *
+ *  RETURNS
+ *      nothing
+ *
+ *  NOTE: add by mlw, 20200328 22:06
+ *
+ *----------------------------------------------------------------------------*/
+extern void HandleBleStateSwitch(bool bSwitchOn);
+extern void HandleBleStateSwitch(bool bSwitchOn)
+{
+    if(bSwitchOn == TRUE)
+    {
+        ANCSC_LOG_DEBUG("switch on to advertising mode\r\n");
+        if((g_app_data.state != app_connected) && 
+           (g_app_data.state != app_fast_advertising) && 
+           (g_app_data.state != app_slow_advertising))
+        {
+            ANCSC_LOG_DEBUG("ble set to fast mode(%d).\r\n", g_app_data.state);
+            AppSetState(app_fast_advertising, 0xFF);
+        }
+        else
+        {
+            ANCSC_LOG_DEBUG("ble mode no need to switch on(%d)\r\n", g_app_data.state);    
+        }
+    }
+    else
+    {
+        ANCSC_LOG_INFO("switch off to idle mode\r\n");
+        if(g_app_data.state == app_connected)
+        {
+            ANCSC_LOG_DEBUG("ble set to disconnect mode(%d).\r\n", g_app_data.state);
+            g_app_data.pairing_remove_button_pressed = FALSE;
+            AppSetState(app_disconnecting, 0xFF);
+        }
+        else if((g_app_data.state != app_fast_advertising) || (g_app_data.state != app_slow_advertising))
+        {
+            ANCSC_LOG_DEBUG("ble set to idle mode(%d).\r\n", g_app_data.state);
+            g_app_data.pairing_remove_button_pressed = FALSE;
+            AppSetState(app_idle, 0xFF);
+        }
+    }
+}
+
+/*----------------------------------------------------------------------------*
+ *  NAME
  *      HandleShortButtonPress
  *
  *  DESCRIPTION
@@ -1841,23 +1891,26 @@ extern void HandleShortButtonPress(void)
     {
         case app_connected:
         {
-            ANCSC_LOG_DEBUG("(short button)ble set to disconnect mode(%d).\r\n", g_app_data.state);
+            /*ANCSC_LOG_DEBUG("(short button)ble set to disconnect mode(%d).\r\n", g_app_data.state);
             g_app_data.pairing_remove_button_pressed = FALSE;
-            AppSetState(app_disconnecting, 0xFF);
+            AppSetState(app_disconnecting, 0xFF);*/
+            HandleBleStateSwitch(FALSE);
             break;
         }
         case app_fast_advertising:
         case app_slow_advertising:
         {
-            ANCSC_LOG_DEBUG("(short button)ble set to idle mode(%d).\r\n", g_app_data.state);
+            /*ANCSC_LOG_DEBUG("(short button)ble set to idle mode(%d).\r\n", g_app_data.state);
             g_app_data.pairing_remove_button_pressed = FALSE;
-            AppSetState(app_idle, 0xFF);
+            AppSetState(app_idle, 0xFF);*/
+            HandleBleStateSwitch(FALSE);
             break;
         }
         default:
         {
-            ANCSC_LOG_DEBUG("(short button)ble set to fast mode(%d).\r\n", g_app_data.state);
-            AppSetState(app_fast_advertising, 0xFF);
+            /*ANCSC_LOG_DEBUG("(short button)ble set to fast mode(%d).\r\n", g_app_data.state);
+            AppSetState(app_fast_advertising, 0xFF);*/
+            HandleBleStateSwitch(TRUE);
             break;
         }
     }
