@@ -21,7 +21,7 @@
 
 /** The USE_WHITELIST macro */
 #define BLE_ADVERTISING_NAME    "foxter01"
-#define BLE_HARDWARE_VERSION    "v1.0.0.1"
+#define BLE_HARDWARE_VERSION    "v1.0.2.1"
 
 /**
 *  Notification Attribute ID, use to ask for the deatil of data source from

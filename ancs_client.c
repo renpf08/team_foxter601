@@ -704,7 +704,8 @@ static void handleSignalGattCancelConnectCfm(GATT_CANCEL_CONNECT_CFM_T
             break;
             case app_slow_advertising:
             {
-                AppSetState(app_idle, 0x04);
+                ANCSC_LOG_WARNING("mlw set to advertising mode(%d).\r\n", g_app_data.state);
+                AppSetState(app_fast_advertising, 0x04); //! AppSetState(app_idle, 0x04);
             }
             break; 
             /** add by mlw, 20200328 20:39 */
@@ -893,11 +894,11 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
             }
             else
             {
-                ANCSC_LOG_ERROR("system status unknown: %d\r\n", p_event_data->result);
                 /* Else wait for user activity before we start advertising 
                  * again
                  */
-                AppSetState(app_idle, 0x08);
+                ANCSC_LOG_WARNING("mlw set to advertising mode(%d).\r\n", p_event_data->result);
+                AppSetState(app_fast_advertising, 0x08); //! AppSetState(app_idle, 0x08);
             }
         }
         break;
@@ -1864,7 +1865,7 @@ extern void HandleBleStateSwitch(bool bSwitchOn)
            (g_app_data.state != app_slow_advertising))
         {
             ANCSC_LOG_DEBUG("ble set to fast mode(%d).\r\n", g_app_data.state);
-            AppSetState(app_fast_advertising, 0xFF);
+            AppSetState(app_fast_advertising, 0x0E);
         }
         else
         {
@@ -1878,13 +1879,13 @@ extern void HandleBleStateSwitch(bool bSwitchOn)
         {
             ANCSC_LOG_DEBUG("ble set to disconnect mode(%d).\r\n", g_app_data.state);
             g_app_data.pairing_remove_button_pressed = FALSE;
-            AppSetState(app_disconnecting, 0xFF);
+            AppSetState(app_disconnecting, 0x0F);
         }
         else if((g_app_data.state != app_fast_advertising) || (g_app_data.state != app_slow_advertising))
         {
-            ANCSC_LOG_DEBUG("ble set to idle mode(%d).\r\n", g_app_data.state);
+            ANCSC_LOG_INFO("ble set to idle mode(%d).\r\n", g_app_data.state);
             g_app_data.pairing_remove_button_pressed = FALSE;
-            AppSetState(app_idle, 0xFF);
+            AppSetState(app_idle, 0x10);
         }
     }
 }
@@ -1909,7 +1910,7 @@ extern void HandleShortButtonPress(void)
         {
             /*ANCSC_LOG_DEBUG("(short button)ble set to disconnect mode(%d).\r\n", g_app_data.state);
             g_app_data.pairing_remove_button_pressed = FALSE;
-            AppSetState(app_disconnecting, 0xFF);*/
+            AppSetState(app_disconnecting, 0x11);*/
             HandleBleStateSwitch(FALSE);
             break;
         }
@@ -1918,14 +1919,14 @@ extern void HandleShortButtonPress(void)
         {
             /*ANCSC_LOG_DEBUG("(short button)ble set to idle mode(%d).\r\n", g_app_data.state);
             g_app_data.pairing_remove_button_pressed = FALSE;
-            AppSetState(app_idle, 0xFF);*/
+            AppSetState(app_idle, 0x12);*/
             HandleBleStateSwitch(FALSE);
             break;
         }
         default:
         {
             /*ANCSC_LOG_DEBUG("(short button)ble set to fast mode(%d).\r\n", g_app_data.state);
-            AppSetState(app_fast_advertising, 0xFF);*/
+            AppSetState(app_fast_advertising, 0x13);*/
             HandleBleStateSwitch(TRUE);
             break;
         }
@@ -1945,7 +1946,7 @@ extern void HandleShortButtonPress(void)
              * list. Once advertisements are stopped, reset the whitelist
              * and trigger advertisements again for any host to connect
              */
-            //! AppSetState(app_fast_advertising, 0x0E); //! there is bug to lead the system reboot when set to fast advertising mode
+            //! AppSetState(app_fast_advertising, 0x14); //! there is bug to lead the system reboot when set to fast advertising mode
             GattStopAdverts();
         }
         break;
@@ -1953,7 +1954,7 @@ extern void HandleShortButtonPress(void)
         {
              ANCSC_LOG_INFO("(short button)app_idle state: set disconnect, reset and clear whitelist.\r\n");
              /* Start fast undirected advertisements. */
-             AppSetState(app_fast_advertising, 0x0F);
+             AppSetState(app_fast_advertising, 0x15);
         }
         break;
         default:
@@ -2010,7 +2011,7 @@ extern void HandlePairingRemoval(void)
                  * and services data related to bonding status will get 
                  * updated while exiting disconnecting state
                  */
-                AppSetState(app_disconnecting, 0x10);
+                AppSetState(app_disconnecting, 0x16);
 
                 /* Reset and clear the whitelist */
                 LsResetWhiteList();
@@ -2058,7 +2059,7 @@ extern void HandlePairingRemoval(void)
                 LsResetWhiteList();
 
                 /* Start fast undirected advertisements. */
-                AppSetState(app_fast_advertising, 0x11);
+                AppSetState(app_fast_advertising, 0x17);
             }
             break;
 
@@ -2695,7 +2696,7 @@ void HandleConnectReq(void)
     /* Start advertising */
     if(g_app_data.state == app_idle)
     {
-        AppSetState(app_fast_advertising, 0x12);
+        AppSetState(app_fast_advertising, 0x18);
     }
 }
 
@@ -2715,7 +2716,7 @@ void HandleDisconnectReq(void)
    if(app_connected == AppGetState())
     {
         /* Initiate a disconnect */
-        AppSetState(app_disconnecting, 0x13);
+        AppSetState(app_disconnecting, 0x19);
     }
 }
 
@@ -2862,7 +2863,7 @@ void APP_Move_Bonded(uint8 caller)
     /* OTA Service data initialisation */
     OtaDataInit();
     
-    //AppSetState(app_fast_advertising, 0x15);
+    //AppSetState(app_fast_advertising, 0x1A);
     //GattStopAdverts();
     ANCSC_LOG_WARNING("remove bonding ok, caller: %d.\r\n", caller);
 }
