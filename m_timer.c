@@ -113,7 +113,7 @@ void m_timer_clock_init(void)
         TIMER_LOG_ERROR("tmClockId create failed.\r\n");
         
         /* Panic with panic code 0xfe */
-        Panic(0xfe);
+        //Panic(0xfe);
     }
 }
 

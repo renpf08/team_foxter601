@@ -93,7 +93,7 @@ extern void Nvm_Read(uint16* buffer, uint16 length, uint16 offset)
     /* If NvmRead fails, report panic */
     if(sys_status_success != result)
     {
-        ReportPanic(app_panic_nvm_read);
+        ReportPanic(__FILE__, __func__, __LINE__, app_panic_nvm_read);
     }
 }
 
@@ -161,7 +161,7 @@ extern void Nvm_Write(uint16* buffer, uint16 length, uint16 offset)
     else
     {
         /* Irrecoverable error. Reset the chip. */
-        ReportPanic(app_panic_nvm_write);
+        ReportPanic(__FILE__, __func__, __LINE__, app_panic_nvm_write);
     }
 }
 
@@ -191,7 +191,7 @@ extern void Nvm_Erase(void)
     /* If NvmErase fails, report panic */
     if(sys_status_success != result)
     {
-        ReportPanic(app_panic_nvm_erase);
+        ReportPanic(__FILE__, __func__, __LINE__, app_panic_nvm_erase);
     }
 }
 #endif /* NVM_TYPE_FLASH */

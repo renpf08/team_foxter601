@@ -524,7 +524,7 @@ static void requestConnParamUpdate(void)
         /* Connection parameter update request should not have failed.
          * Report panic 
          */
-        ReportPanic(app_panic_con_param_update);
+        ReportPanic(__FILE__, __func__, __LINE__, app_panic_con_param_update);
     }
 }
 
@@ -716,7 +716,7 @@ static void handleSignalGattCancelConnectCfm(GATT_CANCEL_CONNECT_CFM_T
             default:
             {
                 /* Control should never come here */
-                ReportPanic(app_panic_invalid_state);
+                ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
             }
             break;
         }
@@ -776,7 +776,7 @@ static void handleSignalLmDisconnectComplete(
             default:
             {
                 /* Control should never come here */
-                ReportPanic(app_panic_invalid_state);
+                ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
             }
             break;
         }
@@ -905,7 +905,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
         {
             ANCSC_LOG_ERROR("connect status unknown %d\r\n", g_app_data.state);
             /* Control should never come here */
-            ReportPanic(app_panic_invalid_state);
+            ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
         }
         break;
     }
@@ -955,7 +955,7 @@ static void handleSignalLsConnUpdateSignalCfm(
         default:
         {
             /* Control should never come here */
-            ReportPanic(app_panic_invalid_state);
+            ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
         }
         break;
     }
@@ -991,7 +991,7 @@ static void handleSignalLmConnectionUpdate(
             /* Connection parameter update indication received in unexpected
              * application state.
              */
-            ReportPanic(app_panic_invalid_state);
+            ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
         break;
     }
 }
@@ -1100,7 +1100,7 @@ static void handleSignalGattAccessInd(GATT_ACCESS_IND_T *p_event_data)
 
         default:
             /* Control should never come here */
-            ReportPanic(app_panic_invalid_state);
+            ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
         break;
     }
 }
@@ -1158,7 +1158,7 @@ static void handleSignalSmPairingAuthInd(SM_PAIRING_AUTH_IND_T *p_event_data)
 
         default:
             ANCSC_LOG_DEBUG("sm-pairing auth error(code: 0x%02X).\r\n", g_app_data.state);
-            ReportPanic(app_panic_invalid_state);
+            ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
         break;
     }
 }
@@ -1218,7 +1218,7 @@ static void handleSignalSmSimplePairingCompleteInd(
                     if(LsAddWhiteListDevice(&g_app_data.bonded_bd_addr) != 
                                         ls_err_none)
                     {
-                        ReportPanic(app_panic_add_whitelist);
+                        ReportPanic(__FILE__, __func__, __LINE__, app_panic_add_whitelist);
                     }
                     #endif
                 }
@@ -1348,7 +1348,7 @@ static void handleSignalSmDivApproveInd(SM_DIV_APPROVE_IND_T *p_event_data)
         default:
         {
             /* Control should never come here */
-            ReportPanic(app_panic_invalid_state);
+            ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
         }
         break;
 
@@ -1385,7 +1385,7 @@ static void handleSignalGattDbCfm(GATT_ADD_DB_CFM_T *p_event_data)
             else
             {
                 /* Don't expect this to happen */
-                ReportPanic(app_panic_db_registration);
+                ReportPanic(__FILE__, __func__, __LINE__, app_panic_db_registration);
             }
         }
         break;
@@ -1393,7 +1393,7 @@ static void handleSignalGattDbCfm(GATT_ADD_DB_CFM_T *p_event_data)
        default:
         {
             /* Control should never come here */
-            ReportPanic(app_panic_invalid_state);
+            ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
         }
        break;
     }
@@ -1457,7 +1457,7 @@ static void handleSignalSmKeysInd(SM_KEYS_IND_T *p_event_data)
         default:
         {
             /* Control should never come here */
-            ReportPanic(app_panic_invalid_state);
+            ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
         }
         break;
     }
@@ -1513,7 +1513,7 @@ static void handleSignalLMEncryptionChange(
         {
             ANCSC_LOG_DEBUG("default: Control should never come here\r\n");
             /* Control should never come here */
-            ReportPanic(app_panic_invalid_state);
+            ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
         }
         break;
     }
@@ -1702,7 +1702,7 @@ static void appInitExit(void)
         if(LsAddWhiteListDevice(&g_app_data.bonded_bd_addr) != 
                                         ls_err_none)
         {
-            ReportPanic(app_panic_add_whitelist);
+            ReportPanic(__FILE__, __func__, __LINE__, app_panic_add_whitelist);
         }
         #endif
     }
@@ -1815,8 +1815,24 @@ extern void WriteApplicationAndServiceDataToNVM(void)
  *      Nothing.
  *
  *----------------------------------------------------------------------------*/
-extern void ReportPanic(app_panic_code panic_code)
+extern void ReportPanic(const char* file, const char* func, unsigned line, app_panic_code panic_code)
 {
+    char preStr[64] = {0};
+    unsigned len = 0;
+    
+    do
+    {
+        if(len >= sizeof(preStr)) break;
+        preStr[len++] = *file;
+        if(*file == '\\')
+        {
+            file += len;
+            len = 0;
+        }
+    } while(*++file != '\0');
+    preStr[len] = '\0';
+    
+    ANCSC_LOG_ERROR("!---> panic:%s,%s(), line:%d, code:%d <---!\r\n", preStr, func, line, panic_code);
     /* If we want any debug prints, we can put them here */
 #ifdef ENABLE_DEBUG_PANIC
     Panic(panic_code);
@@ -1857,7 +1873,7 @@ extern void HandleBleStateSwitch(bool bSwitchOn)
     }
     else
     {
-        ANCSC_LOG_INFO("switch off to idle mode\r\n");
+        ANCSC_LOG_DEBUG("switch off to idle mode\r\n");
         if(g_app_data.state == app_connected)
         {
             ANCSC_LOG_DEBUG("ble set to disconnect mode(%d).\r\n", g_app_data.state);

@@ -84,7 +84,7 @@
 #define ENABLE_UART
 
 /* Macro used to enable Panic code */
-#define ENABLE_DEBUG_PANIC
+//#define ENABLE_DEBUG_PANIC
 
 /* Macro used to enable LCD display */
 /*#define ENABLE_LCD_DISPLAY*/

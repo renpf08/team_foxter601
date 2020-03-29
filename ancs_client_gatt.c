@@ -110,7 +110,7 @@ static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len)
         if (LsStoreAdvScanData(device_name_adtype_len , p_device_name, 
                       ad_src_advertise) != ls_err_none)
         {
-            ReportPanic(app_panic_set_advert_data);
+            ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_advert_data);
         }
     }
     /* Check if Complete Device Name can fit in Scan response message */
@@ -120,7 +120,7 @@ static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len)
         if (LsStoreAdvScanData(device_name_adtype_len , p_device_name, 
                       ad_src_scan_rsp) != ls_err_none)
         {
-            ReportPanic(app_panic_set_scan_rsp_data);
+            ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_scan_rsp_data);
         }
     }
     /* Check if Shortened Device Name can fit in remaining advertisement 
@@ -138,7 +138,7 @@ static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len)
        if (LsStoreAdvScanData((SHORTENED_DEV_NAME_LEN + 1), p_device_name, 
                       ad_src_advertise) != ls_err_none)
         {
-            ReportPanic(app_panic_set_advert_data);
+            ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_advert_data);
         }
     }
     else /* Add device name to remaining Scan response data space */
@@ -150,7 +150,7 @@ static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len)
                                     p_device_name, 
                                     ad_src_scan_rsp) != ls_err_none)
         {
-            ReportPanic(app_panic_set_scan_rsp_data);
+            ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_scan_rsp_data);
         }
     }
 }
@@ -205,20 +205,20 @@ static void gattSetAdvertParams(bool fast_connection)
        (GapSetAdvInterval(adv_interval_min, adv_interval_max) 
                         != ls_err_none))
     {
-        ReportPanic(app_panic_set_advert_params);
+        ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_advert_params);
     }
 
 
     /* Reset existing advertising data */
     if(LsStoreAdvScanData(0, NULL, ad_src_advertise) != ls_err_none)
     {
-        ReportPanic(app_panic_set_advert_data);
+        ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_advert_data);
     }
 
     /* Reset existing scan response data */
     if(LsStoreAdvScanData(0, NULL, ad_src_scan_rsp) != ls_err_none)
     {
-        ReportPanic(app_panic_set_scan_rsp_data);
+        ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_scan_rsp_data);
     }
 
     /* Setup ADVERTISEMENT DATA */
@@ -227,7 +227,7 @@ static void gattSetAdvertParams(bool fast_connection)
     if(LsReadTransmitPowerLevel(&tx_power_level) != ls_err_none)
     {
         /* Reading tx power failed */
-        ReportPanic(app_panic_read_tx_pwr_level);
+        ReportPanic(__FILE__, __func__, __LINE__, app_panic_read_tx_pwr_level);
     }
 
     /* Add the read tx power level to device_tx_power 
@@ -244,7 +244,7 @@ static void gattSetAdvertParams(bool fast_connection)
     if (LsStoreAdvScanData(TX_POWER_VALUE_LENGTH, device_tx_power, 
                           ad_src_advertise) != ls_err_none)
     {
-        ReportPanic(app_panic_set_advert_data);
+        ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_advert_data);
     }
 
     /* Add device name into advertisement data */

@@ -99,7 +99,7 @@ void m_timer_uart_recev_init(void)
         UART_LOG_DEBUG("m_timer_uart_recev_init failed\r\n");
         
         /* Panic with panic code 0xfe */
-        Panic(0xfe);
+        //Panic(0xfe);
     }
 }
 
