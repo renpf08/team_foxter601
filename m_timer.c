@@ -13,6 +13,7 @@
 
 #include "m_timer.h"
 #include "m_printf.h"
+#include "user_config.h"
 
 /*============================================================================*
  *  Private Definitions
@@ -27,10 +28,17 @@
 /* ancs timer timeout value: 1000ms */
 #define TIMER_ANCS_TIMEOUT (1000 * MILLISECOND)
 
+#if USE_M_LOG
 #define TIMER_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
 #define TIMER_LOG_WARNING(...)      //M_LOG_WARNING(__VA_ARGS__)
 #define TIMER_LOG_INFO(...)         //M_LOG_INFO(__VA_ARGS__)
 #define TIMER_LOG_DEBUG(...)        //M_LOG_DEBUG(__VA_ARGS__)
+#else
+#define TIMER_LOG_ERROR(...)
+#define TIMER_LOG_WARNING(...)
+#define TIMER_LOG_INFO(...)
+#define TIMER_LOG_DEBUG(...)
+#endif
 
 /*============================================================================*
  *  Private Data

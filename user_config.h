@@ -66,6 +66,9 @@
  */
 #define USE_PAIRING_SUPPORT     0
 
+/** add by mlw, 20200330 11:24 */
+#define USE_M_LOG   0
+
 /* Macro used to enable Panic code */
 //#define ENABLE_DEBUG_PANIC
 

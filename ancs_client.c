@@ -102,10 +102,17 @@
  */
 #define UUID_INVALID             (0x0000)
 
+#if USE_M_LOG
 #define ANCSC_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
 #define ANCSC_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
 #define ANCSC_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
 #define ANCSC_LOG_DEBUG(...)        //! M_LOG_DEBUG(__VA_ARGS__)
+#else
+#define ANCSC_LOG_ERROR(...)
+#define ANCSC_LOG_WARNING(...)
+#define ANCSC_LOG_INFO(...)
+#define ANCSC_LOG_DEBUG(...)
+#endif
 
 /*============================================================================*
  *  Private Data
@@ -1318,11 +1325,11 @@ static void handleSignalSmDivApproveInd(SM_DIV_APPROVE_IND_T *p_event_data)
 
             if(approve_div == SM_DIV_APPROVED)
             {
-                M_LOG_INFO("bonding approved.\r\n");
+                ANCSC_LOG_INFO("bonding approved.\r\n");
             }
             else
             {
-                 M_LOG_WARNING("bonding disapproved(bond = %d).\r\n", g_app_data.bonded);
+                 ANCSC_LOG_WARNING("bonding disapproved(bond = %d).\r\n", g_app_data.bonded);
                  /** when the peer device has bonded to the device, and the device whitelist was cleared by some other reasons,
                   *  then this peer device can't not connect to the device again,need to clear the whitelist and connect again would succeed.
                   */
@@ -2336,8 +2343,10 @@ void AppInit(sleep_state last_sleep_state)
     /* Initialise the application timers */
     TimerInit(MAX_APP_TIMERS, (void*)app_timers);
 
+    #if USE_M_LOG
     /* Initialise the UART interface */
     m_uart_init();
+    #endif
     
     m_timer_init();
     
@@ -2379,8 +2388,10 @@ void AppInit(sleep_state last_sleep_state)
       * add by mlw at 20200314 01:37
       */
     m_devname_init(devName);
+    #if USE_M_LOG
     m_printf("\r\n");
     m_printf("\r\n");
+    #endif
     ANCSC_LOG_INFO("system started: %s, bonding statu: %d\r\n", devName, g_app_data.bonded);
 
     /* Tell Security Manager module about the value it needs to initialise it's
