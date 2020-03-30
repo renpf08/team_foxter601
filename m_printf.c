@@ -5,6 +5,10 @@
 *  @history 1.0.0.0(°æ±¾ºÅ)
 *           1.0.0.0: Creat              2020/02/28
 */
+
+#include "user_config.h"
+
+#if USE_M_LOG
 #include <uart.h>
 #include "m_printf.h"
 #include "m_timer.h"
@@ -411,3 +415,4 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
     va_end(ParamList);
     return r;
 }
+#endif //! end with USE_M_LOG

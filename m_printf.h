@@ -10,6 +10,9 @@
 *           1.0.0.0: Creat              2020/02/28
 */
 
+#include "user_config.h"
+
+#if USE_M_LOG
 typedef char *  va_list;  
 #define _INTSIZEOF(n)	((sizeof(n) + sizeof(int) - 1) & ~(sizeof(int) - 1))  
 #define va_start(ap,v)	(ap = (va_list)&v + _INTSIZEOF(v) )  
@@ -28,5 +31,6 @@ int m_nprintf(unsigned size, const char * sFormat, ...);
 int m_sprintf(char *buf, const char * sFormat, ...);
 int m_snprintf(char *buf, unsigned size, const char * sFormat, ...);
 int m_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
+#endif //! end with USE_M_LOG
 
 #endif /** end of __M_PRINTF_H__ */

@@ -2,6 +2,9 @@
 #ifndef __M_TIMER_H__
 #define __M_TIMER_H__
 
+#include "user_config.h"
+
+#if USE_M_LOG
 /**
 *  @file    m_timer.h
 *  @author  maliwen
@@ -23,5 +26,6 @@ typedef struct
 time_t* m_get_time(void);
 void m_timer_init(void);
 bool m_ancs_set_time(uint8* timeStr);
+#endif //! end with USE_M_LOG
 
 #endif /** end of __M_TIMER_H__ */

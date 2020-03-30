@@ -2346,9 +2346,9 @@ void AppInit(sleep_state last_sleep_state)
     #if USE_M_LOG
     /* Initialise the UART interface */
     m_uart_init();
+    m_timer_init();
     #endif
     
-    m_timer_init();
     
     /* Initialise GATT entity */
     GattInit();

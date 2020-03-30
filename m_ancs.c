@@ -337,6 +337,7 @@ void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *
     }
     else if(p_data_source->attrId == date)
     {
+        #if USE_M_LOG
         /** msg time error, dont do any followed handle */
         if(m_ancs_set_time(p_data_source->attrData) == FALSE)
         {
@@ -345,6 +346,7 @@ void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *
             return;
             #endif
         }
+        #endif
         for(i = 0; i < p_data_source->attrLen; i++) pckMsg.attrIdDateData[i] = p_data_source->attrData[i];
     }
     

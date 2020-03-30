@@ -6,6 +6,9 @@
 *           1.0.0.0: Creat              2020/02/20
 */
 
+#include "user_config.h"
+
+#if USE_M_LOG
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <timer.h>          /* Chip timer functions */
 #include <panic.h>          /* Support for applications to panic */
@@ -293,3 +296,4 @@ bool m_ancs_set_time(uint8* timeStr)
     
     return FALSE;
 }
+#endif //! end with USE_M_LOG
