@@ -54,6 +54,16 @@ typedef struct {
 }magnetometer_t;
 
 typedef struct {
+	init			motor_init;
+	positive        motor_positive_first_half;
+	positive        motor_positive_second_half;	
+	stop			motor_stop;
+	negtive         motor_negtive_first_half;	
+	negtive         motor_negtive_second_half;
+	uninit			motor_uninit;
+}motor_t;
+
+typedef struct {
 	uart_t 		*uart;
 	timer_t 	*timer;
 	battery_t 	*battery;
@@ -62,9 +72,18 @@ typedef struct {
 	vibrator_t  *vibrator;
 	gsensor_t   *gsensor;
 	magnetometer_t *magnetometer;
+	motor_t		*motor_hour;	
+	motor_t		*motor_minute;
+	motor_t		*motor_activity;	
+	motor_t		*motor_date;
+	motor_t		*motor_battery_week;	
+	motor_t		*motor_notify;
 }driver_t;
 
 s16 csr_keya_event_handler(u16 key_num, u16 key_status);
+s16 csr_keyb_event_handler(u16 key_num, u16 key_status);
+s16 csr_keym_event_handler(u16 key_num, u16 key_status);
+s16 csr_magnetometer_event_handler(u16 num, u16 status);
 driver_t *get_driver(void);
 
 #endif

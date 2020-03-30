@@ -25,6 +25,7 @@
 #include <mem.h>
 #include <macros.h>
 #include <csr_ota.h>
+#include <timer.h>
 #include <buf_utils.h>
 
 /*============================================================================*
@@ -2086,7 +2087,19 @@ void csr_timer_cb(u16 id)
 
 s16 csr_event_callback(EVENT_E ev)
 {
-	m_printf("this is key callback test[%d]\r\n",ev);
+	mag_data_t mag = {
+		.mag_xl = 0,
+		.mag_xh = 0,
+		.mag_yl = 0,
+		.mag_yh = 0,
+		.mag_zl = 0,
+		.mag_zh = 0,
+	};
+
+	driver_t *driver = get_driver();
+	if(MAGNETOMETER_READY == ev) {
+		driver->magnetometer->magnetometer_read((void *)&mag);
+	}
 	return 0;
 }
 
@@ -2119,7 +2132,7 @@ void AppInit(sleep_state last_sleep_state)
 		.z_l = 0,
 		.z_h = 0,
 	};
-
+	
 	mag_data_t mag = {
 		.mag_xl = 0,
 		.mag_xh = 0,
@@ -2185,6 +2198,20 @@ void AppInit(sleep_state last_sleep_state)
 					.num = 0,
 				},
 			},
+			.motor_hour_cfg = {
+				.pos = {
+					.group = 0,
+					.num = 18,
+				},
+				.com = {
+					.group = 0,
+					.num = 14,
+				},
+				.neg = {
+					.group = 0,
+					.num = 16,
+				},
+			},
 		};
 
 	driver_t *driver = get_driver();
@@ -2192,17 +2219,45 @@ void AppInit(sleep_state last_sleep_state)
 	driver->battery->battery_init(NULL, NULL);
 	driver->keya->key_init(&args, csr_event_callback);
 	driver->flash->flash_init(NULL, NULL);
-	driver->uart->uart_init(&args, NULL);
-	u8 test[20] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xAA};
-	driver->uart->uart_write(test, 12);
+	//driver->uart->uart_init(&args, NULL);
+	//u8 test[20] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xAA};
+	//driver->uart->uart_write(test, 12);
 
+	driver->motor_hour->motor_init(&args, NULL);
+
+	u8 i = 0, j = 0;
+	for(i = 0; i < 10; i++) {
+		driver->motor_hour->motor_positive_first_half(NULL);
+		TimeDelayUSec(5 * MILLISECOND);
+		driver->motor_hour->motor_stop(NULL);
+		driver->motor_hour->motor_positive_second_half(NULL);
+		TimeDelayUSec(5 * MILLISECOND);
+		driver->motor_hour->motor_stop(NULL);
+		
+		for(j = 0; j < 20; j++) {
+			TimeDelayUSec(50 * MILLISECOND);
+		}
+	}
+
+	for(i = 0; i < 10; i++) {
+		driver->motor_hour->motor_negtive_first_half(NULL);
+		TimeDelayUSec(5 * MILLISECOND);
+		driver->motor_hour->motor_stop(NULL);
+		driver->motor_hour->motor_negtive_second_half(NULL);
+		TimeDelayUSec(5 * MILLISECOND);
+		driver->motor_hour->motor_stop(NULL);
+		
+		for(j = 0; j < 20; j++) {
+			TimeDelayUSec(50 * MILLISECOND);
+		}
+	}
 	//driver->vibrator->vibrator_init(&args, NULL);
 	//driver->vibrator->vibrator_on(NULL);
 
 	//driver->gsensor->gsensor_init(&args, NULL);
 	//driver->gsensor->gsensor_read((void *)&data);
 
-	//driver->magnetometer->magnetometer_init(&args, NULL);
+	//driver->magnetometer->magnetometer_init(&args, csr_event_callback);
 	//driver->magnetometer->magnetometer_read((void *)&mag);
 
     /* Initialise the application timers */
@@ -2311,10 +2366,12 @@ void AppProcessSystemEvent(sys_event_id id, void *data)
             /* The PIO data is defined by struct pio_changed_data */
         	const pio_changed_data *pPioData = (const pio_changed_data *)data;
 
-			
             /* Handle PIO events */
             //HandlePIOChangedEvent(((pio_changed_data*)data)->pio_cause);
 			csr_keya_event_handler(pPioData->pio_cause, pPioData->pio_state);
+			csr_keyb_event_handler(pPioData->pio_cause, pPioData->pio_state);
+			csr_keym_event_handler(pPioData->pio_cause, pPioData->pio_state);
+			csr_magnetometer_event_handler(pPioData->pio_cause, pPioData->pio_state);
         }
         break;
 

@@ -6,6 +6,14 @@
    <file path="common/typedef.h" />
   </folder>
   <folder name="driver" >
+   <folder name="motor" >
+    <file path="driver/motor/motor_activity.c" />
+    <file path="driver/motor/motor_battery_week.c" />
+    <file path="driver/motor/motor_date.c" />
+    <file path="driver/motor/motor_hour.c" />
+    <file path="driver/motor/motor_minute.c" />
+    <file path="driver/motor/motor_notify.c" />
+   </folder>
    <folder name="magnetometer" >
     <file path="driver/magnetometer/magnetometer.c" />
     <file path="driver/magnetometer/magnetometer.h" />
@@ -22,6 +30,8 @@
    </folder>
    <folder name="key" >
     <file path="driver/key/keyA.c" />
+    <file path="driver/key/keyB.c" />
+    <file path="driver/key/keyM.c" />
    </folder>
    <folder name="uart" >
     <file path="driver/uart/uart.c" />

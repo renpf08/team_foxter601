@@ -59,7 +59,7 @@ static s16 csr_keya_init(cfg_t *args, event_callback cb)
     /* Set the button to generate sys_event_pio_changed when pressed as well
      * as released
      */
-    PioSetEventMask((1UL << csr_keya_cfg.pin.num), pio_event_mode_both);	
+    PioSetEventMask((1UL << csr_keya_cfg.pin.num), pio_event_mode_both);
 	return 0;
 }
 

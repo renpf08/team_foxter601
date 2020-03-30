@@ -44,6 +44,7 @@ static s16 csr_vibrator_init(cfg_t *args, event_callback cb)
 
 static s16 csr_vibrator_uninit(void)
 {
+	PioSetDir(csr_vibrator_cfg.vib_pin.num, PIO_DIR_INPUT);
 	csr_vibrator_cfg.vib_pin.group = 0;
 	csr_vibrator_cfg.vib_pin.num = 0;
 	return 0;

@@ -6,7 +6,7 @@
 #define PIO_DIR_OUTPUT  TRUE        /* PIO direction configured as output */
 #define PIO_DIR_INPUT   FALSE       /* PIO direction configured as input */
 
-#define BIT_MASK(num) (0x01 << (num))
+#define BIT_MASK(num) (0x01UL << (num))
 
 typedef struct {
 	u8 x_l;
@@ -35,7 +35,8 @@ typedef enum {
 	KEY_B_DOWN,
 	KEY_M_UNKNOWN,
 	KEY_M_UP,
-	KEY_M_DOWN
+	KEY_M_DOWN,
+	MAGNETOMETER_READY,
 }EVENT_E;
 
 enum {
@@ -78,11 +79,25 @@ typedef struct {
 }magnetometer_cfg_t;
 
 typedef struct {
+	pin_t pos;
+	pin_t com;
+	pin_t neg;
+}motor_cfg_t;
+
+typedef struct {
 	uart_cfg_t uart_cfg;
 	pin_t      keya_cfg;
+	pin_t      keym_cfg;
+	pin_t      keyb_cfg;
 	pin_t      vibrator_cfg;
 	gsensor_cfg_t gsensor_cfg;
 	magnetometer_cfg_t magnetometer_cfg;
+	motor_cfg_t motor_hour_cfg;
+	motor_cfg_t motor_minute_cfg;
+	motor_cfg_t motor_activity_cfg;	
+	motor_cfg_t motor_date_cfg;
+	motor_cfg_t motor_battery_week_cfg;	
+	motor_cfg_t motor_notify_cfg;	
 }cfg_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);
@@ -94,6 +109,10 @@ typedef s16 (*write)(u8 *buf, u16 num);
 
 typedef s16 (*on)(void *args);
 typedef s16 (*off)(void *args);
+
+typedef s16 (*positive)(void *args);
+typedef s16 (*negtive)(void *args);
+typedef s16 (*stop)(void *args);
 
 typedef s16 (*fread)(u16 *buffer, u16 length, u16 offset);
 typedef s16 (*fwrite)(u16 *buffer, u16 length, u16 offset);

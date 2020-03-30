@@ -25,7 +25,6 @@
 #define MAG3110_IIC_ADDRESS_READ    (0x1D)
 #define MAG3110_NAME				(0xC4)
 
-
 enum {
 	ack = 0,
 	no_ack = 1,
