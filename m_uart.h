@@ -2,6 +2,9 @@
 #ifndef __M_UART_H__
 #define __M_UART_H__
 
+#include "user_config.h"
+
+#if USE_M_LOG
 /**
 *  @file    m_uart.h
 *  @author  maliwen
@@ -15,5 +18,6 @@
 
 uint16 m_uart_recev_irq(void *data, uint16 dataLenInWords, uint16 *more);
 void m_uart_init(void);
+#endif //! end with USE_M_LOG
 
 #endif /** end of __M_UART_H__ */

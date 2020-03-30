@@ -41,10 +41,17 @@
 #include "csr_ota_uuids.h"
 #include "m_printf.h"
 
+#if USE_M_LOG
 #define OTA_LOG_ERROR(...)        //! M_LOG_ERROR(__VA_ARGS__)
 #define OTA_LOG_WARNING(...)      //! M_LOG_WARNING(__VA_ARGS__)
 #define OTA_LOG_INFO(...)         //! M_LOG_INFO(__VA_ARGS__)
 #define OTA_LOG_DEBUG(...)        //! M_LOG_DEBUG(__VA_ARGS__)
+#else
+#define OTA_LOG_ERROR(...)
+#define OTA_LOG_WARNING(...)
+#define OTA_LOG_INFO(...)
+#define OTA_LOG_DEBUG(...)
+#endif
 
 /*============================================================================*
  *  Private Data Types
@@ -365,7 +372,7 @@ extern void OtaHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
                 ota_serv_data.ota_reset_required = TRUE;
 
                 /* Disconnect from the remote device */
-                AppSetState(app_disconnecting, 0x14);
+                AppSetState(app_disconnecting, 0x1B);
 
             }
             break;

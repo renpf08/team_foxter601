@@ -85,7 +85,7 @@ primary_service {
         name:	"SERIAL_DATA_TRANSFER",
 
         /* Dynamic value maintained by the application */
-        #ifdef PAIRING_SUPPORT
+        #if USE_PAIRING_SUPPORT
         flags:	[FLAG_IRQ, FLAG_ENCR_W],
         #else
            flags : [FLAG_IRQ],
@@ -95,7 +95,7 @@ primary_service {
         size_value:	20,
 
 		client_config {
-        #ifdef PAIRING_SUPPORT
+        #if USE_PAIRING_SUPPORT
 		   flags : [FLAG_IRQ, FLAG_ENCR_W,FLAG_ENCR_R],
         #else
            flags : [FLAG_IRQ],
@@ -110,7 +110,7 @@ primary_service {
         name:	"SERIAL_DATA_ATDR",
 
         /* Dynamic value maintained by the application */
-        #ifdef PAIRING_SUPPORT
+        #if USE_PAIRING_SUPPORT
             flags:	[FLAG_IRQ, FLAG_ENCR_W],
         #else
            flags : [FLAG_IRQ],

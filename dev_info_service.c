@@ -26,6 +26,7 @@
 #include "app_gatt_db.h"    
 #include "dev_info_service.h"
 #include "m_printf.h"
+#include "user_config.h"
 
 /*============================================================================*
  *  Private Definitions
@@ -36,10 +37,17 @@
 #define SYSTEM_ID_FIXED_CONSTANT    (0xFFFE)
 #define SYSTEM_ID_LENGTH            (8)
 
+#if USE_M_LOG
 #define DINFO_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
 #define DINFO_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
 #define DINFO_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
 #define DINFO_LOG_DEBUG(...)        //! M_LOG_DEBUG(__VA_ARGS__)
+#else
+#define DINFO_LOG_ERROR(...)
+#define DINFO_LOG_WARNING(...)
+#define DINFO_LOG_INFO(...)
+#define DINFO_LOG_DEBUG(...)
+#endif
 
 /*============================================================================*
  *  Private Datatypes

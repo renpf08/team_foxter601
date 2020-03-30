@@ -291,7 +291,7 @@ typedef enum
 extern bool AppIsDeviceBonded(void);
 
 /* This is used to report panic which results in chip reset */
-extern void ReportPanic(app_panic_code panic_code);
+extern void ReportPanic(const char* file, const char* func, unsigned line, app_panic_code panic_code);
 
 /* Returns the connection ID of the application */
 extern uint16 GetConnectionID(void);
