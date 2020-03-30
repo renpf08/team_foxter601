@@ -10,6 +10,7 @@
 #include "m_ancs.h"
 #include "m_printf.h"
 #include "m_timer.h"
+#include "serial_service.h"
 
 #define MANCS_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
 #define MANCS_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
@@ -210,6 +211,7 @@ void m_ancs_business_handle(ancs_msg_type_t msgTpye, packing_msg_t* packMsg);
 void m_ancs_business_handle(ancs_msg_type_t msgTpye, packing_msg_t* packMsg)
 {
     uint8 i = 0;
+    protocol_msg_t  proMsg = {.cmd = 0x07};
 
     while(appMsgList[i].appId[0] != 0)
     {
@@ -236,13 +238,21 @@ void m_ancs_business_handle(ancs_msg_type_t msgTpye, packing_msg_t* packMsg)
     {
         MANCS_LOG_INFO("2> level           (importance) = <invalid>\r\n");
         MANCS_LOG_INFO("3> attr app id   (message type) = <not found>\r\n");
+        proMsg.level = 255; //! invalid if proMst.msgType = 255
+        proMsg.type = 255; //! indicated unknown message
     }
     else
     {
         MANCS_LOG_INFO("2> level           (importance) = %d\r\n", appMsgList[i].appIndex);
         MANCS_LOG_INFO("3> attr app id   (message type) = %s\r\n", appMsgList[i].appId);
+        proMsg.level = appMsgList[i].appIndex;
+        proMsg.type = i;
     }
     MANCS_LOG_INFO("4> cat cnt      (message count) = %d\r\n", packMsg->catCnt); 
+    
+    proMsg.sta = packMsg->evtId;
+    proMsg.cnt = packMsg->catCnt;
+    SerialSendNotification((uint8 *)&proMsg, 5); //! send ANCS msg to peer, for test purpose
 
     #if USE_MY_ANCS_DEBUG
     if(msgTpye == ANCS_MSG_TYPE_ADDED_MODIFIED_UNKNOWN)

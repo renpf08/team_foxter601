@@ -191,7 +191,7 @@ extern void SerialHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
             }
             
             /** initiate ANCS service discovering, for test purpose */
-            if((p_ind->size_value == 1) && (p_ind->value[0] == 0xAA))
+            if((p_ind->size_value == 2) && (p_ind->value[0] == 0x0D) && (p_ind->value[1] == 0xAA))
             {
                 M_LOG_INFO("initiate ANCS service discovering...\r\n");
                 DiscoverServices();

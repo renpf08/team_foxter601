@@ -226,9 +226,7 @@ static void handleNotificationData(GATT_CHAR_VAL_IND_T *p_event_data);
 /* This function configures the discovered GATT service changed characteristic*/
 static sys_status ConfigureGattIndications(void);
 
-#if USE_WHITELIST_PROTECT_JIM
 void APP_Move_Bonded(uint8 caller);
-#endif
 
 /*============================================================================*
  *  Private Function Implementations
@@ -832,9 +830,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                      * need to clear the whitelist and connect again would succeed.
                      */
                     ANCSC_LOG_INFO("move bonded.\r\n");
-                    #if USE_WHITELIST_PROTECT_JIM
                     APP_Move_Bonded(1);
-                    #endif
                     
                     g_app_data.auth_failure = TRUE;
                     AppSetState(app_disconnecting, 0x07);
@@ -1149,9 +1145,7 @@ static void handleSignalSmPairingAuthInd(SM_PAIRING_AUTH_IND_T *p_event_data)
                  *  need to clear the whitelist and connect again would succeed.
                  */
                 ANCSC_LOG_INFO("move bonded.\r\n");
-                #if USE_WHITELIST_PROTECT_JIM
                 APP_Move_Bonded(2);
-                #endif
             }
             SMPairingAuthRsp(p_event_data->data, status);
         }
@@ -1214,14 +1208,12 @@ static void handleSignalSmSimplePairingCompleteInd(
                 if(!GattIsAddressResolvableRandom(&g_app_data.bonded_bd_addr))
                 {
                     ANCSC_LOG_INFO("attempt to write whitelist.\r\n");
-                    #if !USE_WHITELIST_PROTECT
                     /* White list is configured with the bonded host address */
                     if(LsAddWhiteListDevice(&g_app_data.bonded_bd_addr) != 
                                         ls_err_none)
                     {
                         ReportPanic(__FILE__, __func__, __LINE__, app_panic_add_whitelist);
                     }
-                    #endif
                 }
 
                 /* Notify the Gatt service about the pairing */
@@ -1337,9 +1329,7 @@ static void handleSignalSmDivApproveInd(SM_DIV_APPROVE_IND_T *p_event_data)
                  if(g_app_data.bonded)
                  {
                     ANCSC_LOG_INFO("move bonded.\r\n");
-                    #if USE_WHITELIST_PROTECT_JIM
                     APP_Move_Bonded(3);/**/
-                    #endif
                  }
             }
             SMDivApproval(p_event_data->cid, approve_div);
@@ -1696,7 +1686,6 @@ static void appInitExit(void)
         (!GattIsAddressResolvableRandom(&g_app_data.bonded_bd_addr)))
     {
         ANCSC_LOG_INFO("attempt to write whitelist.\r\n");
-        #if !USE_WHITELIST_PROTECT
         /* If the device is bonded, configure white list with the
          * bonded host address 
          */
@@ -1705,7 +1694,6 @@ static void appInitExit(void)
         {
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_add_whitelist);
         }
-        #endif
     }
 }
 
@@ -2348,11 +2336,8 @@ void AppInit(sleep_state last_sleep_state)
     /* Initialise the application timers */
     TimerInit(MAX_APP_TIMERS, (void*)app_timers);
 
-#ifdef ENABLE_UART  
     /* Initialise the UART interface */
     m_uart_init();
-    m_printf_test();
-#endif /* ENABLE_UART */
     
     m_timer_init();
     
@@ -2834,7 +2819,6 @@ extern void AppHandleProcedureCompletionEvent(app_procedure_code app_proc_code,
     }
 }
 
-#if USE_WHITELIST_PROTECT_JIM
 void APP_Move_Bonded(uint8 caller)
 {
     g_app_data.bonded = FALSE;
@@ -2867,4 +2851,3 @@ void APP_Move_Bonded(uint8 caller)
     //GattStopAdverts();
     ANCSC_LOG_WARNING("remove bonding ok, caller: %d.\r\n", caller);
 }
-#endif

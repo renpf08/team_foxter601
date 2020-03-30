@@ -60,28 +60,11 @@
  */
 #define USE_CONNECT_BONDING         0
 
-/**
-* 1. After OTA, a whitelist would be used when advertising, then other peer would
-* can never connect to the device, so we should keep avoid to write the bonding
-* message to whitelist to let the device could be connectted to any one
-*  2. Meanwhile, when after OTA, the other peer could still never connect to the
-*    device cause of the different irk address etc, so we removed the whitelist
-*    when after a failed connection.
-* add by mlw at 20200324 12:27
-*/
-#define USE_WHITELIST_PROTECT       0
-#define USE_WHITELIST_PROTECT_JIM   1
-
 /* The PAIRING_SUPPORT macro controls whether pairing and encryption code is
  * compiled. This flag may be disabled for the applications that do not require
  * pairing.
  */
 #define USE_PAIRING_SUPPORT     0
-
-/* This macro is required to be disabled if user does not want 
- * to see messages on UART
- */
-#define ENABLE_UART
 
 /* Macro used to enable Panic code */
 //#define ENABLE_DEBUG_PANIC

@@ -62,6 +62,16 @@ typedef struct
     uint8 attrIdDateData[MAX_LENGTH_ATTTDATA];      //! date and time that the message was received
 } packing_msg_t;
 
+/** reference to the android notif packet mode */
+typedef struct
+{
+    uint8 cmd; //! fixed to 0x07
+    uint8 sta; //! fixed to: 0:added, 1:modified, 2:removed
+    uint8 level; //! 0~255, look appMsgList[] of MESSAGE_POSITION_xxx for details
+    uint8 type; //! look appMsgList[] of APP_ID_STRING_xxx's index for details
+    uint8 cnt; //! msg count
+} protocol_msg_t;
+
 void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *p_data_source);
 void m_ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source);
 
