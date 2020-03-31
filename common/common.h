@@ -52,6 +52,14 @@ typedef enum {
 	REPORT_MAX,
 }REPORT_E;
 
+typedef struct {
+	u8 week;
+	u8 day;
+	u8 hour;
+	u8 minute;
+	u8 second;
+}clock_t;
+
 enum {
 	false = 0,
 	true = 1,
@@ -106,6 +114,7 @@ typedef struct {
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);
+typedef s16 (adapter_cb_handler)();
 
 typedef s16 (*init)(cfg_t *args, event_callback cb);
 typedef s16 (*uninit)(void);

@@ -4,6 +4,6 @@
 #include "../common/common.h"
 
 s16 adapter_init(adapter_callback cb);
-s16 adapter_uninit();
+s16 adapter_uninit(void);
 
 #endif

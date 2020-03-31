@@ -2,9 +2,9 @@
  <folder name="C Files" >
   <extension name="c" />
   <folder name="adapter" >
-   <file path="adapte/adapter.c" />
-   <file path="adapte/config.h" />
-   <file path="adapte/adapter.h" />
+   <file path="adapter/adapter.c" />
+   <file path="adapter/adapter.h" />
+   <file path="adapter/config.h" />
   </folder>
   <folder name="common" >
    <file path="common/common.h" />

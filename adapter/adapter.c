@@ -1,6 +1,10 @@
+#include <debug.h>          /* Simple host interface to the UART driver */
+#include <pio.h>            /* Programmable I/O configuration and control */
 #include "config.h"
 #include "../driver/driver.h"
 #include "adapter.h"
+
+s16 csr_event_callback(EVENT_E ev);
 
 typedef struct {
 	driver_t *drv;
@@ -11,6 +15,9 @@ static adapter_t adapter = {
 	.drv = NULL,
 	.cb = NULL,
 };
+
+
+
 
 s16 csr_event_callback(EVENT_E ev)
 {
