@@ -48,11 +48,11 @@
 #include "user_config.h"
 #include "gatt_service.h"
 #include "csr_ota_service.h"
-#include "m_timer.h"
-#include "m_uart.h"
 #include "m_printf.h"
-#include "common/common.h"
+#include "adapter/adapter.h"
 #include "driver/driver.h"
+#include "common/common.h"
+
 /*============================================================================*
  *  Private Definitions
  *============================================================================*/
@@ -223,9 +223,6 @@ static void handleNotificationData(GATT_CHAR_VAL_IND_T *p_event_data);
 
 /* This function configures the discovered GATT service changed characteristic*/
 static sys_status ConfigureGattIndications(void);
-
-void csr_timer_cb(u16 id);
-s16 csr_event_callback(EVENT_E ev);
 
 /*============================================================================*
  *  Private Function Implementations
@@ -2080,26 +2077,9 @@ void AppPowerOnReset(void)
     /* Configure the application constants */
 }
 
-void csr_timer_cb(u16 id)
+static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
-	m_printf("this is timer cb test\r\n");
-}
 
-s16 csr_event_callback(EVENT_E ev)
-{
-	mag_data_t mag = {
-		.mag_xl = 0,
-		.mag_xh = 0,
-		.mag_yl = 0,
-		.mag_yh = 0,
-		.mag_zl = 0,
-		.mag_zh = 0,
-	};
-
-	driver_t *driver = get_driver();
-	if(MAGNETOMETER_READY == ev) {
-		driver->magnetometer->magnetometer_read((void *)&mag);
-	}
 	return 0;
 }
 
@@ -2123,156 +2103,16 @@ void AppInit(sleep_state last_sleep_state)
     uint16 gatt_db_length = 0;
     uint16 *p_gatt_db = NULL;
 
-	#if 0
-	gsensor_data_t data = {
-		.x_l = 0,
-		.x_h = 0,
-		.y_l = 0,
-		.y_h = 0,
-		.z_l = 0,
-		.z_h = 0,
-	};
-	
-	mag_data_t mag = {
-		.mag_xl = 0,
-		.mag_xh = 0,
-		.mag_yl = 0,
-		.mag_yh = 0,
-		.mag_zl = 0,
-		.mag_zh = 0,
-	};
-	#endif
-
-	cfg_t args = {
-			.keya_cfg = {
-				.group = 0,
-				.num = 11,
-			},
-			.uart_cfg = {
-				.tx = {
-					.group = 0,
-					.num = 1,
-				},
-			},
-			.vibrator_cfg = {
-				.group = 0,
-				.num = 20,
-			},
-			.gsensor_cfg = {
-				.clk = {
-					.group = 0,
-					.num = 9,
-				},
-				.mosi = {
-					.group = 0,
-					.num = 10
-				},
-				.miso = {
-					.group = 0,
-					.num = 11,
-				},
-				.cs = {
-					.group = 0,
-					.num = 12,
-				},
-				.int1 = {
-					.group = 0,
-					.num = 25,
-				},
-				.int2 = {
-					.group = 0,
-					.num = 15,
-				},
-			},
-			.magnetometer_cfg = {
-				.scl = {
-					.group = 0,
-					.num = 13,
-				},
-				.sda = {
-					.group = 0,
-					.num = 17,
-				},
-				.int1 = {
-					.group = 0,
-					.num = 0,
-				},
-			},
-			.motor_hour_cfg = {
-				.pos = {
-					.group = 0,
-					.num = 18,
-				},
-				.com = {
-					.group = 0,
-					.num = 14,
-				},
-				.neg = {
-					.group = 0,
-					.num = 16,
-				},
-			},
-		};
-
-	driver_t *driver = get_driver();
-	driver->timer->timer_init(NULL, NULL);
-	driver->battery->battery_init(NULL, NULL);
-	driver->keya->key_init(&args, csr_event_callback);
-	driver->flash->flash_init(NULL, NULL);
-	//driver->uart->uart_init(&args, NULL);
-	//u8 test[20] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xAA};
-	//driver->uart->uart_write(test, 12);
-
-	driver->motor_hour->motor_init(&args, NULL);
-
-	u8 i = 0, j = 0;
-	for(i = 0; i < 10; i++) {
-		driver->motor_hour->motor_positive_first_half(NULL);
-		TimeDelayUSec(5 * MILLISECOND);
-		driver->motor_hour->motor_stop(NULL);
-		driver->motor_hour->motor_positive_second_half(NULL);
-		TimeDelayUSec(5 * MILLISECOND);
-		driver->motor_hour->motor_stop(NULL);
-		
-		for(j = 0; j < 20; j++) {
-			TimeDelayUSec(50 * MILLISECOND);
-		}
-	}
-
-	for(i = 0; i < 10; i++) {
-		driver->motor_hour->motor_negtive_first_half(NULL);
-		TimeDelayUSec(5 * MILLISECOND);
-		driver->motor_hour->motor_stop(NULL);
-		driver->motor_hour->motor_negtive_second_half(NULL);
-		TimeDelayUSec(5 * MILLISECOND);
-		driver->motor_hour->motor_stop(NULL);
-		
-		for(j = 0; j < 20; j++) {
-			TimeDelayUSec(50 * MILLISECOND);
-		}
-	}
-	//driver->vibrator->vibrator_init(&args, NULL);
-	//driver->vibrator->vibrator_on(NULL);
-
-	//driver->gsensor->gsensor_init(&args, NULL);
-	//driver->gsensor->gsensor_read((void *)&data);
-
-	//driver->magnetometer->magnetometer_init(&args, csr_event_callback);
-	//driver->magnetometer->magnetometer_read((void *)&mag);
+	adapter_init(adapter_cb_handler);
 
     /* Initialise the application timers */
     //TimerInit(MAX_APP_TIMERS, (void*)app_timers);
-
 #ifdef ENABLE_UART
     /* Initialise the UART interface */
     m_uart_init();
-    //m_printf_test();
-    driver->timer->timer_start(2000, csr_timer_cb);
-	m_printf("battery voltage[%d]\r\n",driver->battery->battery_voltage_read(NULL));
 #endif /* ENABLE_UART */
 
     m_devname_init();
-    //m_timer_init();
 	
     /* Initialise GATT entity */
     GattInit();
@@ -2295,7 +2135,7 @@ void AppInit(sleep_state last_sleep_state)
 #endif
 
     /*Initialise application hardware */
-    InitAncsHardware();
+    //InitAncsHardware();
 
     /* Battery Initialisation on Chip reset */
     BatteryInitChipReset();

@@ -72,11 +72,11 @@ typedef struct {
 	vibrator_t  *vibrator;
 	gsensor_t   *gsensor;
 	magnetometer_t *magnetometer;
-	motor_t		*motor_hour;	
+	motor_t		*motor_hour;
 	motor_t		*motor_minute;
-	motor_t		*motor_activity;	
+	motor_t		*motor_activity;
 	motor_t		*motor_date;
-	motor_t		*motor_battery_week;	
+	motor_t		*motor_battery_week;
 	motor_t		*motor_notify;
 }driver_t;
 

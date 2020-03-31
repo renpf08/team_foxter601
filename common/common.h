@@ -37,21 +37,25 @@ typedef enum {
 	KEY_M_UP,
 	KEY_M_DOWN,
 	MAGNETOMETER_READY,
+	
+	EVENT_MAX,
 }EVENT_E;
+
+typedef enum {
+	KEY_A_LONG_PRESS,
+	KEY_A_SHORT_PRESS,
+	KEY_B_LONG_PRESS,
+	KEY_B_SHORT_PRESS,
+	KEY_M_LONG_PRESS,
+	KEY_M_SHORT_PRESS,
+
+	REPORT_MAX,
+}REPORT_E;
 
 enum {
 	false = 0,
 	true = 1,
 };
-
-#if 0
-typedef enum
-{
-    BUTTON_STATE_DOWN,       /* Button was pressed */
-    BUTTON_STATE_UP,         /* Button was released */
-    BUTTON_STATE_UNKNOWN,    /* Button state is unknown */
-} BUTTON_STATE_E;
-#endif
 
 typedef struct {
 	u8 group;
@@ -101,6 +105,7 @@ typedef struct {
 }cfg_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);
+typedef s16 (*adapter_callback)(REPORT_E cb, void *args);
 
 typedef s16 (*init)(cfg_t *args, event_callback cb);
 typedef s16 (*uninit)(void);

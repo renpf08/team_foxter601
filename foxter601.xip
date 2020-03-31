@@ -1,6 +1,11 @@
 <project buildenvironment="{067c869e-5bd9-4595-9f4c-60348133ad8e}" buildenvironmentname="uEnergy" executionenvironmentoption="XAP2+ P0 ELF DWARF BINUTILS UENERGYSDK" buildenvironmentoption="UENERGYSDK" executionenvironmentname="uEnergy" name="CSR uEnergy" executionenvironment="{39e65239-59f4-4d78-b84a-26eaebfaa4de}" >
  <folder name="C Files" >
   <extension name="c" />
+  <folder name="adapter" >
+   <file path="adapte/adapter.c" />
+   <file path="adapte/config.h" />
+   <file path="adapte/adapter.h" />
+  </folder>
   <folder name="common" >
    <file path="common/common.h" />
    <file path="common/typedef.h" />
@@ -60,8 +65,6 @@
   <file path="gatt_service.c" />
   <file path="lcd_display.c" />
   <file path="serial_service.c" />
-  <file path="m_timer.c" />
-  <file path="m_uart.c" />
   <file path="m_printf.c" />
  </folder>
  <folder name="Header Files" >

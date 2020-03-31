@@ -6,7 +6,7 @@
 #include "../driver.h"
 
 /* Number of timers used in this application */
-#define MAX_TIMERS 20
+#define MAX_TIMERS 30
 
 static uint16 app_timers[SIZEOF_APP_TIMER * MAX_TIMERS];
 

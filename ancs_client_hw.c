@@ -113,7 +113,6 @@ extern void InitAncsHardware(void)
     PioSetPullModes(PIO_BIT_MASK(BUTTON_PIO), pio_mode_strong_pull_up); 
     /* Setup button on PIO11 */
     PioSetEventMask(PIO_BIT_MASK(BUTTON_PIO), pio_event_mode_both);
-
     /* Set the I2C pins to pull down */
     PioSetI2CPullMode(pio_i2c_pull_mode_strong_pull_down);
     
