@@ -2,23 +2,82 @@
 #include <pio.h>            /* Programmable I/O configuration and control */
 #include "../adapter.h"
 
+s16 clock_init(void);
+
 typedef struct {
-	clock_t ck;
-	
+	driver_t *drv;
+	clock_t clock;
+}clock_cfg_t;
+
+static clock_cfg_t clock_cfg = {
+	.drv = NULL,
+	.clock = {
+		.year = 1970,
+		.month = 1,
+		.day = 1,
+		.week = MONDAY,
+		.hour = 0,
+		.minute = 0,
+		.second = 0,
+	},
 };
 
-staic clock_t clock = {
-	.week = ,
-	.day = 0,
-	.hour = 0,
-	.minute = 0,
-	.second = 0,
-};
-
-s16 clock_init()
+static void clock_timer_increase(void)
 {
+	if(60 == clock_cfg.clock.second) {
+		clock_cfg.clock.second = 0;
+		clock_cfg.clock.minute++;
+	}
 
+	if(60 == clock_cfg.clock.minute) {
+		clock_cfg.clock.minute = 0;
+		clock_cfg.clock.hour++;
+	}
+
+	if(24 == clock_cfg.clock.hour) {
+		clock_cfg.clock.hour = 0;
+		clock_cfg.clock.day++;
+	}
+
+	if(31 == clock_cfg.clock.day) {
+		clock_cfg.clock.day = 1;
+		clock_cfg.clock.month++;
+	}
+
+	if(13 == clock_cfg.clock.month) {
+		clock_cfg.clock.month = 1;
+		clock_cfg.clock.year++;
+	}
 }
 
+static void clock_cb_handler(u16 id)
+{
+	clock_cfg.drv->timer->timer_start(1000, clock_cb_handler);
+	clock_cfg.clock.second++;
+	clock_cfg.drv->uart->uart_write(&clock_cfg.clock.second, 1);
+	clock_timer_increase();
+}
 
+s16 clock_init(void)
+{
+	clock_cfg.drv = get_driver();
+	clock_cfg.drv->timer->timer_start(1000, clock_cb_handler);
+	return 0;
+}
 
+clock_t *clock_get(void)
+{
+	return &clock_cfg.clock;
+}
+
+s16 clock_set(clock_t *ck)
+{
+	clock_cfg.clock.year = ck->year;
+	clock_cfg.clock.month = ck->month;
+	clock_cfg.clock.day = ck->day;
+	clock_cfg.clock.week = ck->week;
+	clock_cfg.clock.hour = ck->hour;
+	clock_cfg.clock.minute = ck->minute;
+	clock_cfg.clock.second = ck->second;
+	return 0;
+}
