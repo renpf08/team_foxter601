@@ -78,10 +78,10 @@
   <file path="serial_service.c" />
   <file path="m_printf.c" />
   <file path="m_ancs.c" />
+  <file path="m_ancs.h" />
  </folder>
  <folder name="Header Files" >
   <extension name="h" />
-  <file path="m_ancs.h" />
   <file path="m_printf.h" />
   <file path="display.h" />
   <file path="m_uart.h" />
@@ -137,7 +137,7 @@
   <configuration name="Debug" >
    <property key="csr100x_keyr" >ancs_csr100x.keyr</property>
    <property key="csr101x_a05_keyr" >ancs_csr101x_A05.keyr</property>
-   <property key="debugtransport" >[SPITRANS=USB SPIPORT=0]</property>
+   <property key="debugtransport" ></property>
    <property key="defines" ></property>
    <property key="erase_nvm" >1</property>
    <property key="flash_clock" ></property>
