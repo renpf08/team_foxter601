@@ -33,7 +33,7 @@
 #define FAST_CONNECTION_ADVERT_TIMEOUT_VALUE        (30 * SECOND)
 
 /* Time out values for slow advertisements */
-#define SLOW_CONNECTION_ADVERT_TIMEOUT_VALUE        (1 * MINUTE)
+#define SLOW_CONNECTION_ADVERT_TIMEOUT_VALUE        (0 * MINUTE)
 
 /* Maximum length of Device Name
  * Note: Do not increase device name length beyond (DEFAULT_ATT_MTU -3 = 20)
@@ -291,7 +291,7 @@ typedef enum
 extern bool AppIsDeviceBonded(void);
 
 /* This is used to report panic which results in chip reset */
-extern void ReportPanic(app_panic_code panic_code);
+extern void ReportPanic(const char* file, const char* func, unsigned line, app_panic_code panic_code);
 
 /* Returns the connection ID of the application */
 extern uint16 GetConnectionID(void);

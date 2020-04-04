@@ -69,7 +69,7 @@ static s16 csr_keya_uninit(void)
 	return 0;
 }
 
-key_t csr_keyA = {
+key_t csr_keya = {
 	.key_init = csr_keya_init,
 	.key_uninit = csr_keya_uninit,
 };

@@ -114,7 +114,7 @@ typedef struct {
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);
-typedef s16 (adapter_cb_handler)();
+typedef s16 (*driver_callback_handler)(void *args);
 
 typedef s16 (*init)(cfg_t *args, event_callback cb);
 typedef s16 (*uninit)(void);

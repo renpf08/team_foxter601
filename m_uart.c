@@ -5,6 +5,10 @@
 *  @history 1.0.0.0(版本号)
 *           1.0.0.0: Creat              2019/06/24
 */
+
+#include "user_config.h"
+
+#if USE_M_LOG
 #include <gatt.h>
 #include <timer.h>
 #include <panic.h>
@@ -33,6 +37,19 @@
 /* The maximum buffer used to store and send data from the target application
    to the host */
 #define MAXIMUM_TX_BUFFER_SIZE_WORDS    (64)
+
+#if USE_M_LOG
+#define UART_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
+#define UART_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
+#define UART_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
+#define UART_LOG_DEBUG(...)        M_LOG_DEBUG(__VA_ARGS__)
+#else
+#define UART_LOG_ERROR(...)
+#define UART_LOG_WARNING(...)
+#define UART_LOG_INFO(...)
+#define UART_LOG_DEBUG(...)
+#endif
+
 /*============================================================================
  *  Private Data
  *============================================================================*/
@@ -57,8 +74,20 @@ void m_timer_uart_recev_init(void);
 static void m_timer_uart_recev_handler(const timer_id id)
 {
     uint8 len = uartCtrl.bufLen>20?20:uartCtrl.bufLen;
-    SerialSendNotification(uartCtrl.uartBuf, len);
-    m_printf("%s", uartCtrl.uartBuf);
+    
+    SerialSendNotification(uartCtrl.uartBuf, len); //! 发送BLE通知
+    #if USE_M_LOG
+    uint8 i = 0;
+    for(i = 0; i < uartCtrl.bufLen; i++)
+    {
+        m_printf("%c", uartCtrl.uartBuf[i]);
+    }
+    #endif
+    //! 当串口接收到数值字符串中出现数值0x25时，调用该函数打印时，该数值会被识别成格式
+    //! 控制符%，导致输出结果出错，是故不采用m_nprintf进行格式化控制输出
+    //! mlw, 20200315 00:01
+    //! m_nprintf((unsigned)uartCtrl.bufLen, (char *)uartCtrl.uartBuf);
+    
     uartCtrl.bUartTimerStart = FALSE;
     MemSet(uartCtrl.uartBuf, 0, sizeof(uartCtrl.uartBuf));
     uartCtrl.bufLen = 0;
@@ -80,10 +109,10 @@ void m_timer_uart_recev_init(void)
     /* If a timer could not be created, panic to restart the app */
     if (tId == TIMER_INVALID)
     {
-        m_printf("m_timer_uart_recev_init failed\r\n");
+        UART_LOG_DEBUG("m_timer_uart_recev_init failed\r\n");
         
         /* Panic with panic code 0xfe */
-        Panic(0xfe);
+        //Panic(0xfe);
     }
 }
 
@@ -166,3 +195,4 @@ void m_uart_init(void)
     
     m_timer_uart_recev_init();
 }
+#endif //! end with USE_M_LOG

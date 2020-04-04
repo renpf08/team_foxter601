@@ -6,25 +6,42 @@
 *           1.0.0.0: Creat              2020/02/20
 */
 
+#include "user_config.h"
+
+#if USE_M_LOG
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <timer.h>          /* Chip timer functions */
 #include <panic.h>          /* Support for applications to panic */
+#include <mem.h>
 
 #include "m_timer.h"
 #include "m_printf.h"
+#include "user_config.h"
 
 /*============================================================================*
  *  Private Definitions
  *============================================================================*/
 
 /* Number of timers used in this application */
-#define MAX_TIMERS 40
+//#define MAX_TIMERS 8
 
-/* First timeout at which the timer has to fire a callback */
-#define TIMER_TIMEOUT1 (1 * SECOND)
+/* system timer timeout value: 1000ms */
+#define TIMER_CLOCK_TIMEOUT (1 * SECOND)
 
-/* Subsequent timeout at which the timer has to fire next callback */
-#define TIMER_TIMEOUT2 (3 * SECOND)
+/* ancs timer timeout value: 1000ms */
+#define TIMER_ANCS_TIMEOUT (1000 * MILLISECOND)
+
+#if USE_M_LOG
+#define TIMER_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
+#define TIMER_LOG_WARNING(...)      //M_LOG_WARNING(__VA_ARGS__)
+#define TIMER_LOG_INFO(...)         //M_LOG_INFO(__VA_ARGS__)
+#define TIMER_LOG_DEBUG(...)        //M_LOG_DEBUG(__VA_ARGS__)
+#else
+#define TIMER_LOG_ERROR(...)
+#define TIMER_LOG_WARNING(...)
+#define TIMER_LOG_INFO(...)
+#define TIMER_LOG_DEBUG(...)
+#endif
 
 /*============================================================================*
  *  Private Data
@@ -32,199 +49,61 @@
 
 /* Declare timer buffer to be managed by firmware library */
 //static uint16 app_timers[SIZEOF_APP_TIMER * MAX_TIMERS];
+static time_t sysLocalTime;
 
 /*============================================================================*
  *  Private Function Prototypes
  *============================================================================*/
 
-/* Start timer */
-static void startTimer(uint32 timeout, timer_callback_arg handler);
+static void m_timer_clock_handler(timer_id const id);
+void m_timer_clock_init(void);
+void m_set_time(time_t *tm);
+static bool m_time_check(time_t *tm);
+static bool m_time_sync(time_t *tm);
+static int8 m_time_cmp(time_t* curTime, time_t* sysTime);
+bool m_time_formating(uint8* timeStr, time_t* tm);
 
-/* Callback after first timeout */
-static void timerCallback1(timer_id const id);
-
-/* Callback after second timeout */
-static void timerCallback2(timer_id const id);
-
-/* Read the current system time and write to UART */
-static void printCurrentTime(void);
-
-/* Convert an integer value into an ASCII string and send to the UART */
-static uint8 writeASCIICodedNumber(uint32 value);
-
+uint8 days[13] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
 /*============================================================================*
  *  Private Function Implementations
  *============================================================================*/
 
-/*----------------------------------------------------------------------------*
- *  NAME
- *      startTimer
- *
- *  DESCRIPTION
- *      Start a timer
- *
- * PARAMETERS
- *      timeout [in]    Timeout period in seconds
- *      handler [in]    Callback handler for when timer expires
- *
- * RETURNS
- *      Nothing
- *----------------------------------------------------------------------------*/
-static void startTimer(uint32 timeout, timer_callback_arg handler)
-{
-    /* Now starting a timer */
-    const timer_id tId = TimerCreate(timeout, TRUE, handler);
-    
-    /* If a timer could not be created, panic to restart the app */
-    if (tId == TIMER_INVALID)
-    {
-        DebugWriteString("\r\nFailed to start timer");
-        
-        /* Panic with panic code 0xfe */
-        Panic(0xfe);
-    }
-}
-
-/*----------------------------------------------------------------------------*
- *  NAME
- *      timerCallback1
- *
- *  DESCRIPTION
- *      This function is called when the timer created by TimerCreate expires.
- *      It creates a new timer that will expire after the second timer interval.
- *
- * PARAMETERS
- *      id [in]     ID of timer that has expired
- *
- * RETURNS
- *      Nothing
- *----------------------------------------------------------------------------*/
-static void timerCallback1(timer_id const id)
-{
-    const uint32 elapsed = TIMER_TIMEOUT1 / SECOND;
-    
-    if (elapsed == 1)
-        m_printf("1 second elapsed\r\n");
-    else          
-    {
-        writeASCIICodedNumber(elapsed);
-        m_printf(" seconds elapsed\r\n");
-    }
-
-    /* Now start a new timer for second callback */
-    startTimer((TIMER_TIMEOUT2 - TIMER_TIMEOUT1), timerCallback2);
-}
-
-/*----------------------------------------------------------------------------*
- *  NAME
- *      timerCallback2
- *
- *  DESCRIPTION
- *      This function is called when the timer created by TimerCreate expires.
- *      It creates a new timer that will expire after the first timer interval.
- *
- * PARAMETERS
- *      id [in]     ID of timer that has expired
- *
- * RETURNS
- *      Nothing
- *----------------------------------------------------------------------------*/
-static void timerCallback2(timer_id const id)
-{
-    const uint32 elapsed = TIMER_TIMEOUT2 / SECOND;
-    
-    if (elapsed == 1)
-        m_printf("1 second elapsed\r\n");
-    else          
-    {
-        writeASCIICodedNumber(elapsed);
-        m_printf(" seconds elapsed\r\n");
-    }
-
-    /* Report current system time */
-    printCurrentTime();
-    
-    /* Now start a new timer for first callback */
-    startTimer(TIMER_TIMEOUT1, timerCallback1);
-}
-
-/*----------------------------------------------------------------------------*
- *  NAME
- *      printCurrentTime
- *
- *  DESCRIPTION
- *      Read the current system time and write to UART.
- *
- * PARAMETERS
- *      None
- *
- * RETURNS
- *      Nothing
- *----------------------------------------------------------------------------*/
-static void printCurrentTime(void)
-{
-    /* Read current system time */
-    const uint32 now = TimeGet32();
-    
-    /* Report current system time */
-    m_printf("\n\nCurrent system time: ");
-    writeASCIICodedNumber(now / MINUTE);
-    m_printf("m ");
-    writeASCIICodedNumber((now % MINUTE)/SECOND);
-    m_printf("s\r\n");
-}
-
-/*----------------------------------------------------------------------------*
- *  NAME
- *      writeASCIICodedNumber
- *
- *  DESCRIPTION
- *      Convert an integer value into an ASCII encoded string and send to the
- *      UART
- *
- * PARAMETERS
- *      value [in]     Integer to convert to ASCII and send over UART
- *
- * RETURNS
- *      Number of characters sent to the UART.
- *----------------------------------------------------------------------------*/
-static uint8 writeASCIICodedNumber(uint32 value)
-{
-#define BUFFER_SIZE 11          /* Buffer size required to hold maximum value */
-    
-    uint8  i = BUFFER_SIZE;     /* Loop counter */
-    uint32 remainder = value;   /* Remaining value to send */
-    char   buffer[BUFFER_SIZE]; /* Buffer for ASCII string */
-
-    /* Ensure the string is correctly terminated */    
-    buffer[--i] = '\0';
-    
-    /* Loop at least once and until the whole value has been converted */
-    do
-    {
-        /* Convert the unit value into ASCII and store in the buffer */
-        buffer[--i] = (remainder % 10) + '0';
-        
-        /* Shift the value right one decimal */
-        remainder /= 10;
-    } while (remainder > 0);
-
-    /* Send the string to the UART */
-    DebugWriteString(buffer + i);
-    
-    /* Return length of ASCII string sent to UART */
-    return (BUFFER_SIZE - 1) - i;
-}
-
-//------------------------------------------------------------------------------
-static void m_timer_clock_handler(timer_id const id);
-void m_timer_clock_init(void);
+time_t* m_get_time(void) { return &sysLocalTime; }
+void m_set_time(time_t *tm) { MemCopy(&sysLocalTime, tm, sizeof(time_t)); }
 
 static void m_timer_clock_handler(timer_id const id)
 {
-    m_printf("m_timer_clock_handler\r\n");
+    days[2] = (0 == (sysLocalTime.year % 400) || (0 == (sysLocalTime.year % 4) && (0 != (sysLocalTime.year % 100))))?29:28;
+    sysLocalTime.second++;
+    if(sysLocalTime.second >= 60)
+    {
+        sysLocalTime.second = 0;
+        sysLocalTime.minute++;
+    }
+    if(sysLocalTime.minute >= 60)
+    {
+        sysLocalTime.minute = 0;
+        sysLocalTime.hour++;
+    }
+    if(sysLocalTime.hour >= 24)
+    {
+        sysLocalTime.hour = 0;
+        sysLocalTime.day++;
+    }
+    if(sysLocalTime.day > days[sysLocalTime.month])
+    {
+        sysLocalTime.day = 1;
+        sysLocalTime.month++;
+    }
+    if(sysLocalTime.month > 12)
+    {
+        sysLocalTime.month = 1;
+        sysLocalTime.year++;
+    }
+    //TIMER_LOG_DEBUG("time %02d:%02d:%02d\r\n", sysLocalTime.hour, sysLocalTime.minute, sysLocalTime.second);
     m_timer_clock_init();
 }
+
 /**
 * @brief timer clock
 * @param [in] none
@@ -237,222 +116,17 @@ static void m_timer_clock_handler(timer_id const id)
 void m_timer_clock_init(void)
 {
     /* Now starting a timer */
-    const timer_id tId = TimerCreate(TIMER_TIMEOUT1, TRUE, m_timer_clock_handler);
+    const timer_id tmClockId = TimerCreate(TIMER_CLOCK_TIMEOUT, TRUE, m_timer_clock_handler);
     
     /* If a timer could not be created, panic to restart the app */
-    if (tId == TIMER_INVALID)
+    if (tmClockId == TIMER_INVALID)
     {
-        m_printf("m_timer_clock_init failed\r\n");
+        TIMER_LOG_ERROR("tmClockId create failed.\r\n");
         
         /* Panic with panic code 0xfe */
-        Panic(0xfe);
+        //Panic(0xfe);
     }
-	m_printf("timer clock id[%u]\r\n",tId);
 }
-//------------------------------------------------------------------------------
-static void m_timer_clock_handler1(timer_id const id);
-void m_timer_clock_init1(void);
-
-static void m_timer_clock_handler1(timer_id const id)
-{
-    //m_printf("m_timer_clock_handler1\r\n");
-    m_timer_clock_init1();
-}
-/**
-* @brief timer clock
-* @param [in] none
-* @param [out] none
-* @return none
-* @data 2020/02/20 18:12
-* @author maliwen
-* @note none
-*/
-void m_timer_clock_init1(void)
-{
-    /* Now starting a timer */
-    const timer_id tId = TimerCreate(TIMER_TIMEOUT1, TRUE, m_timer_clock_handler1);
-    
-    /* If a timer could not be created, panic to restart the app */
-    if (tId == TIMER_INVALID)
-    {
-        m_printf("m_timer_clock_init failed1\r\n");
-        
-        /* Panic with panic code 0xfe */
-        Panic(0xfe);
-    }
-	m_printf("timer clock1 id[%u]\r\n",tId);
-}
-
-//------------------------------------------------------------------------------
-static void m_timer_clock_handler2(timer_id const id);
-void m_timer_clock_init2(void);
-
-static void m_timer_clock_handler2(timer_id const id)
-{
-    //m_printf("m_timer_clock_handler2\r\n");
-    m_timer_clock_init2();
-}
-/**
-* @brief timer clock
-* @param [in] none
-* @param [out] none
-* @return none
-* @data 2020/02/20 18:12
-* @author maliwen
-* @note none
-*/
-void m_timer_clock_init2(void)
-{
-    /* Now starting a timer */
-    const timer_id tId = TimerCreate(TIMER_TIMEOUT1, TRUE, m_timer_clock_handler2);
-    
-    /* If a timer could not be created, panic to restart the app */
-    if (tId == TIMER_INVALID)
-    {
-        m_printf("m_timer_clock_init failed2\r\n");
-        
-        /* Panic with panic code 0xfe */
-        Panic(0xfe);
-    }
-	m_printf("timer clock2 id[%u]\r\n",tId);
-}
-
-//------------------------------------------------------------------------------
-static void m_timer_clock_handler3(timer_id const id);
-void m_timer_clock_init3(void);
-
-static void m_timer_clock_handler3(timer_id const id)
-{
-    //m_printf("m_timer_clock_handler3\r\n");
-    m_timer_clock_init3();
-}
-/**
-* @brief timer clock
-* @param [in] none
-* @param [out] none
-* @return none
-* @data 2020/02/20 18:12
-* @author maliwen
-* @note none
-*/
-void m_timer_clock_init3(void)
-{
-    /* Now starting a timer */
-    const timer_id tId = TimerCreate(TIMER_TIMEOUT1, TRUE, m_timer_clock_handler3);
-    
-    /* If a timer could not be created, panic to restart the app */
-    if (tId == TIMER_INVALID)
-    {
-        m_printf("m_timer_clock_init failed3\r\n");
-        
-        /* Panic with panic code 0xfe */
-        Panic(0xfe);
-    }
-	m_printf("timer clock3 id[%u]\r\n",tId);
-}
-
-//------------------------------------------------------------------------------
-static void m_timer_clock_handler4(timer_id const id);
-void m_timer_clock_init4(void);
-
-static void m_timer_clock_handler4(timer_id const id)
-{
-    m_printf("m_timer_clock_handler4\r\n");
-    m_timer_clock_init4();
-}
-/**
-* @brief timer clock
-* @param [in] none
-* @param [out] none
-* @return none
-* @data 2020/02/20 18:12
-* @author maliwen
-* @note none
-*/
-void m_timer_clock_init4(void)
-{
-    /* Now starting a timer */
-    const timer_id tId = TimerCreate(TIMER_TIMEOUT1, TRUE, m_timer_clock_handler4);
-    
-    /* If a timer could not be created, panic to restart the app */
-    if (tId == TIMER_INVALID)
-    {
-        m_printf("m_timer_clock_init failed4\r\n");
-        
-        /* Panic with panic code 0xfe */
-        Panic(0xfe);
-    }	
-	m_printf("timer clock4 id[%u]\r\n",tId);
-}
-
-//------------------------------------------------------------------------------
-static void m_timer_clock_handler5(timer_id const id);
-void m_timer_clock_init5(void);
-
-static void m_timer_clock_handler5(timer_id const id)
-{
-    m_printf("m_timer_clock_handler5\r\n");
-    m_timer_clock_init5();
-}
-/**
-* @brief timer clock
-* @param [in] none
-* @param [out] none
-* @return none
-* @data 2020/02/20 18:12
-* @author maliwen
-* @note none
-*/
-void m_timer_clock_init5(void)
-{
-    /* Now starting a timer */
-    const timer_id tId = TimerCreate(TIMER_TIMEOUT1, TRUE, m_timer_clock_handler5);
-    
-    /* If a timer could not be created, panic to restart the app */
-    if (tId == TIMER_INVALID)
-    {
-        m_printf("m_timer_clock_init failed5\r\n");
-        
-        /* Panic with panic code 0xfe */
-        Panic(0xfe);
-    }	
-	m_printf("timer clock5 id[%u]\r\n",tId);
-}
-
-//------------------------------------------------------------------------------
-static void m_timer_clock_handler6(timer_id const id);
-void m_timer_clock_init6(void);
-
-static void m_timer_clock_handler6(timer_id const id)
-{
-    m_printf("m_timer_clock_handler6\r\n");
-    m_timer_clock_init6();
-}
-/**
-* @brief timer clock
-* @param [in] none
-* @param [out] none
-* @return none
-* @data 2020/02/20 18:12
-* @author maliwen
-* @note none
-*/
-void m_timer_clock_init6(void)
-{
-    /* Now starting a timer */
-    const timer_id tId = TimerCreate(TIMER_TIMEOUT1, TRUE, m_timer_clock_handler6);
-    
-    /* If a timer could not be created, panic to restart the app */
-    if (tId == TIMER_INVALID)
-    {
-        m_printf("m_timer_clock_init failed6\r\n");
-        
-        /* Panic with panic code 0xfe */
-        Panic(0xfe);
-    }	
-	m_printf("timer clock6 id[%u]\r\n",tId);
-}
-
 
 /**
 * @brief uart initialize
@@ -468,16 +142,158 @@ void m_timer_init(void)
     //TimerInit(MAX_TIMERS, (void *)app_timers);
     
     m_timer_clock_init();
-    m_timer_clock_init1();
-    m_timer_clock_init2();
-    m_timer_clock_init3();
-    m_timer_clock_init4();
-    m_timer_clock_init5();
-    m_timer_clock_init6();
-
-    /* Report current time */
-    //printCurrentTime();
-
-    /* Start the first timer */
-    //startTimer(TIMER_TIMEOUT1, timerCallback1);
 }
+
+/**
+* @brief check the time format is valid
+* @param [in] tm - time format to be check
+* @param [out] none
+* @return bool - time format correct or not
+* @data 2020/03/20 10:35
+* @author maliwen
+* @note none
+*/
+static bool m_time_check(time_t *tm)
+{
+    time_t *sysTime = m_get_time();
+    days[2] = (0 == (sysTime->year % 400) || (0 == (sysTime->year % 4) && (0 != (sysTime->year % 100))))?29:28;
+    
+    /** check if the time format is correct */
+    if((tm->year > 2099) || (tm->month > 12) || (tm->day > days[tm->month]) || 
+       (tm->hour > 23) || (tm->minute > 59) || (tm->second > 59))
+        return FALSE;
+    
+    return TRUE;
+}
+
+/**
+* @brief compare two time who is early or later
+* @param [in] curTime - time needs to compare
+*             sysTime - time needs to be compared(usually the system time)
+* @param [out] none
+* @return -2 - curTime format error
+*         -1 - if curTime is earllier than sysTime(or time error)
+*          0 - if curTime is equal to sysTime
+*          1 - if curTime is sysTime
+* @data 2020/03/19 15:47
+* @author maliwen
+* @note none
+*/
+static int8 m_time_cmp(time_t* curTime, time_t* sysTime)
+{
+    int8 res = -2;
+
+    /** check if the time format is correct */
+    if(m_time_check(curTime) == FALSE)
+    {
+        return res;
+    }
+    
+    /** check if the time format is correct */
+    if(m_time_check(sysTime) == FALSE)
+    {
+        return res;
+    }
+
+    if(curTime->year < sysTime->year)           { /** TIMER_LOG_WARNING("year:%04d - %04d\r\n", curTime->year, sysTime->year); */ return -1; }
+    else if(curTime->year > sysTime->year)      { /** TIMER_LOG_WARNING("year:%04d - %04d\r\n", curTime->year, sysTime->year); */ return 1; }
+    if(curTime->month < sysTime->month)         { /** TIMER_LOG_WARNING("month:%02d - %02d\r\n", curTime->month, sysTime->month); */ return -1; }
+    else if(curTime->month > sysTime->month)    { /** TIMER_LOG_WARNING("month:%02d - %02d\r\n", curTime->month, sysTime->month); */ return 1; }
+    if(curTime->day < sysTime->day)             { /** TIMER_LOG_WARNING("day:%02d - %02d\r\n", curTime->day, sysTime->day); */ return -1; }
+    else if(curTime->day > sysTime->day)        { /** TIMER_LOG_WARNING("day:%02d - %02d\r\n", curTime->day, sysTime->day); */ return 1; }
+    if(curTime->hour < sysTime->hour)           { /** TIMER_LOG_WARNING("hour:%02d - %02d\r\n", curTime->hour, sysTime->hour); */ return -1; }
+    else if(curTime->hour > sysTime->hour)      { /** TIMER_LOG_WARNING("hour:%02d - %02d\r\n", curTime->hour, sysTime->hour); */ return 1; }
+    if(curTime->minute < sysTime->minute)       { /** TIMER_LOG_WARNING("minute:%02d - %02d\r\n", curTime->minute, sysTime->minute); */ return -1; }
+    else if(curTime->minute > sysTime->minute)  { /** TIMER_LOG_WARNING("minute:%02d - %02d\r\n", curTime->minute, sysTime->minute); */ return 1; }
+    if(curTime->second < sysTime->second)       { /** TIMER_LOG_WARNING("second:%02d - %02d\r\n", curTime->second, sysTime->second); */ return -1; }
+    else if(curTime->second > sysTime->second)  { /** TIMER_LOG_WARNING("second:%02d - %02d\r\n", curTime->second, sysTime->second); */ return 1; }
+    else 
+    {
+        /** TIMER_LOG_WARNING("%04d/%02d/%02d %02d:%02d:%02d - %04d/%02d/%02d %02d:%02d:%02d\r\n", 
+                             curTime->year, curTime->month, curTime->day, curTime->hour, curTime->minute, curTime->second,
+                             sysTime->year, sysTime->month, sysTime->day, sysTime->hour, sysTime->minute, sysTime->second); */
+        return 0; 
+    }
+}
+
+/**
+* @brief use current time to sync the system time
+* @param [in] tm - current time
+* @param [out] none
+* @return bool time sync ok or not
+* @data 2020/03/17 10:56
+* @author maliwen
+* @note none
+*/
+static bool m_time_sync(time_t *tm)
+{
+    time_t *sysTime = m_get_time();
+    int8 res = m_time_cmp(tm, sysTime);
+
+    /** current time is ready to sync the system time */
+    if(res > 0)
+    {
+        m_set_time(tm);
+        TIMER_LOG_DEBUG("set time ok to %02d/%02d/%02d %02d:%02d:%02d\r\n", 
+                        sysTime->year, sysTime->month, sysTime->day, sysTime->hour, sysTime->minute, sysTime->second);
+        return TRUE;
+    }
+    else
+    {
+        TIMER_LOG_WARNING("set time faild: %02d/%02d/%02d %02d:%02d:%02d => %02d/%02d/%02d %02d:%02d:%02d\r\n", 
+                          tm->year, tm->month, tm->day, tm->hour, tm->minute, tm->second, 
+                          sysTime->year, sysTime->month, sysTime->day, sysTime->hour, sysTime->minute, sysTime->second); 
+        return FALSE;
+    }
+}
+
+/**
+* @brief formating the current time string to system time format
+* @param [in] timeStr - time string
+* @param [out] tm - system time format
+* @return bool - whether the time convert succeed.
+* @data 2020/03/20 09:22
+* @author maliwen
+* @note none
+*/
+bool m_time_formating(uint8* timeStr, time_t* tm)
+{
+    tm->year = (uint8)((timeStr[0]-'0')*1000 + (timeStr[1]-'0')*1000 + (timeStr[2]-'0')*10 + (timeStr[3]-'0'));
+    tm->month = (uint8)((timeStr[4]-'0')*10 + (timeStr[5]-'0'));
+    tm->day = (uint8)((timeStr[6]-'0')*10 + (timeStr[7]-'0'));
+    tm->hour = (uint8)((timeStr[9]-'0')*10 + (timeStr[10]-'0'));
+    tm->minute = (uint8)((timeStr[11]-'0')*10 + (timeStr[12]-'0'));
+    tm->second = (uint8)((timeStr[13]-'0')*10 + (timeStr[14]-'0'));
+        
+    /** check if the time format is correct */
+    if(m_time_check(tm) == FALSE)
+    {
+        TIMER_LOG_WARNING("time format error: %s to %02d/%02d/%02d %02d:%02d:%02d\r\n", 
+                        timeStr, tm->year, tm->month, tm->day, tm->hour, tm->minute, tm->second);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
+* @brief use ancs massage to set the system time
+* @param [in] ancs time string
+* @param [out] none
+* @return bool time sync ok or not
+* @data 2020/03/20 10:05
+* @author maliwen
+* @note none
+*/
+bool m_ancs_set_time(uint8* timeStr)
+{
+    time_t tm;
+        
+    if(m_time_formating(timeStr, &tm) == TRUE)
+    {
+        return m_time_sync(&tm);
+    }
+    
+    return FALSE;
+}
+#endif //! end with USE_M_LOG

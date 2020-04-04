@@ -14,7 +14,7 @@ static csr_keym_cfg_t csr_keym_cfg = {
 				.num = 0,
            },
 	.keym_cb = NULL,
-	.last_state = KEY_A_UNKNOWN,
+	.last_state = KEY_M_UNKNOWN,
 };
 
 s16 csr_keym_event_handler(u16 key_num, u16 key_status)
@@ -22,9 +22,9 @@ s16 csr_keym_event_handler(u16 key_num, u16 key_status)
 	EVENT_E now_state;
 	if(key_num & (1UL << csr_keym_cfg.pin.num)) {
 		if(key_status & (1 << csr_keym_cfg.pin.num)) {
-			now_state = KEY_A_UP;
+			now_state = KEY_M_UP;
 		} else {
-			now_state = KEY_A_DOWN;
+			now_state = KEY_M_DOWN;
 		}
 
 		if(csr_keym_cfg.last_state == now_state) {
@@ -73,5 +73,3 @@ key_t csr_keym = {
 	.key_init = csr_keym_init,
 	.key_uninit = csr_keym_uninit,
 };
-
-

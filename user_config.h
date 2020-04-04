@@ -19,26 +19,69 @@
  *  Public Definitions
  *============================================================================*/
 
+/** The USE_WHITELIST macro */
+#define BLE_ADVERTISING_NAME    "foxter01"
+#define BLE_HARDWARE_VERSION    "v1.0.2.1"
+
+/**
+*  Notification Attribute ID, use to ask for the deatil of data source from
+*  notif soure
+*  add by mlw at 20200319 12:47
+*/
+#define REQ_ANCS_NOTIF_ATT_ID_APP_ID		1
+#define REQ_ANCS_NOTIF_ATT_ID_TITLE			0
+#define REQ_ANCS_NOTIF_ATT_ID_SUBTITLE		0
+#define REQ_ANCS_NOTIF_ATT_ID_MESSAGE		0
+#define REQ_ANCS_NOTIF_ATT_ID_MESSAGE_SIZE	0
+#define REQ_ANCS_NOTIF_ATT_ID_DATE			1
+#define REQ_ANCS_NOTIF_ATT_ID_TOTAL         (REQ_ANCS_NOTIF_ATT_ID_APP_ID+     \
+                                             REQ_ANCS_NOTIF_ATT_ID_TITLE+      \
+                                             REQ_ANCS_NOTIF_ATT_ID_SUBTITLE+   \
+                                             REQ_ANCS_NOTIF_ATT_ID_MESSAGE+    \
+                                             REQ_ANCS_NOTIF_ATT_ID_DATE+       \
+                                             REQ_ANCS_NOTIF_ATT_ID_MESSAGE_SIZE)
+
+/**
+*  Did application handle the old message from ANCS? 
+*  add by mlw at 20200321 00:26
+*/
+#define HANDLE_OLD_MSG      0
+
+/**
+*  Original ANCS parse module is implement a little complicated, then a new one 
+*  is been used
+*  add by mlw at 20200318 14:40
+*/
+#define USE_MY_ANCS         1
+#define USE_MY_ANCS_DEBUG   0
+
+/* request bond when after connected.
+*  add by mlw at 20200326 11:40
+ */
+#define USE_CONNECT_BONDING         0
+
 /* The PAIRING_SUPPORT macro controls whether pairing and encryption code is
  * compiled. This flag may be disabled for the applications that do not require
  * pairing.
  */
-//#define PAIRING_SUPPORT
+#define USE_PAIRING_SUPPORT     0
 
 /* This macro is required to be disabled if user does not want 
  * to see messages on UART
  */
 //#define ENABLE_UART
+/** add by mlw, 20200330 11:24 */
+#define USE_M_LOG   0
 
 /* Macro used to enable Panic code */
-#define ENABLE_DEBUG_PANIC
+//#define ENABLE_DEBUG_PANIC
 
 /* Macro used to enable LCD display */
 /*#define ENABLE_LCD_DISPLAY*/
 
 /* Timer values for fast and slow advertisements. */
-#define FAST_CONNECTION_ADVERT_TIMEOUT_VALUE      (30 * SECOND)
-#define SLOW_CONNECTION_ADVERT_TIMEOUT_VALUE      (1 * MINUTE)
+//#define FAST_CONNECTION_ADVERT_TIMEOUT_VALUE      (30 * SECOND)
+//#define SLOW_CONNECTION_ADVERT_TIMEOUT_VALUE      (1 * MINUTE)
 
 /* Defines the High Baud Rate. 115K2 is the maximum supported baud rate */
 #define HIGH_BAUD_RATE                   (0x01d9) /* 115K2*/
