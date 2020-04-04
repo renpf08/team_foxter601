@@ -27,13 +27,10 @@ typedef struct {
 }mag_data_t;
 
 typedef enum {
-	KEY_A_UNKNOWN,
 	KEY_A_UP,
 	KEY_A_DOWN,
-	KEY_B_UNKNOWN,
 	KEY_B_UP,
 	KEY_B_DOWN,
-	KEY_M_UNKNOWN,
 	KEY_M_UP,
 	KEY_M_DOWN,
 	MAGNETOMETER_READY,
@@ -48,17 +45,36 @@ typedef enum {
 	KEY_B_SHORT_PRESS,
 	KEY_M_LONG_PRESS,
 	KEY_M_SHORT_PRESS,
-
+	KEY_A_B_LONG_PRESS,
+	KEY_A_B_SHORT_PRESS,
+	KEY_A_M_LONG_PRESS,
+	KEY_A_M_SHORT_PRESS,
+	KEY_B_M_LONG_PRESS,
+	KEY_B_M_SHORT_PRESS,
+	KEY_A_B_M_LONG_PRESS,
+	KEY_A_B_M_SHORT_PRESS,
 	REPORT_MAX,
 }REPORT_E;
 
 typedef struct {
+	u16 year;
+	u8 month;
+	u8 day;	
 	u8 week;
-	u8 day;
 	u8 hour;
 	u8 minute;
 	u8 second;
 }clock_t;
+
+typedef enum {
+	MONDAY,
+	TUESDAY,
+	WEDNESDAY,
+	THURSDAY,
+	FRIDAY,
+	SATURDAY,
+	SUNDAY,
+}week_e;
 
 enum {
 	false = 0,
@@ -109,12 +125,12 @@ typedef struct {
 	motor_cfg_t motor_activity_cfg;	
 	motor_cfg_t motor_date_cfg;
 	motor_cfg_t motor_battery_week_cfg;	
-	motor_cfg_t motor_notify_cfg;	
+	motor_cfg_t motor_notify_cfg;
 }cfg_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);
-typedef s16 (adapter_cb_handler)();
+typedef s16 (*driver_callback_handler)(void *args);
 
 typedef s16 (*init)(cfg_t *args, event_callback cb);
 typedef s16 (*uninit)(void);

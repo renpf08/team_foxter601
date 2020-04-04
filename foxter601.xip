@@ -2,6 +2,17 @@
  <folder name="C Files" >
   <extension name="c" />
   <folder name="adapter" >
+   <folder name="mag" >
+    <file path="adapter/mag/mag.c" />
+   </folder>
+   <folder name="clock" >
+    <file path="adapter/clock/clock.c" />
+   </folder>
+   <folder name="button" >
+    <file path="adapter/button/buttonA.c" />
+    <file path="adapter/button/buttonB.c" />
+    <file path="adapter/button/buttonM.c" />
+   </folder>
    <file path="adapter/adapter.c" />
    <file path="adapter/adapter.h" />
    <file path="adapter/config.h" />

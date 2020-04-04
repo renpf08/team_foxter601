@@ -68,6 +68,8 @@ typedef struct {
 	timer_t 	*timer;
 	battery_t 	*battery;
 	key_t     	*keya;
+	key_t     	*keym;
+	key_t     	*keyb;	
 	flash_t     *flash;
 	vibrator_t  *vibrator;
 	gsensor_t   *gsensor;

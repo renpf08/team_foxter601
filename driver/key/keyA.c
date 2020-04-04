@@ -14,7 +14,7 @@ static csr_keya_cfg_t csr_keya_cfg = {
 				.num = 0,
            },
 	.keya_cb = NULL,
-	.last_state = KEY_A_UNKNOWN,
+	.last_state = KEY_A_UP,
 };
 
 s16 csr_keya_event_handler(u16 key_num, u16 key_status)
@@ -69,7 +69,7 @@ static s16 csr_keya_uninit(void)
 	return 0;
 }
 
-key_t csr_keyA = {
+key_t csr_keya = {
 	.key_init = csr_keya_init,
 	.key_uninit = csr_keya_uninit,
 };
