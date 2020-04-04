@@ -76,16 +76,6 @@ typedef struct {
 	u8 second;
 }clock_t;
 
-typedef enum {
-	MONDAY,
-	TUESDAY,
-	WEDNESDAY,
-	THURSDAY,
-	FRIDAY,
-	SATURDAY,
-	SUNDAY,
-}week_e;
-
 enum {
 	false = 0,
 	true = 1,
