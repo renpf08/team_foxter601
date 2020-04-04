@@ -14,7 +14,7 @@ static csr_keym_cfg_t csr_keym_cfg = {
 				.num = 0,
            },
 	.keym_cb = NULL,
-	.last_state = KEY_M_UNKNOWN,
+	.last_state = KEY_M_UP,
 };
 
 s16 csr_keym_event_handler(u16 key_num, u16 key_status)

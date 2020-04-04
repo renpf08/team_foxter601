@@ -27,13 +27,10 @@ typedef struct {
 }mag_data_t;
 
 typedef enum {
-	KEY_A_UNKNOWN,
 	KEY_A_UP,
 	KEY_A_DOWN,
-	KEY_B_UNKNOWN,
 	KEY_B_UP,
 	KEY_B_DOWN,
-	KEY_M_UNKNOWN,
 	KEY_M_UP,
 	KEY_M_DOWN,
 	MAGNETOMETER_READY,
@@ -52,9 +49,21 @@ typedef enum {
 	REPORT_MAX,
 }REPORT_E;
 
+typedef enum {
+	MONDAY,
+	TUESDAY,
+	WEDNESDAY,
+	THURSDAY,
+	FRIDAY,
+	SATURDAY,
+	SUNDAY,
+}WEEK_E;
+
 typedef struct {
-	u8 week;
+	u16 year;
+	u8 month;	
 	u8 day;
+	u8 week;
 	u8 hour;
 	u8 minute;
 	u8 second;
