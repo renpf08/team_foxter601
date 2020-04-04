@@ -50,6 +50,9 @@
 #include "m_timer.h"
 #include "m_uart.h"
 #include "m_printf.h"
+#include "adapter/adapter.h"
+#include "driver/driver.h"
+#include "common/common.h"
 
 /*============================================================================*
  *  Private Definitions
@@ -119,7 +122,7 @@
  *============================================================================*/
 
 /* Declare space for application timers. */
-static uint16 app_timers[SIZEOF_APP_TIMER * MAX_APP_TIMERS];
+//static uint16 app_timers[SIZEOF_APP_TIMER * MAX_APP_TIMERS];
 
 /*============================================================================*
  *  Public Data
@@ -2319,6 +2322,12 @@ void AppPowerOnReset(void)
     /* Configure the application constants */
 }
 
+static s16 adapter_cb_handler(REPORT_E cb, void *args)
+{
+
+	return 0;
+}
+
 /*----------------------------------------------------------------------------*
  *  NAME
  *      AppInit
@@ -2340,15 +2349,13 @@ void AppInit(sleep_state last_sleep_state)
     uint16 *p_gatt_db = NULL;
     uint8 devName[20] = {0};
 
-    /* Initialise the application timers */
-    TimerInit(MAX_APP_TIMERS, (void*)app_timers);
+	adapter_init(adapter_cb_handler);
 
     #if USE_M_LOG
     /* Initialise the UART interface */
     m_uart_init();
     m_timer_init();
     #endif
-    
     
     /* Initialise GATT entity */
     GattInit();
@@ -2359,18 +2366,8 @@ void AppInit(sleep_state last_sleep_state)
     GattInstallClientRole();
     GattInstallServerWrite();
 
-#ifdef NVM_TYPE_EEPROM
-    /* Configure the NVM manager to use I2C EEPROM for NVM store */
-    NvmConfigureI2cEeprom();
-#elif NVM_TYPE_FLASH
-    /* Configure the NVM Manager to use SPI flash for NVM store. */
-    NvmConfigureSpiFlash();
-#endif /* NVM_TYPE_EEPROM */
-
-    Nvm_Disable();
-
     /*Initialise application hardware */
-    InitAncsHardware();
+    //InitAncsHardware();
 
     /* Battery Initialisation on Chip reset */
     BatteryInitChipReset();
@@ -2392,7 +2389,7 @@ void AppInit(sleep_state last_sleep_state)
     m_printf("\r\n");
     m_printf("\r\n");
     #endif
-    ANCSC_LOG_INFO("system started: %s, bonding statu: %d\r\n", devName, g_app_data.bonded);
+    //ANCSC_LOG_INFO("system started: %s, bonding statu: %d\r\n", devName, g_app_data.bonded);
 
     /* Tell Security Manager module about the value it needs to initialise it's
      * diversifier to.
@@ -2438,35 +2435,41 @@ void AppInit(sleep_state last_sleep_state)
  *----------------------------------------------------------------------------*/
 void AppProcessSystemEvent(sys_event_id id, void *data)
 {
-    switch(id)
-    {
-        case sys_event_battery_low:
-        {
-            /* Battery low event received - notify the connected host. If 
-             * not connected, the battery level will get notified when 
-             * device gets connected again
-             */
-            if(g_app_data.state == app_connected)
-            {
-                BatteryUpdateLevel(g_app_data.st_ucid,TRUE);
-            }
-        }
-        break;
+	switch(id)
+	{
+		case sys_event_battery_low:
+		{
+			/* Battery low event received - notify the connected host. If 
+			 * not connected, the battery level will get notified when 
+			 * device gets connected again
+			 */
+			if(g_app_data.state == app_connected)
+			{
+				BatteryUpdateLevel(g_app_data.st_ucid,TRUE);
+			}
+		}
+		break;
 
-        case sys_event_pio_changed:
-        {
-            /* Handle PIO events */
-            HandlePIOChangedEvent(((pio_changed_data*)data)->pio_cause);
-        }
-        break;
+		case sys_event_pio_changed:
+		{
+			/* The PIO data is defined by struct pio_changed_data */
+			const pio_changed_data *pPioData = (const pio_changed_data *)data;
 
-        default:
-        {
-            break;
-        }
-    }
+			/* Handle PIO events */
+			//HandlePIOChangedEvent(((pio_changed_data*)data)->pio_cause);
+			csr_keya_event_handler(pPioData->pio_cause, pPioData->pio_state);
+			csr_keyb_event_handler(pPioData->pio_cause, pPioData->pio_state);
+			csr_keym_event_handler(pPioData->pio_cause, pPioData->pio_state);
+			csr_magnetometer_event_handler(pPioData->pio_cause, pPioData->pio_state);
+		}
+		break;
+
+		default:
+		{
+			break;
+		}
+	}
 }
-
 
 /*----------------------------------------------------------------------------*
  *  NAME

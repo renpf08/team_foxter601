@@ -66,6 +66,10 @@
  */
 #define USE_PAIRING_SUPPORT     0
 
+/* This macro is required to be disabled if user does not want 
+ * to see messages on UART
+ */
+//#define ENABLE_UART
 /** add by mlw, 20200330 11:24 */
 #define USE_M_LOG   0
 

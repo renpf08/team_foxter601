@@ -302,6 +302,7 @@ int m_vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pPara
 */
 int m_printf(const char * sFormat, ...)
 {
+	return 0;
     int r = 0;
     va_list ParamList;
 

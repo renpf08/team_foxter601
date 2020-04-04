@@ -1,6 +1,66 @@
 <project buildenvironment="{067c869e-5bd9-4595-9f4c-60348133ad8e}" buildenvironmentname="uEnergy" executionenvironmentoption="XAP2+ P0 ELF DWARF BINUTILS UENERGYSDK" buildenvironmentoption="UENERGYSDK" executionenvironmentname="uEnergy" name="CSR uEnergy" executionenvironment="{39e65239-59f4-4d78-b84a-26eaebfaa4de}" >
  <folder name="C Files" >
   <extension name="c" />
+  <folder name="adapter" >
+   <folder name="mag" >
+    <file path="adapter/mag/mag.c" />
+   </folder>
+   <folder name="clock" >
+    <file path="adapter/clock/clock.c" />
+   </folder>
+   <folder name="button" >
+    <file path="adapter/button/buttonA.c" />
+    <file path="adapter/button/buttonB.c" />
+    <file path="adapter/button/buttonM.c" />
+   </folder>
+   <file path="adapter/adapter.c" />
+   <file path="adapter/adapter.h" />
+   <file path="adapter/config.h" />
+  </folder>
+  <folder name="common" >
+   <file path="common/common.h" />
+   <file path="common/typedef.h" />
+  </folder>
+  <folder name="driver" >
+   <folder name="motor" >
+    <file path="driver/motor/motor_activity.c" />
+    <file path="driver/motor/motor_battery_week.c" />
+    <file path="driver/motor/motor_date.c" />
+    <file path="driver/motor/motor_hour.c" />
+    <file path="driver/motor/motor_minute.c" />
+    <file path="driver/motor/motor_notify.c" />
+   </folder>
+   <folder name="magnetometer" >
+    <file path="driver/magnetometer/magnetometer.c" />
+    <file path="driver/magnetometer/magnetometer.h" />
+   </folder>
+   <folder name="vibrator" >
+    <file path="driver/vibrator/vibrator.c" />
+   </folder>
+   <folder name="gsensor" >
+    <file path="driver/gsensor/gsensor.c" />
+    <file path="driver/gsensor/gsensor.h" />
+   </folder>
+   <folder name="flash" >
+    <file path="driver/flash/flash.c" />
+   </folder>
+   <folder name="key" >
+    <file path="driver/key/keyA.c" />
+    <file path="driver/key/keyB.c" />
+    <file path="driver/key/keyM.c" />
+   </folder>
+   <folder name="uart" >
+    <file path="driver/uart/uart.c" />
+   </folder>
+   <folder name="battery" >
+    <file path="driver/bat_detect/bat_detect.c" />
+   </folder>
+   <folder name="timer" >
+    <file path="driver/timer/timer.c" />
+   </folder>
+   <file path="driver/driver.c" />
+   <file path="driver/driver.h" />
+  </folder>
   <file path="ancs_client.c" />
   <file path="ancs_client_gatt.c" />
   <file path="ancs_client_hw.c" />
@@ -16,14 +76,12 @@
   <file path="gatt_service.c" />
   <file path="lcd_display.c" />
   <file path="serial_service.c" />
-  <file path="m_timer.c" />
-  <file path="m_uart.c" />
   <file path="m_printf.c" />
   <file path="m_ancs.c" />
+  <file path="m_ancs.h" />
  </folder>
  <folder name="Header Files" >
   <extension name="h" />
-  <file path="m_ancs.h" />
   <file path="m_printf.h" />
   <file path="display.h" />
   <file path="m_uart.h" />
@@ -79,7 +137,7 @@
   <configuration name="Debug" >
    <property key="csr100x_keyr" >ancs_csr100x.keyr</property>
    <property key="csr101x_a05_keyr" >ancs_csr101x_A05.keyr</property>
-   <property key="debugtransport" >[SPITRANS=USB SPIPORT=0]</property>
+   <property key="debugtransport" ></property>
    <property key="defines" ></property>
    <property key="erase_nvm" >1</property>
    <property key="flash_clock" ></property>
