@@ -45,7 +45,14 @@ typedef enum {
 	KEY_B_SHORT_PRESS,
 	KEY_M_LONG_PRESS,
 	KEY_M_SHORT_PRESS,
-
+	KEY_A_B_LONG_PRESS,
+	KEY_A_B_SHORT_PRESS,
+	KEY_A_M_LONG_PRESS,
+	KEY_A_M_SHORT_PRESS,
+	KEY_B_M_LONG_PRESS,
+	KEY_B_M_SHORT_PRESS,
+	KEY_A_B_M_LONG_PRESS,
+	KEY_A_B_M_SHORT_PRESS,
 	REPORT_MAX,
 }REPORT_E;
 
@@ -68,6 +75,16 @@ typedef struct {
 	u8 minute;
 	u8 second;
 }clock_t;
+
+typedef enum {
+	MONDAY,
+	TUESDAY,
+	WEDNESDAY,
+	THURSDAY,
+	FRIDAY,
+	SATURDAY,
+	SUNDAY,
+}week_e;
 
 enum {
 	false = 0,
@@ -118,7 +135,7 @@ typedef struct {
 	motor_cfg_t motor_activity_cfg;	
 	motor_cfg_t motor_date_cfg;
 	motor_cfg_t motor_battery_week_cfg;	
-	motor_cfg_t motor_notify_cfg;	
+	motor_cfg_t motor_notify_cfg;
 }cfg_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);

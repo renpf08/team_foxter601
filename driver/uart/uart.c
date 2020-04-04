@@ -8,7 +8,7 @@
 #include "user_config.h"
 #include "../driver.h"
 
-#define TIMEOUT 35
+#define TIMEOUT 33
 #define UART_TX_HIGH(num) PioSet((num), 1UL)
 #define UART_TX_LOW(num)  PioSet((num), 0UL)
 
