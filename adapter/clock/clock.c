@@ -75,7 +75,7 @@ s16 clock_set(clock_t *ck)
 	clock_cfg.clock.year = ck->year;
 	clock_cfg.clock.month = ck->month;
 	clock_cfg.clock.day = ck->day;
-	clock_cfg.clock.week = ck->week;
+	clock_cfg.clock.week = ck->week;
 	clock_cfg.clock.hour = ck->hour;
 	clock_cfg.clock.minute = ck->minute;
 	clock_cfg.clock.second = ck->second;

@@ -6,6 +6,34 @@
 #define PIO_DIR_OUTPUT  TRUE        /* PIO direction configured as output */
 #define PIO_DIR_INPUT   FALSE       /* PIO direction configured as input */
 
+#define KEY_LONG_PRESS_INTERVAL 2
+#define KEY_A_POSITION          0
+#define KEY_B_POSITION          1
+#define KEY_M_POSITION          2
+#define KEY_SHORT_PRESS_MASK    0x0F
+#define KEY_LONG_PRESS_MASK     0xF0
+#define KEY_A_SHORT_PRESS_POS   (1<<KEY_A_POSITION)
+#define KEY_B_SHORT_PRESS_POS   (1<<KEY_B_POSITION)
+#define KEY_M_SHORT_PRESS_POS   (1<<KEY_M_POSITION)
+#define KEY_A_LONG_PRESS_POS    ((1<<KEY_A_POSITION)<<4)
+#define KEY_B_LONG_PRESS_POS    ((1<<KEY_B_POSITION)<<4)
+#define KEY_M_LONG_PRESS_POS    ((1<<KEY_M_POSITION)<<4)
+
+#define KEYS_A_LONG_PRESS       (KEY_A_LONG_PRESS_POS)
+#define KEYS_B_LONG_PRESS       (KEY_B_LONG_PRESS_POS)
+#define KEYS_M_LONG_PRESS       (KEY_M_LONG_PRESS_POS)
+#define KEYS_A_B_LONG_PRESS     (KEY_A_LONG_PRESS_POS|KEY_B_LONG_PRESS_POS)
+#define KEYS_A_M_LONG_PRESS     (KEY_A_LONG_PRESS_POS|KEY_M_LONG_PRESS_POS)
+#define KEYS_B_M_LONG_PRESS     (KEY_B_LONG_PRESS_POS|KEY_M_LONG_PRESS_POS)
+#define KEYS_A_B_M_LONG_PRESS   (KEY_A_LONG_PRESS_POS|KEY_B_LONG_PRESS_POS|KEY_M_LONG_PRESS_POS)
+#define KEYS_A_SHORT_PRESS      (KEY_A_SHORT_PRESS_POS)
+#define KEYS_B_SHORT_PRESS      (KEY_B_SHORT_PRESS_POS)
+#define KEYS_M_SHORT_PRESS      (KEY_M_SHORT_PRESS_POS)
+#define KEYS_A_B_SHORT_PRESS    (KEY_A_SHORT_PRESS_POS|KEY_B_SHORT_PRESS_POS)
+#define KEYS_A_M_SHORT_PRESS    (KEY_A_SHORT_PRESS_POS|KEY_M_SHORT_PRESS_POS)
+#define KEYS_B_M_SHORT_PRESS    (KEY_B_SHORT_PRESS_POS|KEY_M_SHORT_PRESS_POS)
+#define KEYS_A_B_M_SHORT_PRESS  (KEY_A_SHORT_PRESS_POS|KEY_B_SHORT_PRESS_POS|KEY_M_SHORT_PRESS_POS)
+
 #define BIT_MASK(num) (0x01UL << (num))
 
 typedef struct {
@@ -127,6 +155,11 @@ typedef struct {
 	motor_cfg_t motor_battery_week_cfg;	
 	motor_cfg_t motor_notify_cfg;
 }cfg_t;
+
+typedef struct {
+	u8 press_state;
+	u8 press_down;
+}button_state_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);

@@ -28,6 +28,8 @@ static driver_callback_handler driver_cb[] = {
 	[MAGNETOMETER_READY] = mag_cb_handler,
 };
 
+static button_state_t button_state = {0, 0};
+
 typedef struct {
 	driver_t *drv;
 	adapter_callback cb;
@@ -38,13 +40,123 @@ static adapter_t adapter = {
 	.cb = NULL,
 };
 
+REPORT_E csr_key_event_rec(u8 key_state);
+REPORT_E csr_key_event_rec(u8 key_state)
+{
+    u8 long_press_keys = 0;
+    u8 short_press_keys = 0;
+    REPORT_E key_report = REPORT_MAX;
+    
+    if(key_state & KEY_LONG_PRESS_MASK)
+    {
+        long_press_keys = (key_state&0xF0)|((key_state<<4)&0xF0);
+    }
+    else if(key_state & KEY_SHORT_PRESS_MASK)
+    {
+        short_press_keys = (key_state&0x0F)|((key_state>>4)&0x0F);
+    }
+    
+    if(long_press_keys & KEY_LONG_PRESS_MASK)
+    {
+        switch(long_press_keys)
+        {
+            case KEYS_A_LONG_PRESS:
+            {
+                key_report = KEY_A_LONG_PRESS;
+                break;
+            }
+            case KEYS_B_LONG_PRESS:
+            {
+                key_report = KEY_B_LONG_PRESS;
+                break;
+            }
+            case KEYS_M_LONG_PRESS:
+            {
+                key_report = KEY_M_LONG_PRESS;
+                break;
+            }
+            case KEYS_A_B_LONG_PRESS:
+            {
+                key_report = KEY_A_B_LONG_PRESS;
+                break;
+            }
+            case KEYS_A_M_LONG_PRESS:
+            {
+                key_report = KEY_A_M_LONG_PRESS;
+                break;
+            }
+            case KEYS_B_M_LONG_PRESS:
+            {
+                key_report = KEY_B_M_LONG_PRESS;
+                break;
+            }
+            case KEYS_A_B_M_LONG_PRESS:
+            {
+                key_report = KEY_A_B_M_LONG_PRESS;
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    else if(short_press_keys & KEY_SHORT_PRESS_MASK)
+    {
+        switch(short_press_keys)
+        {
+            case KEYS_A_SHORT_PRESS:
+            {
+                key_report = KEY_A_SHORT_PRESS;
+                break;
+            }
+            case KEYS_B_SHORT_PRESS:
+            {
+                key_report = KEY_B_SHORT_PRESS;
+                break;
+            }
+            case KEYS_M_SHORT_PRESS:
+            {
+                key_report = KEY_M_SHORT_PRESS;
+                break;
+            }
+            case KEYS_A_B_SHORT_PRESS:
+            {
+                key_report = KEY_A_B_SHORT_PRESS;
+                break;
+            }
+            case KEYS_A_M_SHORT_PRESS:
+            {
+                key_report = KEY_A_M_SHORT_PRESS;
+                break;
+            }
+            case KEYS_B_M_SHORT_PRESS:
+            {
+                key_report = KEY_B_M_SHORT_PRESS;
+                break;
+            }
+            case KEYS_A_B_M_SHORT_PRESS:
+            {
+                key_report = KEY_A_B_M_SHORT_PRESS;
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    
+    return key_report;
+}
+
 s16 csr_event_callback(EVENT_E ev)
 {
-	if(ev >= EVENT_MAX) {
-		return -1;
-	}else {
-		driver_cb[ev](NULL);
-	}
+    if(ev >= EVENT_MAX) {
+        return -1;
+    }else {
+        driver_cb[ev]((void*)&button_state);
+        if(button_state.press_down == 0) {  /* All button release */
+            csr_key_event_rec(button_state.press_state);
+            button_state.press_state = 0;
+        }
+    }
 	
 	return 0;
 }
