@@ -12,6 +12,7 @@
     <file path="adapter/button/buttonA.c" />
     <file path="adapter/button/buttonB.c" />
     <file path="adapter/button/buttonM.c" />
+    <file path="adapter/button/button.c" />
    </folder>
    <file path="adapter/adapter.c" />
    <file path="adapter/adapter.h" />
