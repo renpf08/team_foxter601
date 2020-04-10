@@ -71,7 +71,7 @@
  */
 //#define ENABLE_UART
 /** add by mlw, 20200330 11:24 */
-#define USE_M_LOG   0
+#define USE_M_LOG   1
 
 /* Macro used to enable Panic code */
 //#define ENABLE_DEBUG_PANIC

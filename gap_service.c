@@ -439,10 +439,7 @@ void m_devname_init(uint8* devName)
         
         //m_printf("addr: %02X:%02X:%02X:%02X:%02X:%02X\r\n",addrBuf[0],addrBuf[1],addrBuf[2],addrBuf[3],addrBuf[4],addrBuf[5]);
     }
-    #if USE_M_LOG
-    m_sprintf((char*)g_device_name, "%c%s_%02X%02X", AD_TYPE_LOCAL_NAME_COMPLETE, BLE_ADVERTISING_NAME, addrBuf[1], addrBuf[0]);
-    m_sprintf((char*)devName, "%s_%02X%02X", BLE_ADVERTISING_NAME, addrBuf[1], addrBuf[0]);
-    #else
+    
     char hexCharTbl[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
     uint8 len = 0;
     
@@ -455,5 +452,4 @@ void m_devname_init(uint8* devName)
     g_device_name[len++] = hexCharTbl[(addrBuf[0]>>4)&0x000F];
     g_device_name[len++] = hexCharTbl[addrBuf[0]&0x000F];
     g_device_name[len] = 0;
-    #endif
 }

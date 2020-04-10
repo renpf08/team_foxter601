@@ -31,6 +31,7 @@ int m_nprintf(unsigned size, const char * sFormat, ...);
 int m_sprintf(char *buf, const char * sFormat, ...);
 int m_snprintf(char *buf, unsigned size, const char * sFormat, ...);
 int m_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
+void m_printf_init(void);
 #endif //! end with USE_M_LOG
 
 #endif /** end of __M_PRINTF_H__ */

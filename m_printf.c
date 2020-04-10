@@ -12,11 +12,14 @@
 #include <uart.h>
 #include "m_printf.h"
 #include "m_timer.h"
+#include "adapter/adapter.h"
 
 #define FORMAT_FLAG_LEFT_JUSTIFY   (1u << 0)
 #define FORMAT_FLAG_PAD_ZERO       (1u << 1)
 #define FORMAT_FLAG_PRINT_SIGN     (1u << 2)
 #define FORMAT_FLAG_ALTERNATE      (1u << 3)
+
+driver_t *print_drv;
 
 void m_uart_out(char c);
 int m_vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pParamList);
@@ -32,7 +35,7 @@ int m_vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pPara
 */
 void m_uart_out(char c)
 {
-    UartWriteBlocking((const char*)&c, 1);
+    print_drv->uart->uart_write((unsigned char*)&c, 1);
 }
 
 /**
@@ -302,7 +305,6 @@ int m_vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pPara
 */
 int m_printf(const char * sFormat, ...)
 {
-	return 0;
     int r = 0;
     va_list ParamList;
 
@@ -393,9 +395,8 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
 {
     int r = 0;
     va_list ParamList;
-    char preStr[64] = {0};
+    /*char preStr[64] = {0};
     unsigned len = 0;
-    time_t* time = m_get_time();
     
     do
     {
@@ -409,11 +410,17 @@ int m_log(const char* file, const char* func, unsigned line, const char* level, 
     } while(*++file != '\0');
     preStr[len] = '\0';
     
-    m_printf("<%02d:%02d:%02d> %-30s%-40s%6d%10s:", time->hour, time->minute, time->second, preStr, func, line, level);
+    m_printf("%-30s%-40s%6d%10s:", preStr, func, line, level);*/
     va_start(ParamList, sFormat);
     //r = va_arg(ParamList, int); //! 测试发现，参数列表的第一个参数是乱码，此处需要做一次读操作相当于去掉第一个参数！！！
     r = m_vprintf(0, 0, sFormat, &ParamList);
     va_end(ParamList);
     return r;
 }
+
+void m_printf_init(void)
+{
+    print_drv = get_driver();
+}
+
 #endif //! end with USE_M_LOG

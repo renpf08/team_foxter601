@@ -2352,9 +2352,7 @@ void AppInit(sleep_state last_sleep_state)
 	adapter_init(adapter_cb_handler);
 
     #if USE_M_LOG
-    /* Initialise the UART interface */
-    m_uart_init();
-    m_timer_init();
+    m_printf_init();
     #endif
     
     /* Initialise GATT entity */
@@ -2388,8 +2386,8 @@ void AppInit(sleep_state last_sleep_state)
     #if USE_M_LOG
     m_printf("\r\n");
     m_printf("\r\n");
+    ANCSC_LOG_INFO("system started: %s, bonding statu: %d\r\n", devName, g_app_data.bonded);
     #endif
-    //ANCSC_LOG_INFO("system started: %s, bonding statu: %d\r\n", devName, g_app_data.bonded);
 
     /* Tell Security Manager module about the value it needs to initialise it's
      * diversifier to.
