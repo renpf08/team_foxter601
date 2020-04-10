@@ -8,7 +8,7 @@
 #include "user_config.h"
 #include "../driver.h"
 
-#define USE_UART_BLOCK_MODE 1
+#define USE_UART_BLOCK_MODE 0
 
 #if USE_UART_BLOCK_MODE
 #define BIT_RATE_9600   99
@@ -74,6 +74,44 @@ static uart_config_t uart_config = {
 	.end_flag = 0,
 };
 
+#if 0
+#define QUEUE_MAX   64
+typedef struct
+{
+    u8 buffer[QUEUE_MAX];
+    volatile u8 head;
+    volatile u8 tail;
+} uart_queue_t;
+uart_queue_t uart_queue;
+void uart_byte_enqueue(u8 byte);
+bool uart_byte_dequeue(u8 *byte);
+void uart_byte_enqueue(u8 byte)
+{
+    uart_queue.buffer[uart_queue.tail] = byte;
+    uart_queue.tail = (uart_queue.tail+1)%QUEUE_MAX;
+    
+    /** queue is full, discard the oldest byte */
+    if(uart_queue.tail == uart_queue.head)
+    {
+        uart_queue.head = (uart_queue.head+1)%QUEUE_MAX;
+    }
+}
+
+bool uart_byte_dequeue(u8 *byte)
+{
+    /** queue is empty */
+    if(uart_queue.head == uart_queue.tail)
+    {
+        return FALSE;
+    }
+    
+    *byte = uart_queue.buffer[uart_queue.head];
+    uart_queue.head = (uart_queue.head+1)%QUEUE_MAX;
+    
+    return TRUE;
+}
+#endif
+
 #if USE_UART_BLOCK_MODE
 static void csr_uart_send(void);
 static void csr_uart_send(void)
@@ -119,6 +157,7 @@ static int uart_send_handler(void)
 	    case UART_START:
 			//Put GPIO to logic 0 to indicate the start
 			UART_TX_LOW(uart_config.tx.num);
+            TimeDelayUSec(TIMEOUT);
 			uart_config.bit_send_index = 0;
 			uart_config.state = UART_TRANSFERRING;
 			break;
@@ -141,6 +180,7 @@ static int uart_send_handler(void)
 		case UART_STOP:
 			//Put GPIO to logic 1 to stop the transferring
 			UART_TX_HIGH(uart_config.tx.num);
+            TimeDelayUSec(TIMEOUT);
 			
 			uart_config.size--;
 			if(uart_config.size > 0) { /* Continue to send the next data */
