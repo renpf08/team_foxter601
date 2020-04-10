@@ -11,7 +11,7 @@
 #define USE_UART_BLOCK_MODE 1
 
 #if USE_UART_BLOCK_MODE
-#define BIT_RATE_9600   99 //104
+#define BIT_RATE_9600   99
 #define BIT_RATE_115200 1
 #define BIT_RATE        BIT_RATE_115200
 #else
@@ -119,7 +119,6 @@ static int uart_send_handler(void)
 	    case UART_START:
 			//Put GPIO to logic 0 to indicate the start
 			UART_TX_LOW(uart_config.tx.num);
-            TimeDelayUSec(TIMEOUT);
 			uart_config.bit_send_index = 0;
 			uart_config.state = UART_TRANSFERRING;
 			break;
@@ -142,7 +141,6 @@ static int uart_send_handler(void)
 		case UART_STOP:
 			//Put GPIO to logic 1 to stop the transferring
 			UART_TX_HIGH(uart_config.tx.num);
-            TimeDelayUSec(TIMEOUT);
 			
 			uart_config.size--;
 			if(uart_config.size > 0) { /* Continue to send the next data */
