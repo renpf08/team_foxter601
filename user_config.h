@@ -66,12 +66,11 @@
  */
 #define USE_PAIRING_SUPPORT     0
 
-/* This macro is required to be disabled if user does not want 
- * to see messages on UART
- */
-//#define ENABLE_UART
-/** add by mlw, 20200330 11:24 */
+#ifdef RELEASE_MODE
+#define USE_M_LOG   1
+#else
 #define USE_M_LOG   0
+#endif
 
 /* Macro used to enable Panic code */
 //#define ENABLE_DEBUG_PANIC

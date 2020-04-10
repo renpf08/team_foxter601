@@ -452,4 +452,5 @@ void m_devname_init(uint8* devName)
     g_device_name[len++] = hexCharTbl[(addrBuf[0]>>4)&0x000F];
     g_device_name[len++] = hexCharTbl[addrBuf[0]&0x000F];
     g_device_name[len] = 0;
+    MemCopy(devName, &g_device_name[1], (len-1));
 }
