@@ -34,7 +34,6 @@ typedef enum {
 }UART_PARITY_MODE;
     
 #define QUEUE_MAX   64
-u8 ring_buffer[64];
 
 typedef struct {
 	pin_t rx;
@@ -45,12 +44,13 @@ typedef struct {
 	volatile u8 bit_send_index;
 	u16 bitrate;
 	volatile UART_STATE_E state;
-	volatile u8 *buf_ptr;
 	volatile u8 size;
 	u8 end_flag;
-    volatile u8 head;
-    volatile u8 tail;
-    volatile bool begin;
+	volatile u8 ring_buffer[QUEUE_MAX];
+    u16 ring_buffer_size;
+    volatile u16 ring_buffer_head;
+    volatile u16 ring_buffer_tail;
+    volatile bool ring_buffer_poll;
 }uart_config_t;
 
 static uart_config_t uart_config = {
@@ -68,12 +68,13 @@ static uart_config_t uart_config = {
 	.bit_send_index = 0,
 	.bitrate = BIT_RATE,
 	.state = UART_IDLE,
-	.buf_ptr = ring_buffer,
+	.ring_buffer[0] = 0,
+	.ring_buffer_size = QUEUE_MAX,
 	.size = 0,
 	.end_flag = 0,
-	.head = 0,
-	.tail = 0,
-	.begin = FALSE,
+	.ring_buffer_head = 0,
+	.ring_buffer_tail = 0,
+	.ring_buffer_poll = FALSE,
 };
 
 void uart_byte_enqueue(u8 byte);
@@ -84,33 +85,28 @@ static void uart_timer_cb(u16 id);
 void uart_byte_enqueue(u8 byte)
 {
     /** queue is full, discard the oldest byte */
-    if(uart_config.head == ((uart_config.tail+1)%QUEUE_MAX))
+    if(uart_config.ring_buffer_head == ((uart_config.ring_buffer_tail+1)%uart_config.ring_buffer_size))
     {
-        uart_config.head = (uart_config.head+1)%QUEUE_MAX;
+        uart_config.ring_buffer_head = (uart_config.ring_buffer_head+1)%uart_config.ring_buffer_size;
     }
     
-    uart_config.buf_ptr[uart_config.tail] = byte;
-    uart_config.tail = (uart_config.tail+1)%QUEUE_MAX;
+    uart_config.ring_buffer[uart_config.ring_buffer_tail] = byte;
+    uart_config.ring_buffer_tail = (uart_config.ring_buffer_tail+1)%uart_config.ring_buffer_size;
 
-    //uart_config.size = (uart_config.tail - uart_config.head);
-
-    if(uart_config.begin == FALSE)
+    if(uart_config.ring_buffer_poll == FALSE)
     {
-    	//timer start and regitster callback
     	csr_uart_timer_create(TIMEOUT, uart_timer_cb);
-        uart_config.begin = TRUE;
+        uart_config.ring_buffer_poll = TRUE;
     }
 }
 
 bool uart_byte_dequeue(void)
 {
-    uart_config.head = (uart_config.head+1)%QUEUE_MAX;
-    //uart_config.size = (uart_config.tail - uart_config.head);
+    uart_config.ring_buffer_head = (uart_config.ring_buffer_head+1)%uart_config.ring_buffer_size;
     
     /** queue is empty */
-    if(uart_config.head == uart_config.tail)
+    if(uart_config.ring_buffer_head == uart_config.ring_buffer_tail)
     {
-        //uart_config.size = 0;
         return FALSE;
     }
     
@@ -135,7 +131,7 @@ static int uart_send_handler(void)
 			uart_config.state = UART_TRANSFERRING;
 			break;
 		case UART_TRANSFERRING:
-			bit_send = (uart_config.buf_ptr[uart_config.head] >> uart_config.bit_send_index) & 0x1;
+			bit_send = (uart_config.ring_buffer[uart_config.ring_buffer_head] >> uart_config.bit_send_index) & 0x1;
 			//Put GPIO to the logic level according to the bit value. 0 for low, and 1 for high;
 			if(bit_send) {
 				UART_TX_HIGH(uart_config.tx.num);
@@ -159,7 +155,6 @@ static int uart_send_handler(void)
         	if(uart_byte_dequeue() == FALSE)
         	{
                 uart_config.state = UART_IDLE;
-                uart_config.begin = FALSE;
                 return 1;
         	}
             else
@@ -190,10 +185,16 @@ static timer_id csr_uart_timer_create(uint32 timeout, timer_callback_arg handler
 static void uart_timer_cb(u16 id)
 {
 	u8 done = 0;
-	done = uart_send_handler();
-	if(1 != done) {
+    
+    done = uart_send_handler();
+	if(1 != done)
+    {
 		csr_uart_timer_create(TIMEOUT, uart_timer_cb);
 	}
+    else
+    {
+        uart_config.ring_buffer_poll = FALSE;
+    }
 }
 
 static s16 csr_uart_read(void *args)
@@ -203,17 +204,10 @@ static s16 csr_uart_read(void *args)
 
 static s16 csr_uart_write(u8 *buf, u16 num)
 {
-	//uart state change to START
-	uart_config.buf_ptr = buf;
-	uart_config.size = num;
-	uart_config.state = UART_IDLE;
-	uart_config.bit_send_index = 0;
-
-    for(num = 0; num < uart_config.size; num++)
+    for(uart_config.size = 0; uart_config.size < num; uart_config.size++)
     {
-        uart_byte_enqueue(buf[num]);
+        uart_byte_enqueue(buf[uart_config.size]);
     }
-    
 	return 0;
 }
 
