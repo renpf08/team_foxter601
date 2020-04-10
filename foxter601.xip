@@ -139,7 +139,7 @@
    <property key="csr100x_keyr" >ancs_csr100x.keyr</property>
    <property key="csr101x_a05_keyr" >ancs_csr101x_A05.keyr</property>
    <property key="debugtransport" ></property>
-   <property key="defines" ></property>
+   <property key="defines" >DEBUG_MODE,EXTRA_DELAY=0</property>
    <property key="erase_nvm" >1</property>
    <property key="flash_clock" ></property>
    <property key="flash_miso" ></property>
@@ -160,7 +160,7 @@
    <property key="csr100x_keyr" >ancs_csr100x.keyr</property>
    <property key="csr101x_a05_keyr" >ancs_csr101x_A05.keyr</property>
    <property key="debugtransport" ></property>
-   <property key="defines" ></property>
+   <property key="defines" >RELEASE_MODE,EXTRA_DELAY=1</property>
    <property key="erase_nvm" >1</property>
    <property key="flash_clock" ></property>
    <property key="flash_miso" ></property>

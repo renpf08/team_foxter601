@@ -8,7 +8,16 @@
 #include "user_config.h"
 #include "../driver.h"
 
+#define USE_UART_BLOCK_MODE 1
+
+#if USE_UART_BLOCK_MODE
+#define BIT_RATE_9600   99 //104
+#define BIT_RATE_115200 1
+#define BIT_RATE        BIT_RATE_115200
+#else
 #define TIMEOUT 33
+#endif
+
 #define UART_TX_HIGH(num) PioSet((num), 1UL)
 #define UART_TX_LOW(num)  PioSet((num), 0UL)
 
@@ -54,13 +63,51 @@ static uart_config_t uart_config = {
 	.stop = 1,
 	.parity = 0,
 	.bit_send_index = 0,
+    #if USE_UART_BLOCK_MODE
+	.bitrate = BIT_RATE,
+    #else
 	.bitrate = 9600,
+    #endif
 	.state = UART_IDLE,
 	.buf_ptr = NULL,
 	.size = 0,
 	.end_flag = 0,
 };
 
+#if USE_UART_BLOCK_MODE
+static void csr_uart_send(void);
+static void csr_uart_send(void)
+{
+	u8 bit_send = 0;
+    
+    //make some delay to keep avoid data confused
+    TimeDelayUSec(1000);
+    
+    do
+    {
+        //Put GPIO to logic 0 to indicate the start
+        UART_TX_LOW(uart_config.tx.num);
+        TimeDelayUSec(uart_config.bitrate+EXTRA_DELAY); //115200 baudrate need delay 1 more u-second in release mode
+        
+        for(uart_config.bit_send_index = 0; uart_config.bit_send_index < uart_config.data_bit; uart_config.bit_send_index++)
+        {
+            bit_send = (*uart_config.buf_ptr >> uart_config.bit_send_index) & 0x01;
+            if(bit_send)
+                UART_TX_HIGH(uart_config.tx.num);
+            else
+                UART_TX_LOW(uart_config.tx.num);
+            TimeDelayUSec(uart_config.bitrate);
+        }
+        
+        //Put GPIO to logic 1 to stop the transferring
+        UART_TX_HIGH(uart_config.tx.num);
+        TimeDelayUSec(uart_config.bitrate+EXTRA_DELAY); //115200 baudrate need delay 1 more u-second in release mode
+        
+        uart_config.buf_ptr++;
+        uart_config.size--;
+    } while(uart_config.size != 0);
+}
+#else
 static int uart_send_handler(void)
 {
 	u8 bit_send = 0;
@@ -72,6 +119,7 @@ static int uart_send_handler(void)
 	    case UART_START:
 			//Put GPIO to logic 0 to indicate the start
 			UART_TX_LOW(uart_config.tx.num);
+            TimeDelayUSec(TIMEOUT);
 			uart_config.bit_send_index = 0;
 			uart_config.state = UART_TRANSFERRING;
 			break;
@@ -94,6 +142,7 @@ static int uart_send_handler(void)
 		case UART_STOP:
 			//Put GPIO to logic 1 to stop the transferring
 			UART_TX_HIGH(uart_config.tx.num);
+            TimeDelayUSec(TIMEOUT);
 			
 			uart_config.size--;
 			if(uart_config.size > 0) { /* Continue to send the next data */
@@ -132,6 +181,7 @@ static void uart_timer_cb(u16 id)
 		csr_uart_timer_create(TIMEOUT, uart_timer_cb);
 	}
 }
+#endif
 
 static s16 csr_uart_read(void *args)
 {
@@ -145,8 +195,12 @@ static s16 csr_uart_write(u8 *buf, u16 num)
 	uart_config.size = num;
 	uart_config.state = UART_IDLE;
 	uart_config.bit_send_index = 0;
+    #if USE_UART_BLOCK_MODE
+    csr_uart_send();
+    #else
 	//timer start and regitster callback
 	csr_uart_timer_create(TIMEOUT, uart_timer_cb);
+    #endif
 	return 0;
 }
 
