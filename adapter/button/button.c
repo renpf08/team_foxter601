@@ -18,7 +18,7 @@ typedef enum {
 typedef enum {
     BUTTON_UP,
     BUTTON_DOWN,
-}BUTTON_EVENT_E;
+}BUTTON_SINGLE_EVENT_E;
 
 typedef enum {
     BUTTON_A_LONG_PRESS_VALUE       = (0x10<<BUTTON_A),
@@ -36,29 +36,29 @@ typedef enum {
     BUTTON_B_M_SHORT_PRESS_VALUE    = ((0x01<<BUTTON_B)|(0x01<<BUTTON_M)),
     BUTTON_A_B_M_SHORT_PRESS_VALUE  = ((0x01<<BUTTON_A)|(0x01<<BUTTON_B)|(0x01<<BUTTON_M)),
     STATE_MAX                       = 0xFF
-}BUTTON_STATE_E;
+}BUTTON_COMBO_EVENT_E;
 
 typedef struct {
 	TIME down_time[BUTTON_NUM];
 	TIME up_time[BUTTON_NUM];
-	u8 press_state;
-	u8 press_down;
+	u8 combo_event_flag; /* high half-byte to indicate long press event, and low half-byte to short press event */
+	u8 press_down_flag;
 }button_t;
 
 typedef struct {
     REPORT_E report_value;
-    BUTTON_STATE_E state_value;
-}button_state_t;
+    BUTTON_COMBO_EVENT_E combo_event;
+}button_combo_event_t;
 
 typedef struct {
-    EVENT_E ev;
-    BUTTON_INDEX_E idx;
-    BUTTON_STATE_E sta;
+    EVENT_E trigger_event;
+    BUTTON_INDEX_E button_index;
+    BUTTON_SINGLE_EVENT_E single_event;
     u8 short_press_mask;
     u8 long_press_mask;
-}button_event_t;
+}button_single_event_t;
 
-static button_state_t button_state[] = {
+static button_combo_event_t button_combo_event[] = {
     {KEY_A_LONG_PRESS,      BUTTON_A_LONG_PRESS_VALUE},
     {KEY_A_SHORT_PRESS,     BUTTON_A_SHORT_PRESS_VALUE},
     {KEY_B_LONG_PRESS,      BUTTON_B_LONG_PRESS_VALUE},
@@ -76,7 +76,7 @@ static button_state_t button_state[] = {
     {REPORT_MAX,            0},
 };
 
-static button_event_t button_event[] = {
+static button_single_event_t button_single_event[] = {
     {KEY_A_UP,      BUTTON_A, BUTTON_UP,    (0x01<<BUTTON_A),   (0x10<<BUTTON_A)},
     {KEY_A_DOWN,    BUTTON_A, BUTTON_DOWN,  (0x01<<BUTTON_A),   (0x10<<BUTTON_A)},
     {KEY_B_UP,      BUTTON_B, BUTTON_UP,    (0x01<<BUTTON_B),   (0x10<<BUTTON_B)},
@@ -86,91 +86,91 @@ static button_event_t button_event[] = {
     {0xFF, 0, 0,  0, 0},
 };
 
-REPORT_E button_event_handler(u8 button_press_state);
+REPORT_E button_combo_event_handler(u8 combo_evt_flag);
 s16 button_cb_handler(void *args);
 
-REPORT_E button_event_handler(u8 button_press_state)
+REPORT_E button_combo_event_handler(u8 combo_evt_flag)
 {
     u8 i = 0;
     u8 comb_state_value = 0;
-    REPORT_E comb_report_value = REPORT_MAX;
+    REPORT_E combo_event_report_value = REPORT_MAX;
     
-    if(button_press_state & BUTTON_LONG_PRESS_MASK)
+    if(combo_evt_flag & BUTTON_LONG_PRESS_MASK)
     {
-        comb_state_value = (button_press_state|(button_press_state<<4))&0xF0;
+        comb_state_value = (combo_evt_flag|(combo_evt_flag<<4))&0xF0;
     }
-    else if(button_press_state & BUTTON_SHORT_PRESS_MASK)
+    else if(combo_evt_flag & BUTTON_SHORT_PRESS_MASK)
     {
-        comb_state_value = (button_press_state|(button_press_state>>4))&0x0F;
+        comb_state_value = (combo_evt_flag|(combo_evt_flag>>4))&0x0F;
     }
     
-    while(button_state[i].state_value != STATE_MAX)
+    while(button_combo_event[i].combo_event != STATE_MAX)
     {
-        if(button_state[i].state_value == comb_state_value)
+        if(button_combo_event[i].combo_event == comb_state_value)
         {
-            comb_report_value = button_state[i].report_value;
+            combo_event_report_value = button_combo_event[i].report_value;
             break;
         }
         i++;
     }
 
-    return comb_report_value;
+    return combo_event_report_value;
 }
 
 s16 button_cb_handler(void *args)
 {
     u8 i = 0;
     u8 release = 0;
-    REPORT_E report_value = REPORT_MAX;
-    static button_t button = {.press_state=0, .press_down=0};
-    EVENT_E ev = (EVENT_E)args;
+    REPORT_E combo_event_report_value = REPORT_MAX;
+    static button_t button = {.combo_event_flag=0, .press_down_flag=0};
+    EVENT_E trig_evt = (EVENT_E)args;
 
-    while(button_event[i].ev != 0xFF)
+    while(button_single_event[i].trigger_event != 0xFF)
     {
-        if(button_event[i].ev == ev)
+        if(button_single_event[i].trigger_event == trig_evt)
         {
             break;
         }
         i++;
     }
 
-    if(button_event[i].ev != 0xFF)
+    if(button_single_event[i].trigger_event != 0xFF)
     {
-        if(button_event[i].sta == BUTTON_DOWN)
+        if(button_single_event[i].single_event == BUTTON_DOWN)
         {
-            button.down_time[button_event[i].idx] = TimeGet32()/SECOND;
-            button.press_state &= ~button_event[i].short_press_mask;
-            button.press_state &= ~button_event[i].long_press_mask;
-            button.press_down |= (1<<button_event[i].idx);
+            button.down_time[button_single_event[i].button_index] = TimeGet32()/SECOND;
+            button.combo_event_flag &= ~button_single_event[i].short_press_mask;
+            button.combo_event_flag &= ~button_single_event[i].long_press_mask;
+            button.press_down_flag |= (1<<button_single_event[i].button_index);
             release = 0;
         }
-        else if(button_event[i].sta == BUTTON_UP)
+        else if(button_single_event[i].single_event == BUTTON_UP)
         {
-        	button.up_time[button_event[i].idx] = TimeGet32()/SECOND;
+        	button.up_time[button_single_event[i].button_index] = TimeGet32()/SECOND;
         	u8 button_interval = 
-        		(button.up_time[button_event[i].idx]>button.down_time[button_event[i].idx])?
-        		(button.up_time[button_event[i].idx]-button.down_time[button_event[i].idx]):
-        		(button.down_time[button_event[i].idx]>button.up_time[button_event[i].idx]);
+        		(button.up_time[button_single_event[i].button_index]>button.down_time[button_single_event[i].button_index])?
+        		(button.up_time[button_single_event[i].button_index]-button.down_time[button_single_event[i].button_index]):
+        		(button.down_time[button_single_event[i].button_index]>button.up_time[button_single_event[i].button_index]);
 
         	if(button_interval >= BUTTON_LONG_PRESS_INTERVAL) /* button long press */
         	{
-                button.press_state |= button_event[i].long_press_mask;
+                button.combo_event_flag |= button_single_event[i].long_press_mask;
         	}
         	else  /* button short press */
         	{
-                button.press_state |= button_event[i].short_press_mask;
+                button.combo_event_flag |= button_single_event[i].short_press_mask;
         	}
-        	button.press_down &= ~(1<<button_event[i].idx);
+        	button.press_down_flag &= ~(1<<button_single_event[i].button_index);
             release = 1;
         }
     }
 
-    if((release == 1) && (button.press_down == 0))
+    if((release == 1) && (button.press_down_flag == 0))
     {
-        report_value = button_event_handler(button.press_state);
-        button.press_state = 0;
+        combo_event_report_value = button_combo_event_handler(button.combo_event_flag);
+        button.combo_event_flag = 0;
     }
     
-    return (s16)report_value;
+    return (s16)combo_event_report_value;
 }
 
