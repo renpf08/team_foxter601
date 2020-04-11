@@ -67,7 +67,7 @@
 #define USE_PAIRING_SUPPORT     0
 
 #ifdef RELEASE_MODE
-#define USE_M_LOG   1
+#define USE_M_LOG   0
 #else
 #define USE_M_LOG   0
 #endif
