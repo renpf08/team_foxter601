@@ -17,8 +17,9 @@
 #else
 #define BIT_RATE_9600   33
 #define TIMEOUT         BIT_RATE_9600
+#define BIT_RATE_115200 BIT_RATE_9600
 #endif
-#define BIT_RATE        BIT_RATE_115200
+#define BIT_RATE        BIT_RATE_9600
 
 #define UART_TX_HIGH(num) PioSet((num), 1UL)
 #define UART_TX_LOW(num)  PioSet((num), 0UL)
@@ -55,7 +56,7 @@ typedef struct {
     u16 ring_buffer_size;
     volatile u16 ring_buffer_head;
     volatile u16 ring_buffer_tail;
-    volatile bool ring_buffer_poll;
+    volatile bool ring_buffer_poll_timer_started;
 }uart_config_t;
 
 static uart_config_t uart_config = {
@@ -79,7 +80,7 @@ static uart_config_t uart_config = {
 	.end_flag = 0,
 	.ring_buffer_head = 0,
 	.ring_buffer_tail = 0,
-	.ring_buffer_poll = FALSE,
+	.ring_buffer_poll_timer_started = FALSE,
 };
 
 void uart_byte_enqueue(u8 byte);
@@ -98,10 +99,7 @@ void uart_byte_enqueue(u8 byte)
     uart_config.ring_buffer[uart_config.ring_buffer_tail] = byte;
     uart_config.ring_buffer_tail = (uart_config.ring_buffer_tail+1)%uart_config.ring_buffer_size;
 
-    if(uart_config.ring_buffer_poll == FALSE)
-    {
-    	csr_uart_timer_create(TIMEOUT, uart_timer_cb);
-    }
+    csr_uart_timer_create(TIMEOUT, uart_timer_cb);
 }
 
 bool uart_byte_dequeue(void)
@@ -118,8 +116,7 @@ bool uart_byte_dequeue(void)
 }
 
 #if USE_UART_BLOCK_MODE
-static bool csr_uart_send_byte(void);
-static bool csr_uart_send_byte(void)
+static int uart_send_handler(void)
 {
 	u8 bit_send = 0;
     u8 done = 0;
@@ -208,6 +205,11 @@ static int uart_send_handler(void)
 
 static timer_id csr_uart_timer_create(uint32 timeout, timer_callback_arg handler)
 {
+    if(uart_config.ring_buffer_poll_timer_started == TRUE)
+    {
+        return TIMER_INVALID;
+    }
+    
     const timer_id tId = TimerCreate(timeout, TRUE, handler);
     
     /* If a timer could not be created, panic to restart the app */
@@ -218,26 +220,22 @@ static timer_id csr_uart_timer_create(uint32 timeout, timer_callback_arg handler
         Panic(0xfe);
     }
     
-    uart_config.ring_buffer_poll = TRUE;
+    uart_config.ring_buffer_poll_timer_started = TRUE;
 	return tId;
 }
 
 static void uart_timer_cb(u16 id)
 {
 	u8 done = 0;
-    
-    #if USE_UART_BLOCK_MODE
-    done = csr_uart_send_byte();
-    #else
+
     done = uart_send_handler();
-    #endif
 	if(1 != done)
     {
 		csr_uart_timer_create(TIMEOUT, uart_timer_cb);
 	}
     else
     {
-        uart_config.ring_buffer_poll = FALSE;
+        uart_config.ring_buffer_poll_timer_started = FALSE;
     }
 }
 
