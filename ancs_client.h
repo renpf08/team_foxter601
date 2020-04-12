@@ -266,9 +266,6 @@ typedef enum
 }log_report_code;
 
 extern void LogReport(const char* file, const char* func, unsigned line, log_report_code log_report_code);
-int csr_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
-int csr_printf(const char * sFormat, ...);
-extern int csr_sprintf(char *buf, const char * sFormat, ...);
 
 /*============================================================================*
  *  Public Data Declarations
