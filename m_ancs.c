@@ -9,6 +9,7 @@
 #include "ancs_service_data.h"
 #include "m_ancs.h"
 #include "serial_service.h"
+#include "ancs_client.h"
 
 #define MANCS_LOG_ERROR(...)
 #define MANCS_LOG_WARNING(...)
@@ -333,7 +334,6 @@ void m_ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *
     
     if(++pckMsg.recvAttrIdFragment >= REQ_ANCS_NOTIF_ATT_ID_TOTAL)
     {
-        //MANCS_LOG_DEBUG("ANCS_MSG_TYPE_ADDED_MODIFIED_UNKNOWN\r\n");
         m_ancs_business_handle(ANCS_MSG_TYPE_ADDED_MODIFIED_UNKNOWN, &pckMsg);
         MemSet(&pckMsg, 0, sizeof(packing_msg_t));
     }
@@ -387,14 +387,13 @@ void m_ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source
     /** when incoming call is rejected by receiver, there is no data source to request */
     if(notiSrc->evtId == ancs_event_id_notif_removed)
     {
-        //MANCS_LOG_DEBUG("ANCS_MSG_TYPE_REMOVED");
         /** we just can only handle the newly removed message just after the newly received one 
          *  (means who has the same uuin, but not include missed call)
          */
         //if((pckMsg.catId == ancs_cat_id_missed_call) || (MemCmp(lastData.uuid, pckMsg.uuid, 4) == 0))
         if(MemCmp(lastData.uuid, pckMsg.uuid, 4) == 0)
         {
-            MANCS_LOG_INFO("removed event occur, do a clear job here...\r\n");
+            LogReport(__FILE__, __func__, __LINE__, M_Ancs_removed_event_occur);
             MemCopy(pckMsg.attrIdAppIdData, lastData.appid, sizeof(APP_ID_STRING_COMMING_CALL));
             m_ancs_business_handle(ANCS_MSG_TYPE_REMOVED, &pckMsg);
         }
@@ -422,20 +421,18 @@ void m_ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source
            (pckMsg.catId == ancs_cat_id_schedule)||
            (pckMsg.catId == ancs_cat_id_news)) //! did news need to be request data source???
         {
-            //MANCS_LOG_DEBUG("ANCS_MSG_TYPE_ADDED_MODIFIED_KNOWN\r\n");
 			if((pckMsg.catId == ancs_cat_id_incoming_call)) MemCopy(pckMsg.attrIdAppIdData, APP_ID_STRING_COMMING_CALL, sizeof(APP_ID_STRING_COMMING_CALL));
 			if((pckMsg.catId == ancs_cat_id_missed_call)) MemCopy(pckMsg.attrIdAppIdData, APP_ID_STRING_COMMING_CALL, sizeof(APP_ID_STRING_COMMING_CALL));
 			if((pckMsg.catId == ancs_cat_id_email)) MemCopy(pckMsg.attrIdAppIdData, APP_ID_STRING_EMAIL, sizeof(APP_ID_STRING_EMAIL));
 			if((pckMsg.catId == ancs_cat_id_schedule)) MemCopy(pckMsg.attrIdAppIdData, APP_ID_STRING_CALENDAR, sizeof(APP_ID_STRING_CALENDAR));
 			if((pckMsg.catId == ancs_cat_id_news)) MemCopy(pckMsg.attrIdAppIdData, APP_ID_STRING_NEWS, sizeof(APP_ID_STRING_NEWS));
-            //MANCS_LOG_DEBUG("pckMsg.attrIdAppIdData = %s\r\n", pckMsg.attrIdAppIdData);
             m_ancs_business_handle(ANCS_MSG_TYPE_ADDED_MODIFIED_KNOWN, &pckMsg);
         }
         
         /** if cat id did not indicate a known app, need to request to data source */
         else
         {
-            //MANCS_LOG_DEBUG("send data source request...\r\n");
+            LogReport(__FILE__, __func__, __LINE__, M_Ancs_send_data_source_request);
             AncsGetNotificationAttributeCmd(p_noti_source->cid);
         }
     }

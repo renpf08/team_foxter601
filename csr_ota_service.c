@@ -39,11 +39,6 @@
 #include "csr_ota_service.h"
 #include "csr_ota_uuids.h"
 
-#define OTA_LOG_ERROR(...)
-#define OTA_LOG_WARNING(...)
-#define OTA_LOG_INFO(...)
-#define OTA_LOG_DEBUG(...)
-
 /*============================================================================*
  *  Private Data Types
  *============================================================================*/
@@ -104,7 +99,6 @@ static OTA_SERV_DATA_T ota_serv_data;
 
 static sys_status readCsBlock(uint16 offset, uint8 length, uint8 *value)
 {
-    OTA_LOG_DEBUG("...readCsBlock\r\n");
     /* Check the length is within the packet size and that the read does not
      * overflow the CS block.
      */
@@ -136,7 +130,6 @@ static sys_status readCsBlock(uint16 offset, uint8 length, uint8 *value)
 
 extern void OtaDataInit(void)
 {
-    OTA_LOG_DEBUG("...OtaDataInit\r\n");
     ota_serv_data.ota_reset_required = FALSE;
 
 }
@@ -156,7 +149,6 @@ extern void OtaDataInit(void)
 
 extern void OtaHandleAccessRead(GATT_ACCESS_IND_T *p_ind)
 {
-    OTA_LOG_DEBUG("...OtaHandleAccessRead\r\n");
     sys_status  rc = sys_status_success;
     uint8 *p_value = NULL;
     uint8 data_length = 0;
@@ -226,7 +218,6 @@ extern void OtaHandleAccessRead(GATT_ACCESS_IND_T *p_ind)
 
 extern void OtaHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
 {
-    OTA_LOG_DEBUG("...OtaHandleAccessWrite\r\n");
     sys_status rc = gatt_status_write_not_permitted;
     uint16 client_config;
     BD_ADDR_T *p_bd_addr;
@@ -390,7 +381,6 @@ extern void OtaHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
 
 extern bool OtaCheckHandleRange(uint16 handle)
 {
-    OTA_LOG_DEBUG("...OtaCheckHandleRange\r\n");
     return ((handle >= HANDLE_CSR_OTA_SERVICE) &&
             (handle <= HANDLE_CSR_OTA_SERVICE_END))
             ? TRUE : FALSE;
@@ -412,7 +402,6 @@ extern bool OtaCheckHandleRange(uint16 handle)
 
 extern bool OtaResetRequired(void)
 {
-    OTA_LOG_DEBUG("...OtaResetRequired\r\n");
     return ota_serv_data.ota_reset_required;
 }
 

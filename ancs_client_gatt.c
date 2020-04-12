@@ -46,11 +46,6 @@
  */
 #define SHORTENED_DEV_NAME_LEN                   (8)
 
-#define ANCSG_LOG_ERROR(...)
-#define ANCSG_LOG_WARNING(...)
-#define ANCSG_LOG_INFO(...)
-#define ANCSG_LOG_DEBUG(...)
-
 /*============================================================================*
  *  Private Function Prototypes
  *============================================================================*/

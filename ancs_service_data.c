@@ -215,31 +215,31 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                 switch(attrId)
                 {
                     case ancs_notif_att_id_app_id :
-                    ANCSS_LOG_DEBUG("** Attr ID = App ID\r\n");
+                    LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_attr_id_app_id);
                     break;
                     
                     case ancs_notif_att_id_title :
-                    ANCSS_LOG_DEBUG("** Attr ID = Title\r\n");
+                    LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_attr_id_title);
                     break;
                     
                     case ancs_notif_att_id_subtitle :
-                    ANCSS_LOG_DEBUG("** Attr ID = Sub Title\r\n");
+                    LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_attr_id_sub_title);
                     break;
                     
                     case ancs_notif_att_id_message :
-                    ANCSS_LOG_DEBUG("** Attr ID = Message\r\n");
+                    LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_attr_id_message);
                     break;
                     
                     case ancs_notif_att_id_message_size :
-                    ANCSS_LOG_DEBUG("** Attr ID = Message Size\r\n");
+                    LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_attr_id_message_size);
                     break;
                     
                     case ancs_notif_att_id_date :
-                    ANCSS_LOG_DEBUG("** Attr ID = Date\r\n");
+                    LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_attr_id_date);
                     break;
                     
                     default :
-                    ANCSS_LOG_DEBUG("** Attr ID = Reserved\r\n");
+                    LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_attr_id_reserved);
                     b_skip_reserved = TRUE;
                     break;
                 }
@@ -452,14 +452,14 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 		#if !USE_MY_ANCS
 		if(curr_data == ancs_event_id_notif_added)
 		{
-			ANCSS_LOG_DEBUG("** Event ID = Added\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_event_id_added);
 			#ifdef ENABLE_LCD_DISPLAY
 			ClearLCDDisplay();
 			#endif  /* ENABLE_LCD_DISPLAY */
 		}
 		else if(curr_data == ancs_event_id_notif_modified)
 		{
-			ANCSS_LOG_DEBUG("** Event ID = Modified\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_event_id_modified);
 			#ifdef ENABLE_LCD_DISPLAY
 			ClearLCDDisplay();
 			#endif  /* ENABLE_LCD_DISPLAY */
@@ -467,11 +467,11 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 		else if(curr_data == ancs_event_id_notif_removed)
 		{
 			notif_removed = TRUE;
-			ANCSS_LOG_DEBUG("** Event ID = Removed\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_event_id_removed);
 		}
 		else
 		{
-			ANCSS_LOG_DEBUG("** Event ID = Reserved\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_event_id_reserved);
 		}
 		#endif
 
@@ -481,15 +481,15 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 		#if !USE_MY_ANCS
 		if(curr_data == ANCS_NS_EVENTFLAG_SILENT)
 		{
-			ANCSS_LOG_DEBUG("** Event Flags = Silent\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_event_flags_silent);
 		}
 		else if(curr_data == ANCS_NS_EVENTFLAG_IMPORTANT)
 		{
-			ANCSS_LOG_DEBUG("** Event Flags = Important\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_event_flags_important);
 		}
 		else /* Reserved */
 		{
-			ANCSS_LOG_DEBUG("** Event Flags = Reserved\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_event_flags_reserved);
 		}
 		#endif
 
@@ -500,11 +500,11 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 		switch(curr_data)
 		{
 			case ancs_cat_id_other:
-			ANCSS_LOG_DEBUG("** Cat ID = Other\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_other);
 			break;
 
 			case ancs_cat_id_incoming_call:
-			ANCSS_LOG_DEBUG("** Cat ID = Incoming call\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_incoming_call);
 
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
@@ -515,7 +515,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_missed_call:
-			ANCSS_LOG_DEBUG("** Cat ID = Missed call\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_missed_call);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -525,7 +525,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_vmail:
-			ANCSS_LOG_DEBUG("** Cat ID = vmail\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_vmail);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -535,7 +535,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_social:
-			ANCSS_LOG_DEBUG("** Cat ID = social\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_social);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -545,7 +545,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_schedule:
-			ANCSS_LOG_DEBUG("** Cat ID = schedule\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_schedule);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -555,7 +555,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_email:
-			ANCSS_LOG_DEBUG("** Cat ID = email\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_email);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -565,7 +565,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_news:
-			ANCSS_LOG_DEBUG("** Cat ID = news\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_news);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -575,7 +575,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_hnf:
-			ANCSS_LOG_DEBUG("** Cat ID = hnf\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_hnf);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -585,7 +585,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_bnf:
-			ANCSS_LOG_DEBUG("** Cat ID = bnf\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_buf);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -595,7 +595,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_location:
-			ANCSS_LOG_DEBUG("** Cat ID = location\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_location);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -605,7 +605,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_entertainment:
-			ANCSS_LOG_DEBUG("** Cat ID = entertainment\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_entertainment);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -614,7 +614,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			#endif /* ENABLE_LCD_DISPLAY */
 			break;
 			default:
-			ANCSS_LOG_DEBUG("** Cat ID = reserved\r\n");
+            LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_reserved);
 			break;
 		}
 
@@ -697,8 +697,6 @@ static bool ancsHandleDataSourceData(GATT_CHAR_VAL_IND_T *p_ind)
     }
     else
     {
-        ANCSS_LOG_DEBUG("** \r\n");
-        ANCSS_LOG_DEBUG("** Display Name %s\r\n", ((char *)p_ind->value + 1));
     }
     return TRUE;
 }

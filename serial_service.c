@@ -39,12 +39,6 @@
  */
 #define SERIAL_NVM_LEVEL_CLIENT_CONFIG_OFFSET        (0)
 
-#define SERIAL_LOG_ERROR(...)
-#define SERIAL_LOG_WARNING(...)
-#define SERIAL_LOG_INFO(...)
-#define SERIAL_LOG_DEBUG(...)
-
-
 /*============================================================================*
  *  Private Data types
  *===========================================================================*/
@@ -191,14 +185,9 @@ extern void SerialHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
             /** initiate ANCS service discovering, for test purpose */
             if((p_ind->size_value == 2) && (p_ind->value[0] == 0x0D) && (p_ind->value[1] == 0xAA))
             {
-                SERIAL_LOG_INFO("initiate ANCS service discovering...\r\n");
+                LogReport(__FILE__, __func__, __LINE__, Serial_Service_init_ancs_service_discovering);
                 DiscoverServices();
             }
-            
-            //! 当接收到蓝牙数值字符串中出现数值0x25时，调用该函数打印时，该数值会被识别成格式
-            //! 控制符%，导致输出结果出错，是故不采用m_nprintf进行格式化控制输出
-            //! mlw, 20200314 23:50
-            //! m_nprintf(p_ind->size_value, (char *)p_ind->value);
         }
         break;
         
