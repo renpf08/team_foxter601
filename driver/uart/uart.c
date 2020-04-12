@@ -8,18 +8,7 @@
 #include "user_config.h"
 #include "../driver.h"
 
-#define USE_UART_BLOCK_MODE 1
-
-#if USE_UART_BLOCK_MODE
-#define BIT_RATE_9600   99
-#define BIT_RATE_115200 1
-#define TIMEOUT         30
-#else
 #define BIT_RATE_9600   33
-#define TIMEOUT         BIT_RATE_9600
-#define BIT_RATE_115200 BIT_RATE_9600
-#endif
-#define BIT_RATE        BIT_RATE_9600
 
 #define UART_TX_HIGH(num) PioSet((num), 1UL)
 #define UART_TX_LOW(num)  PioSet((num), 0UL)
@@ -56,7 +45,7 @@ typedef struct {
     u16 ring_buffer_size;
     volatile u16 ring_buffer_head;
     volatile u16 ring_buffer_tail;
-    volatile bool ring_buffer_poll_timer_started;
+    volatile bool ring_buffer_poll;
 }uart_config_t;
 
 static uart_config_t uart_config = {
@@ -72,7 +61,7 @@ static uart_config_t uart_config = {
 	.stop = 1,
 	.parity = 0,
 	.bit_send_index = 0,
-	.bitrate = BIT_RATE,
+	.bitrate = BIT_RATE_9600,
 	.state = UART_IDLE,
 	.ring_buffer[0] = 0,
 	.ring_buffer_size = QUEUE_MAX,
@@ -80,7 +69,7 @@ static uart_config_t uart_config = {
 	.end_flag = 0,
 	.ring_buffer_head = 0,
 	.ring_buffer_tail = 0,
-	.ring_buffer_poll_timer_started = FALSE,
+	.ring_buffer_poll = FALSE,
 };
 
 void uart_byte_enqueue(u8 byte);
@@ -99,7 +88,11 @@ void uart_byte_enqueue(u8 byte)
     uart_config.ring_buffer[uart_config.ring_buffer_tail] = byte;
     uart_config.ring_buffer_tail = (uart_config.ring_buffer_tail+1)%uart_config.ring_buffer_size;
 
-    csr_uart_timer_create(TIMEOUT, uart_timer_cb);
+    if(uart_config.ring_buffer_poll == FALSE)
+    {
+    	csr_uart_timer_create(BIT_RATE_9600, uart_timer_cb);
+        uart_config.ring_buffer_poll = TRUE;
+    }
 }
 
 bool uart_byte_dequeue(void)
@@ -115,38 +108,6 @@ bool uart_byte_dequeue(void)
     return TRUE;
 }
 
-#if USE_UART_BLOCK_MODE
-static int uart_send_handler(void)
-{
-	u8 bit_send = 0;
-    u8 done = 0;
-
-    //Put GPIO to logic 0 to indicate the start
-    UART_TX_LOW(uart_config.tx.num);
-    TimeDelayUSec(uart_config.bitrate); //115200 baudrate need delay 1 more u-second in release mode
-    
-    for(uart_config.bit_send_index = 0; uart_config.bit_send_index < uart_config.data_bit; uart_config.bit_send_index++)
-    {
-        bit_send = (uart_config.ring_buffer[uart_config.ring_buffer_head] >> uart_config.bit_send_index) & 0x01;
-        if(bit_send)
-            UART_TX_HIGH(uart_config.tx.num);
-        else
-            UART_TX_LOW(uart_config.tx.num);
-        TimeDelayUSec(uart_config.bitrate);
-    }
-    
-    //Put GPIO to logic 1 to stop the transferring
-    UART_TX_HIGH(uart_config.tx.num);
-    TimeDelayUSec(uart_config.bitrate); //115200 baudrate need delay 1 more u-second in release mode
-
-    if(uart_byte_dequeue() == FALSE)
-    {
-        done = 1;
-    }
-
-    return done;
-}
-#else
 static int uart_send_handler(void)
 {
 	u8 bit_send = 0;
@@ -201,15 +162,9 @@ static int uart_send_handler(void)
     }
 	return 0;
 }
-#endif
 
 static timer_id csr_uart_timer_create(uint32 timeout, timer_callback_arg handler)
 {
-    if(uart_config.ring_buffer_poll_timer_started == TRUE)
-    {
-        return TIMER_INVALID;
-    }
-    
     const timer_id tId = TimerCreate(timeout, TRUE, handler);
     
     /* If a timer could not be created, panic to restart the app */
@@ -219,23 +174,21 @@ static timer_id csr_uart_timer_create(uint32 timeout, timer_callback_arg handler
         /* Panic with panic code 0xfe */
         Panic(0xfe);
     }
-    
-    uart_config.ring_buffer_poll_timer_started = TRUE;
 	return tId;
 }
 
 static void uart_timer_cb(u16 id)
 {
 	u8 done = 0;
-
+    
     done = uart_send_handler();
 	if(1 != done)
     {
-		csr_uart_timer_create(TIMEOUT, uart_timer_cb);
+		csr_uart_timer_create(BIT_RATE_9600, uart_timer_cb);
 	}
     else
     {
-        uart_config.ring_buffer_poll_timer_started = FALSE;
+        uart_config.ring_buffer_poll = FALSE;
     }
 }
 
