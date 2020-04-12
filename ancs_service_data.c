@@ -26,7 +26,6 @@
 #include "discovered_ancs_service.h"
 #include "app_gatt.h"
 #include "ancs_client_hw.h"
-#include "m_printf.h"
 #include "m_ancs.h"
 /*============================================================================*
  *  Private Definitions
@@ -51,17 +50,10 @@
  */
 #define ANCS_MAX_NOTIF_ATT_LENGTH                     (20)
 
-#if USE_M_LOG
-#define ANCSS_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
-#define ANCSS_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
-#define ANCSS_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
-#define ANCSS_LOG_DEBUG(...)        M_LOG_DEBUG(__VA_ARGS__)
-#else
 #define ANCSS_LOG_ERROR(...)
 #define ANCSS_LOG_WARNING(...)
 #define ANCSS_LOG_INFO(...)
 #define ANCSS_LOG_DEBUG(...)
-#endif
 
 /*============================================================================*
  *  Private Data Types
@@ -218,9 +210,7 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                 attrId = p_data[count++];
                 attribute_data.attr_id = attrId;
                 dataSrc.attrId = attrId;
-                
-                //m_printf("\r\n\r\n Attr ID = ");
-                
+
                 #if !USE_MY_ANCS
                 switch(attrId)
                 {
@@ -302,9 +292,7 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                     ANCSS_LOG_DEBUG("** Attr Len = 0x%04X\r\n", attribute_data.attr_len);
                     
                     if(attribute_data.attr_len > 0)
-                    {
-                        //m_printf("\r\n Attribute Data = "); //! comment by mlw at 20200316 17:01
-                                                              //! let this work to be done bellow
+                    {                                      //! let this work to be done bellow
                     }
                     else
                     {
@@ -344,8 +332,6 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                     }
                     g_ancs_data[i] = '\0';
 
-                    /* Display to UART */
-                    //m_printf((const char *)&g_ancs_data[0]);
                     #ifdef ENABLE_LCD_DISPLAY
                     if(attribute_data.attr_id  == ancs_notif_att_id_subtitle)
                     {
@@ -385,9 +371,6 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                         
                         g_ancs_data[i] = '\0';
 
-                        /* Display to UART */
-                        //m_printf((const char*)&g_ancs_data[0]);
-                        
                         #ifdef ENABLE_LCD_DISPLAY
                         if(attribute_data.attr_id  == ancs_notif_att_id_subtitle)
                         {
@@ -714,11 +697,6 @@ static bool ancsHandleDataSourceData(GATT_CHAR_VAL_IND_T *p_ind)
     }
     else
     {
-        /* if cmd id = 1*/
-        /* Check for APP ID */
-        //m_printf("\r\nDisplay Name ");
-        //m_printf((char *)p_ind->value + 1);
-        //m_printf("\r\n");
         ANCSS_LOG_DEBUG("** \r\n");
         ANCSS_LOG_DEBUG("** Display Name %s\r\n", ((char *)p_ind->value + 1));
     }

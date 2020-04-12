@@ -47,9 +47,6 @@
 #include "user_config.h"
 #include "gatt_service.h"
 #include "csr_ota_service.h"
-#include "m_timer.h"
-#include "m_uart.h"
-#include "m_printf.h"
 #include "adapter/adapter.h"
 #include "driver/driver.h"
 #include "common/common.h"
@@ -105,17 +102,10 @@
  */
 #define UUID_INVALID             (0x0000)
 
-#if USE_M_LOG
-#define ANCSC_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
-#define ANCSC_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
-#define ANCSC_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
-#define ANCSC_LOG_DEBUG(...)        //! M_LOG_DEBUG(__VA_ARGS__)
-#else
 #define ANCSC_LOG_ERROR(...)
 #define ANCSC_LOG_WARNING(...)
 #define ANCSC_LOG_INFO(...)
 #define ANCSC_LOG_DEBUG(...)
-#endif
 
 /*============================================================================*
  *  Private Data
@@ -2351,10 +2341,6 @@ void AppInit(sleep_state last_sleep_state)
 
 	adapter_init(adapter_cb_handler);
 
-    #if USE_M_LOG
-    m_printf_init();
-    #endif
-    
     /* Initialise GATT entity */
     GattInit();
 
@@ -2383,11 +2369,7 @@ void AppInit(sleep_state last_sleep_state)
       * add by mlw at 20200314 01:37
       */
     m_devname_init(devName);
-    #if USE_M_LOG
-    m_printf("\r\n");
-    m_printf("\r\n");
     ANCSC_LOG_INFO("system started: %s, bonding statu: %d\r\n", devName, g_app_data.bonded);
-    #endif
 
     /* Tell Security Manager module about the value it needs to initialise it's
      * diversifier to.

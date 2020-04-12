@@ -30,7 +30,6 @@
 
 #include "ota_customisation.h"
 #include "app_gatt.h"
-#include "m_printf.h"
 
 #if defined(USE_STATIC_RANDOM_ADDRESS) || defined(USE_RESOLVABLE_RANDOM_ADDRESS)
 #include <gap_app_if.h>
@@ -39,19 +38,11 @@
 #include "gatt_service.h"
 #include "csr_ota_service.h"
 #include "csr_ota_uuids.h"
-#include "m_printf.h"
 
-#if USE_M_LOG
-#define OTA_LOG_ERROR(...)        //! M_LOG_ERROR(__VA_ARGS__)
-#define OTA_LOG_WARNING(...)      //! M_LOG_WARNING(__VA_ARGS__)
-#define OTA_LOG_INFO(...)         //! M_LOG_INFO(__VA_ARGS__)
-#define OTA_LOG_DEBUG(...)        //! M_LOG_DEBUG(__VA_ARGS__)
-#else
 #define OTA_LOG_ERROR(...)
 #define OTA_LOG_WARNING(...)
 #define OTA_LOG_INFO(...)
 #define OTA_LOG_DEBUG(...)
-#endif
 
 /*============================================================================*
  *  Private Data Types

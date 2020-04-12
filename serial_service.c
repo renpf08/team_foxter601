@@ -26,7 +26,6 @@
 #include "app_gatt_db.h"
 #include "app_gatt.h"
 #include "ancs_client.h"
-#include "m_printf.h"
 
 /*============================================================================*
  *  Private Definitions
@@ -40,17 +39,11 @@
  */
 #define SERIAL_NVM_LEVEL_CLIENT_CONFIG_OFFSET        (0)
 
-#if USE_M_LOG
-#define SERIAL_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
-#define SERIAL_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
-#define SERIAL_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
-#define SERIAL_LOG_DEBUG(...)        M_LOG_DEBUG(__VA_ARGS__)
-#else
 #define SERIAL_LOG_ERROR(...)
 #define SERIAL_LOG_WARNING(...)
 #define SERIAL_LOG_INFO(...)
 #define SERIAL_LOG_DEBUG(...)
-#endif
+
 
 /*============================================================================*
  *  Private Data types
@@ -195,15 +188,6 @@ extern void SerialHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
         
         case HANDLE_SERIAL_DATA_ATDR:
         {
-            #if USE_M_LOG
-            uint8 i = 0;
-            /* Send the received data to the UART */
-            for(i = 0; i < p_ind->size_value; i++)
-            {
-                m_printf("%c", p_ind->value[i]);
-            }
-            #endif
-            
             /** initiate ANCS service discovering, for test purpose */
             if((p_ind->size_value == 2) && (p_ind->value[0] == 0x0D) && (p_ind->value[1] == 0xAA))
             {

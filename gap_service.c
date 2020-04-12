@@ -29,7 +29,6 @@
 #include "nvm_access.h"
 #include "ancs_client_gatt.h"
 #include "app_gatt.h"
-#include "m_printf.h"
 #include "config_store.h"
 #include "gatt_service.h"
 
@@ -436,8 +435,6 @@ void m_devname_init(uint8* devName)
         addrBuf[3] = (uint8)(bdaddr.uap);
         addrBuf[4] = (uint8)(bdaddr.nap);
         addrBuf[5] = (uint8)(bdaddr.nap >> 8);
-        
-        //m_printf("addr: %02X:%02X:%02X:%02X:%02X:%02X\r\n",addrBuf[0],addrBuf[1],addrBuf[2],addrBuf[3],addrBuf[4],addrBuf[5]);
     }
     
     char hexCharTbl[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};

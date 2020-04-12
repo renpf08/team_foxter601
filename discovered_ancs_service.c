@@ -26,19 +26,11 @@
 #include "discovered_ancs_service.h"
 #include "nvm_access.h"
 #include "ancs_uuids.h"
-#include "m_printf.h"
 
-#if USE_M_LOG
-#define DISCS_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
-#define DISCS_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
-#define DISCS_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
-#define DISCS_LOG_DEBUG(...)        //! M_LOG_DEBUG(__VA_ARGS__)
-#else
 #define DISCS_LOG_ERROR(...)
 #define DISCS_LOG_WARNING(...)
 #define DISCS_LOG_INFO(...)
 #define DISCS_LOG_DEBUG(...)
-#endif
 
 /*============================================================================*
  *  Private Data

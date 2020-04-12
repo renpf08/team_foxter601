@@ -8,21 +8,12 @@
 #include <mem.h>
 #include "ancs_service_data.h"
 #include "m_ancs.h"
-#include "m_printf.h"
-#include "m_timer.h"
 #include "serial_service.h"
 
-#if USE_M_LOG
-#define MANCS_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
-#define MANCS_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
-#define MANCS_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
-#define MANCS_LOG_DEBUG(...)        M_LOG_DEBUG(__VA_ARGS__)
-#else
 #define MANCS_LOG_ERROR(...)
 #define MANCS_LOG_WARNING(...)
 #define MANCS_LOG_INFO(...)
 #define MANCS_LOG_DEBUG(...)
-#endif
 
 /* Notification Source Event Flags */
 #define ANCS_NS_EVENTFLAG_SILENT                 (0x01) 
@@ -144,7 +135,7 @@ typedef enum
     reserved
 }event_flag_str;
 
-#if USE_M_LOG
+#if 0
 #define STRINGIFY(val) #val
 #define M_VALUE_TO_STR(name) [name] = STRINGIFY(name)
 
@@ -189,7 +180,7 @@ static const char * ancs_notif_event_flag_str[] =
     M_VALUE_TO_STR(reserved)
 };
 #endif
-#endif //! end with USE_M_LOG
+#endif //! end with 0
 typedef enum
 {
     ANCS_MSG_TYPE_ADDED_MODIFIED_KNOWN,
