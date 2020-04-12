@@ -116,7 +116,8 @@ s16 csr_event_callback(EVENT_E ev)
 {
     if(ev >= EVENT_MAX) {
         return -1;
-    }else {
+    }else if(ev < MAGNETOMETER_READY){
+    	adapter.drv->uart->uart_write((u8 *)&ev, 1);
         driver_cb[ev]((void*)&button_state);
         if(button_state.press_down == 0) {  /* All button release */
             csr_key_event_rec(button_state.press_state);
