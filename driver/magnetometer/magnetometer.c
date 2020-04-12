@@ -304,7 +304,7 @@ static s16 csr_magnetometer_read(void *args)
 	return 0;
 }
 
-s16 csr_magnetometer_event_handler(u16 num, u16 status)
+s16 csr_magnetometer_event_handler(u32 num, u32 status)
 {
 	if(num & (1UL << csr_mag3110.cfg.int1.num)) {
 		if(NULL != csr_mag3110.magnetometer_cb) {

@@ -17,7 +17,7 @@ static csr_keyb_cfg_t csr_keyb_cfg = {
 	.last_state = KEY_B_UP,
 };
 
-s16 csr_keyb_event_handler(u16 key_num, u16 key_status)
+s16 csr_keyb_event_handler(u32 key_num, u32 key_status)
 {
 	EVENT_E now_state;
 	if(key_num & (1UL << csr_keyb_cfg.pin.num)) {

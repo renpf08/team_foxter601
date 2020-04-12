@@ -76,15 +76,12 @@
   <file path="gatt_service.c" />
   <file path="lcd_display.c" />
   <file path="serial_service.c" />
-  <file path="m_printf.c" />
   <file path="m_ancs.c" />
-  <file path="m_ancs.h" />
  </folder>
  <folder name="Header Files" >
   <extension name="h" />
-  <file path="m_printf.h" />
+  <file path="m_ancs.h" />
   <file path="display.h" />
-  <file path="m_uart.h" />
   <file path="nvm_access.h" />
   <file path="ancs_client.h" />
   <file path="ancs_client_gatt.h" />
@@ -117,7 +114,6 @@
   <file path="appearance.h" />
   <file path="lcd_display.h" />
   <file path="serial_service.h" />
-  <file path="m_timer.h" />
  </folder>
  <folder name="Assembler Files" >
   <extension name="asm" />
@@ -138,7 +134,7 @@
    <property key="csr100x_keyr" >ancs_csr100x.keyr</property>
    <property key="csr101x_a05_keyr" >ancs_csr101x_A05.keyr</property>
    <property key="debugtransport" ></property>
-   <property key="defines" ></property>
+   <property key="defines" >DEBUG_MODE,EXTRA_DELAY=0</property>
    <property key="erase_nvm" >1</property>
    <property key="flash_clock" ></property>
    <property key="flash_miso" ></property>
@@ -159,7 +155,7 @@
    <property key="csr100x_keyr" >ancs_csr100x.keyr</property>
    <property key="csr101x_a05_keyr" >ancs_csr101x_A05.keyr</property>
    <property key="debugtransport" ></property>
-   <property key="defines" ></property>
+   <property key="defines" >RELEASE_MODE,EXTRA_DELAY=1</property>
    <property key="erase_nvm" >1</property>
    <property key="flash_clock" ></property>
    <property key="flash_miso" ></property>

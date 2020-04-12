@@ -28,6 +28,26 @@ static driver_callback_handler driver_cb[] = {
 	[MAGNETOMETER_READY] = mag_cb_handler,
 };
 
+static button_state_t button_state = {0, 0};
+
+static button_report_t button_report[] = {
+    {KEY_A_LONG_PRESS, KEYS_A_LONG_PRESS_VALUE, 16},
+    {KEY_A_SHORT_PRESS, KEYS_A_SHORT_PRESS_VALUE, 17},
+    {KEY_B_LONG_PRESS, KEYS_B_LONG_PRESS_VALUE, 16},
+    {KEY_B_SHORT_PRESS, KEYS_B_SHORT_PRESS_VALUE, 17},
+    {KEY_M_LONG_PRESS, KEYS_M_LONG_PRESS_VALUE, 16},
+    {KEY_M_SHORT_PRESS, KEYS_M_SHORT_PRESS_VALUE, 17},
+    {KEY_A_B_LONG_PRESS, KEYS_A_B_LONG_PRESS_VALUE, 18},
+    {KEY_A_B_SHORT_PRESS, KEYS_A_B_SHORT_PRESS_VALUE, 19},
+    {KEY_A_M_LONG_PRESS, KEYS_A_M_LONG_PRESS_VALUE, 18},
+    {KEY_A_M_SHORT_PRESS, KEYS_A_M_SHORT_PRESS_VALUE, 19},
+    {KEY_B_M_LONG_PRESS, KEYS_B_M_LONG_PRESS_VALUE, 18},
+    {KEY_B_M_SHORT_PRESS, KEYS_B_M_SHORT_PRESS_VALUE, 19},
+    {KEY_A_B_M_LONG_PRESS, KEYS_A_B_M_LONG_PRESS_VALUE, 20},
+    {KEY_A_B_M_SHORT_PRESS, KEYS_A_B_M_SHORT_PRESS_VALUE, 21},
+    {REPORT_MAX, STATE_MAX, 10},
+};
+
 typedef struct {
 	driver_t *drv;
 	adapter_callback cb;
@@ -38,13 +58,72 @@ static adapter_t adapter = {
 	.cb = NULL,
 };
 
+#define STRINGIFY(val) #val
+#define M_VALUE_TO_STR(name) [name] = STRINGIFY(name)
+static const char * keys_state_str[] =
+{
+    M_VALUE_TO_STR(KEY_A_LONG_PRESS),
+    M_VALUE_TO_STR(KEY_A_SHORT_PRESS),
+    M_VALUE_TO_STR(KEY_B_LONG_PRESS),
+    M_VALUE_TO_STR(KEY_B_SHORT_PRESS),
+    M_VALUE_TO_STR(KEY_M_LONG_PRESS),
+    M_VALUE_TO_STR(KEY_M_SHORT_PRESS),
+    M_VALUE_TO_STR(KEY_A_B_LONG_PRESS),
+    M_VALUE_TO_STR(KEY_A_B_SHORT_PRESS),
+    M_VALUE_TO_STR(KEY_A_M_LONG_PRESS),
+    M_VALUE_TO_STR(KEY_A_M_SHORT_PRESS),
+    M_VALUE_TO_STR(KEY_B_M_LONG_PRESS),
+    M_VALUE_TO_STR(KEY_B_M_SHORT_PRESS),
+    M_VALUE_TO_STR(KEY_A_B_M_LONG_PRESS),
+    M_VALUE_TO_STR(KEY_A_B_M_SHORT_PRESS),
+    M_VALUE_TO_STR(REPORT_MAX)
+};
+
+#include "serial_service.h" /* just for test purpose */
+REPORT_E csr_key_event_rec(u8 key_state);
+REPORT_E csr_key_event_rec(u8 key_state)
+{
+    u8 i = 0;
+    u8 press_keys = 0;
+    REPORT_E key_report = REPORT_MAX;
+    
+    if(key_state & KEY_LONG_PRESS_MASK)
+    {
+        press_keys = (key_state&0xF0)|((key_state<<4)&0xF0);
+    }
+    else if(key_state & KEY_SHORT_PRESS_MASK)
+    {
+        press_keys = (key_state&0x0F)|((key_state>>4)&0x0F);
+    }
+    
+    while(button_report[i].state_value != STATE_MAX)
+    {
+        if(button_report[i].state_value == press_keys)
+        {
+            key_report = button_report[i].report_value;
+            break;
+        }
+        i++;
+    }
+    
+    u8* key_str = (u8*)&keys_state_str[key_report];
+    SerialSendNotification((u8*)key_str[0], button_report[i].report_str_len); /* just for test purpose */
+    
+    return key_report;
+}
+
 s16 csr_event_callback(EVENT_E ev)
 {
-	if(ev >= EVENT_MAX) {
-		return -1;
-	}else {
-		driver_cb[ev](NULL);
-	}
+    if(ev >= EVENT_MAX) {
+        return -1;
+    }else if(ev < MAGNETOMETER_READY){
+    	adapter.drv->uart->uart_write((u8 *)&ev, 1);
+        driver_cb[ev]((void*)&button_state);
+        if(button_state.press_down == 0) {  /* All button release */
+            csr_key_event_rec(button_state.press_state);
+            button_state.press_state = 0;
+        }
+    }
 	
 	return 0;
 }
