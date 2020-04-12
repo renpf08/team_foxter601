@@ -108,9 +108,13 @@ bool uart_byte_dequeue(void)
     return TRUE;
 }
 
-static int uart_send_handler(void)
+static int uart_send_handler(uint32 *timeout)
 {
+    #ifdef RELEASE_MODE
+    //static bool jump = FALSE;
+    #endif
 	u8 bit_send = 0;
+    *timeout = BIT_RATE_9600;
 
     switch(uart_config.state) {
 		case UART_IDLE:
@@ -120,7 +124,7 @@ static int uart_send_handler(void)
 			//Put GPIO to logic 0 to indicate the start
 			UART_TX_LOW(uart_config.tx.num);
             #ifdef RELEASE_MODE
-            TimeDelayUSec(10);
+            //TimeDelayUSec(10);
             #endif
 			uart_config.bit_send_index = 0;
 			uart_config.state = UART_TRANSFERRING;
@@ -145,7 +149,7 @@ static int uart_send_handler(void)
 			//Put GPIO to logic 1 to stop the transferring
 			UART_TX_HIGH(uart_config.tx.num);
             #ifdef RELEASE_MODE
-            TimeDelayUSec(10);
+            //TimeDelayUSec(10);
             #endif
         	if(uart_byte_dequeue() == FALSE)
         	{
@@ -180,11 +184,12 @@ static timer_id csr_uart_timer_create(uint32 timeout, timer_callback_arg handler
 static void uart_timer_cb(u16 id)
 {
 	u8 done = 0;
+    uint32 timeout = BIT_RATE_9600;
     
-    done = uart_send_handler();
+    done = uart_send_handler(&timeout);
 	if(1 != done)
     {
-		csr_uart_timer_create(BIT_RATE_9600, uart_timer_cb);
+		csr_uart_timer_create(timeout, uart_timer_cb);
 	}
     else
     {

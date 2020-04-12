@@ -68,6 +68,8 @@ static s16 driver_init(void)
 	//uart init and test
 	adapter.drv->uart->uart_init(&args, NULL);
 	adapter.drv->uart->uart_write(test, 23);
+	adapter.drv->uart->uart_write(test, 23);
+	adapter.drv->uart->uart_write(test, 23);
 
 	//vibrator init
 	adapter.drv->vibrator->vibrator_init(&args, NULL);
