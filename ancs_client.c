@@ -2271,10 +2271,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	return 0;
 }
 
-extern void LogReport(const char* file, const char* func, unsigned line, log_report_code code)
-{
-}
-
+#include "../driver/driver.h"
 /*----------------------------------------------------------------------------*
  *  NAME
  *      AppInit
@@ -2327,6 +2324,15 @@ void AppInit(sleep_state last_sleep_state)
       */
     m_devname_init(devName);
     LogReport(__FILE__, __func__, __LINE__, Ancs_Client_system_started); // devName
+    driver_t *print_drv;
+    print_drv = get_driver();
+    print_drv->uart->uart_write((unsigned char*)devName, StrLen((char*)devName));
+    /*char buf[64] = {0};
+    u8 value = 123;
+    csr_sprintf((char*)buf, "(value: %d)", value);
+    print_drv->uart->uart_write((unsigned char*)buf, StrLen((char*)buf));*/
+    u8 value = 123;
+    csr_printf("(value: %d)", value);
 
     /* Tell Security Manager module about the value it needs to initialise it's
      * diversifier to.
@@ -2782,6 +2788,10 @@ void APP_Move_Bonded(uint8 caller)
     LogReport(__FILE__, __func__, __LINE__, Ancs_Client_remove_bonding_ok);
 }
 
+extern void LogReport(const char* file, const char* func, unsigned line, log_report_code code)
+{
+}
+
 typedef char *  va_list;  
 #define _INTSIZEOF(n)	((sizeof(n) + sizeof(int) - 1) & ~(sizeof(int) - 1))  
 #define va_start(ap,v)	(ap = (va_list)&v + _INTSIZEOF(v) )  
@@ -3033,6 +3043,44 @@ int csr_vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pPa
 	} while(1);
 
 	return len;
+}
+
+int csr_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...)
+{
+    int r = 0;
+    va_list ParamList;
+    char preStr[64] = {0};
+    unsigned len = 0;
+    
+    do
+    {
+        if(len >= sizeof(preStr)) break;
+        preStr[len++] = *file;
+        if(*file == '\\')
+        {
+            file += len;
+            len = 0;
+        }
+    } while(*++file != '\0');
+    preStr[len] = '\0';
+    
+    csr_printf("%-30s%-40s%6d%10s:", preStr, func, line, level);
+    va_start(ParamList, sFormat);
+    r = csr_vprintf(0, 0, sFormat, &ParamList);
+    va_end(ParamList);
+    return r;
+}
+int csr_printf(const char * sFormat, ...)
+{
+	return 0;
+    int r = 0;
+    va_list ParamList;
+
+    va_start(ParamList, sFormat);
+    r = va_arg(ParamList, int); //! 测试发现，参数列表的第一个参数是乱码，此处需要做一次读操作相当于去掉第一个参数！！！
+    r = csr_vprintf(0, 0, sFormat, &ParamList);
+    va_end(ParamList);
+    return r;
 }
 
 extern int csr_sprintf(char *buf, const char * sFormat, ...)
