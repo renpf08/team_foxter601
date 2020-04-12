@@ -82,10 +82,10 @@ typedef struct {
 	motor_t		*motor_notify;
 }driver_t;
 
-s16 csr_keya_event_handler(u16 key_num, u16 key_status);
-s16 csr_keyb_event_handler(u16 key_num, u16 key_status);
-s16 csr_keym_event_handler(u16 key_num, u16 key_status);
-s16 csr_magnetometer_event_handler(u16 num, u16 status);
+s16 csr_keya_event_handler(u32 key_num, u32 key_status);
+s16 csr_keyb_event_handler(u32 key_num, u32 key_status);
+s16 csr_keym_event_handler(u32 key_num, u32 key_status);
+s16 csr_magnetometer_event_handler(u32 num, u32 status);
 driver_t *get_driver(void);
 
 #endif
