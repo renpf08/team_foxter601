@@ -129,7 +129,7 @@
  </folder>
  <file path="ancs_csr101x_A05.keyr" />
  <file path="bootloader.keyr" />
- <properties currentconfiguration="Debug" >
+ <properties currentconfiguration="Release" >
   <configuration name="Debug" >
    <property key="csr100x_keyr" >ancs_csr100x.keyr</property>
    <property key="csr101x_a05_keyr" >ancs_csr101x_A05.keyr</property>
