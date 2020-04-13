@@ -19,18 +19,6 @@ extern s16 clock_init(void);
 s16 csr_event_callback(EVENT_E ev);
 void driver_uninit(void);
 
-#if 0
-static driver_callback_handler driver_cb[] = {
-	[KEY_A_UP] =  button_A_up_cb_handler,
-	[KEY_A_DOWN] = button_A_down_cb_handler,
-	[KEY_B_UP] = button_B_up_cb_handler,
-	[KEY_B_DOWN] = button_B_down_cb_handler,
-	[KEY_M_UP] = button_M_up_cb_handler,
-	[KEY_M_DOWN] = button_M_down_cb_handler,
-	[MAGNETOMETER_READY] = mag_cb_handler,
-};
-#endif
-
 typedef struct {
 	driver_t *drv;
 	adapter_callback cb;
@@ -45,7 +33,8 @@ s16 csr_event_callback(EVENT_E ev)
 {
 	if(ev >= EVENT_MAX) {
 		return -1;
-	}else {
+	}else if(ev < MAGNETOMETER_READY){
+    	adapter.drv->uart->uart_write((u8 *)&ev, 1);
 		button_cb_handler((void*)ev);
 	}
 	
