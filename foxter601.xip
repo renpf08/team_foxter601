@@ -75,9 +75,11 @@
   <file path="lcd_display.c" />
   <file path="serial_service.c" />
   <file path="m_ancs.c" />
+  <file path="m_cmd.c" />
  </folder>
  <folder name="Header Files" >
   <extension name="h" />
+  <file path="m_cmd.h" />
   <file path="m_ancs.h" />
   <file path="display.h" />
   <file path="nvm_access.h" />

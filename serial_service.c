@@ -26,6 +26,7 @@
 #include "app_gatt_db.h"
 #include "app_gatt.h"
 #include "ancs_client.h"
+#include "m_cmd.h"
 
 /*============================================================================*
  *  Private Definitions
@@ -182,12 +183,7 @@ extern void SerialHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
         
         case HANDLE_SERIAL_DATA_ATDR:
         {
-            /** initiate ANCS service discovering, for test purpose */
-            if((p_ind->size_value == 2) && (p_ind->value[0] == 0x0D) && (p_ind->value[1] == 0xAA))
-            {
-                LogReport(__FILE__, __func__, __LINE__, Serial_Service_init_ancs_service_discovering);
-                DiscoverServices();
-            }
+            cmd_dispatch((char*)p_ind->value, (uint8)p_ind->size_value);
         }
         break;
         
