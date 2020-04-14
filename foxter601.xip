@@ -2,6 +2,9 @@
  <folder name="C Files" >
   <extension name="c" />
   <folder name="adapter" >
+   <folder name="nvm" >
+    <file path="adapter/nvm/nvm.c" />
+   </folder>
    <folder name="mag" >
     <file path="adapter/mag/mag.c" />
    </folder>
