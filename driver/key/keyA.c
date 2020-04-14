@@ -19,12 +19,9 @@ static csr_keya_cfg_t csr_keya_cfg = {
 
 s16 csr_keya_event_handler(u32 key_num, u32 key_status)
 {
-    u16 num = (csr_keya_cfg.pin.num>16)?((key_num>>16)&0x0000FFFF):key_num;
-    u16 status = (csr_keya_cfg.pin.num>16)?((key_status>>16)&0x0000FFFF):key_status;
-    u16 pin = (csr_keya_cfg.pin.num>16)?(csr_keya_cfg.pin.num-16):csr_keya_cfg.pin.num;
 	EVENT_E now_state;
-	if(num & (1UL << pin)) {
-		if(status & (1 << pin)) {
+	if(key_num & (0x01UL << csr_keya_cfg.pin.num)) {
+		if(key_status & (0x01UL << csr_keya_cfg.pin.num)) {
 			now_state = KEY_A_UP;
 		} else {
 			now_state = KEY_A_DOWN;
