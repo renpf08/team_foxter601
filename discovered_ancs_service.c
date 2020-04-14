@@ -26,19 +26,7 @@
 #include "discovered_ancs_service.h"
 #include "nvm_access.h"
 #include "ancs_uuids.h"
-#include "m_printf.h"
-
-#if USE_M_LOG
-#define DISCS_LOG_ERROR(...)        M_LOG_ERROR(__VA_ARGS__)
-#define DISCS_LOG_WARNING(...)      M_LOG_WARNING(__VA_ARGS__)
-#define DISCS_LOG_INFO(...)         M_LOG_INFO(__VA_ARGS__)
-#define DISCS_LOG_DEBUG(...)        //! M_LOG_DEBUG(__VA_ARGS__)
-#else
-#define DISCS_LOG_ERROR(...)
-#define DISCS_LOG_WARNING(...)
-#define DISCS_LOG_INFO(...)
-#define DISCS_LOG_DEBUG(...)
-#endif
+#include "ancs_client.h"
 
 /*============================================================================*
  *  Private Data
@@ -173,7 +161,7 @@ extern void WriteDiscAncsServiceHandlesToNVM(void)
                 offset + NVM_DISC_ANCS_NOTIFICATION_HANDLE_OFFSET + (index));
     }
     
-    DISCS_LOG_DEBUG("write disc ancs service handles to nvm.\r\n");
+    LogReport(__FILE__, __func__, __LINE__, Discovered_Ancs_write_ancs_service_handles_ok);
 }
 
 /*----------------------------------------------------------------------------*
@@ -215,12 +203,12 @@ extern void ReadDiscoveredAncsServiceHandlesFromNVM(uint16 *p_offset,
                     *p_offset + NVM_DISC_ANCS_NOTIFICATION_HANDLE_OFFSET + 
                     (index));
         }
-        DISCS_LOG_DEBUG("read disc ANCS service handles from nvm ok.\r\n");
+        LogReport(__FILE__, __func__, __LINE__, Discovered_Ancs_read_ancs_service_handles_ok);
     }
     
     else //! add by mlw at 20200316 14:04
     {
-        DISCS_LOG_DEBUG("reads the ANCS service handles faild.\r\n");
+        LogReport(__FILE__, __func__, __LINE__, Discovered_Ancs_read_ancs_service_handles_faild);
     }
     /* Increment the offset by the number of words of NVM memory required 
      * by the discovered Device Information Service.
@@ -241,7 +229,6 @@ extern void ReadDiscoveredAncsServiceHandlesFromNVM(uint16 *p_offset,
  *----------------------------------------------------------------------------*/
 extern uint16 GetRemoteDiscAncsServiceStartHandle(void)
 {
-    DISCS_LOG_DEBUG("get remote disc ancs service start handle = 0x%04X.\r\n", g_disc_ancs_service.start_handle);
     return g_disc_ancs_service.start_handle;
 }
 
@@ -258,7 +245,6 @@ extern uint16 GetRemoteDiscAncsServiceStartHandle(void)
  *----------------------------------------------------------------------------*/
 extern uint16 GetRemoteDiscAncsServiceEndHandle(void)
 {
-    DISCS_LOG_DEBUG("get remote disc ancs service end handle = 0x%04X.\r\n", g_disc_ancs_service.end_handle);
     return g_disc_ancs_service.end_handle;
 }
 
@@ -277,7 +263,6 @@ extern uint16 GetRemoteDiscAncsServiceEndHandle(void)
 
 extern bool DoesHandleBelongToDiscoveredAncsService(uint16 handle)
 {
-    DISCS_LOG_DEBUG("does handle belong to discovered ancs service = %d.\r\n", (((handle >= g_disc_ancs_service.start_handle) && (handle <= g_disc_ancs_service.end_handle))? TRUE : FALSE));
     return ((handle >= g_disc_ancs_service.start_handle) &&
             (handle <= g_disc_ancs_service.end_handle))
             ? TRUE : FALSE;
@@ -297,7 +282,6 @@ extern bool DoesHandleBelongToDiscoveredAncsService(uint16 handle)
 
 extern uint16 GetAncsNotificationHandle(void)
 {
-    DISCS_LOG_DEBUG("get ancs notification handle = 0x%04X.\r\n", g_disc_ancs_char[0].start_handle);
     return g_disc_ancs_char[0].start_handle;
 }
 
@@ -315,7 +299,6 @@ extern uint16 GetAncsNotificationHandle(void)
 
 extern uint16 GetAncsNotificationCCDHandle(void)
 {
-    DISCS_LOG_DEBUG("get ancs notification ccd handle = 0x%04X.\r\n", g_disc_ancs_char[0].ccd_handle);
     return g_disc_ancs_char[0].ccd_handle;
 }
 
@@ -333,7 +316,6 @@ extern uint16 GetAncsNotificationCCDHandle(void)
 
 extern uint16 GetAncsControlPointHandle(void)
 {
-    DISCS_LOG_DEBUG("get ancs control point handle = 0x%04X.\r\n", g_disc_ancs_char[1].start_handle);
     return g_disc_ancs_char[1].start_handle;
 }
 
@@ -351,7 +333,6 @@ extern uint16 GetAncsControlPointHandle(void)
 
 extern uint16 GetAncsDataSourceHandle(void)
 {
-    DISCS_LOG_DEBUG("get ancs data source handle = 0x%04X.\r\n", g_disc_ancs_char[2].start_handle);
     return g_disc_ancs_char[2].start_handle;
 }
 
@@ -369,6 +350,5 @@ extern uint16 GetAncsDataSourceHandle(void)
 
 extern uint16 GetAncsDataSourceCCDHandle(void)
 {
-    DISCS_LOG_DEBUG("get ancs data source ccd handle = 0x%04X.\r\n", g_disc_ancs_char[2].ccd_handle);
     return g_disc_ancs_char[2].ccd_handle;
 }

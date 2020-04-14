@@ -8,7 +8,8 @@
 #include "user_config.h"
 #include "../driver.h"
 
-#define TIMEOUT 33
+#define BIT_RATE_9600   33
+
 #define UART_TX_HIGH(num) PioSet((num), 1UL)
 #define UART_TX_LOW(num)  PioSet((num), 0UL)
 
@@ -26,19 +27,25 @@ typedef enum {
     GPIO_UART_PARITY_MODE_ODD,
     GPIO_UART_PARITY_MODE_EVEN
 }UART_PARITY_MODE;
+    
+#define QUEUE_MAX   64
 
 typedef struct {
 	pin_t rx;
 	pin_t tx;
-	u8 data_bit;
+	volatile u8 data_bit;
 	u8 stop;
 	u8 parity;
-	u8 bit_send_index;
+	volatile u8 bit_send_index;
 	u16 bitrate;
-	UART_STATE_E state;
-	u8 *buf_ptr;
-	u8 size;
+	volatile UART_STATE_E state;
+	volatile u8 size;
 	u8 end_flag;
+	volatile u8 ring_buffer[QUEUE_MAX];
+    u16 ring_buffer_size;
+    volatile u16 ring_buffer_head;
+    volatile u16 ring_buffer_tail;
+    volatile bool ring_buffer_poll;
 }uart_config_t;
 
 static uart_config_t uart_config = {
@@ -54,17 +61,61 @@ static uart_config_t uart_config = {
 	.stop = 1,
 	.parity = 0,
 	.bit_send_index = 0,
-	.bitrate = 9600,
+	.bitrate = BIT_RATE_9600,
 	.state = UART_IDLE,
-	.buf_ptr = NULL,
+	.ring_buffer[0] = 0,
+	.ring_buffer_size = QUEUE_MAX,
 	.size = 0,
 	.end_flag = 0,
+	.ring_buffer_head = 0,
+	.ring_buffer_tail = 0,
+	.ring_buffer_poll = FALSE,
 };
 
-static int uart_send_handler(void)
+void uart_byte_enqueue(u8 byte);
+bool uart_byte_dequeue(void);
+static timer_id csr_uart_timer_create(uint32 timeout, timer_callback_arg handler);
+static void uart_timer_cb(u16 id);
+
+void uart_byte_enqueue(u8 byte)
 {
+    /** queue is full, discard the oldest byte */
+    if(uart_config.ring_buffer_head == ((uart_config.ring_buffer_tail+1)%uart_config.ring_buffer_size))
+    {
+        uart_config.ring_buffer_head = (uart_config.ring_buffer_head+1)%uart_config.ring_buffer_size;
+    }
+    
+    uart_config.ring_buffer[uart_config.ring_buffer_tail] = byte;
+    uart_config.ring_buffer_tail = (uart_config.ring_buffer_tail+1)%uart_config.ring_buffer_size;
+
+    if(uart_config.ring_buffer_poll == FALSE)
+    {
+    	csr_uart_timer_create(BIT_RATE_9600, uart_timer_cb);
+        uart_config.ring_buffer_poll = TRUE;
+    }
+}
+
+bool uart_byte_dequeue(void)
+{
+    uart_config.ring_buffer_head = (uart_config.ring_buffer_head+1)%uart_config.ring_buffer_size;
+    
+    /** queue is empty */
+    if(uart_config.ring_buffer_head == uart_config.ring_buffer_tail)
+    {
+        return FALSE;
+    }
+    
+    return TRUE;
+}
+
+static int uart_send_handler(uint32 *timeout)
+{
+    #ifdef RELEASE_MODE
+    //static bool jump = FALSE;
+    #endif
 	u8 bit_send = 0;
-	
+    *timeout = BIT_RATE_9600;
+
     switch(uart_config.state) {
 		case UART_IDLE:
 			uart_config.state = UART_START;
@@ -72,11 +123,14 @@ static int uart_send_handler(void)
 	    case UART_START:
 			//Put GPIO to logic 0 to indicate the start
 			UART_TX_LOW(uart_config.tx.num);
+            #ifdef RELEASE_MODE
+            //TimeDelayUSec(10);
+            #endif
 			uart_config.bit_send_index = 0;
 			uart_config.state = UART_TRANSFERRING;
 			break;
 		case UART_TRANSFERRING:
-			bit_send = (*uart_config.buf_ptr >> uart_config.bit_send_index) & 0x1;
+			bit_send = (uart_config.ring_buffer[uart_config.ring_buffer_head] >> uart_config.bit_send_index) & 0x1;
 			//Put GPIO to the logic level according to the bit value. 0 for low, and 1 for high;
 			if(bit_send) {
 				UART_TX_HIGH(uart_config.tx.num);
@@ -94,15 +148,18 @@ static int uart_send_handler(void)
 		case UART_STOP:
 			//Put GPIO to logic 1 to stop the transferring
 			UART_TX_HIGH(uart_config.tx.num);
-			
-			uart_config.size--;
-			if(uart_config.size > 0) { /* Continue to send the next data */
-				uart_config.state = UART_START;
-				uart_config.buf_ptr++;
-			}else {   /* Finish data sending */
-				uart_config.state = UART_IDLE;
-				return 1;
-			}	
+            #ifdef RELEASE_MODE
+            //TimeDelayUSec(10);
+            #endif
+        	if(uart_byte_dequeue() == FALSE)
+        	{
+                uart_config.state = UART_IDLE;
+                return 1;
+        	}
+            else
+            {
+                uart_config.state = UART_START;
+            }
 			break;
 		default :
 			break;
@@ -127,10 +184,17 @@ static timer_id csr_uart_timer_create(uint32 timeout, timer_callback_arg handler
 static void uart_timer_cb(u16 id)
 {
 	u8 done = 0;
-	done = uart_send_handler();
-	if(1 != done) {
-		csr_uart_timer_create(TIMEOUT, uart_timer_cb);
+    uint32 timeout = BIT_RATE_9600;
+    
+    done = uart_send_handler(&timeout);
+	if(1 != done)
+    {
+		csr_uart_timer_create(timeout, uart_timer_cb);
 	}
+    else
+    {
+        uart_config.ring_buffer_poll = FALSE;
+    }
 }
 
 static s16 csr_uart_read(void *args)
@@ -140,13 +204,10 @@ static s16 csr_uart_read(void *args)
 
 static s16 csr_uart_write(u8 *buf, u16 num)
 {
-	//uart state change to START
-	uart_config.buf_ptr = buf;
-	uart_config.size = num;
-	uart_config.state = UART_IDLE;
-	uart_config.bit_send_index = 0;
-	//timer start and regitster callback
-	csr_uart_timer_create(TIMEOUT, uart_timer_cb);
+    for(uart_config.size = 0; uart_config.size < num; uart_config.size++)
+    {
+        uart_byte_enqueue(buf[uart_config.size]);
+    }
 	return 0;
 }
 

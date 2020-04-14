@@ -9,9 +9,7 @@
     <file path="adapter/clock/clock.c" />
    </folder>
    <folder name="button" >
-    <file path="adapter/button/buttonA.c" />
-    <file path="adapter/button/buttonB.c" />
-    <file path="adapter/button/buttonM.c" />
+    <file path="adapter/button/button.c" />
    </folder>
    <file path="adapter/adapter.c" />
    <file path="adapter/adapter.h" />
@@ -77,9 +75,11 @@
   <file path="lcd_display.c" />
   <file path="serial_service.c" />
   <file path="m_ancs.c" />
+  <file path="m_cmd.c" />
  </folder>
  <folder name="Header Files" >
   <extension name="h" />
+  <file path="m_cmd.h" />
   <file path="m_ancs.h" />
   <file path="display.h" />
   <file path="nvm_access.h" />
