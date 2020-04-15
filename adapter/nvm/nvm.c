@@ -342,5 +342,3 @@ nvm_t *nvm_get(void)
 {
     return &nvm_usr;
 }
-
-
