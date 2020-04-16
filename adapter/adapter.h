@@ -11,6 +11,7 @@ s16 adapter_uninit(void);
 clock_t *clock_get(void);
 s16 clock_set(clock_t *ck);
 
+void nvm_check_storage_init(void);
 s16 nvm_read_motor_current_position(u16 *buffer, u8 index);
 s16 nvm_write_motor_current_position(u16 *buffer, u8 index);
 s16 nvm_read_zero_position_polarity(u16 *buffer, u8 index);

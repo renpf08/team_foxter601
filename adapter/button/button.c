@@ -119,6 +119,7 @@ REPORT_E button_combo_event_handler(u8 combo_evt_flag)
 
 s16 button_cb_handler(void *args)
 {
+    static u16 test = 0;
     u8 i = 0;
     u8 release = 0;
     REPORT_E combo_event_report_value = REPORT_MAX;
@@ -169,6 +170,8 @@ s16 button_cb_handler(void *args)
     {
         combo_event_report_value = button_combo_event_handler(button.combo_event_flag);
         button.combo_event_flag = 0;
+        nvm_write_sport_data((u16*)&test, 0);
+        test++;
     }
     
     return (s16)combo_event_report_value;
