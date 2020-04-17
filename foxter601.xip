@@ -172,7 +172,7 @@
    <property key="otau_secret" >00112233445566778899aabbccddeeff</property>
    <property key="otau_slot1" >0x4000</property>
    <property key="otau_slot2" >0xFFFF</property>
-   <property key="otau_slot_1" >0x4A00</property>
+   <property key="otau_slot_1" >0x4500</property>
    <property key="otau_slot_end" >0x10000</property>
    <property key="output" ></property>
   </configuration>

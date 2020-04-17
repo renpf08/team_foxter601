@@ -32,12 +32,13 @@
 #define SPORT_SETTING_LENGTH                    (0x08)
 
 #define SPORT_DATA_CONTROL_OFFSET               (PERSONAL_INFO_OFFSET+PERSONAL_INFO_LENGTH)
-#define SPORT_DATA_CONTROL_LENGTH               (2)/* word width */
+#define SPORT_DATA_CONTROL_LENGTH               (4)/* word width */
 
 #define CONST_RING_BUFFER_LENGTH                (20)/* unit: day */
-#define CONST_SPORT_DATA_LENGTH                 (1)/* word width, max 65535 */
 #define CONST_DATE_DATA_LENGTH                  (2)/* yyyymmdd */
-#define CONST_DATA_ONEDAY_LENGTH                (CONST_DATE_DATA_LENGTH+(CONST_SPORT_DATA_LENGTH*96))/* 96 pieces every day */
+#define CONST_SPORT_DATA_LENGTH                 (1)/* word width, max 65535 */
+#define CONST_SLEEP_DATA_LENGTH                 (1)/* word width, max 65535 */
+#define CONST_DATA_ONEDAY_LENGTH                (CONST_DATE_DATA_LENGTH+CONST_SPORT_DATA_LENGTH+CONST_SLEEP_DATA_LENGTH)/* 96 pieces every day */
 #define SPORT_DATA_OFFSET                       (SPORT_DATA_CONTROL_OFFSET+SPORT_DATA_CONTROL_LENGTH)
 #define SPORT_DATA_LENGTH                       (CONST_DATA_ONEDAY_LENGTH*CONST_RING_BUFFER_LENGTH)/* store 20 days's history */
 
@@ -47,41 +48,64 @@
  * |----------------------------------------|
  * |           ~~~~control block~~~~        |
  * |----------------------------------------|
- * | history data store head pointer        | 1 byte
+ * |    history data store head pointer     | 1 byte
  * |----------------------------------------|
- * | history data store tail pointer        | 1 byte
+ * |    history data store tail pointer     | 1 byte
  * |----------------------------------------|
- * | current day store index(15 per day)    | 1 byte
+ * |        15-minute data index            | 1 byte
  * |----------------------------------------|
- * | position to store date every day       | 1 byte
+ * |             date index                 | 1 byte
  * |----------------------------------------|
  * |            ~~~~data block~~~~          |
  * |--------|----------------------|--------|
- * |        |  date & time 00      |4 bytes |
- * |        |----------------------|    +   |
- * |        | index:00 sport/sleep |(2 byte |
+ * |        | day1  date & time    |4 bytes |
  * |        |----------------------|        |
- * |        | index:01 sport/sleep |   *96) | 196 bytes * 20 = 3920 bytes = 1960 words
- * |        |----------------------|        |           * 31 = 6076 bytes = 3038 words
- * |        |   ...     ...        |=196byte|
+ * |        |        sport         |2 byte  |
  * |        |----------------------|        |
- * |   20   | index:95 sport/sleep |        |
- * |  days  |----------------------|--------|
- * |        |       ...            |        |
+ * |        |       reserve        |1 byte  |
  * |        |----------------------|        |
- * |        |  date & time 19      |        |
- * |        |----------------------|        |
- * |        | index:00 sport/sleep |        |
- * |        |----------------------|        |
- * |        | index:01 sport/sleep |        |
+ * |        |        sleep         |1 byte  |
  * |        |----------------------|        |
  * |        |   ...     ...        |        |
  * |        |----------------------|        |
- * |        | index:95 sport/sleep |        |
- * |--------|----------------------|-----   |
- * | total=3920+4 bytes=1962 words(20 days) |
- * |      =6076+4 bytes=3040 words(31 days) |
+ * |        | day20  date & time   |        |
+ * |        |----------------------|        |
+ * |        |        sport         |        |
+ * |        |----------------------|        |
+ * |        |        sleep         |        |
+ * |        |----------------------|        |
+ * |        |       reserve        |        |
+ * |--------|----------------------|--------|
+ * |          ~~~~storage calc~~~~          |
  * |----------------------------------------|
+ * | control-byte = 1+1+1+1 = 4 bytes       |
+ * | day-byte = 4+2+1+1 = 8 bytes           |
+ * | total = 4+8*20day = 164bytes = 82words |
+ * | total = 4+8*31day = 252bytes = 126words|
+ * |----------------------------------------|
+ *
+ *          EEPROM
+ * |------------------------| 0x0000
+ * |                        |
+ * |      Bootloader        |
+ * |                        |
+ * |------------------------| 0x4100
+ * |                        |
+ * |       NVM Store        |
+ * |                        |
+ * |------------------------| Slot 1 Address
+ * |                        |
+ * |                        |
+ * |     Application 1      |
+ * |                        |
+ * |                        |
+ * |------------------------| Slot 2 Address(if present)
+ * |                        |
+ * |                        |
+ * |     Application 2      |
+ * |                        |
+ * |                        |
+ * |------------------------| Slot End Address(0x10000)
 */
 
 typedef struct {
@@ -99,19 +123,9 @@ typedef struct {
             u8 new_day_index; /* position to store date every day */
         }ctrl;
     }index;
+    u16 sport_acc;
+    u16 sleep_acc;
 }storage_ctrl_t; /* for nvm to store */
-
-typedef struct {
-    union {
-        u32 data_check;
-        struct {
-            u8 is_data_valid; /* indicate if there is valid data has stored in this day */
-            u8 yar; /* no use */
-			u8 month; /* no use */
-			u8 day; /* no use */
-        }check;
-    }head;
-}pack_head_t; /* for nvm to store */
 
 void nvm_read(u16 *buffer, u16 length, u16 offset);
 void nvm_write(u16 *buffer, u16 length, u16 offset);
@@ -130,9 +144,7 @@ void nvm_write(u16 *buffer, u16 length, u16 offset)
 void nvm_check_storage_init(void)
 {
     u16 erase_offset = 0;
-    u16 erase_length = 0;
-    u16 erase_unit = 100;
-    u8 erase_buf[100] = {0};
+    u8 erase_value = 0;
     u16 init_flag = 0;
 
     nvm_read((u16*)&init_flag, USER_STORATE_INIT_FLAG_LENGTH, USER_STORATE_INIT_FLAG_OFFSET);
@@ -142,19 +154,10 @@ void nvm_check_storage_init(void)
         return; 
     }
 
-    for(erase_offset = 0; erase_offset < erase_length; erase_offset++)
+    for(erase_offset = 0; erase_offset < USER_STORAGE_TOTAL_LENGTH; erase_offset++)
     {
-        erase_buf[erase_offset] = 0;
+        nvm_write((u16*)&erase_value, 1, USER_STORAGE_START_OFFSET+erase_offset);
     }
-    erase_offset = 0;
-
-    while((erase_offset+erase_unit) < USER_STORAGE_TOTAL_LENGTH)
-    {
-        nvm_write((u16*)erase_buf, erase_length, USER_STORAGE_START_OFFSET+erase_offset);
-        erase_offset += erase_unit;
-    }
-    erase_length = (USER_STORAGE_TOTAL_LENGTH-erase_offset);
-    nvm_write((u16*)erase_buf, erase_length, USER_STORAGE_START_OFFSET+erase_offset);
 
     init_flag = 0xA55A;
     nvm_write((u16*)&init_flag, USER_STORATE_INIT_FLAG_LENGTH, USER_STORATE_INIT_FLAG_OFFSET);/* write user storage init flag */
@@ -294,56 +297,54 @@ s16 nvm_read_sport_data(u16 *buffer, u8 index)
     while(store_head != store.ptr.ctrl.ring_buf_tail)
     {
         read_offset = store_head*CONST_DATA_ONEDAY_LENGTH;
-        nvm_read((u16*)read_buffer, SPORT_DATA_LENGTH, SPORT_DATA_OFFSET+read_offset);
-        store_head++;
+        nvm_read((u16*)read_buffer, CONST_DATA_ONEDAY_LENGTH, SPORT_DATA_OFFSET+read_offset);
         store_head = (store_head+1)%CONST_RING_BUFFER_LENGTH;
-        return 1;
     }
 
     return 0;
 }
-    storage_ctrl_t store;
+u16 max_len = 0;
 s16 nvm_write_sport_data(u16 *buffer, u8 index)
 {
-    pack_head_t pack_head;
-    static bool is_data_valid = FALSE;
+    storage_ctrl_t store;
     u8 new_day_test[4] = {0x00, 0x20, 0x04, 0x16};
     u16 date_data_offset = 0;
     u16 sport_data_offset = 0;
+    u16 sport_data_length = 0;
+    typedef struct { u16 sport; u16 sleep; }sport_data_t;
+    sport_data_t sport_data = {.sport = 0, .sleep = 0};
+
+    max_len = USER_STORAGE_TOTAL_LENGTH;
+    if(max_len == 0)
+    {
+        store.index.ctrl.cell_data_index = 0;
+    }
 
     nvm_check_storage_init();
-
     nvm_read_control_data((u16*)&store, 0); /* read control data */
-    date_data_offset = store.ptr.ctrl.ring_buf_tail*CONST_DATA_ONEDAY_LENGTH;
+    
+    date_data_offset = (SPORT_DATA_OFFSET+store.ptr.ctrl.ring_buf_tail*CONST_DATA_ONEDAY_LENGTH);
+    sport_data_offset = (date_data_offset+CONST_DATE_DATA_LENGTH);
+    sport_data_length = (CONST_SPORT_DATA_LENGTH+CONST_SLEEP_DATA_LENGTH);
+    nvm_read((u16*)&sport_data, sport_data_length, sport_data_offset);
 
     /** user storage fulled, discard the oldest one */
     if(store.ptr.ctrl.ring_buf_head == (store.ptr.ctrl.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH)
     {
         store.ptr.ctrl.ring_buf_head = (store.ptr.ctrl.ring_buf_head+1)%CONST_RING_BUFFER_LENGTH;
-        nvm_read((u16*)&pack_head, CONST_DATE_DATA_LENGTH, SPORT_DATA_OFFSET+date_data_offset);
-        pack_head.head.check.is_data_valid = 0; /* set data invalid */
-        nvm_write((u16*)&pack_head, CONST_DATE_DATA_LENGTH, SPORT_DATA_OFFSET+date_data_offset);
     }
     
     if((store.index.ctrl.cell_data_index%96) == 0) /* new day */
     {
-        nvm_write((u16*)new_day_test, CONST_DATE_DATA_LENGTH, SPORT_DATA_OFFSET+date_data_offset);
+        nvm_write((u16*)new_day_test, CONST_DATE_DATA_LENGTH, date_data_offset);
         
         store.ptr.ctrl.ring_buf_tail = (store.ptr.ctrl.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH;
         store.index.ctrl.cell_data_index = 0;
-        is_data_valid = FALSE;
+        sport_data.sport = 0;
     }
 
-    if((is_data_valid == FALSE) && (buffer[0] != 0))
-    {
-        nvm_read((u16*)&pack_head, CONST_DATE_DATA_LENGTH, SPORT_DATA_OFFSET+date_data_offset);
-        pack_head.head.check.is_data_valid = 1; /* set data valid */
-        nvm_write((u16*)&pack_head, CONST_DATE_DATA_LENGTH, SPORT_DATA_OFFSET+date_data_offset);
-        is_data_valid = TRUE;
-    }
-    
-    sport_data_offset = (date_data_offset+store.index.ctrl.cell_data_index+2); /* offset 2 bytes of date data */
-    nvm_write(buffer, CONST_SPORT_DATA_LENGTH, SPORT_DATA_OFFSET+sport_data_offset);
+    sport_data.sport += *buffer;
+    nvm_write((u16*)&sport_data, sport_data_length, sport_data_offset);
     
     store.index.ctrl.cell_data_index++;
     nvm_write_control_data((u16*)&store, 0);
