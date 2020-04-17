@@ -270,13 +270,13 @@ s16 nvm_write_sport_setting(u16 *buffer, u8 index)
 }
 s16 nvm_read_control_data(u16 *buffer, u8 index)
 {
-    nvm_read(buffer, SPORT_DATA_CONTROL_LENGTH, SPORT_DATA_CONTROL_OFFSET+index*0);
+    nvm_read(buffer, SPORT_DATA_CONTROL_LENGTH, SPORT_DATA_CONTROL_OFFSET);
 
     return 0;
 }
 s16 nvm_write_control_data(u16 *buffer, u8 index)
 {
-    nvm_write(buffer, SPORT_DATA_CONTROL_LENGTH, SPORT_DATA_CONTROL_OFFSET+index*0);
+    nvm_write(buffer, SPORT_DATA_CONTROL_LENGTH, SPORT_DATA_CONTROL_OFFSET);
 
     return 0;
 }
@@ -294,7 +294,7 @@ s16 nvm_read_sport_data(u16 *buffer, u8 index)
     while(store_head != store.ptr.ctrl.ring_buf_tail)
     {
         read_offset = store_head*CONST_DATA_ONEDAY_LENGTH;
-        nvm_read((u16*)read_buffer, SPORT_DATA_LENGTH, SPORT_DATA_OFFSET+index*0);
+        nvm_read((u16*)read_buffer, SPORT_DATA_LENGTH, SPORT_DATA_OFFSET+read_offset);
         store_head++;
         store_head = (store_head+1)%CONST_RING_BUFFER_LENGTH;
         return 1;
