@@ -32,7 +32,7 @@
 #define SPORT_SETTING_LENGTH                    (0x08)
 
 #define SPORT_DATA_CONTROL_OFFSET               (PERSONAL_INFO_OFFSET+PERSONAL_INFO_LENGTH)
-#define SPORT_DATA_CONTROL_LENGTH               (4)/* word width */
+#define SPORT_DATA_CONTROL_LENGTH               (2)/* word width */
 
 #define CONST_RING_BUFFER_LENGTH                (20)/* unit: day */
 #define CONST_DATE_DATA_LENGTH                  (2)/* yyyymmdd */
@@ -109,23 +109,18 @@
 */
 
 typedef struct {
-    union {
-        u16 ring_buf_ptr;
-        struct {
-            u8 ring_buf_head; /* sport data ring buffer head */
-            u8 ring_buf_tail; /* sport data ring buffer tail */
-        }ctrl;
-    }ptr;
-    union {
-        u16 store_index;
-        struct {
-            u8 cell_data_index; /* fifteen-minute data index */
-            u8 new_day_index; /* position to store date every day */
-        }ctrl;
-    }index;
-    u16 sport_acc;
-    u16 sleep_acc;
-}storage_ctrl_t; /* for nvm to store */
+    u8 ring_buf_head; /* sport data ring buffer head */
+    u8 ring_buf_tail; /* sport data ring buffer tail */
+    u8 cell_data_index; /* fifteen-minute data index */
+    u8 new_day_index; /* position to store date every day */
+}ctrl_data_t; /* for nvm to store */
+
+typedef struct {
+    u8 date[4];
+    u16 sport;
+    u8 sleep; 
+    u8 resv; 
+}sport_data_t;
 
 void nvm_read(u16 *buffer, u16 length, u16 offset);
 void nvm_write(u16 *buffer, u16 length, u16 offset);
@@ -158,6 +153,12 @@ void nvm_check_storage_init(void)
     {
         nvm_write((u16*)&erase_value, 1, USER_STORAGE_START_OFFSET+erase_offset);
     }
+
+    //for(erase_offset = 0; erase_offset < USER_STORAGE_TOTAL_LENGTH; erase_offset++)
+    //{
+    //    nvm_read((u16*)&erase_value, 1, USER_STORAGE_START_OFFSET+erase_offset);
+    //    get_driver()->uart->uart_write((u8*)&erase_value, 1);
+    //}
 
     init_flag = 0xA55A;
     nvm_write((u16*)&init_flag, USER_STORATE_INIT_FLAG_LENGTH, USER_STORATE_INIT_FLAG_OFFSET);/* write user storage init flag */
@@ -285,16 +286,15 @@ s16 nvm_write_control_data(u16 *buffer, u8 index)
 }
 s16 nvm_read_sport_data(u16 *buffer, u8 index)
 {
-    storage_ctrl_t store;
+    ctrl_data_t ctrl = {0, 0, 0, 0};
     u8 store_head = 0;
     u16 read_offset = 0;
     u8 read_buffer[CONST_DATA_ONEDAY_LENGTH] = {0};
 
+    nvm_read((u16*)&ctrl, SPORT_DATA_CONTROL_LENGTH, SPORT_DATA_CONTROL_OFFSET);
 
-    nvm_read_control_data((u16*)&store, 0); /* read control data */
-
-    store_head = store.ptr.ctrl.ring_buf_head;
-    while(store_head != store.ptr.ctrl.ring_buf_tail)
+    store_head = ctrl.ring_buf_head;
+    while(store_head != ctrl.ring_buf_tail)
     {
         read_offset = store_head*CONST_DATA_ONEDAY_LENGTH;
         nvm_read((u16*)read_buffer, CONST_DATA_ONEDAY_LENGTH, SPORT_DATA_OFFSET+read_offset);
@@ -303,51 +303,42 @@ s16 nvm_read_sport_data(u16 *buffer, u8 index)
 
     return 0;
 }
-u16 max_len = 0;
 s16 nvm_write_sport_data(u16 *buffer, u8 index)
 {
-    storage_ctrl_t store;
-    u8 new_day_test[4] = {0x00, 0x20, 0x04, 0x16};
-    u16 date_data_offset = 0;
-    u16 sport_data_offset = 0;
-    u16 sport_data_length = 0;
-    typedef struct { u16 sport; u16 sleep; }sport_data_t;
-    sport_data_t sport_data = {.sport = 0, .sleep = 0};
-
-    max_len = USER_STORAGE_TOTAL_LENGTH;
-    if(max_len == 0)
-    {
-        store.index.ctrl.cell_data_index = 0;
-    }
+    ctrl_data_t ctrl = {0, 0, 0, 0};
+    sport_data_t sport = {{0x20, 0x20, 0x04, 0x16}, 0, 0, 0};
+    u8 test_date[4] = {0x20, 0x20, 0x04, 0x17};
+    u8 test_index = 0;
+    u8 new_day = 0;
 
     nvm_check_storage_init();
-    nvm_read_control_data((u16*)&store, 0); /* read control data */
-    
-    date_data_offset = (SPORT_DATA_OFFSET+store.ptr.ctrl.ring_buf_tail*CONST_DATA_ONEDAY_LENGTH);
-    sport_data_offset = (date_data_offset+CONST_DATE_DATA_LENGTH);
-    sport_data_length = (CONST_SPORT_DATA_LENGTH+CONST_SLEEP_DATA_LENGTH);
-    nvm_read((u16*)&sport_data, sport_data_length, sport_data_offset);
+    nvm_read((u16*)&ctrl, SPORT_DATA_CONTROL_LENGTH, SPORT_DATA_CONTROL_OFFSET);
+    nvm_read((u16*)&sport, CONST_DATA_ONEDAY_LENGTH, (SPORT_DATA_OFFSET+ctrl.ring_buf_tail*CONST_DATA_ONEDAY_LENGTH));
 
     /** user storage fulled, discard the oldest one */
-    if(store.ptr.ctrl.ring_buf_head == (store.ptr.ctrl.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH)
+    if(ctrl.ring_buf_head == (ctrl.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH)
     {
-        store.ptr.ctrl.ring_buf_head = (store.ptr.ctrl.ring_buf_head+1)%CONST_RING_BUFFER_LENGTH;
+        ctrl.ring_buf_head = (ctrl.ring_buf_head+1)%CONST_RING_BUFFER_LENGTH;
     }
     
-    if((store.index.ctrl.cell_data_index%96) == 0) /* new day */
+    if((ctrl.cell_data_index%96) == 0) /* new day */
     {
-        nvm_write((u16*)new_day_test, CONST_DATE_DATA_LENGTH, date_data_offset);
+        for(test_index = 0; test_index < 4; test_index++)
+        {
+            sport.date[test_index] = test_date[test_index];
+        }
         
-        store.ptr.ctrl.ring_buf_tail = (store.ptr.ctrl.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH;
-        store.index.ctrl.cell_data_index = 0;
-        sport_data.sport = 0;
+        sport.sport = 0;
+        sport.sleep = 0;
+        ctrl.cell_data_index = 0;
+        new_day = 1;
     }
 
-    sport_data.sport += *buffer;
-    nvm_write((u16*)&sport_data, sport_data_length, sport_data_offset);
-    
-    store.index.ctrl.cell_data_index++;
-    nvm_write_control_data((u16*)&store, 0);
+    ctrl.cell_data_index++;
+    nvm_write((u16*)&ctrl, SPORT_DATA_CONTROL_LENGTH, SPORT_DATA_CONTROL_OFFSET);
+    sport.sport += *buffer;
+    nvm_write((u16*)&sport, CONST_DATA_ONEDAY_LENGTH, (SPORT_DATA_OFFSET+ctrl.ring_buf_tail*CONST_DATA_ONEDAY_LENGTH));
+    ctrl.ring_buf_tail = (ctrl.ring_buf_tail+new_day)%CONST_RING_BUFFER_LENGTH;
 
     return 0;
 }
