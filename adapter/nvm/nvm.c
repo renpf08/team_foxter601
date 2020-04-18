@@ -73,8 +73,8 @@ typedef struct {
 #define HISTORY_CONTROL_OFFSET                  (PERSONAL_INFO_OFFSET+PERSONAL_INFO_LENGTH)
 #define HISTORY_CONTROL_LENGTH                  (sizeof(ctrl_t))/* word width */
 
-#define CONST_TIME_GRANULARITY                  (5)
-#define CONST_RING_BUFFER_LENGTH                (5)/* unit: day */
+#define CONST_TIME_GRANULARITY                  (3)
+#define CONST_RING_BUFFER_LENGTH                (5+1)/* unit: day(1 byte more than acturlly need) */
 #define CONST_DATA_ONEDAY_LENGTH                (sizeof(data_t))
 #define HISTORY_DATA_OFFSET                     (HISTORY_CONTROL_OFFSET+HISTORY_CONTROL_LENGTH)
 #define HISTORY_DATA_LENGTH                     (CONST_DATA_ONEDAY_LENGTH*CONST_RING_BUFFER_LENGTH)/* store 20 days's history */
@@ -350,15 +350,16 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
     nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
     nvm_read((u16*)&data, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.ctrl1.ctrl2.write_tail*CONST_DATA_ONEDAY_LENGTH));
 
-    /** user storage fulled, discard the oldest one */
-    if(ctrl.ctrl1.ctrl2.ring_buf_head == (ctrl.ctrl1.ctrl2.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH)
-    {
-        ctrl.ctrl1.ctrl2.ring_buf_head = (ctrl.ctrl1.ctrl2.ring_buf_head+1)%CONST_RING_BUFFER_LENGTH;
-        ctrl.ctrl1.ctrl2.read_head = ctrl.ctrl1.ctrl2.ring_buf_head;
-    }
-
     if(ctrl.index1.index2.data_index%CONST_TIME_GRANULARITY == 0)  /* new day */
     {
+        
+        /** user storage fulled, discard the oldest one */
+        if(ctrl.ctrl1.ctrl2.ring_buf_head == (ctrl.ctrl1.ctrl2.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH)
+        {
+            ctrl.ctrl1.ctrl2.ring_buf_head = (ctrl.ctrl1.ctrl2.ring_buf_head+1)%CONST_RING_BUFFER_LENGTH;
+            ctrl.ctrl1.ctrl2.read_head = ctrl.ctrl1.ctrl2.ring_buf_head;
+        }
+        
         data.date1.date2.year = test_date[0];
         data.date1.date2.month = test_date[1];
         data.date1.date2.day = test_date[2]++;
