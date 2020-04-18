@@ -26,7 +26,7 @@
 #include "discovered_ancs_service.h"
 #include "app_gatt.h"
 #include "ancs_client_hw.h"
-#include "m_ancs.h"
+#include "adapter/adapter.h"
 /*============================================================================*
  *  Private Definitions
  *===========================================================================*/
@@ -391,7 +391,7 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                     #if !USE_MY_ANCS
                     ANCSS_LOG_INFO("** Attribute Data = %s\r\n", (const char*)&dataSrc.attrData); //! be care to use packed-data here
                     #endif
-                    m_ancs_data_source_handle(p_data, size_value, &dataSrc);
+                    ancs_data_source_handle(p_data, size_value, &dataSrc);
                     MemSet(&dataSrc.attrData, 0, sizeof(dataSrc.attrData));
                     dataSrc.attrLen = 0;
                     /* We are done reading data.Move to next attribute */
@@ -650,7 +650,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 		g_last_received_notification = curr_data;
 		#endif
         
-        m_ancs_noti_source_handle(p_ind, &notiSrc);
+        ancs_noti_source_handle(p_ind, &notiSrc);
         
         #if 0
 		if(!notif_removed) //! modified by mlw at 20200319 09:51

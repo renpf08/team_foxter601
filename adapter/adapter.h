@@ -1,6 +1,7 @@
 #ifndef ADAPTER_H
 #define ADAPTER_H
 
+#include "ancs_service_data.h"
 #include "../common/common.h"
 #include "../driver/driver.h"
 
@@ -40,5 +41,8 @@ s16 nvm_read_test(void);
 s16 nvm_write_test(void);
 
 void cmd_dispatch(char* content, uint8 length);
+
+void ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *p_data_source);
+void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source);
 
 #endif

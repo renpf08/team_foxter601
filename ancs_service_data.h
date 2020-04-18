@@ -117,6 +117,29 @@ typedef enum
     ds_decoder_attrdata,
     ds_decoder_unknown
 }ds_decoder_state;
+    
+#define MAX_LENGTH_APPID    25
+#define MAX_LENGTH_ATTTDATA 32
+typedef struct
+{
+    uint8 evtId;
+    uint8 evtFlag;
+    uint8 catId;
+    uint8 catCnt;
+    uint8 uuid[4];
+} source_t;
+typedef struct
+{
+    uint8 cid;
+    source_t source;
+} noti_t;
+typedef struct
+{
+    uint8 uuid[4];
+    uint8 attrId;
+    uint16 attrLen;
+    uint8 attrData[MAX_LENGTH_ATTTDATA];
+} data_source_t;
 
 /*============================================================================*
  *  Public Function Prototypes

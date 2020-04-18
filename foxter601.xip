@@ -2,7 +2,9 @@
  <folder name="C Files" >
   <extension name="c" />
   <folder name="adapter" >
-   <folder name="ancs" />
+   <folder name="ancs" >
+    <file path="adapter/ancs/ancs.c" />
+   </folder>
    <folder name="cmd" >
     <file path="adapter/cmd/cmd.c" />
    </folder>
@@ -81,7 +83,6 @@
   <file path="gatt_service.c" />
   <file path="lcd_display.c" />
   <file path="serial_service.c" />
-  <file path="m_ancs.c" />
  </folder>
  <folder name="Header Files" >
   <extension name="h" />
