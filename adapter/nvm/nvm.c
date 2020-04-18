@@ -401,6 +401,14 @@ s16 nvm_write_sleep_data(u16 *buffer, u8 index)
 
     return 0;
 }
+s16 nvm_erase_history_data(void)
+{
+    ctrl_t ctrl = {.ctrl1.ctrl3=0, .index1.index3=0};
+    
+    nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
+
+    return 0;
+}
 s16 nvm_read_test(void)
 {
     u8 buf[CONST_DATA_ONEDAY_LENGTH] = {0};

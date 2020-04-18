@@ -4,6 +4,8 @@
 #include "../common/common.h"
 #include "../driver/driver.h"
 
+#define USB_NVM_TEST    1
+
 s16 adapter_init(adapter_callback cb);
 s16 adapter_uninit(void);
 
@@ -33,6 +35,7 @@ s16 nvm_write_history_setting(u16 *buffer, u8 index);
 s16 nvm_read_history_data(u16 *buffer, u8 index);
 s16 nvm_write_step_data(u16 *buffer, u8 index);
 s16 nvm_write_sleep_data(u16 *buffer, u8 index);
+s16 nvm_erase_history_data(void);
 s16 nvm_read_test(void);
 s16 nvm_write_test(void);
 
