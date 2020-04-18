@@ -26,7 +26,7 @@
 #include "app_gatt_db.h"
 #include "app_gatt.h"
 #include "ancs_client.h"
-#include "m_cmd.h"
+#include "adapter/adapter.h"
 
 /*============================================================================*
  *  Private Definitions

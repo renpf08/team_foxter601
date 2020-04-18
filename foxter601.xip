@@ -2,6 +2,10 @@
  <folder name="C Files" >
   <extension name="c" />
   <folder name="adapter" >
+   <folder name="ancs" />
+   <folder name="cmd" >
+    <file path="adapter/cmd/cmd.c" />
+   </folder>
    <folder name="nvm" >
     <file path="adapter/nvm/nvm.c" />
    </folder>
@@ -78,7 +82,6 @@
   <file path="lcd_display.c" />
   <file path="serial_service.c" />
   <file path="m_ancs.c" />
-  <file path="m_cmd.c" />
  </folder>
  <folder name="Header Files" >
   <extension name="h" />

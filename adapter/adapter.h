@@ -39,4 +39,6 @@ s16 nvm_erase_history_data(void);
 s16 nvm_read_test(void);
 s16 nvm_write_test(void);
 
+void cmd_dispatch(char* content, uint8 length);
+
 #endif
