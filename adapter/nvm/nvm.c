@@ -24,7 +24,7 @@ typedef struct {
     union {
         u32 date3;
         struct {
-            u8 resv;
+            u8 days; /* how many days with history data  */
             u8 year;
             u8 month;
             u8 day;
@@ -35,7 +35,7 @@ typedef struct {
         struct {
             u16 step;
             u8 sleep;
-            u8 count;
+            u8 count; /* how many times stored history data this day(96 in total)  */
         }sport2;
     }sport1;
 }data_t; /* for nvm to store */
@@ -352,7 +352,6 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
 
     if(ctrl.index1.index2.data_index%CONST_TIME_GRANULARITY == 0)  /* new day */
     {
-        
         /** user storage fulled, discard the oldest one */
         if(ctrl.ctrl1.ctrl2.ring_buf_head == (ctrl.ctrl1.ctrl2.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH)
         {
@@ -366,6 +365,7 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
         
         ctrl.index1.index2.data_index = 0;
         data.sport1.sport2.count = 0;
+        data.sport1.sport2.sleep = 0;
         data.sport1.sport2.step = 0;
         ctrl.ctrl1.ctrl2.write_tail = ctrl.ctrl1.ctrl2.ring_buf_tail;
         ctrl.ctrl1.ctrl2.ring_buf_tail = (ctrl.ctrl1.ctrl2.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH;
@@ -375,6 +375,9 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
     data.sport1.sport2.sleep += test_sleep;//((data_t*)buffer)->sport1.sport2.sleep;
     ctrl.index1.index2.data_index++;
     data.sport1.sport2.count++;
+    data.date1.date2.days = (ctrl.ctrl1.ctrl2.ring_buf_tail>ctrl.ctrl1.ctrl2.ring_buf_head)?
+                            (ctrl.ctrl1.ctrl2.ring_buf_tail-ctrl.ctrl1.ctrl2.ring_buf_head):
+                            (CONST_RING_BUFFER_LENGTH-ctrl.ctrl1.ctrl2.ring_buf_head+ctrl.ctrl1.ctrl2.ring_buf_tail);
     nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
     nvm_write((u16*)&data, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.ctrl1.ctrl2.write_tail*CONST_DATA_ONEDAY_LENGTH));
 
