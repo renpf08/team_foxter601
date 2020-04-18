@@ -28,9 +28,10 @@ s16 nvm_read_display_setting(u16 *buffer, u8 index);
 s16 nvm_write_display_setting(u16 *buffer, u8 index);
 s16 nvm_read_personal_info(u16 *buffer, u8 index);
 s16 nvm_write_personal_info(u16 *buffer, u8 index);
-s16 nvm_read_sport_setting(u16 *buffer, u8 index);
-s16 nvm_write_sport_setting(u16 *buffer, u8 index);
-s16 nvm_read_sport_data(u16 *buffer, u8 index);
-s16 nvm_write_sport_data(u16 *buffer, u8 index);
+s16 nvm_read_history_setting(u16 *buffer, u8 index);
+s16 nvm_write_history_setting(u16 *buffer, u8 index);
+s16 nvm_read_history_data(u16 *buffer, u8 index);
+s16 nvm_write_step_data(u16 *buffer, u8 index);
+s16 nvm_write_sleep_data(u16 *buffer, u8 index);
 
 #endif

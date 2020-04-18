@@ -170,8 +170,9 @@ s16 button_cb_handler(void *args)
     {
         combo_event_report_value = button_combo_event_handler(button.combo_event_flag);
         button.combo_event_flag = 0;
-        nvm_write_sport_data((u16*)&test, 0);
+        nvm_write_sleep_data((u16*)&test, 0);
         test++;
+        nvm_write_step_data((u16*)&test, 0);
     }
     
     return (s16)combo_event_report_value;
