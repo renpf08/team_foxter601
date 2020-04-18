@@ -33,5 +33,7 @@ s16 nvm_write_history_setting(u16 *buffer, u8 index);
 s16 nvm_read_history_data(u16 *buffer, u8 index);
 s16 nvm_write_step_data(u16 *buffer, u8 index);
 s16 nvm_write_sleep_data(u16 *buffer, u8 index);
+s16 nvm_read_test(void);
+s16 nvm_write_test(void);
 
 #endif

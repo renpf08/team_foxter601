@@ -38,7 +38,7 @@ s16 csr_event_callback(EVENT_E ev)
     	//adapter.drv->uart->uart_write((u8 *)&ev, 1);
         if(combo_event < REPORT_MAX) // sure the button released
         {
-    	    adapter.drv->uart->uart_write((u8 *)&combo_event, 1);
+    	    //adapter.drv->uart->uart_write((u8 *)&combo_event, 1);
         }
 	}
 	
