@@ -10,8 +10,8 @@
 #include <gatt.h>
 #include "user_config.h"
 #include "ancs_client.h"
-#include "m_cmd.h"
 #include "driver/driver.h"
+#include "adapter/adapter.h"
 
 int cmd_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
 
