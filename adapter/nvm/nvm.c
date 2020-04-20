@@ -343,8 +343,6 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
     data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
     static u8 test_date[3] = {0x20, 0x04, 0x17};
     u16 test_init = 0;
-    static u16 test_step = 100;
-    static u8 test_sleep = 4;
 
     test_init = nvm_check_storage_init();
     nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
@@ -371,8 +369,8 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
         ctrl.ctrl1.ctrl2.ring_buf_tail = (ctrl.ctrl1.ctrl2.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH;
     }
 
-    data.sport1.sport2.step += test_step;//((data_t*)buffer)->sport1.sport2.step;
-    data.sport1.sport2.sleep += test_sleep;//((data_t*)buffer)->sport1.sport2.sleep;
+    data.sport1.sport2.step += ((data_t*)buffer)->sport1.sport2.step;
+    data.sport1.sport2.sleep += ((data_t*)buffer)->sport1.sport2.sleep;
     ctrl.index1.index2.data_index++;
     data.sport1.sport2.count++;
     data.date1.date2.days = (ctrl.ctrl1.ctrl2.ring_buf_tail>ctrl.ctrl1.ctrl2.ring_buf_head)?
