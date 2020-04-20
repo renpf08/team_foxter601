@@ -169,20 +169,6 @@ s16 button_cb_handler(void *args)
     {
         combo_event_report_value = button_combo_event_handler(button.combo_event_flag);
         button.combo_event_flag = 0;
-        #if USB_NVM_TEST
-        if(combo_event_report_value == KEY_B_SHORT_PRESS)
-        {
-            nvm_write_test();
-        }
-        else if(combo_event_report_value == KEY_A_SHORT_PRESS)
-        {
-            nvm_read_test();
-        }
-        else if(combo_event_report_value == KEY_M_SHORT_PRESS)
-        {
-            nvm_erase_history_data();
-        }
-        #endif
     }
     
     return (s16)combo_event_report_value;

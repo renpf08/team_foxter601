@@ -73,8 +73,8 @@ typedef struct {
 #define HISTORY_CONTROL_OFFSET                  (PERSONAL_INFO_OFFSET+PERSONAL_INFO_LENGTH)
 #define HISTORY_CONTROL_LENGTH                  (sizeof(ctrl_t))/* word width */
 
-#define CONST_TIME_GRANULARITY                  (3)
-#define CONST_RING_BUFFER_LENGTH                (5+1)/* unit: day(1 byte more than acturlly need) */
+#define CONST_TIME_GRANULARITY                  (96)
+#define CONST_RING_BUFFER_LENGTH                (31+1)/* unit: day(1 byte more than acturlly need) */
 #define CONST_DATA_ONEDAY_LENGTH                (sizeof(data_t))
 #define HISTORY_DATA_OFFSET                     (HISTORY_CONTROL_OFFSET+HISTORY_CONTROL_LENGTH)
 #define HISTORY_DATA_LENGTH                     (CONST_DATA_ONEDAY_LENGTH*CONST_RING_BUFFER_LENGTH)/* store 20 days's history */
@@ -409,35 +409,3 @@ s16 nvm_erase_history_data(void)
 
     return 0;
 }
-s16 nvm_read_test(void)
-{
-    u8 buf[CONST_DATA_ONEDAY_LENGTH] = {0};
-    u16 ready = 0;
-
-    while(1)
-    {
-        ready = nvm_read_history_data((u16*)buf, 0);
-        if(ready == 0)
-        {
-            break;
-        }
-        get_driver()->uart->uart_write(buf, CONST_DATA_ONEDAY_LENGTH);
-    }
-    
-
-    return 0;
-}
-s16 nvm_write_test(void)
-{
-    static u16 test = 0;
-
-    data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
-
-    data.sport1.sport2.sleep = (u8)test++;
-    data.sport1.sport2.step = test++;
-    nvm_write_history_data((u16*)&data, 0);
-    
-    return 0;
-}
-
-
