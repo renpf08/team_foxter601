@@ -86,7 +86,7 @@ static s16 csr_motor_hour_stop(void *args)
 			BIT_MASK(csr_motor_hour_cfg.cfg.neg.num),
 			0x0000UL);
 			
-	TimeDelayUSec(1);
+	//TimeDelayUSec(1);
 	return 0;
 }
 

@@ -1,15 +1,10 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
+#include <time.h>
 #include "config.h"
 #include "adapter.h"
 
 //callback handler
-extern s16 button_A_down_cb_handler(void *args);
-extern s16 button_A_up_cb_handler(void *args);
-extern s16 button_M_down_cb_handler(void *args);
-extern s16 button_M_up_cb_handler(void *args);
-extern s16 button_B_down_cb_handler(void *args);
-extern s16 button_B_up_cb_handler(void *args);
 extern s16 mag_cb_handler(void *args);
 extern s16 button_cb_handler(void *args);
 
@@ -121,15 +116,27 @@ void driver_uninit(void)
 	adapter.drv = NULL;
 }
 
+#if 1
+static void TimeDelayMSec(uint16 delay)
+{
+    for(; delay > 0; delay--)
+    {
+        TimeDelayUSec(1000);
+    }
+} /* TimeDelayMSec */
+#endif
+
 s16 adapter_init(adapter_callback cb)
 {
+	u8 percent = 0;
 	//driver init
 	driver_init();
 	adapter.cb = cb;
 
 	//module init
 	clock_init();
-
+	motor_manager_init();
+	battery_init(cb);
 	return 0;
 }
 
