@@ -33,7 +33,7 @@ s16 csr_event_callback(EVENT_E ev)
     	//adapter.drv->uart->uart_write((u8 *)&ev, 1);
         if(combo_event < REPORT_MAX) // sure the button released
         {
-    	    adapter.drv->uart->uart_write((u8 *)&combo_event, 1);
+    	    //adapter.drv->uart->uart_write((u8 *)&combo_event, 1);
         }
 	}
 	
@@ -116,19 +116,8 @@ void driver_uninit(void)
 	adapter.drv = NULL;
 }
 
-#if 1
-static void TimeDelayMSec(uint16 delay)
-{
-    for(; delay > 0; delay--)
-    {
-        TimeDelayUSec(1000);
-    }
-} /* TimeDelayMSec */
-#endif
-
 s16 adapter_init(adapter_callback cb)
 {
-	u8 percent = 0;
 	//driver init
 	driver_init();
 	adapter.cb = cb;

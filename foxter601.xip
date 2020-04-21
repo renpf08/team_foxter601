@@ -7,6 +7,12 @@
    </folder>
    <folder name="motor" >
     <file path="adapter/motor/motor_manage.c" />
+    </folder>
+   <folder name="ancs" >
+    <file path="adapter/ancs/ancs.c" />
+   </folder>
+   <folder name="cmd" >
+    <file path="adapter/cmd/cmd.c" />
    </folder>
    <folder name="nvm" >
     <file path="adapter/nvm/nvm.c" />
@@ -83,8 +89,6 @@
   <file path="gatt_service.c" />
   <file path="lcd_display.c" />
   <file path="serial_service.c" />
-  <file path="m_ancs.c" />
-  <file path="m_cmd.c" />
  </folder>
  <folder name="Header Files" >
   <extension name="h" />
@@ -178,7 +182,7 @@
    <property key="otau_secret" >00112233445566778899aabbccddeeff</property>
    <property key="otau_slot1" >0x4000</property>
    <property key="otau_slot2" >0xFFFF</property>
-   <property key="otau_slot_1" >0x4200</property>
+   <property key="otau_slot_1" >0x4500</property>
    <property key="otau_slot_end" >0x10000</property>
    <property key="output" ></property>
   </configuration>

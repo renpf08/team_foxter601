@@ -1791,7 +1791,8 @@ extern void ReportPanic(const char* file, const char* func, unsigned line, app_p
         }
     } while(*++file != '\0');
     preStr[len] = '\0';
-    
+
+    get_driver()->uart->uart_write((u8*)&"panic\r\n", 7);
     LogReport(__FILE__, __func__, __LINE__, Ancs_Client_system_panic);
     /* If we want any debug prints, we can put them here */
 #ifdef ENABLE_DEBUG_PANIC
