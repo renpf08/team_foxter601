@@ -1,15 +1,10 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
+#include <time.h>
 #include "config.h"
 #include "adapter.h"
 
 //callback handler
-extern s16 button_A_down_cb_handler(void *args);
-extern s16 button_A_up_cb_handler(void *args);
-extern s16 button_M_down_cb_handler(void *args);
-extern s16 button_M_up_cb_handler(void *args);
-extern s16 button_B_down_cb_handler(void *args);
-extern s16 button_B_up_cb_handler(void *args);
 extern s16 mag_cb_handler(void *args);
 extern s16 button_cb_handler(void *args);
 
@@ -129,7 +124,8 @@ s16 adapter_init(adapter_callback cb)
 
 	//module init
 	clock_init();
-
+	motor_manager_init();
+	battery_init(cb);
 	return 0;
 }
 
@@ -139,35 +135,3 @@ s16 adapter_uninit()
 	adapter.cb = NULL;
 	return 0;
 }
-
-#if 0
-u8 i = 0, j = 0;
-for(i = 0; i < 10; i++) {
-	driver->motor_hour->motor_positive_first_half(NULL);
-	TimeDelayUSec(5 * MILLISECOND);
-	driver->motor_hour->motor_stop(NULL);
-	driver->motor_hour->motor_positive_second_half(NULL);
-	TimeDelayUSec(5 * MILLISECOND);
-	driver->motor_hour->motor_stop(NULL);
-	
-	for(j = 0; j < 20; j++) {
-		TimeDelayUSec(50 * MILLISECOND);
-	}
-}
-
-for(i = 0; i < 10; i++) {
-	driver->motor_hour->motor_negtive_first_half(NULL);
-	TimeDelayUSec(5 * MILLISECOND);
-	driver->motor_hour->motor_stop(NULL);
-	driver->motor_hour->motor_negtive_second_half(NULL);
-	TimeDelayUSec(5 * MILLISECOND);
-	driver->motor_hour->motor_stop(NULL);
-	
-	for(j = 0; j < 20; j++) {
-		TimeDelayUSec(50 * MILLISECOND);
-	}
-}
-
-driver->timer->timer_start(2000, csr_timer_cb);
-m_printf("battery voltage[%d]\r\n",driver->battery->battery_voltage_read(NULL));
-#endif

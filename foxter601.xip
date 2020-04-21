@@ -2,6 +2,12 @@
  <folder name="C Files" >
   <extension name="c" />
   <folder name="adapter" >
+   <folder name="battery" >
+    <file path="adapter/battery/bat.c" />
+   </folder>
+   <folder name="motor" >
+    <file path="adapter/motor/motor_manage.c" />
+    </folder>
    <folder name="ancs" >
     <file path="adapter/ancs/ancs.c" />
    </folder>
