@@ -49,8 +49,8 @@
 
 typedef struct AppidIndex_T
 {
-	const uint8 appIndex;
-	const uint8 appId[MAX_LENGTH_APPID];
+	const u8 appIndex;
+	const u8 appId[MAX_LENGTH_APPID];
 }APPIDINDEX;
 static const APPIDINDEX appMsgList[] =
 {
@@ -89,34 +89,34 @@ typedef enum
 
 typedef struct
 {
-    uint8 recvAttrIdFragment;                       //! receive msg count, total fragment = REQ_ANCS_NOTIF_ATT_ID_TOTAL
-    uint8 uuid[4];                                  //! message UUID
-    uint8 evtId;                                    //! added, modified, removed, reserved
-    uint8 evtFlag;                                  //! silent, important, reserved
-    uint8 catId;                                    //! 0other,1incomingCall,2missedCall,3vmail,4social,5schedule,6email,7news,8health,9bussiness,10location,11entertainment,12~255reserved
-    uint8 catCnt;                                   //! message count indicated by catId
-    uint8 attrIdAppIdData[MAX_LENGTH_ATTTDATA];     //! app name, e.g. QQ->com.tencent.mqq
-    uint8 attrIdTitleData[MAX_LENGTH_ATTTDATA];     //! contact name
-    uint8 attrIdSubTitleData[MAX_LENGTH_ATTTDATA];  //! sub contact name
-    uint8 attrIdMessageData[MAX_LENGTH_ATTTDATA];   //! message content
+    u8 recvAttrIdFragment;                       //! receive msg count, total fragment = REQ_ANCS_NOTIF_ATT_ID_TOTAL
+    u8 uuid[4];                                  //! message UUID
+    u8 evtId;                                    //! added, modified, removed, reserved
+    u8 evtFlag;                                  //! silent, important, reserved
+    u8 catId;                                    //! 0other,1incomingCall,2missedCall,3vmail,4social,5schedule,6email,7news,8health,9bussiness,10location,11entertainment,12~255reserved
+    u8 catCnt;                                   //! message count indicated by catId
+    u8 attrIdAppIdData[MAX_LENGTH_ATTTDATA];     //! app name, e.g. QQ->com.tencent.mqq
+    u8 attrIdTitleData[MAX_LENGTH_ATTTDATA];     //! contact name
+    u8 attrIdSubTitleData[MAX_LENGTH_ATTTDATA];  //! sub contact name
+    u8 attrIdMessageData[MAX_LENGTH_ATTTDATA];   //! message content
     uint16 attrIdMessageSize;                       //! message length
-    uint8 attrIdDateData[MAX_LENGTH_ATTTDATA];      //! date and time that the message was received
+    u8 attrIdDateData[MAX_LENGTH_ATTTDATA];      //! date and time that the message was received
 } packing_msg_t;
 
 /** reference to the android notif packet mode */
 typedef struct
 {
-    uint8 cmd; //! fixed to 0x07
-    uint8 sta; //! fixed to: 0:added, 1:modified, 2:removed
-    uint8 level; //! 0~255, look appMsgList[] of MESSAGE_POSITION_xxx for details
-    uint8 type; //! look appMsgList[] of APP_ID_STRING_xxx's index for details
-    uint8 cnt; //! msg count
+    u8 cmd; //! fixed to 0x07
+    u8 sta; //! fixed to: 0:added, 1:modified, 2:removed
+    u8 level; //! 0~255, look appMsgList[] of MESSAGE_POSITION_xxx for details
+    u8 type; //! look appMsgList[] of APP_ID_STRING_xxx's index for details
+    u8 cnt; //! msg count
 } protocol_msg_t;
 
 typedef struct
 {
-    uint8 uuid[4];
-    uint8 appid[MAX_LENGTH_APPID];
+    u8 uuid[4];
+    u8 appid[MAX_LENGTH_APPID];
 } last_data_map_t;
 
 static last_data_map_t lastData;
@@ -132,7 +132,7 @@ int ancs_log(const char* file, const char* func, unsigned line, const char* leve
 
 void ancs_business_handle(packing_msg_t* packMsg)
 {
-    uint8 i = 0;
+    u8 i = 0;
     protocol_msg_t  proMsg = {.cmd = 0x07};
 
     while(appMsgList[i].appId[0] != 0)
@@ -169,13 +169,13 @@ void ancs_business_handle(packing_msg_t* packMsg)
     
     proMsg.sta = packMsg->evtId;
     proMsg.cnt = packMsg->catCnt;
-    SerialSendNotification((uint8 *)&proMsg, 5); //! send ANCS msg to peer, for test purpose
+    SerialSendNotification((u8 *)&proMsg, 5); //! send ANCS msg to peer, for test purpose
 }
-void ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *p_data_source)
+void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_source)
 {
-    uint8 i = 0;
+    u8 i = 0;
     #if USE_MY_ANCS_DEBUG
-    uint8 *uuid = p_data_source->uuid;
+    u8 *uuid = p_data_source->uuid;
     ANCS_LOG_DEBUG("++ uuid       = %02X%02X%02X%02X\r\n", uuid[0],uuid[1],uuid[2],uuid[3]);
     ANCS_LOG_DEBUG("++ attr id    = %d\r\n", p_data_source->attrId);
     ANCS_LOG_DEBUG("++ attr len   = %d\r\n", p_data_source->attrLen);
@@ -245,7 +245,7 @@ void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source)
 
     /** packing stage 1: pack the notif soure */
     MemSet(&pckMsg, 0, sizeof(packing_msg_t));
-    uint8 i =  0;
+    u8 i =  0;
     for(i =  0; i < 4; i++) pckMsg.uuid[i] = notiSrc->uuid[i];
     pckMsg.evtId = notiSrc->evtId;
     pckMsg.evtFlag = notiSrc->evtFlag;

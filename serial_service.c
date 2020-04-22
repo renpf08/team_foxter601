@@ -183,7 +183,7 @@ extern void SerialHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
         
         case HANDLE_SERIAL_DATA_ATDR:
         {
-            cmd_dispatch((char*)p_ind->value, (uint8)p_ind->size_value);
+            cmd_dispatch((u8*)p_ind->value, (uint8)p_ind->size_value);
         }
         break;
         

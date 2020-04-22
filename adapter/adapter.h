@@ -46,9 +46,9 @@ s16 nvm_write_step_data(u16 *buffer, u8 index);
 s16 nvm_write_sleep_data(u16 *buffer, u8 index);
 s16 nvm_erase_history_data(void);
 
-void cmd_dispatch(char* content, uint8 length);
+void cmd_dispatch(u8* content, u8 length);
 
-void ancs_data_source_handle(uint8 *p_data, uint16 size_value, data_source_t *p_data_source);
+void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_source);
 void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source);
 
 #endif
