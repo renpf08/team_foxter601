@@ -79,25 +79,85 @@ typedef struct {
 typedef struct {
     u8 cmd;
     u8 clock1_alarm_switch;
-    u8 week1;
-    u8 hour1;
-    u8 minute1;
+    union {
+        u8 week;
+        struct {
+            u8 repeat_all:1;
+            u8 repeat_sat:1;
+            u8 repeat_fri:1;
+            u8 repeat_thu:1;
+            u8 repeat_wed:1;
+            u8 repeat_tue:1;
+            u8 repeat_mon:1;
+            u8 repeat_sun:1;
+        } repeat;
+    }clock1_week;
+    u8 clock1_hour;
+    u8 clock1_minute;
     u8 clock2_alarm_switch;
-    u8 weed2;
-    u8 hour2;
-    u8 minute2;
+    union {
+        u8 week;
+        struct {
+            u8 repeat_all:1;
+            u8 repeat_sat:1;
+            u8 repeat_fri:1;
+            u8 repeat_thu:1;
+            u8 repeat_wed:1;
+            u8 repeat_tue:1;
+            u8 repeat_mon:1;
+            u8 repeat_sun:1;
+        } repeat;
+    }clock2_week;
+    u8 clock2_hour;
+    u8 clock2_minute;
     u8 clock3_alarm_switch;
-    u8 weed3;
-    u8 hour3;
-    u8 minute3;
+    union {
+        u8 week;
+        struct {
+            u8 repeat_all:1;
+            u8 repeat_sat:1;
+            u8 repeat_fri:1;
+            u8 repeat_thu:1;
+            u8 repeat_wed:1;
+            u8 repeat_tue:1;
+            u8 repeat_mon:1;
+            u8 repeat_sun:1;
+        } repeat;
+    }clock3_week;
+    u8 clock3_hour;
+    u8 clock3_minute;
     u8 clock4_alarm_switch;
-    u8 weed4;
-    u8 hour4;
-    u8 minute4;
+    union {
+        u8 week;
+        struct {
+            u8 repeat_all:1;
+            u8 repeat_sat:1;
+            u8 repeat_fri:1;
+            u8 repeat_thu:1;
+            u8 repeat_wed:1;
+            u8 repeat_tue:1;
+            u8 repeat_mon:1;
+            u8 repeat_sun:1;
+        } repeat;
+    }clock4_week;
+    u8 clock4_hour;
+    u8 clock4_minute;
 } cmd_set_alarm_clock_t;
 typedef struct { 
     u8 cmd; 
-    u8 custm_disp;
+    union {
+        u8 disp_all;
+        struct {
+            u8 resv1:1;
+            u8 resv2:1;
+            u8 resv3:1;
+            u8 stren_exer:1;
+            u8 floor_level:1;
+            u8 calorie:1;
+            u8 distance:1;
+            u8 clock:1;
+        }disp;
+    }custm_disp;
     u8 clock_format;
     u8 main_target;
     u8 used_hand;
@@ -268,21 +328,64 @@ static u8 cmd_pairing_code(u8 *buffer, u8 length)
 }
 static u8 cmd_user_info(u8 *buffer, u8 length)
 {
+    cmd_user_info_t* user_info = (cmd_user_info_t*)buffer;
+
+    if(user_info->sex > 1) return 1;
+    
     MemCopy(&cmd_group.user_info, buffer, sizeof(cmd_user_info_t));
     return 0;
 }
 static u8 cmd_sync_date(u8 *buffer, u8 length)
 {
+    u8 days[13] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
+    u16 year = 0;
+    cmd_sync_date_t* sync_date = (cmd_sync_date_t*)buffer;
+
+    year = (u16)((sync_date->year[0]<<8 & 0xFF00) | sync_date->year[1]);
+    days[2] = (0 == (year % 400) || (0 == (year % 4) && (0 != (year % 100))))?29:28;
+
+    if(sync_date->month > 12) return 1;
+    if(sync_date->day > days[sync_date->month]) return 1;
+    if(sync_date->hour > 23) return 1;
+    if(sync_date->minute > 59) return 1;
+    if(sync_date->second > 59) return 1;
+    if(sync_date->week > 7) return 1;
+    
     MemCopy(&cmd_group.sync_date, buffer, sizeof(cmd_sync_date_t));
     return 0;
 }
 static u8 cmd_set_alarm_clock(u8 *buffer, u8 length)
 {
+    cmd_set_alarm_clock_t* alarm_clock = (cmd_set_alarm_clock_t*)buffer;
+
+    if(alarm_clock->clock1_alarm_switch > 1) return 1;
+    if(alarm_clock->clock1_week.week > 7) return 1;
+    if(alarm_clock->clock1_hour > 23) return 1;
+    if(alarm_clock->clock1_minute > 59) return 1;
+    if(alarm_clock->clock2_alarm_switch > 1) return 1;
+    if(alarm_clock->clock2_week.week > 7) return 1;
+    if(alarm_clock->clock2_hour > 23) return 1;
+    if(alarm_clock->clock2_minute > 59) return 1;
+    if(alarm_clock->clock3_alarm_switch > 1) return 1;
+    if(alarm_clock->clock3_week.week > 7) return 1;
+    if(alarm_clock->clock3_hour > 23) return 1;
+    if(alarm_clock->clock3_minute > 59) return 1;
+    if(alarm_clock->clock4_alarm_switch > 1) return 1;
+    if(alarm_clock->clock4_week.week > 7) return 1;
+    if(alarm_clock->clock4_hour > 23) return 1;
+    if(alarm_clock->clock4_minute > 59) return 1;
+    
     MemCopy(&cmd_group.set_alarm_clock, buffer, sizeof(cmd_set_alarm_clock_t));
     return 0;
 }
 static u8 cmd_set_disp_format(u8 *buffer, u8 length)
 {
+    cmd_set_disp_format_t* disp_format = (cmd_set_disp_format_t*)buffer;
+
+    if(disp_format->clock_format > 1) return 1;
+    if(disp_format->main_target > 4) return 1;
+    if(disp_format->used_hand > 1) return 1;
+    
     MemCopy(&cmd_group.set_disp, buffer, sizeof(cmd_set_disp_format_t));
     return 0;
 }
