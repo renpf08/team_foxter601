@@ -222,6 +222,224 @@ typedef struct {
 	motor_cfg_t motor_notify_cfg;
 }cfg_t;
 
+typedef enum {
+    CMD_PAIRING_CODE        = 0x00,
+    CMD_USER_INFO           = 0x01,
+    CMD_SYNC_DATE           = 0x02,
+    CMD_SET_ALARM_CLOCK     = 0x03,
+    CMD_SET_DISP_FORMAT     = 0x04,
+    CMD_SYNC_DATA           = 0x05,
+    CMD_RESPONSE_TO_WATCH   = 0x06,
+    CMD_SEND_NOTIFY         = 0x07,
+    CMD_SET_TIME            = 0x08,
+    CMD_READ_VERSION        = 0x09, //! need to response
+    CMD_SET_CLOCK_POINTER   = 0x0A,
+    CMD_SET_VIBRATION       = 0x0B,
+    CMD_SET_FIND_WATCH      = 0x0C,
+    CMD_SET_ANCS_BOND_REQ   = 0x0D,
+    CMD_READ_TIME_STEPS     = 0x0E,
+    
+    CMD_APP_NONE            = 0xFF
+} cmd_app_send_t;
+
+typedef enum {
+    CMD_RESPONS_TO_APP      = 0x00,
+    CMD_SEND_MEASURE_DATA   = 0x01,
+    CMD_FIND_PHONE          = 0x02,
+    
+    CMD_WATCH_NONE          = 0xFF
+} cmd_watch_send_t;
+
+typedef struct {
+    u8 cmd; 
+    u8 code[2];
+} cmd_pairing_code_t;
+typedef struct 
+{
+    u8 cmd; 
+    u8 target_step[4];
+    u8 target_dist[4];
+    u8 target_calorie[4];
+    u8 target_floor[2];
+    u8 target_stre_exer[2];
+    u8 sex;
+    u8 height;
+    u8 weight;
+} cmd_user_info_t;
+typedef struct {
+    u8 cmd; 
+    u8 year[2];
+    u8 month;
+    u8 day;
+    u8 hour;
+    u8 minute;
+    u8 second;
+    u8 week;
+} cmd_sync_date_t;
+typedef struct {
+    u8 cmd;
+    u8 clock1_alarm_switch;
+    union {
+        u8 week;
+        struct {
+            u8 repeat_all:1;
+            u8 repeat_sat:1;
+            u8 repeat_fri:1;
+            u8 repeat_thu:1;
+            u8 repeat_wed:1;
+            u8 repeat_tue:1;
+            u8 repeat_mon:1;
+            u8 repeat_sun:1;
+        } repeat;
+    }clock1_week;
+    u8 clock1_hour;
+    u8 clock1_minute;
+    u8 clock2_alarm_switch;
+    union {
+        u8 week;
+        struct {
+            u8 repeat_all:1;
+            u8 repeat_sat:1;
+            u8 repeat_fri:1;
+            u8 repeat_thu:1;
+            u8 repeat_wed:1;
+            u8 repeat_tue:1;
+            u8 repeat_mon:1;
+            u8 repeat_sun:1;
+        } repeat;
+    }clock2_week;
+    u8 clock2_hour;
+    u8 clock2_minute;
+    u8 clock3_alarm_switch;
+    union {
+        u8 week;
+        struct {
+            u8 repeat_all:1;
+            u8 repeat_sat:1;
+            u8 repeat_fri:1;
+            u8 repeat_thu:1;
+            u8 repeat_wed:1;
+            u8 repeat_tue:1;
+            u8 repeat_mon:1;
+            u8 repeat_sun:1;
+        } repeat;
+    }clock3_week;
+    u8 clock3_hour;
+    u8 clock3_minute;
+    u8 clock4_alarm_switch;
+    union {
+        u8 week;
+        struct {
+            u8 repeat_all:1;
+            u8 repeat_sat:1;
+            u8 repeat_fri:1;
+            u8 repeat_thu:1;
+            u8 repeat_wed:1;
+            u8 repeat_tue:1;
+            u8 repeat_mon:1;
+            u8 repeat_sun:1;
+        } repeat;
+    }clock4_week;
+    u8 clock4_hour;
+    u8 clock4_minute;
+} cmd_set_alarm_clock_t;
+typedef struct { 
+    u8 cmd; 
+    union {
+        u8 disp_all;
+        struct {
+            u8 resv1:1;
+            u8 resv2:1;
+            u8 resv3:1;
+            u8 stren_exer:1;
+            u8 floor_level:1;
+            u8 calorie:1;
+            u8 distance:1;
+            u8 clock:1;
+        }disp;
+    }custm_disp;
+    u8 clock_format;
+    u8 main_target;
+    u8 used_hand;
+} cmd_set_disp_format_t;
+typedef struct { 
+    u8 cmd; 
+    u8 sync_data; 
+} cmd_sync_data_t;
+typedef struct { 
+    u8 cmd; 
+    u8 watch_cmd;
+    u8 resp_value;
+} cmd_response_t;
+typedef struct { 
+    u8 cmd; 
+    u8 notif_sta;
+    u8 imp_level;
+    u8 msg_type;
+    u8 msg_cnt;
+} cmd_send_notify_t;
+typedef struct { 
+    u8 cmd; 
+    u8 clock_hand1;
+    u8 clock_hand1_pos;
+    u8 clock_hand2;
+    u8 clock_hand2_pos;
+    u8 clock_hand3;
+    u8 clock_hand3_pos;
+    u8 clock_hand4;
+    u8 clock_hand4_pos;
+    u8 clock_hand5;
+    u8 clock_hand5_pos;
+    u8 clock_hand6;
+    u8 clock_hand6_pos;
+} cmd_set_time_t;
+typedef struct { 
+    u8 cmd; 
+    u8 serial_num;
+    u8 fw_version;
+    u8 system_id;
+} cmd_read_version_t;
+typedef struct { 
+    u8 cmd; 
+    u8 clock_hand_num;
+    u8 clock_hand_pos;
+    u8 clock_hand_rotation;
+} cmd_set_clock_hand_t;
+typedef struct { 
+    u8 cmd; 
+    u8 vib_mode;
+    u8 vib_times;
+} cmd_set_vibration_t;
+typedef struct { 
+    u8 cmd; 
+    u8 alarm_type; 
+} cmd_find_watch_t;
+typedef struct { 
+    u8 cmd; 
+    u8 action; 
+} cmd_set_ancs_bond_req_t;
+typedef struct { 
+    u8 cmd; 
+    u8 type; 
+} cmd_read_time_steps_t;
+typedef struct {
+    cmd_pairing_code_t pair_code;
+    cmd_user_info_t user_info;
+    cmd_sync_date_t sync_date;
+    cmd_set_alarm_clock_t set_alarm_clock;
+    cmd_set_disp_format_t set_disp;
+    cmd_sync_data_t sync_data;
+    cmd_response_t send_resp;
+    cmd_send_notify_t send_notif;
+    cmd_set_time_t set_time;
+    cmd_read_version_t read_ver;
+    cmd_set_clock_hand_t set_clock_hand;
+    cmd_set_vibration_t set_vib;
+    cmd_find_watch_t find_watch;
+    cmd_set_ancs_bond_req_t set_ancs_bond;
+    cmd_read_time_steps_t read_time_step;
+} cmd_group_t;
+
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);
 typedef s16 (*driver_callback_handler)(void *args);
