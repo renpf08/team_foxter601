@@ -44,12 +44,6 @@
                                              REQ_ANCS_NOTIF_ATT_ID_MESSAGE_SIZE)
 
 /**
-*  Did application handle the old message from ANCS? 
-*  add by mlw at 20200321 00:26
-*/
-#define HANDLE_OLD_MSG      0
-
-/**
 *  Original ANCS parse module is implement a little complicated, then a new one 
 *  is been used
 *  add by mlw at 20200318 14:40
@@ -61,28 +55,6 @@
 *  add by mlw at 20200326 11:40
  */
 #define USE_CONNECT_BONDING         0
-
-/* The PAIRING_SUPPORT macro controls whether pairing and encryption code is
- * compiled. This flag may be disabled for the applications that do not require
- * pairing.
- */
-#define USE_PAIRING_SUPPORT     0
-
-/* Macro used to enable Panic code */
-//#define ENABLE_DEBUG_PANIC
-
-/* Macro used to enable LCD display */
-/*#define ENABLE_LCD_DISPLAY*/
-
-/* Timer values for fast and slow advertisements. */
-//#define FAST_CONNECTION_ADVERT_TIMEOUT_VALUE      (30 * SECOND)
-//#define SLOW_CONNECTION_ADVERT_TIMEOUT_VALUE      (1 * MINUTE)
-
-/* Defines the High Baud Rate. 115K2 is the maximum supported baud rate */
-#define HIGH_BAUD_RATE                   (0x01d9) /* 115K2*/
-
-/* Defines the Low Baud Rate. */ 
-#define LOW_BAUD_RATE                    (0x000a) /* 2400 */
 
 /* Timer value for starting the Discovery Procedure once the connection is
  * established. 

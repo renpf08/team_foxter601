@@ -1777,26 +1777,11 @@ extern void WriteApplicationAndServiceDataToNVM(void)
  *----------------------------------------------------------------------------*/
 extern void ReportPanic(const char* file, const char* func, unsigned line, app_panic_code panic_code)
 {
-    char preStr[64] = {0};
-    unsigned len = 0;
-    
-    do
-    {
-        if(len >= sizeof(preStr)) break;
-        preStr[len++] = *file;
-        if(*file == '\\')
-        {
-            file += len;
-            len = 0;
-        }
-    } while(*++file != '\0');
-    preStr[len] = '\0';
-
-    get_driver()->uart->uart_write((u8*)&"panic\r\n", 7);
-    LogReport(__FILE__, __func__, __LINE__, Ancs_Client_system_panic);
     /* If we want any debug prints, we can put them here */
 #ifdef ENABLE_DEBUG_PANIC
     Panic(panic_code);
+#else
+    printf("<error> %s %s %d: code:0x%08X\r\n", file, func, line, panic_code);
 #endif
 }
 
@@ -2782,4 +2767,5 @@ void APP_Move_Bonded(uint8 caller)
 
 extern void LogReport(const char* file, const char* func, unsigned line, log_report_code code)
 {
+    //printf("<log> %s %s %d: code:0x%08X\r\n", file, func, line, code);
 }
