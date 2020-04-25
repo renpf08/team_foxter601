@@ -44,6 +44,7 @@ static u8 cmd_set_vibration(u8 *buffer, u8 length);
 static u8 cmd_find_watch(u8 *buffer, u8 length);
 static u8 cmd_set_ancs_bond_req(u8 *buffer, u8 length);
 static u8 cmd_read_time_steps(u8 *buffer, u8 length);
+void cmd_parse(u8* content, u8 length);
 
 static const CMDENTRY cmdList[] =
 {

@@ -160,6 +160,8 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value);
 /* This function initialises the Attribute data structure */
 static void ancsClearAttributeData(void);
 
+void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_source);
+void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source);
 /*=============================================================================*
  *  Private Function Implementations
  *============================================================================*/

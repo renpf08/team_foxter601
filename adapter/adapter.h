@@ -1,7 +1,6 @@
 #ifndef ADAPTER_H
 #define ADAPTER_H
 
-#include "ancs_service_data.h"
 #include "../common/common.h"
 #include "../driver/driver.h"
 
@@ -47,10 +46,9 @@ s16 nvm_write_sleep_data(u16 *buffer, u8 index);
 s16 nvm_erase_history_data(void);
 
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
-void cmd_parse(u8* content, u8 length);
 cmd_group_t *cmd_get(void);
-
-void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_source);
-void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source);
+ancs_msg_t *ancs_get(void);
+//void cmd_cb_handler(void);
+//void ancs_cb_handler(void);
 
 #endif

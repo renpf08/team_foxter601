@@ -62,6 +62,8 @@ typedef struct _SERIAL_DATA_T
 /* Battery Service data instance */
 static SERIAL_DATA_T g_serial_data;
 
+void cmd_parse(u8* content, u8 length);
+
 /*============================================================================*
  *  Public Function Implementations
  *===========================================================================*/

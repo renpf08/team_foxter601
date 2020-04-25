@@ -440,6 +440,15 @@ typedef struct {
     cmd_read_time_steps_t read_time_step;
 } cmd_group_t;
 
+typedef struct
+{
+    u8 cmd; //! fixed to 0x07
+    u8 sta; //! fixed to: 0:added, 1:modified, 2:removed
+    u8 level; //! 0~255, look appMsgList[] of MESSAGE_POSITION_xxx for details
+    u8 type; //! look appMsgList[] of APP_ID_STRING_xxx's index for details
+    u8 cnt; //! msg count
+} ancs_msg_t;
+
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);
 typedef s16 (*driver_callback_handler)(void *args);

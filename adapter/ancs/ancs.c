@@ -28,7 +28,7 @@
 #define MESSAGE_POSITION_WHATSAPP       2
 #define MESSAGE_POSITION_CALENDAR       0xFF
 #define MESSAGE_POSITION_LINKEDIN       7
-#define MESSAGE_POSITION_NEWS           0xFF //! add by mlw
+#define MESSAGE_POSITION_NEWS           0xFF
 
 #define APP_ID_STRING_NONE          "none"
 #define APP_ID_STRING_LINE          "jp.naver.line"
@@ -37,15 +37,15 @@
 #define APP_ID_STRING_FACEMESSAGE   "com.facebook.Messenger"  //! Messenger(Facebook) message ID
 #define APP_ID_STRING_WECHAT        "com.tencent.xin"
 #define APP_ID_STRING_FACEBOOK      "com.facebook.Facebook"   //! Facebook message ID
-#define APP_ID_STRING_EMAIL         "email"
+#define APP_ID_STRING_EMAIL         "email" //...
 #define APP_ID_STRING_SMS           "com.apple.MobileSMS"
 #define APP_ID_STRING_SKYPE         "com.skype.tomskype"
 #define APP_ID_STRING_COMMING_CALL  "com.apple.mobilephone"
 #define APP_ID_STRING_TWITTER       "com.atebits.Tweetie2"
 #define APP_ID_STRING_WHATSAPP      "net.whatsapp.WhatsApp"
-#define APP_ID_STRING_CALENDAR      "calendar"
+#define APP_ID_STRING_CALENDAR      "calendar" //...
 #define APP_ID_STRING_LINKEDIN      "com.linkedin.LinkedIn"
-#define APP_ID_STRING_NEWS          "news"
+#define APP_ID_STRING_NEWS          "news" //...
 
 typedef struct AppidIndex_T
 {
@@ -103,16 +103,6 @@ typedef struct
     u8 attrIdDateData[MAX_LENGTH_ATTTDATA];      //! date and time that the message was received
 } packing_msg_t;
 
-/** reference to the android notif packet mode */
-typedef struct
-{
-    u8 cmd; //! fixed to 0x07
-    u8 sta; //! fixed to: 0:added, 1:modified, 2:removed
-    u8 level; //! 0~255, look appMsgList[] of MESSAGE_POSITION_xxx for details
-    u8 type; //! look appMsgList[] of APP_ID_STRING_xxx's index for details
-    u8 cnt; //! msg count
-} protocol_msg_t;
-
 typedef struct
 {
     u8 uuid[4];
@@ -121,9 +111,13 @@ typedef struct
 
 static last_data_map_t lastData;
 static packing_msg_t pckMsg;
+ancs_msg_t  ancs_msg = {.cmd = 0x07};
+
 
 int ancs_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
 void ancs_business_handle(packing_msg_t* packMsg);
+void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_source);
+void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source);
 
 int ancs_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...)
 {
@@ -133,7 +127,6 @@ int ancs_log(const char* file, const char* func, unsigned line, const char* leve
 void ancs_business_handle(packing_msg_t* packMsg)
 {
     u8 i = 0;
-    protocol_msg_t  proMsg = {.cmd = 0x07};
 
     while(appMsgList[i].appId[0] != 0)
     {
@@ -155,21 +148,22 @@ void ancs_business_handle(packing_msg_t* packMsg)
     {
         ANCS_LOG_INFO("2> level           (importance) = <invalid>\r\n");
         ANCS_LOG_INFO("3> attr app id   (message type) = <not found>\r\n");
-        proMsg.level = 255; //! invalid if proMst.msgType = 255
-        proMsg.type = 255; //! indicated unknown message
+        ancs_msg.level = 255; //! invalid if proMst.msgType = 255
+        ancs_msg.type = 255; //! indicated unknown message
     }
     else
     {
         ANCS_LOG_INFO("2> level           (importance) = %d\r\n", appMsgList[i].appIndex);
         ANCS_LOG_INFO("3> attr app id   (message type) = %s\r\n", appMsgList[i].appId);
-        proMsg.level = appMsgList[i].appIndex;
-        proMsg.type = i;
+        ancs_msg.level = appMsgList[i].appIndex;
+        ancs_msg.type = i;
     }
     ANCS_LOG_INFO("4> cat cnt      (message count) = %d\r\n", packMsg->catCnt); 
     
-    proMsg.sta = packMsg->evtId;
-    proMsg.cnt = packMsg->catCnt;
-    SerialSendNotification((u8 *)&proMsg, 5); //! send ANCS msg to peer, for test purpose
+    ancs_msg.sta = packMsg->evtId;
+    ancs_msg.cnt = packMsg->catCnt;
+    SerialSendNotification((u8 *)&ancs_msg, 5); //! send ANCS msg to peer, for test purpose
+    //ancs_cb_handler();
 }
 void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_source)
 {
@@ -304,4 +298,8 @@ void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source)
             AncsGetNotificationAttributeCmd(p_noti_source->cid);
         }
     }
+}
+ancs_msg_t *ancs_get(void)
+{
+    return &ancs_msg;
 }
