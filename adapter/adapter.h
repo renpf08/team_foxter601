@@ -46,9 +46,13 @@ s16 nvm_write_sleep_data(u16 *buffer, u8 index);
 s16 nvm_erase_history_data(void);
 
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
+void cmd_send_data(uint8 *data, uint16 size);
 cmd_group_t *cmd_get(void);
 ancs_msg_t *ancs_get(void);
 //void cmd_cb_handler(void);
 //void ancs_cb_handler(void);
+
+int log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
+int printf(const char * sFormat, ...);
 
 #endif

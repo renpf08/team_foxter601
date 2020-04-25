@@ -7,10 +7,7 @@
 */
 
 #include <mem.h>
-#include <gatt.h>
-#include "user_config.h"
-#include "ancs_client.h"
-#include "driver/driver.h"
+#include "serial_service.h"
 #include "adapter/adapter.h"
 
 int cmd_log(const s8* file, const s8* func, unsigned line, const s8* level, const s8 * sFormat, ...);
@@ -243,6 +240,10 @@ void cmd_parse(u8* content, u8 length)
     }
     
     //get_driver()->uart->uart_write((unsigned char*)content, length);
+}
+void cmd_send_data(uint8 *data, uint16 size)
+{
+    SerialSendNotification(data, size);
 }
 cmd_group_t *cmd_get(void)
 {

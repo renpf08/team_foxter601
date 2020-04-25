@@ -2324,10 +2324,7 @@ void AppInit(sleep_state last_sleep_state)
       * add by mlw at 20200314 01:37
       */
     m_devname_init(devName);
-    //LogReport(__FILE__, __func__, __LINE__, Ancs_Client_system_started); // devName
-    get_driver()->uart->uart_write((unsigned char*)&"\r\n", 2);
-    get_driver()->uart->uart_write((unsigned char*)devName, StrLen((char*)devName));
-    get_driver()->uart->uart_write((unsigned char*)&"\r\n", 2);
+    printf("system started: %s\r\n", devName);
 
     /* Tell Security Manager module about the value it needs to initialise it's
      * diversifier to.

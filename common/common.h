@@ -8,6 +8,8 @@
 
 #define BIT_MASK(num) (0x01UL << (num))
 
+#define QUEUE_BUFFER    100
+
 typedef struct {
 	u8 x_l;
 	u8 x_h;
