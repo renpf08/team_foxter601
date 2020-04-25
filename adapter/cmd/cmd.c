@@ -106,16 +106,9 @@ static u8 cmd_sync_date(u8 *buffer, u8 length)
     return 0;
 }
 
-cmd_set_alarm_clock_t clarmClock;
 static u8 cmd_set_alarm_clock(u8 *buffer, u8 length)
 {
     cmd_set_alarm_clock_t* alarm_clock = (cmd_set_alarm_clock_t*)buffer;
-    MemCopy(&clarmClock, buffer, sizeof(cmd_set_alarm_clock_t));
-
-    if(clarmClock.clock1_hour == 12)
-    {
-        alarm_clock->clock1_hour = 23;
-    }
 
     if(alarm_clock->clock1_alarm_switch > 1) return 1;
     //if(alarm_clock->clock1_week.week > 7) return 1;

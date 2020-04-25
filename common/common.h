@@ -279,85 +279,25 @@ typedef struct {
 typedef struct {
     u8 cmd;
     u8 clock1_alarm_switch;
-    union {
-        u8 week;
-        struct {
-            u8 repeat_all:1;
-            u8 repeat_sat:1;
-            u8 repeat_fri:1;
-            u8 repeat_thu:1;
-            u8 repeat_wed:1;
-            u8 repeat_tue:1;
-            u8 repeat_mon:1;
-            u8 repeat_sun:1;
-        } repeat;
-    }clock1_week;
+    u8 clock1_repeat;
     u8 clock1_hour;
     u8 clock1_minute;
     u8 clock2_alarm_switch;
-    union {
-        u8 week;
-        struct {
-            u8 repeat_all:1;
-            u8 repeat_sat:1;
-            u8 repeat_fri:1;
-            u8 repeat_thu:1;
-            u8 repeat_wed:1;
-            u8 repeat_tue:1;
-            u8 repeat_mon:1;
-            u8 repeat_sun:1;
-        } repeat;
-    }clock2_week;
+    u8 clock2_repeat;
     u8 clock2_hour;
     u8 clock2_minute;
     u8 clock3_alarm_switch;
-    union {
-        u8 week;
-        struct {
-            u8 repeat_all:1;
-            u8 repeat_sat:1;
-            u8 repeat_fri:1;
-            u8 repeat_thu:1;
-            u8 repeat_wed:1;
-            u8 repeat_tue:1;
-            u8 repeat_mon:1;
-            u8 repeat_sun:1;
-        } repeat;
-    }clock3_week;
+    u8 clock3_repeat;
     u8 clock3_hour;
     u8 clock3_minute;
     u8 clock4_alarm_switch;
-    union {
-        u8 week;
-        struct {
-            u8 repeat_all:1;
-            u8 repeat_sat:1;
-            u8 repeat_fri:1;
-            u8 repeat_thu:1;
-            u8 repeat_wed:1;
-            u8 repeat_tue:1;
-            u8 repeat_mon:1;
-            u8 repeat_sun:1;
-        } repeat;
-    }clock4_week;
+    u8 clock4_repeat;
     u8 clock4_hour;
     u8 clock4_minute;
 } cmd_set_alarm_clock_t;
 typedef struct { 
     u8 cmd; 
-    union {
-        u8 disp_all;
-        struct {
-            u8 resv1:1;
-            u8 resv2:1;
-            u8 resv3:1;
-            u8 stren_exer:1;
-            u8 floor_level:1;
-            u8 calorie:1;
-            u8 distance:1;
-            u8 clock:1;
-        }disp;
-    }custm_disp;
+    u8 custm_disp;
     u8 clock_format;
     u8 main_target;
     u8 used_hand;
