@@ -160,6 +160,8 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value);
 /* This function initialises the Attribute data structure */
 static void ancsClearAttributeData(void);
 
+void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_source);
+void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source);
 /*=============================================================================*
  *  Private Function Implementations
  *============================================================================*/
@@ -178,12 +180,12 @@ static void ancsClearAttributeData(void);
 static bool ancsParseData(uint8 *p_data, uint16 size_value)
 {
     uint16 count = 0;
-    uint8 attrId = 0;
+    uint8 attr_id = 0;
     uint16 i = 0;
     uint16 state = attribute_data.ds_decoder_state;
     uint16 data_len = 0;
     bool b_skip_reserved = FALSE;
-    static data_source_t dataSrc;
+    static data_source_t data_src;
     
     while(count < size_value)
     {
@@ -195,10 +197,10 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
             case ds_decoder_hdr :
             count = ANCS_DS_HDR_LEN;
             state = ds_decoder_attrid;
-            MemSet(&dataSrc, 0, sizeof(data_source_t));
+            MemSet(&data_src, 0, sizeof(data_source_t));
             for(i = 0; i < ANCS_NS_NOTIF_UUID_SIZE; i++)
             {
-                dataSrc.uuid[i] = p_data[i+1];
+                data_src.uuid[i] = p_data[i+1];
             }
             #if !USE_MY_ANCS
             ANCSS_LOG_DEBUG("## uuid = %02X%02X%02X%02X\r\n", p_data[1], p_data[2], p_data[3], p_data[4]);
@@ -207,9 +209,9 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
             
             case ds_decoder_attrid :
                 /* Get the Attribute ID */
-                attrId = p_data[count++];
-                attribute_data.attr_id = attrId;
-                dataSrc.attrId = attrId;
+                attr_id = p_data[count++];
+                attribute_data.attr_id = attr_id;
+                data_src.attr_id = attr_id;
 
                 #if !USE_MY_ANCS
                 switch(attrId)
@@ -328,7 +330,7 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                     for(i=0;i<data_len;i++)
                     {
                         g_ancs_data[i] = p_data[count + i];
-                        dataSrc.attrData[dataSrc.attrLen++] = p_data[count + i];
+                        data_src.attr_data[data_src.attr_len++] = p_data[count + i];
                     }
                     g_ancs_data[i] = '\0';
 
@@ -366,7 +368,7 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                         for(i=0;i<data_len;i++)
                         {
                             g_ancs_data[i] = p_data[count + i];
-                            dataSrc.attrData[dataSrc.attrLen++] = p_data[count + i];
+                            data_src.attr_data[data_src.attr_len++] = p_data[count + i];
                         }
                         
                         g_ancs_data[i] = '\0';
@@ -391,9 +393,9 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                     #if !USE_MY_ANCS
                     ANCSS_LOG_INFO("** Attribute Data = %s\r\n", (const char*)&dataSrc.attrData); //! be care to use packed-data here
                     #endif
-                    ancs_data_source_handle(p_data, size_value, &dataSrc);
-                    MemSet(&dataSrc.attrData, 0, sizeof(dataSrc.attrData));
-                    dataSrc.attrLen = 0;
+                    ancs_data_source_handle(p_data, size_value, &data_src);
+                    MemSet(&data_src.attr_data, 0, sizeof(data_src.attr_data));
+                    data_src.attr_len = 0;
                     /* We are done reading data.Move to next attribute */
                     state = ds_decoder_attrid;
                     /* Invalid */
@@ -448,7 +450,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 
 		/* 1st byte of the Notification - Event ID */
 		curr_data = p_ind->value[ANCS_NS_OFFSET_EVENT_ID];
-		notiSrc.source.evtId = p_ind->value[ANCS_NS_OFFSET_EVENT_ID];
+		notiSrc.source.evt_id = p_ind->value[ANCS_NS_OFFSET_EVENT_ID];
 		#if !USE_MY_ANCS
 		if(curr_data == ancs_event_id_notif_added)
 		{
@@ -477,7 +479,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 
 		/* 2nd byte of the Notification- Event Flags */
 		curr_data = p_ind->value[ANCS_NS_OFFSET_EVENT_FLAGS];
-		notiSrc.source.evtFlag = p_ind->value[ANCS_NS_OFFSET_EVENT_FLAGS];
+		notiSrc.source.evt_flag = p_ind->value[ANCS_NS_OFFSET_EVENT_FLAGS];
 		#if !USE_MY_ANCS
 		if(curr_data == ANCS_NS_EVENTFLAG_SILENT)
 		{
@@ -495,7 +497,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 
 		/* 3rd byte of the Notification - Cat ID */
 		curr_data = p_ind->value[ANCS_NS_OFFSET_CAT_ID];
-		notiSrc.source.catId = p_ind->value[ANCS_NS_OFFSET_CAT_ID];
+		notiSrc.source.cat_id = p_ind->value[ANCS_NS_OFFSET_CAT_ID];
 		#if !USE_MY_ANCS
 		switch(curr_data)
 		{
@@ -633,7 +635,7 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
         #if !USE_MY_ANCS
 		ANCSS_LOG_DEBUG("** Cat Count = %d\r\n", p_ind->value[ANCS_NS_OFFSET_CAT_COUNT]);
         #endif
-		notiSrc.source.catCnt = p_ind->value[ANCS_NS_OFFSET_CAT_COUNT];
+		notiSrc.source.cat_cnt = p_ind->value[ANCS_NS_OFFSET_CAT_COUNT];
 
 		/* Clear the UUID notification buffer */
 		MemSet(uuid_data.data,0,ANCS_NS_NOTIF_UUID_SIZE);

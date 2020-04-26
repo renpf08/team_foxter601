@@ -122,10 +122,10 @@ typedef enum
 #define MAX_LENGTH_ATTTDATA 32
 typedef struct
 {
-    uint8 evtId;
-    uint8 evtFlag;
-    uint8 catId;
-    uint8 catCnt;
+    uint8 evt_id;
+    uint8 evt_flag;
+    uint8 cat_id;
+    uint8 cat_cnt;
     uint8 uuid[4];
 } source_t;
 typedef struct
@@ -136,9 +136,9 @@ typedef struct
 typedef struct
 {
     uint8 uuid[4];
-    uint8 attrId;
-    uint16 attrLen;
-    uint8 attrData[MAX_LENGTH_ATTTDATA];
+    uint8 attr_id;
+    uint16 attr_len;
+    uint8 attr_data[MAX_LENGTH_ATTTDATA];
 } data_source_t;
 
 /*============================================================================*
