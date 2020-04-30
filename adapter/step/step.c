@@ -130,6 +130,7 @@ void InitVal(u16 *ValS,u16 Val, u8 Length);
 u16 AverageVal(u16 *Val,u8 Num);
 u16 AverageValPro(u16 *Val,u16 New,u8 Num);
 u16 GetXYZ_Acce_Data(void);
+s16 step_count_init(void);
 
 void Acute_Sport_Time_Count_Init(void)
 {
@@ -478,4 +479,24 @@ void step_count_proce(void)
         Acute_Sport_Time_Count_Pro();/*需要修改*/
         /*以能读取到数据做为时间间隔*/
     }
+}
+
+static void step_count_algo(void)
+{
+    s16 xyz = 0;
+    
+    //xyz = get_driver()->gsensor->gsensor_read();
+    printf("cnt = %d\r\n", xyz);
+}
+
+static void step_count_cb_handler(u16 id)
+{
+	get_driver()->timer->timer_start(1000, step_count_cb_handler);
+	step_count_algo();
+}
+
+s16 step_count_init(void)
+{
+	get_driver()->timer->timer_start(1000, step_count_cb_handler);
+	return 0;
 }
