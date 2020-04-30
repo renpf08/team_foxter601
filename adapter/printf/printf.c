@@ -21,7 +21,6 @@ u8 printf_dequeue(void);
 void send(void);
 int vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pParamList) ;
 int nprintf(unsigned size, const char * sFormat, ...);
-int sprintf(char *buf, const char * sFormat, ...);
 int snprintf(char *buf, unsigned size, const char * sFormat, ...);
 s16 print_init(void);
 

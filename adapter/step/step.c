@@ -1,4 +1,5 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
+#include <mem.h>
 #include "../adapter.h"
 
 #define PRO_STEP_IDLE       0
@@ -130,6 +131,8 @@ void InitVal(u16 *ValS,u16 Val, u8 Length);
 u16 AverageVal(u16 *Val,u8 Num);
 u16 AverageValPro(u16 *Val,u16 New,u8 Num);
 u16 GetXYZ_Acce_Data(void);
+void Step_Count_data_Init(void);
+void step_count_proce(void);
 s16 step_count_init(void);
 
 void Acute_Sport_Time_Count_Init(void)
@@ -244,12 +247,19 @@ u16 AverageValPro(u16 *Val,u16 New,u8 Num)
 u16 GetXYZ_Acce_Data(void)
 {
     u32  Return=0xFFFF;
+    static u8 err_cnt = 0;
 	gsensor_data_t data = {0,0,0,0,0,0};
 
-    if(get_driver()->gsensor->gsensor_read((void*)&data) == -1)
+    //if(get_driver()->gsensor->gsensor_read((void*)&data) == -1)
     {
-        return 0xFFFE;
+        //return 0xFFFE;
     }
+    while(get_driver()->gsensor->gsensor_read((void*)&data) == -1) {
+        if(err_cnt++ >= 255) {
+            return 0xFFFE;
+        }
+    }
+    err_cnt = 0;
     
     if((data.x_h<0xFF)||(data.y_h<0xFF)||(data.z_h<0xFF))
     {
@@ -262,241 +272,294 @@ u16 GetXYZ_Acce_Data(void)
     
     return Return;
 }
-void step_count_proce(void)
+void Step_Count_data_Init(void)
 {
-    u8 i = 0;
-    u8 StepFlag = 0;
-    u16 Temp = 0xFFFF;
-    
-    Temp=GetXYZ_Acce_Data();
-
-    if(Step_Count_data.Read_3D_Error_Count>30) {
-        Step_Count_data.Read_3D_Error_Count = 0;
-        //get_driver()->gsensor->gsensor_init(&args, NULL);
-    }
-    if(Temp >= 0xFFFE) {
-        Step_Count_data.Read_3D_Error_Count++;
-        return;
-    }
-    Step_Count_data.Read_3D_Error_Count = 0;
-    
-    if(Step_Count_data.Pro_Step == PRO_STEP_IDLE)
-    {
-        Step_Count_data.Pro_Step=PRO_STEP_START;/**/
-        InitVal(Step_Count_data.FiFo_DataString_Val,Temp,ALL_DATA_NUM);/*存储每组4个平均值的数据，目前存16组*/
-        InitVal(Step_Count_data.FiFo_Filter_Val,Temp,FILTER_NUM);      /*数据做平滑处理*/
-    }
-
-    for(i=0;i<32;i++) /*原來是40*/
-    {
-        Temp=AverageValPro(Step_Count_data.FiFo_Filter_Val,Temp,FILTER_NUM);/*数据做平滑处理*/
-        if(Step_Count_data.DataGetCount<ONE_DATA_NUM) 
+   Step_Count_data.DataGetCount=0;/*获取0个值*/
+   Step_Count_data.FallingFlag=0;
+   Step_Count_data.RisingTime=0;
+   Step_Count_data.StepsChangePreCount=0;
+   Step_Count_data.ChangeTime=0;
+   Step_Count_data.StepsChangeCount=0;        
+   Step_Count_data.Pro_Step=PRO_STEP_IDLE;   
+   /*按键处理部分*/
+   Step_Count_data.Read_3D_Error_Count=0;/*增加一个读3轴加速计出错计数*/
+   Step_Count_data.LastChangeTime=0;   /*解决一些步数突变的问题*/
+   Step_Count_data.StepsChangeTimeBuffer=0; /*解决有时前几步变化的问题*/
+}
+static void StepCountProce(void);
+static void StepCountProce(void)
+{
+    uint8 i=0,StepFlag=0;
+    uint16 Temp=0xFFFF;    
+    //if(tid==LIS3DH_Sampling_Timer)
+    {  
+        //TimerDelete(LIS3DH_Sampling_Timer);/**/
+        //LIS3DH_Sampling_Timer=TIMER_INVALID;
+        //Date_Time_Process();/*时间走动处理*/
+        if(Step_Count_data.Pro_Step==PRO_STEP_START)
         {
-            Step_Count_data.FiFo_OneData_Val[Step_Count_data.DataGetCount++]=Temp;
-            continue;
-        }
-        
-        Step_Count_data.DataGetCount=0;
-        if((Step_Count_data.RisingTime)&&(Step_Count_data.RisingTime<255)) {
-            Step_Count_data.RisingTime++;  
-        }
-        
-        Temp=AverageVal(Step_Count_data.FiFo_OneData_Val,ONE_DATA_NUM);/*算出小组数据的平均值*/
-        Temp=AverageValPro(Step_Count_data.FiFo_DataString_Val,Temp,ALL_DATA_NUM);/*存入数组缓冲区，算出平均值*/ 
-        
-        if(Step_Count_data.FiFo_DataString_Val[DATA_DELAY_NUM]>=Temp)/*平均值数据提前3个，设为7-3＝4,当即时数据超过平均值时*/
-        {
-            if(Step_Count_data.RisingTime==0)
+            Temp=GetXYZ_Acce_Data();
+            if(Temp<0xFFFE)/*取得数据*/
             {
-                Step_Count_data.RisingTime++;
-                Step_Count_data.XYZ_Across_Acce_Min=Step_Count_data.FiFo_DataString_Val[DATA_DELAY_NUM-1];  
-                Step_Count_data.XYZ_Acce_Max_Offset=0;
+                Step_Count_data_Init();
+                Step_Count_data.Pro_Step=PRO_STEP_RISING;/**/
+                InitVal(Step_Count_data.FiFo_DataString_Val,Temp,ALL_DATA_NUM);/*存储每组4个平均值的数据，目前存16组*/
+                InitVal(Step_Count_data.FiFo_Filter_Val,Temp,FILTER_NUM);      /*数据做平滑处理*/
             }
-            if(Step_Count_data.FiFo_DataString_Val[DATA_DELAY_NUM]>Step_Count_data.XYZ_Across_Acce_Min+Step_Count_data.XYZ_Acce_Max_Offset)
-            {
-                Step_Count_data.XYZ_Acce_Max_Offset=Step_Count_data.FiFo_DataString_Val[DATA_DELAY_NUM]-Step_Count_data.XYZ_Across_Acce_Min;
-            }
-            Step_Count_data.FallingFlag=0;
         }
-        else
+        else if(Step_Count_data.Pro_Step==PRO_STEP_RISING)
         {
-            if(Step_Count_data.FallingFlag==0)
+            for(i=0;i<32;i++) /*原來是40*/
             {
-                Step_Count_data.FallingFlag++;
-                if(Step_Count_data.XYZ_Acce_Max_Offset>=ASLEEP_MOVE_OFFSET_MIN_VAL)
-                {
-                    if(Step_Count_data.RisingTime<=ASLEEP_ONE_STEP_PERIOD_MAX_TIME)
+                Temp=GetXYZ_Acce_Data();
+                if(Temp<0xFFFE){ 
+                    Temp=AverageValPro(Step_Count_data.FiFo_Filter_Val,Temp,FILTER_NUM);/*数据做平滑处理*/
+                    if(Step_Count_data.DataGetCount<ONE_DATA_NUM) 
                     {
-                        Asleep_Data_Info.FifteenMinuteMove++;
+                        Step_Count_data.FiFo_OneData_Val[Step_Count_data.DataGetCount++]=Temp;
                     }
-                }
-                if((Step_Count_data.XYZ_Acce_Max_Offset>=STEP_OFFSET_MIN_VAL)||(Step_Count_data.XYZ_Acce_Max_Offset>=START_STEP_OFFSET_MIN_VAL))
-                {
-                    if(Temp>=QUICKLY_STEP_MIN_VAL)/*快速运动*/
+                    if(Step_Count_data.DataGetCount>=ONE_DATA_NUM)/*一小组数据获取完成，进入数据分析*/
                     {
-                        if((Step_Count_data.RisingTime<=QUICKLY_STEP_TIME_MAX)&&(Step_Count_data.XYZ_Acce_Max_Offset>=QUICKLY_STEP_OFFSET_MIN_VAL))/*超过阀值，*/
+                        Step_Count_data.DataGetCount=0;
+                        if((Step_Count_data.RisingTime)&&(Step_Count_data.RisingTime<255))  Step_Count_data.RisingTime++;  
+                        Temp=AverageVal(Step_Count_data.FiFo_OneData_Val,ONE_DATA_NUM);/*算出小组数据的平均值*/
+                        Temp=AverageValPro(Step_Count_data.FiFo_DataString_Val,Temp,ALL_DATA_NUM);/*存入数组缓冲区，算出平均值*/ 
+                        if(Step_Count_data.FiFo_DataString_Val[DATA_DELAY_NUM]>=Temp)/*平均值数据提前3个，设为7-3＝4,当即时数据超过平均值时*/
                         {
-                            /*符合条件*/
-                            StepFlag=1;
+                            if(Step_Count_data.RisingTime==0)
+                            {
+                                Step_Count_data.RisingTime++;
+                                Step_Count_data.XYZ_Across_Acce_Min=Step_Count_data.FiFo_DataString_Val[DATA_DELAY_NUM-1];  
+                                Step_Count_data.XYZ_Acce_Max_Offset=0;
+                            }
+                            if(Step_Count_data.FiFo_DataString_Val[DATA_DELAY_NUM]>Step_Count_data.XYZ_Across_Acce_Min+Step_Count_data.XYZ_Acce_Max_Offset)
+                            {
+                                Step_Count_data.XYZ_Acce_Max_Offset=Step_Count_data.FiFo_DataString_Val[DATA_DELAY_NUM]-Step_Count_data.XYZ_Across_Acce_Min;
+                            }
+                            Step_Count_data.FallingFlag=0;
                         }
-                    }
-                    else 
-                    {
-                        if((Step_Count_data.RisingTime>=SLOW_ONE_STEP_PERIOD_MIN_TIME)&&(Step_Count_data.RisingTime<=ONE_STEP_PERIOD_MAX_TIME)&&((Step_Count_data.ChangeTime==0)||(Step_Count_data.ChangeTime>=SLOW_STEP_TIME_MIN)))
+                        else
                         {
-                            if(((Step_Count_data.StepsChangeCount<HOW_MANY_STEP_BUFFER)&&(Step_Count_data.XYZ_Acce_Max_Offset>=START_STEP_OFFSET_MIN_VAL))||(Step_Count_data.StepsChangeCount>=HOW_MANY_STEP_BUFFER))
-                                StepFlag=2;
+                            if(Step_Count_data.FallingFlag==0)
+                            {
+                                Step_Count_data.FallingFlag++;
+                                if(Step_Count_data.XYZ_Acce_Max_Offset>=ASLEEP_MOVE_OFFSET_MIN_VAL)
+                                {
+                                    if(Step_Count_data.RisingTime<=ASLEEP_ONE_STEP_PERIOD_MAX_TIME)
+                                    {
+                                        Asleep_Data_Info.FifteenMinuteMove++;
+                                    }
+                                }
+                                if((Step_Count_data.XYZ_Acce_Max_Offset>=STEP_OFFSET_MIN_VAL)||(Step_Count_data.XYZ_Acce_Max_Offset>=START_STEP_OFFSET_MIN_VAL))
+                                {
+                                    if(Temp>=QUICKLY_STEP_MIN_VAL)/*快速运动*/
+                                    {
+                                        if((Step_Count_data.RisingTime<=QUICKLY_STEP_TIME_MAX)&&(Step_Count_data.XYZ_Acce_Max_Offset>=QUICKLY_STEP_OFFSET_MIN_VAL))/*超过阀值，*/
+                                        {
+                                            /*符合条件*/
+                                            StepFlag=1;
+                                        }
+                                    }
+                                    else 
+                                    {
+                                        if((Step_Count_data.RisingTime>=SLOW_ONE_STEP_PERIOD_MIN_TIME)&&(Step_Count_data.RisingTime<=ONE_STEP_PERIOD_MAX_TIME)&&((Step_Count_data.ChangeTime==0)||(Step_Count_data.ChangeTime>=SLOW_STEP_TIME_MIN)))
+                                        {
+                                            if(((Step_Count_data.StepsChangeCount<HOW_MANY_STEP_BUFFER)&&(Step_Count_data.XYZ_Acce_Max_Offset>=START_STEP_OFFSET_MIN_VAL))||(Step_Count_data.StepsChangeCount>=HOW_MANY_STEP_BUFFER))
+                                                StepFlag=2;
+                                        }
+                                    }
+                                } 
+                             }
+                             Step_Count_data.RisingTime=0;
                         }
-                    }
-                } 
-             }
-             Step_Count_data.RisingTime=0;
-        }
-        if((StepFlag==2)&&(Step_Count_data.StepsChangeCount>=2))
-        {
-            if((Step_Count_data.ChangeTime<(Step_Count_data.LastChangeTime/2))||(Step_Count_data.ChangeTime>(Step_Count_data.LastChangeTime*3/2)))
-            {
-                StepFlag=0;
-            }
-            else 
-            {
-                Step_Count_data.LastChangeTime+=Step_Count_data.ChangeTime;
-                Step_Count_data.LastChangeTime=Step_Count_data.LastChangeTime/2;
-            }      
-        }
-        if(StepFlag>0)
-        {
-            if(Step_Count_data.StepsChangeCount==0x01)
-            {
-              Step_Count_data.ChangeTime=1; 
-              Step_Count_data.StepsChangeTimeBuffer=1; 
-            }
-            if(Step_Count_data.StepsChangeCount==2)/*第二次有效步数的时候，记录下两步的时间差*//*解决步数突变的问题*/
-            {
-                Step_Count_data.LastChangeTime=Step_Count_data.ChangeTime;
-            }
-            if(Step_Count_data.LastChangeTime<6)
-            {
-                Step_Count_data.LastChangeTime=6;
-            }
-            StepFlag=0;
-        }
-        /*此段过滤前几步变化，只有连接出现6步变化后再进入真正计步*/  
-        if((Step_Count_data.ChangeTime>0)&&(Step_Count_data.ChangeTime<255))
-        {
-            Step_Count_data.ChangeTime++;/*40ms为一单位*/
-        }
-        /*以下是以时间为buffer部分*/
-        if((Step_Count_data.StepsChangeTimeBuffer>0)&&(Step_Count_data.StepsChangeTimeBuffer<255))
-        {
-            Step_Count_data.StepsChangeTimeBuffer++;/*40ms为一单位*/
-        }
-        if((Step_Count_data.StepsChangeTimeBuffer>MIDDLE_STEP_SECOND)&&(Step_Count_data.StepsChangeCount<MIDDLE_STEP_COUNT))
-        {
-            Step_Count_data.StepsChangeTimeBuffer=1;
-            Step_Count_data.StepsChangeCount=1;
-        }
-        if((Step_Count_data.ChangeTime>=TWO_STEP_BETWEEN_MAX_TIME)||((Step_Count_data.ChangeTime<=TWO_STEP_BETWEEN_MIN_TIME)&&(Step_Count_data.StepsChangeCount>1)&&(Step_Count_data.StepsChangeCount!=Step_Count_data.StepsChangePreCount)))/*1.6秒内无连续动作，认为是假走,小于0.2秒，也认为是假走*/
-        {
-            Step_Count_data.StepsChangeCount=0;
-            Step_Count_data.ChangeTime=0; 
-            Step_Count_data.StepsChangePreCount=Step_Count_data.StepsChangeCount;
-            Step_Count_data.LastChangeTime=0;/*解决步数突变的问题*/
-            Step_Count_data.StepsChangeTimeBuffer=0; /*解决有时前几步变化的问题*/
-        }
-        else if(Step_Count_data.StepsChangeCount!=Step_Count_data.StepsChangePreCount)
-        {
-            if(Step_Count_data.StepsChangeTimeBuffer<HOW_MANY_SECOND_BUFFER)/*小于3秒的处理*/
-            {
-                if(Step_Count_data.StepsChangeCount==MIDDLE_STEP_COUNT)
-                {
-                    if(Step_Count_data.StepsChangeTimeBuffer>MIDDLE_STEP_SECOND)
-                    {
-                        Step_Count_data.StepsChangeTimeBuffer=1;
-                        Step_Count_data.StepsChangeCount=1;
-                    }
-                }
-            }
-            else if(Step_Count_data.StepsChangeTimeBuffer<0xFF)/*等于3秒的处理*/
-            {
-                if(Step_Count_data.StepsChangeCount>=HOW_MANY_STEP_BUFFER)/*前3秒内需要至少6步*/
-                {
-                    Total_Sport_Info_data.StepCounts+=Step_Count_data.StepsChangeCount;
-                    Total_Sport_Info_data.Distance+=Body_Info_data.StridedDistance*Step_Count_data.StepsChangeCount;
-                    One_Minute_Sport_Info_data.StepCounts+=Step_Count_data.StepsChangeCount;
-                    One_Minute_Sport_Info_data.Distance+=Body_Info_data.StridedDistance*Step_Count_data.StepsChangeCount;
-
-                    //SB100_data.UpdateDataFlag=0x02;/*数据有更新*//*jim*/
-                    Step_Count_data.StepsChangeTimeBuffer=0xFF;
-                    /*剧烈运动测算*/
-                    if(Acute_Sport_Time_Count_data.AcuteSportTimeProState==0)
-                    {
-                        Acute_Sport_Time_Count_data.StepCountAcute=Step_Count_data.StepsChangeCount;
-                        Acute_Sport_Time_Count_data.AcuteSportTimeProState=1;
-                    }
-                    else
-                    {
-                        Acute_Sport_Time_Count_data.OverTimeCount=1;
-                        Acute_Sport_Time_Count_data.StepCountAcute+=Step_Count_data.StepsChangeCount;
-                    }
-                }
-                else /*认为是无作用的动作*/
-                {
-                    Step_Count_data.StepsChangeCount=0;
-                    Step_Count_data.ChangeTime=0; 
-                    Step_Count_data.StepsChangePreCount=Step_Count_data.StepsChangeCount;
-                    Step_Count_data.LastChangeTime=0;/*解决步数突变的问题*/
-                    Step_Count_data.StepsChangeTimeBuffer=0; /*解决有时前几步变化的问题*/  
-                }
-            }
-            else 
-            {
-                    Total_Sport_Info_data.StepCounts++;
-                    Total_Sport_Info_data.Distance+=Body_Info_data.StridedDistance;
-                    One_Minute_Sport_Info_data.StepCounts++;
-                    One_Minute_Sport_Info_data.Distance+=Body_Info_data.StridedDistance;
-
-                    if(Acute_Sport_Time_Count_data.AcuteSportTimeProState==0)
-                    {
-                        Acute_Sport_Time_Count_data.StepCountAcute=1;
-                        Acute_Sport_Time_Count_data.AcuteSportTimeProState=1;                                        
-                    }
-                    else /*(Acute_Sport_Time_Count_data.AcuteSportTimeProState) 把剧烈运动的测量严格化*/
-                    {
-                        Acute_Sport_Time_Count_data.OverTimeCount=1;
-                        /*if(Acute_Sport_Time_Count_data.AcuteSportTimeProState==2)*/
+                        if((StepFlag==2)&&(Step_Count_data.StepsChangeCount>=2))
+                       /* if((StepFlag>0)&&(Step_Count_data.StepsChangeCount>=2))*/
                         {
-                            Acute_Sport_Time_Count_data.StepCountAcute++; 
-                        }    
+                            if((Step_Count_data.ChangeTime<(Step_Count_data.LastChangeTime/2))||(Step_Count_data.ChangeTime>(Step_Count_data.LastChangeTime*3/2)))
+                            {
+                                StepFlag=0;
+                            }
+                            else 
+                            {
+                                Step_Count_data.LastChangeTime+=Step_Count_data.ChangeTime;
+                                Step_Count_data.LastChangeTime=Step_Count_data.LastChangeTime/2;
+                            }      
+                        }
+                        if(StepFlag>0)
+                        {
+                            /*if(Vibrator_data.VibrationProState==0)*/ 
+                            //if(Vibrator_data.VibrationCounter==0)  /*jim modify 20150817*/
+                            {
+                                Step_Count_data.StepsChangeCount++;
+                            }
+                           /* if(Step_Count_data.ChangeTime==0) 
+                            {
+                                Step_Count_data.ChangeTime=1; 
+                            }注意此处的作用*/
+                            if(Step_Count_data.StepsChangeCount==0x01)
+                            {
+                              Step_Count_data.ChangeTime=1; 
+                              Step_Count_data.StepsChangeTimeBuffer=1; 
+                            }
+                            if(Step_Count_data.StepsChangeCount==2)/*第二次有效步数的时候，记录下两步的时间差*//*解决步数突变的问题*/
+                            {
+                                Step_Count_data.LastChangeTime=Step_Count_data.ChangeTime;
+                            }
+                            if(Step_Count_data.LastChangeTime<6)
+                            {
+                                Step_Count_data.LastChangeTime=6;
+                            }
+                            StepFlag=0;
+                        }
+                        /*此段过滤前几步变化，只有连接出现6步变化后再进入真正计步*/  
+                        if((Step_Count_data.ChangeTime>0)&&(Step_Count_data.ChangeTime<255))
+                        {
+                            Step_Count_data.ChangeTime++;/*40ms为一单位*/
+                        }
+                        /*以下是以时间为buffer部分*/
+                        if((Step_Count_data.StepsChangeTimeBuffer>0)&&(Step_Count_data.StepsChangeTimeBuffer<255))
+                        {
+                            Step_Count_data.StepsChangeTimeBuffer++;/*40ms为一单位*/
+                        }
+                        if((Step_Count_data.StepsChangeTimeBuffer>MIDDLE_STEP_SECOND)&&(Step_Count_data.StepsChangeCount<MIDDLE_STEP_COUNT))
+                        {
+                            Step_Count_data.StepsChangeTimeBuffer=1;
+                            Step_Count_data.StepsChangeCount=1;
+                        }
+                        if((Step_Count_data.ChangeTime>=TWO_STEP_BETWEEN_MAX_TIME)||((Step_Count_data.ChangeTime<=TWO_STEP_BETWEEN_MIN_TIME)&&(Step_Count_data.StepsChangeCount>1)&&(Step_Count_data.StepsChangeCount!=Step_Count_data.StepsChangePreCount)))/*1.6秒内无连续动作，认为是假走,小于0.2秒，也认为是假走*/
+                        {
+                            Step_Count_data.StepsChangeCount=0;
+                            Step_Count_data.ChangeTime=0; 
+                            Step_Count_data.StepsChangePreCount=Step_Count_data.StepsChangeCount;
+                            Step_Count_data.LastChangeTime=0;/*解决步数突变的问题*/
+                            Step_Count_data.StepsChangeTimeBuffer=0; /*解决有时前几步变化的问题*/
+                        }
+                        else if(Step_Count_data.StepsChangeCount!=Step_Count_data.StepsChangePreCount)
+                        {
+                            if(Step_Count_data.StepsChangeTimeBuffer<HOW_MANY_SECOND_BUFFER)/*小于3秒的处理*/
+                            {
+                                if(Step_Count_data.StepsChangeCount==MIDDLE_STEP_COUNT)
+                                {
+                                    if(Step_Count_data.StepsChangeTimeBuffer>MIDDLE_STEP_SECOND)
+                                    {
+                                        Step_Count_data.StepsChangeTimeBuffer=1;
+                                        Step_Count_data.StepsChangeCount=1;
+                                    }
+                                }
+                            }
+                            else if(Step_Count_data.StepsChangeTimeBuffer<0xFF)/*等于3秒的处理*/
+                            {
+                                if(Step_Count_data.StepsChangeCount>=HOW_MANY_STEP_BUFFER)/*前3秒内需要至少6步*/
+                                {
+                                    Total_Sport_Info_data.StepCounts+=Step_Count_data.StepsChangeCount;
+                                    Total_Sport_Info_data.Distance+=Body_Info_data.StridedDistance*Step_Count_data.StepsChangeCount;
+                                    One_Minute_Sport_Info_data.StepCounts+=Step_Count_data.StepsChangeCount;
+                                    One_Minute_Sport_Info_data.Distance+=Body_Info_data.StridedDistance*Step_Count_data.StepsChangeCount;
+
+                                    //SB100_data.UpdateDataFlag=0x02;/*数据有更新*//*jim*/
+                                    Step_Count_data.StepsChangeTimeBuffer=0xFF;
+                                    /*剧烈运动测算*/
+                                    if(Acute_Sport_Time_Count_data.AcuteSportTimeProState==0)
+                                    {
+                                        Acute_Sport_Time_Count_data.StepCountAcute=Step_Count_data.StepsChangeCount;
+                                        Acute_Sport_Time_Count_data.AcuteSportTimeProState=1;
+                                    }
+                                    else
+                                    {
+                                        Acute_Sport_Time_Count_data.OverTimeCount=1;
+                                        Acute_Sport_Time_Count_data.StepCountAcute+=Step_Count_data.StepsChangeCount;
+                                    }
+                                }
+                                else /*认为是无作用的动作*/
+                                {
+                                    Step_Count_data.StepsChangeCount=0;
+                                    Step_Count_data.ChangeTime=0; 
+                                    Step_Count_data.StepsChangePreCount=Step_Count_data.StepsChangeCount;
+                                    Step_Count_data.LastChangeTime=0;/*解决步数突变的问题*/
+                                    Step_Count_data.StepsChangeTimeBuffer=0; /*解决有时前几步变化的问题*/  
+                                }
+                            }
+                            else 
+                            {
+                                    Total_Sport_Info_data.StepCounts++;
+                                    Total_Sport_Info_data.Distance+=Body_Info_data.StridedDistance;
+                                    One_Minute_Sport_Info_data.StepCounts++;
+                                    One_Minute_Sport_Info_data.Distance+=Body_Info_data.StridedDistance;
+
+                                    if(Acute_Sport_Time_Count_data.AcuteSportTimeProState==0)
+                                    {
+                                        Acute_Sport_Time_Count_data.StepCountAcute=1;
+                                        Acute_Sport_Time_Count_data.AcuteSportTimeProState=1;                                        
+                                    }
+                                    else /*(Acute_Sport_Time_Count_data.AcuteSportTimeProState) 把剧烈运动的测量严格化*/
+                                    {
+                                        Acute_Sport_Time_Count_data.OverTimeCount=1;
+                                        /*if(Acute_Sport_Time_Count_data.AcuteSportTimeProState==2)*/
+                                        {
+                                            Acute_Sport_Time_Count_data.StepCountAcute++; 
+                                        }    
+                                    }
+                                    Step_Count_data.StepsChangeCount=HOW_MANY_STEP_BUFFER+1;
+                                    //SB100_data.UpdateDataFlag=0x02;/*数据有更新*//*jim*/ 
+                            }
+                            Step_Count_data.ChangeTime=1;
+                            Step_Count_data.StepsChangePreCount=Step_Count_data.StepsChangeCount;
+                            /*高度步数累计*/
+						#ifdef LPS25H_ENABLE_
+                            if((Step_Count_data.StepsChangeCount>=MIDDLE_STEP_COUNT)&&(Hight_Count_data.StepCountHight==0)&&(Hight_Count_data.Hight_Pro_State!=HIGHT_MEASURE_PRO))
+                            {
+                                    Hight_Count_data.Hight_Pro_State=HIGHT_MEASURE_START;
+                                    Hight_Count_data.StartStepCountHight=Total_Sport_Info_data.StepCounts;
+                            }
+                            if(Hight_Count_data.StepCountHight)
+                            {
+                                Hight_Count_data.OverTimeCount=1;/**/
+                            }
+						 #endif
+                        }
+                        /************************/
+                        /*高度运算处理 */
+                       #ifdef LPS25H_ENABLE_
+                        Hight_Measure_Pro(); /*需要修改*/
+                       #endif
+                        /*剧烈运动测算*/
+                        Acute_Sport_Time_Count_Pro();/*需要修改*/
+                        /*以能读取到数据做为时间间隔*/
                     }
-                    Step_Count_data.StepsChangeCount=HOW_MANY_STEP_BUFFER+1;
-                    //SB100_data.UpdateDataFlag=0x02;/*数据有更新*//*jim*/ 
+                    Step_Count_data.Read_3D_Error_Count=0;        
+                }
+                else 
+                {
+                    Step_Count_data.Read_3D_Error_Count++;         
+                    break;
+                }
             }
-            Step_Count_data.ChangeTime=1;
-            Step_Count_data.StepsChangePreCount=Step_Count_data.StepsChangeCount;
         }
-        /*剧烈运动测算*/
-        Acute_Sport_Time_Count_Pro();/*需要修改*/
-        /*以能读取到数据做为时间间隔*/
     }
 }
-
-static void step_count_algo(void)
-{
-    s16 xyz = 0;
-    
-    //xyz = get_driver()->gsensor->gsensor_read();
-    printf("cnt = %d\r\n", xyz);
-}
-
 static void step_count_cb_handler(u16 id)
 {
-	get_driver()->timer->timer_start(1000, step_count_cb_handler);
-	step_count_algo();
+	//step_count_proce();
+    StepCountProce();
+
+    u8 buf[16] = {0};
+    u8 val[4] = {0};
+    static u8 cnt = 0;
+    val[0] = (Total_Sport_Info_data.StepCounts>>24) & 0x000000FF;
+    val[1] = (Total_Sport_Info_data.StepCounts>>16) & 0x000000FF;
+    val[2] = (Total_Sport_Info_data.StepCounts>>8) & 0x000000FF;
+    val[3] = Total_Sport_Info_data.StepCounts & 0x000000FF;
+    sprintf((char*)buf, "%03d: %d%d%d%d\r\n", cnt++, val[0], val[1], val[2], val[3]);
+    //printf("step = %d%d%d%d\r\n", val[0], val[1], val[2], val[3]);
+    //send_ble(buf, StrLen((char*)buf));
+    send_ble(val, 4);
+	get_driver()->timer->timer_start(280, step_count_cb_handler);
 }
 
 s16 step_count_init(void)
 {
-	get_driver()->timer->timer_start(1000, step_count_cb_handler);
+	get_driver()->timer->timer_start(280, step_count_cb_handler);  
+    Step_Count_data.Pro_Step=PRO_STEP_START;  
 	return 0;
 }
+
