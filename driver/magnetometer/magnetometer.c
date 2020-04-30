@@ -297,11 +297,12 @@ static s16 csr_magnetometer_to_active(void)
 static s16 csr_magnetometer_read(void *args)
 {
 	mag_data_t *data = (mag_data_t *)args;
+    u8 res = 0;
 	
 	//csr_magnetometer_to_active();
 	//while(!INT_GET(csr_mag3110.cfg.int1.num));
-	csr_magnetometer_reg_read(OUT_X_MSB, (u8 *)data, 6);
-	return 0;
+	res = csr_magnetometer_reg_read(OUT_X_MSB, (u8 *)data, 6);
+	return (s16)res;
 }
 
 s16 csr_magnetometer_event_handler(u32 num, u32 status)
