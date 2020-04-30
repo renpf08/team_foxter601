@@ -2,6 +2,9 @@
  <folder name="C Files" >
   <extension name="c" />
   <folder name="adapter" >
+   <folder name="step" >
+    <file path="adapter/step/step.c" />
+   </folder>
    <folder name="printf" >
     <file path="adapter/printf/printf.c" />
    </folder>

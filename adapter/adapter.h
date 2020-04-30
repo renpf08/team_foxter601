@@ -52,6 +52,8 @@ ancs_msg_t *ancs_get(void);
 //void cmd_cb_handler(void);
 //void ancs_cb_handler(void);
 
+void step_count_proce(void);
+
 int log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
 int printf(const char * sFormat, ...);
 
