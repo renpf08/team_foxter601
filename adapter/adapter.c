@@ -37,6 +37,8 @@ s16 csr_event_callback(EVENT_E ev)
         {
     	    //adapter.drv->uart->uart_write((u8 *)&combo_event, 1);
         }
+	} else if(ev == MAGNETOMETER_READY) {
+	    mag_cb_handler((void*)ev);
 	}
 	
 	return 0;

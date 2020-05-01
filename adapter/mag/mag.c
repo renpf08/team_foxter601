@@ -24,9 +24,38 @@ mag_t mag;
 
 s16 mag_cb_handler(void *args)
 {
-    mag_get_measure_val();
+    /*mag_get_measure_val();
+
+    static u8 angle = 0;
+    if(angle != mag.angle_value)
+    {
+        send_ble((u8*)&mag.angle_value, 1);
+        printf("angle: %d\r\n", mag.angle_value);
+    }
+    angle = mag.angle_value;*/
 
 	return 0;
+}
+
+void mag_test_handler(void);
+void mag_test_handler(void)
+{
+    mag_get_measure_val();
+
+    static u8 angle = 0;
+    u8 value[2] = {0, 0};
+    u8 cur = mag.angle_value;
+    if(angle != mag.angle_value)
+    {
+        value[0] = cur/100;
+        cur = cur%100;
+        value[1] = (cur/10<<4)&0xF0;
+        cur = cur%10;
+        value[1] |= cur&0x0F;
+        send_ble(value, 2);
+        printf("angle: %d\r\n", mag.angle_value);
+    }
+    angle = mag.angle_value;
 }
 
 u16 tan_table[45]={2,5,9,12,16,19,23,27,31,34,38,42,47,51,55,60,65,70,75,81,87,93,100,107,115,123,133,143,154,166,180,196,214,236,261,290,327,373,433,514,631,814,1143,1908,5729};/*jim magnetism*/
@@ -125,7 +154,7 @@ void mag_get_measure_val(void)
     temp_val_z<<=8;
     temp_val_z|=data.mag_zl;
 
-  if(mag.measure_flag==4)
+  //if(mag.measure_flag==4)
   {
     if(temp_val_x>mag.mag_x_max) mag.mag_x_max=temp_val_x;
     else if(temp_val_x<mag.mag_x_min)mag.mag_x_min=temp_val_x;

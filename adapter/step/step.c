@@ -537,22 +537,31 @@ static void StepCountProce(void)
         }
     }
 }
+
+extern void mag_test_handler(void);
 static void step_count_cb_handler(u16 id)
 {
 	//step_count_proce();
     StepCountProce();
+    mag_test_handler();
 
+    #if 0
     u8 buf[16] = {0};
     u8 val[4] = {0};
     static u8 cnt = 0;
-    val[0] = (Total_Sport_Info_data.StepCounts>>24) & 0x000000FF;
-    val[1] = (Total_Sport_Info_data.StepCounts>>16) & 0x000000FF;
-    val[2] = (Total_Sport_Info_data.StepCounts>>8) & 0x000000FF;
-    val[3] = Total_Sport_Info_data.StepCounts & 0x000000FF;
-    sprintf((char*)buf, "%03d: %d%d%d%d\r\n", cnt++, val[0], val[1], val[2], val[3]);
-    //printf("step = %d%d%d%d\r\n", val[0], val[1], val[2], val[3]);
-    //send_ble(buf, StrLen((char*)buf));
-    send_ble(val, 4);
+    static u32 step_count = 0;
+    if(step_count != Total_Sport_Info_data.StepCounts)
+    {
+        val[0] = (Total_Sport_Info_data.StepCounts>>24) & 0x000000FF;
+        val[1] = (Total_Sport_Info_data.StepCounts>>16) & 0x000000FF;
+        val[2] = (Total_Sport_Info_data.StepCounts>>8) & 0x000000FF;
+        val[3] = Total_Sport_Info_data.StepCounts & 0x000000FF;
+        sprintf((char*)buf, "%03d: %d%d%d%d\r\n", cnt++, val[0], val[1], val[2], val[3]);
+        send_ble(val, 4);
+    }
+    step_count = Total_Sport_Info_data.StepCounts;
+    #endif
+    
 	get_driver()->timer->timer_start(280, step_count_cb_handler);
 }
 

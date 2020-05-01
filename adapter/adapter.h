@@ -6,7 +6,7 @@
 
 //typedef SerialSendNotification send_ble;
 #define SerialSendNotification send_ble
-extern bool SerialSendNotification(uint8 *data, uint16 size);
+extern bool SerialSendNotification(u8 *data, u16 size);
 
 s16 adapter_init(adapter_callback cb);
 s16 adapter_uninit(void);
