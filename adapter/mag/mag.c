@@ -5,6 +5,7 @@
 s16 mag_cb_handler(void *args);
 u8 calculate_angle(int16 x_val,int16 y_val,int16 z_val);
 void mag_get_measure_val(void);
+s16 mag_sample_init(void);
 
 typedef struct {
 	u8 angle_value;
@@ -35,27 +36,6 @@ s16 mag_cb_handler(void *args)
     angle = mag.angle_value;*/
 
 	return 0;
-}
-
-void mag_test_handler(void);
-void mag_test_handler(void)
-{
-    mag_get_measure_val();
-
-    static u8 angle = 0;
-    u8 value[2] = {0, 0};
-    u8 cur = mag.angle_value;
-    if(angle != mag.angle_value)
-    {
-        value[0] = cur/100;
-        cur = cur%100;
-        value[1] = (cur/10<<4)&0xF0;
-        cur = cur%10;
-        value[1] |= cur&0x0F;
-        send_ble(value, 2);
-        printf("angle: %d\r\n", mag.angle_value);
-    }
-    angle = mag.angle_value;
 }
 
 u16 tan_table[45]={2,5,9,12,16,19,23,27,31,34,38,42,47,51,55,60,65,70,75,81,87,93,100,107,115,123,133,143,154,166,180,196,214,236,261,290,327,373,433,514,631,814,1143,1908,5729};/*jim magnetism*/
@@ -196,5 +176,33 @@ void mag_get_measure_val(void)
 		else
 			mag.angle_value=temp_val_x/2;
 	}
+}
+
+static void mag_sample_handler(u16 id)
+{
+    mag_get_measure_val();
+
+    static u8 angle = 0;
+    u8 value[2] = {0, 0};
+    u8 cur = mag.angle_value;
+    if(angle != mag.angle_value)
+    {
+        value[0] = cur/100;
+        cur = cur%100;
+        value[1] = (cur/10<<4)&0xF0;
+        cur = cur%10;
+        value[1] |= cur&0x0F;
+        send_ble(value, 2);
+        printf("angle: %d\r\n", mag.angle_value);
+    }
+    angle = mag.angle_value;
+    
+	get_driver()->timer->timer_start(280, mag_sample_handler);
+}
+
+s16 mag_sample_init(void)
+{
+	get_driver()->timer->timer_start(280, mag_sample_handler);  
+	return 0;
 }
 

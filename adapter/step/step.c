@@ -133,7 +133,7 @@ u16 AverageValPro(u16 *Val,u16 New,u8 Num);
 u16 GetXYZ_Acce_Data(void);
 void Step_Count_data_Init(void);
 void step_count_proce(void);
-s16 step_count_init(void);
+s16 step_sample_init(void);
 
 void Acute_Sport_Time_Count_Init(void)
 {
@@ -538,14 +538,11 @@ static void StepCountProce(void)
     }
 }
 
-extern void mag_test_handler(void);
-static void step_count_cb_handler(u16 id)
+static void step_sample_handler(u16 id)
 {
-	//step_count_proce();
     StepCountProce();
-    mag_test_handler();
 
-    #if 0
+    #if 1
     u8 buf[16] = {0};
     u8 val[4] = {0};
     static u8 cnt = 0;
@@ -558,16 +555,17 @@ static void step_count_cb_handler(u16 id)
         val[3] = Total_Sport_Info_data.StepCounts & 0x000000FF;
         sprintf((char*)buf, "%03d: %d%d%d%d\r\n", cnt++, val[0], val[1], val[2], val[3]);
         send_ble(val, 4);
+        printf("%s", buf);
     }
     step_count = Total_Sport_Info_data.StepCounts;
     #endif
     
-	get_driver()->timer->timer_start(280, step_count_cb_handler);
+	get_driver()->timer->timer_start(280, step_sample_handler);
 }
 
-s16 step_count_init(void)
+s16 step_sample_init(void)
 {
-	get_driver()->timer->timer_start(280, step_count_cb_handler);  
+	get_driver()->timer->timer_start(280, step_sample_handler);  
     Step_Count_data.Pro_Step=PRO_STEP_START;  
 	return 0;
 }
