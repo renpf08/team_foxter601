@@ -537,12 +537,11 @@ static void StepCountProce(void)
         }
     }
 }
-
 static void step_sample_handler(u16 id)
 {
     StepCountProce();
 
-    #if 1
+    #if 0
     u8 buf[16] = {0};
     u8 val[4] = {0};
     static u8 cnt = 0;
@@ -562,11 +561,14 @@ static void step_sample_handler(u16 id)
     
 	get_driver()->timer->timer_start(280, step_sample_handler);
 }
-
 s16 step_sample_init(void)
 {
 	get_driver()->timer->timer_start(280, step_sample_handler);  
     Step_Count_data.Pro_Step=PRO_STEP_START;  
 	return 0;
+}
+u32 step_get(void)
+{
+    return Total_Sport_Info_data.StepCounts;
 }
 

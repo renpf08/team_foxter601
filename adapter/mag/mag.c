@@ -177,11 +177,11 @@ void mag_get_measure_val(void)
 			mag.angle_value=temp_val_x/2;
 	}
 }
-
 static void mag_sample_handler(u16 id)
 {
     mag_get_measure_val();
 
+    #if 0
     static u8 angle = 0;
     u8 value[2] = {0, 0};
     u8 cur = mag.angle_value;
@@ -196,13 +196,17 @@ static void mag_sample_handler(u16 id)
         printf("angle: %d\r\n", mag.angle_value);
     }
     angle = mag.angle_value;
+    #endif
     
 	get_driver()->timer->timer_start(280, mag_sample_handler);
 }
-
 s16 mag_sample_init(void)
 {
 	get_driver()->timer->timer_start(280, mag_sample_handler);  
 	return 0;
+}
+u8 angle_get(void)
+{
+    return mag.angle_value;
 }
 

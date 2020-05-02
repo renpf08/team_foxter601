@@ -55,6 +55,8 @@ cmd_group_t *cmd_get(void);
 ancs_msg_t *ancs_get(void);
 //void cmd_cb_handler(void);
 //void ancs_cb_handler(void);
+u8 angle_get(void);
+u32 step_get(void);
 
 #define SLOG_ERROR(...)    printf(__VA_ARGS__)
 #define SLOG_WARNING(...)  printf(__VA_ARGS__)
