@@ -10,13 +10,6 @@
 #include "serial_service.h"
 #include "adapter/adapter.h"
 
-int cmd_log(const s8* file, const s8* func, unsigned line, const s8* level, const s8 * sFormat, ...);
-
-#define CMD_LOG_ERROR(...)    cmd_log(__FILE__, __func__, __LINE__, "<error>", __VA_ARGS__)
-#define CMD_LOG_WARNING(...)  cmd_log(__FILE__, __func__, __LINE__, "<warning>", __VA_ARGS__)
-#define CMD_LOG_INFO(...)     cmd_log(__FILE__, __func__, __LINE__, "<info>", __VA_ARGS__)
-#define CMD_LOG_DEBUG(...)    cmd_log(__FILE__, __func__, __LINE__, "<debug>", __VA_ARGS__)
-
 typedef u8 (* LFPCMDHANDLER)(u8 *buffer, u8 length);
 
 typedef struct cmdEntry_T {
@@ -63,11 +56,6 @@ static const CMDENTRY cmdList[] =
 
 	{CMD_APP_NONE, NULL}
 };
-
-int cmd_log(const s8* file, const s8* func, unsigned line, const s8* level, const s8 * sFormat, ...)
-{
-    return 0;
-}
 
 static u8 cmd_pairing_code(u8 *buffer, u8 length)
 {

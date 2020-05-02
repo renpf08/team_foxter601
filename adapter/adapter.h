@@ -4,7 +4,6 @@
 #include "../common/common.h"
 #include "../driver/driver.h"
 
-//typedef SerialSendNotification send_ble;
 #define SerialSendNotification send_ble
 extern bool SerialSendNotification(u8 *data, u16 size);
 
@@ -58,12 +57,6 @@ ancs_msg_t *ancs_get(void);
 u8 angle_get(void);
 u32 step_get(void);
 
-#define SLOG_ERROR(...)    printf(__VA_ARGS__)
-#define SLOG_WARNING(...)  printf(__VA_ARGS__)
-#define SLOG_INFO(...)     printf(__VA_ARGS__)
-#define SLOG_DEBUG(...)    printf(__VA_ARGS__)
-
-int log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
 int sprintf(char *buf, const char * sFormat, ...);
 int printf(const char * sFormat, ...);
 

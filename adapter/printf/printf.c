@@ -22,6 +22,7 @@ void send(void);
 int vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pParamList) ;
 int nprintf(unsigned size, const char * sFormat, ...);
 int snprintf(char *buf, unsigned size, const char * sFormat, ...);
+int log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
 s16 print_init(void);
 
 #define LOG_ERROR(...)    log(__FILE__, __func__, __LINE__, "<error>", __VA_ARGS__)
