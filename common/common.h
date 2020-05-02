@@ -39,22 +39,23 @@ typedef enum {
 }EVENT_E;
 
 typedef enum {
-	KEY_A_LONG_PRESS,
-	KEY_A_SHORT_PRESS,
-	KEY_B_LONG_PRESS,
-	KEY_B_SHORT_PRESS,
-	KEY_M_LONG_PRESS,
-	KEY_M_SHORT_PRESS,
-	KEY_A_B_LONG_PRESS,
-	KEY_A_B_SHORT_PRESS,
-	KEY_A_M_LONG_PRESS,
-	KEY_A_M_SHORT_PRESS,
-	KEY_B_M_LONG_PRESS,
-	KEY_B_M_SHORT_PRESS,
-	KEY_A_B_M_LONG_PRESS,
-	KEY_A_B_M_SHORT_PRESS,
-	BATTERY_LOW,
-	BATTERY_NORMAL,
+	KEY_A_LONG_PRESS = 0,
+	KEY_A_SHORT_PRESS = 1,
+	KEY_B_LONG_PRESS = 2,
+	KEY_B_SHORT_PRESS = 3,
+	KEY_M_LONG_PRESS = 4,
+	KEY_M_SHORT_PRESS = 5,
+	KEY_A_B_LONG_PRESS = 6,
+	KEY_A_B_SHORT_PRESS = 7,
+	KEY_A_M_LONG_PRESS = 8,
+	KEY_A_M_SHORT_PRESS = 9,
+	KEY_B_M_LONG_PRESS = 10,
+	KEY_B_M_SHORT_PRESS = 11,
+	KEY_A_B_M_LONG_PRESS = 12,
+	KEY_A_B_M_SHORT_PRESS = 13,
+	BATTERY_LOW = 14,
+	BATTERY_NORMAL = 15,
+	CLOCK_1_MINUTE = 16,
 	REPORT_MAX,
 }REPORT_E;
 
@@ -114,7 +115,40 @@ typedef enum{
 	DAY_3,
 	DAY_2,
 	DAY_1,
+	DAY_0,
 }DATE_E;
+
+typedef enum {
+	HOUR0_0, HOUR0_2, HOUR0_4, HOUR0_6,	HOUR0_8,
+	HOUR1_0, HOUR1_2, HOUR1_4, HOUR1_6,	HOUR1_8,
+	HOUR2_0, HOUR2_2, HOUR2_4, HOUR2_6,	HOUR2_8,
+	HOUR3_0, HOUR3_2, HOUR3_4, HOUR3_6, HOUR3_8,
+	HOUR4_0, HOUR4_2, HOUR4_4, HOUR4_6, HOUR4_8,
+	HOUR5_0, HOUR5_2, HOUR5_4, HOUR5_6, HOUR5_8,
+	HOUR6_0, HOUR6_2, HOUR6_4, HOUR6_6,	HOUR6_8,
+	HOUR7_0, HOUR7_2, HOUR7_4, HOUR7_6,	HOUR7_8,
+	HOUR8_0, HOUR8_2, HOUR8_4, HOUR8_6,	HOUR8_8,
+	HOUR9_0, HOUR9_2, HOUR9_4, HOUR9_6, HOUR9_8,
+	HOUR10_0, HOUR10_2, HOUR10_4, HOUR10_6, HOUR10_8,
+	HOUR11_0, HOUR11_2, HOUR11_4, HOUR11_6, HOUR11_8,
+	HOUR12_0,
+}HOUR_E;
+
+typedef enum {
+	MINUTE_0, MINUTE_1, MINUTE_2, MINUTE_3,	MINUTE_4,
+	MINUTE_5, MINUTE_6, MINUTE_7, MINUTE_8, MINUTE_9,
+	MINUTE_10, MINUTE_11, MINUTE_12, MINUTE_13, MINUTE_14,
+	MINUTE_15, MINUTE_16, MINUTE_17, MINUTE_18, MINUTE_19,
+	MINUTE_20, MINUTE_21, MINUTE_22, MINUTE_23, MINUTE_24,
+	MINUTE_25, MINUTE_26, MINUTE_27, MINUTE_28, MINUTE_29,
+	MINUTE_30, MINUTE_31, MINUTE_32, MINUTE_33,	MINUTE_34,
+	MINUTE_35, MINUTE_36, MINUTE_37, MINUTE_38, MINUTE_39,
+	MINUTE_40, MINUTE_41, MINUTE_42, MINUTE_43, MINUTE_44,
+	MINUTE_45, MINUTE_46, MINUTE_47, MINUTE_48, MINUTE_49,
+	MINUTE_50, MINUTE_51, MINUTE_52, MINUTE_53, MINUTE_54,
+	MINUTE_55, MINUTE_56, MINUTE_57, MINUTE_58, MINUTE_59,
+	MINUTE_60,
+}MINUTE_E;
 
 typedef enum {
 	ACTIVITY_0,
@@ -160,6 +194,15 @@ typedef enum {
 	ACTIVITY_100,
 }ACTIVITY_E;
 
+typedef enum {
+	INIT,
+	CLOCK,
+	ZERO_ADJUST,
+	LOW_VOLTAGE,
+	BLE_SWITCH,
+	STATE_MAX,
+}STATE_E;
+
 typedef struct {
 	u16 year;
 	u8 month;	
@@ -173,6 +216,11 @@ typedef struct {
 enum {
 	false = 0,
 	true = 1,
+};
+
+enum {
+	pos = 0,
+	neg = 1,
 };
 
 typedef struct {
@@ -243,5 +291,24 @@ typedef s16 (*fwrite)(u16 *buffer, u16 length, u16 offset);
 
 typedef void(*timer_cb)(u16 id);
 typedef s16 (*timer_start_func)(u16 ms, timer_cb cb);
+
+typedef s16 (*state_func)(REPORT_E cb, void *args);
+
+enum {
+	hour_motor = 0,
+	minute_motor = 1,
+	activity_motor = 2,
+	date_motor = 3,
+	battery_week_motor = 4,
+	notify_motor = 5,
+	max_motor,
+};
+
+typedef struct {
+	STATE_E   init_state;
+	REPORT_E  ev;
+	STATE_E   next_state;
+	state_func func;
+}state_t;
 
 #endif

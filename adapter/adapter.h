@@ -7,11 +7,14 @@
 
 s16 adapter_init(adapter_callback cb);
 s16 adapter_uninit(void);
+void print(u8 *buf, u16 num);
+
 
 clock_t *clock_get(void);
 s16 clock_set(clock_t *ck);
 
 s16 motor_manager_init(void);
+void motor_run_one_step(u8 motor_num, u8 direction);
 s16 motor_hour_to_position(u8 hour);
 s16 motor_minute_to_position(u8 minute);
 s16 motor_date_to_position(u8 day);

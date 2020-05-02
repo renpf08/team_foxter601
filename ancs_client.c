@@ -50,6 +50,7 @@
 #include "adapter/adapter.h"
 #include "driver/driver.h"
 #include "common/common.h"
+#include "business/business.h"
 
 /*============================================================================*
  *  Private Definitions
@@ -2266,12 +2267,6 @@ void AppPowerOnReset(void)
     /* Configure the application constants */
 }
 
-static s16 adapter_cb_handler(REPORT_E cb, void *args)
-{
-
-	return 0;
-}
-
 #include "../driver/driver.h"
 /*----------------------------------------------------------------------------*
  *  NAME
@@ -2294,7 +2289,7 @@ void AppInit(sleep_state last_sleep_state)
     uint16 *p_gatt_db = NULL;
     uint8 devName[20] = {0};
 
-	adapter_init(adapter_cb_handler);
+	business_init();
 
     /* Initialise GATT entity */
     GattInit();
