@@ -8,7 +8,7 @@
 s16 adapter_init(adapter_callback cb);
 s16 adapter_uninit(void);
 void print(u8 *buf, u16 num);
-
+void timer_event(u16 ms, timer_cb cb);
 
 clock_t *clock_get(void);
 s16 clock_set(clock_t *ck);

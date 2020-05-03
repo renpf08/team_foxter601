@@ -144,3 +144,8 @@ void print(u8 *buf, u16 num)
 		adapter.drv->uart->uart_write(rn, 2);
 	}
 }
+
+void timer_event(u16 ms, timer_cb cb)
+{
+	adapter.drv->timer->timer_start(ms, cb);
+}
