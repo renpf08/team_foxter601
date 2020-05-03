@@ -20,12 +20,12 @@ typedef struct {
 }gsensor_data_t;
 
 typedef struct {
-	u8 mag_xl;
 	u8 mag_xh;
-	u8 mag_yl;
+	u8 mag_xl;
 	u8 mag_yh;
-	u8 mag_zl;
+	u8 mag_yl;
 	u8 mag_zh;
+	u8 mag_zl;
 }mag_data_t;
 
 typedef enum {

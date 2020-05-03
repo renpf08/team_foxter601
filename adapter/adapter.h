@@ -4,6 +4,9 @@
 #include "../common/common.h"
 #include "../driver/driver.h"
 
+#define SerialSendNotification send_ble
+extern bool SerialSendNotification(u8 *data, u16 size);
+
 s16 adapter_init(adapter_callback cb);
 s16 adapter_uninit(void);
 
@@ -51,8 +54,10 @@ cmd_group_t *cmd_get(void);
 ancs_msg_t *ancs_get(void);
 //void cmd_cb_handler(void);
 //void ancs_cb_handler(void);
+u8 angle_get(void);
+u32 step_get(void);
 
-int log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
+int sprintf(char *buf, const char * sFormat, ...);
 int printf(const char * sFormat, ...);
 
 #endif

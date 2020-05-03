@@ -10,6 +10,9 @@ extern s16 button_cb_handler(void *args);
 
 //module init
 extern s16 clock_init(void);
+extern s16 step_sample_init(void);
+extern s16 mag_sample_init(void);
+extern s16 print_init(void);
 
 s16 csr_event_callback(EVENT_E ev);
 void driver_uninit(void);
@@ -35,6 +38,8 @@ s16 csr_event_callback(EVENT_E ev)
         {
     	    //adapter.drv->uart->uart_write((u8 *)&combo_event, 1);
         }
+	} else if(ev == MAGNETOMETER_READY) {
+	    mag_cb_handler((void*)ev);
 	}
 	
 	return 0;
@@ -126,6 +131,9 @@ s16 adapter_init(adapter_callback cb)
 	clock_init();
 	motor_manager_init();
 	battery_init(cb);
+    step_sample_init();
+    mag_sample_init();
+    print_init();
 	return 0;
 }
 

@@ -21,8 +21,9 @@ u8 printf_dequeue(void);
 void send(void);
 int vprintf(char *strBuf, unsigned size, const char * sFormat, va_list * pParamList) ;
 int nprintf(unsigned size, const char * sFormat, ...);
-int sprintf(char *buf, const char * sFormat, ...);
 int snprintf(char *buf, unsigned size, const char * sFormat, ...);
+int log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
+s16 print_init(void);
 
 #define LOG_ERROR(...)    log(__FILE__, __func__, __LINE__, "<error>", __VA_ARGS__)
 #define LOG_WARNING(...)  log(__FILE__, __func__, __LINE__, "<warning>", __VA_ARGS__)
@@ -36,7 +37,13 @@ typedef struct {
     volatile u16 ring_buffer_read;
 }print_t;
 
-print_t print;
+print_t print = {
+    .ring_buffer_head = 0,
+    .ring_buffer_tail = 0,
+    .ring_buffer_read = 0,
+};
+
+static u8 printf_init = 0;
 
 void printf_enqueue(u8 byte)
 {
@@ -325,6 +332,10 @@ int printf(const char * sFormat, ...)
     int r = 0;
     va_list ParamList;
 
+    if(printf_init == 0) {
+        return r;
+    }
+
     va_start(ParamList, sFormat);
     r = va_arg(ParamList, int); //! 测试发现，参数列表的第一个参数是乱码，此处需要做一次读操作相当于去掉第一个参数！！！
     r = va_arg(ParamList, int); //! 测试发现，参数列表的第一个参数是乱码，此处需要做一次读操作相当于去掉第一个参数！！！
@@ -338,6 +349,10 @@ int nprintf(unsigned size, const char * sFormat, ...)
     int r = 0;
     va_list ParamList;
 
+    if(printf_init == 0) {
+        return r;
+    }
+
     va_start(ParamList, sFormat);
     r = vprintf(0, size, sFormat, &ParamList);
     va_end(ParamList);
@@ -347,6 +362,10 @@ int sprintf(char *buf, const char * sFormat, ...)
 {
     int r = 0;
     va_list ParamList;
+
+    if(printf_init == 0) {
+        return r;
+    }
 
     va_start(ParamList, sFormat);
     r = vprintf(buf, 0, sFormat, &ParamList);
@@ -359,6 +378,10 @@ int snprintf(char *buf, unsigned size, const char * sFormat, ...)
     int r = 0;
     va_list ParamList;
 
+    if(printf_init == 0) {
+        return r;
+    }
+
     va_start(ParamList, sFormat);
     r = vprintf(buf, size, sFormat, &ParamList);
     va_end(ParamList);
@@ -369,6 +392,10 @@ int log(const char* file, const char* func, unsigned line, const char* level, co
 {
     int r = 0;
     va_list ParamList;
+
+    if(printf_init == 0) {
+        return r;
+    }
     
     printf("%-30s%-40s%6d%10s:", file, func, line, level);
     va_start(ParamList, sFormat);
@@ -376,6 +403,12 @@ int log(const char* file, const char* func, unsigned line, const char* level, co
     va_end(ParamList);
     send();
     return r;
+}
+s16 print_init(void)
+{
+    printf_init = 1;
+
+    return 0;
 }
 #else
 int printf(const char * sFormat, ...)
