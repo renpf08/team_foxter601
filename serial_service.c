@@ -62,6 +62,8 @@ typedef struct _SERIAL_DATA_T
 /* Battery Service data instance */
 static SERIAL_DATA_T g_serial_data;
 
+void cmd_parse(u8* content, u8 length);
+
 /*============================================================================*
  *  Public Function Implementations
  *===========================================================================*/
@@ -183,7 +185,7 @@ extern void SerialHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
         
         case HANDLE_SERIAL_DATA_ATDR:
         {
-            cmd_dispatch((char*)p_ind->value, (uint8)p_ind->size_value);
+            cmd_parse((u8*)p_ind->value, (uint8)p_ind->size_value);
         }
         break;
         

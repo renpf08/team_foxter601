@@ -130,7 +130,7 @@ typedef struct {
  * |                        |
  * |       NVM Store        |
  * |                        |
- * |------------------------| Slot 1 Address
+ * |------------------------| Slot 1 Address(0x4500)
  * |                        |
  * |                        |
  * |     Application 1      |

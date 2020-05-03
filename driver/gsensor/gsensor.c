@@ -164,7 +164,7 @@ static s16 csr_gsensor_init(cfg_t *args, event_callback cb)
 	if(temp!=LIS3DH_NAME_VALUE) {
 		return -1;
 	}
-	
+
 	csr_gsensor_reg_write(LIS3DH_TEMP_CFG_REG, 0x00);
 	csr_gsensor_reg_write(LIS3DH_CTRL_REG1, 0x5F);
 	csr_gsensor_reg_read(LIS3DH_CTRL_REG1, &temp, 1);
@@ -172,20 +172,12 @@ static s16 csr_gsensor_init(cfg_t *args, event_callback cb)
 		return -2;
 	}
 
-	csr_gsensor_reg_write(LIS3DH_CTRL_REG2, 0x00);	/*bit7-6 HPM10��ͨ�˲�ģʽ ����ģʽ��bit54 HPCF21 ��ͨ�˲�����ֹƵ�ʣ�bit3 FDS �˲�����ѡ��  �أ�*/
-												/*bit2 HPCLICK ��ͨ�˲���CLICK���� �أ�bit10 HPIS21��ͨ�˲������AOI�������ж�2,1��  ��*/
-	csr_gsensor_reg_write(LIS3DH_CTRL_REG3, 0x10);	/*bit7 I1_CLICK  CLICK�ж���INT1.��.bit6 I1_AOI1 AOI1�ж���INT1.��. bit5 I1_AOI2 AOI2�ж���INT1. ��. bit4 I1_DRDY1 DRDY1�ж���INT1. ��.
-												  bit3 I1_DRDY2 DRDY2�ж���INT1.��. bit2 I1_WTM FIFO Watermark�ж���INT1.��. bit1 I1_OVERRUN FIFO Overrun�ж���INT1.��.*/
-	csr_gsensor_reg_write(LIS3DH_CTRL_REG4, 0x80);	/*bit7 BDU �����ݸ���.��������0 bit6 BLE ���ֽڸ��ֽ��ȳ��趨.���ֽ��ȳ�1. bit54 FS1-FS0 ȫ��Χ�����趨(00: +/- 2G��
-												  bit3 HR �߷ֱ������ģ���0 bit21 ST1-ST0 �Բ�ģʽ�趨.����ģʽ00 bit0 SIM SPI�ӿ�ģʽ. ����0
-												*/
-	csr_gsensor_reg_write(LIS3DH_CTRL_REG5, 0x48);	/*bit7 BOOT ���������ڴ�ֵ. ����ģʽ0, bit6 FIFO_EN FIFO����.��1, bit3 LIR_INT1 �ڼĴ���INT1_SRC�����ж�����,��1�� 
-												  bit2 D4D_INT1 4D����: 4D detection is enabled on INT1 when 6D bit on INT1_CFG is set to 1.
-												*/
-	csr_gsensor_reg_write(LIS3DH_FIFO_CTRL_REG, 0x80);/*bit76 FM1-FM0 FIFOģʽѡ��. Stream mode 10, bit5	TR �����¼���INT1 0, bit4-0 FTH4:0 Default value: 0*/
-	csr_gsensor_reg_write(LIS3DH_INT1_CFG, 0x00); 	/*bit7 AOI ��������ж� bit6 6D ������������жϿ��� bit5  ZHIE/ZUPE Z���¼������ڷ����϶��ж� ��0, bit4 ZLIE/ZDOWNE Z���¼������ڷ����϶��ж� ��0,
-												bit3 YHIE/YUPE Y���¼������ڷ����϶��ж� ��0, bit2 YLIE/YDOWNE Y���¼������ڷ����϶��ж� ��0,bit1 XHIE/XUPE Y���¼������ڷ����϶��ж� ��0, bit0 XLIE/XDOWNE Y���¼������ڷ����϶��ж� ��0,
-												*/
+	csr_gsensor_reg_write(LIS3DH_CTRL_REG2, 0x00);
+	csr_gsensor_reg_write(LIS3DH_CTRL_REG3, 0x10);
+	csr_gsensor_reg_write(LIS3DH_CTRL_REG4, 0x80);
+	csr_gsensor_reg_write(LIS3DH_CTRL_REG5, 0x48);
+	csr_gsensor_reg_write(LIS3DH_FIFO_CTRL_REG, 0x80);
+	csr_gsensor_reg_write(LIS3DH_INT1_CFG, 0x00);
 	csr_gsensor_reg_write(LIS3DH_CLICK_CFG, 0x00);
 	return 0;
 }

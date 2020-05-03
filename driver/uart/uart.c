@@ -28,7 +28,7 @@ typedef enum {
     GPIO_UART_PARITY_MODE_EVEN
 }UART_PARITY_MODE;
     
-#define QUEUE_MAX   64
+#define QUEUE_MAX   QUEUE_BUFFER
 
 typedef struct {
 	pin_t rx;

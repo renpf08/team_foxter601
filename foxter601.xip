@@ -13,6 +13,12 @@
    <file path="business/business.h" />
   </folder>
   <folder name="adapter" >
+   <folder name="step" >
+    <file path="adapter/step/step.c" />
+   </folder>
+   <folder name="printf" >
+    <file path="adapter/printf/printf.c" />
+   </folder>
    <folder name="battery" >
     <file path="adapter/battery/bat.c" />
    </folder>
