@@ -69,12 +69,13 @@ void zero_adjust_test(u16 id)
 }
 #endif
 
+#define TEST_NOTIFY
 #ifdef TEST_NOTIFY
+void notify_test(u16 id);
+
 void notify_test(u16 id)
 {
-	static u8 i = 0;
-
-	for()
+	state_notify(ANCS_NOTIFY_INCOMING, NULL);
 	timer_event(1000, notify_test);
 }
 #endif

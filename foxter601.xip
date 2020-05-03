@@ -8,6 +8,7 @@
     <file path="business/state/state_low_voltage.c" />
     <file path="business/state/state_zero_adjust.c" />
     <file path="business/state/state_ble_switch.c" />
+    <file path="business/state/state_notify.c" />
    </folder>
    <file path="business/business.c" />
    <file path="business/business.h" />
@@ -15,9 +16,6 @@
   <folder name="adapter" >
    <folder name="step" >
     <file path="adapter/step/step.c" />
-   </folder>
-   <folder name="printf" >
-    <file path="adapter/printf/printf.c" />
    </folder>
    <folder name="battery" >
     <file path="adapter/battery/bat.c" />

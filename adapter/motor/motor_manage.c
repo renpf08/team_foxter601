@@ -56,7 +56,7 @@ static motor_manager_t motor_manager = {
 			NULL, DAY_1, 0, 0, 3, FIRST_HALF
 		},
 		[notify_motor] = {
-			NULL, 0, 0, 0, 1, FIRST_HALF
+			NULL, NOTIFY_NONE, 0, 0, 1, FIRST_HALF
 		},
 		[battery_week_motor] = {
 			NULL, BAT_PECENT_0, 0, 0, 3, FIRST_HALF
