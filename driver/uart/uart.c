@@ -9,9 +9,11 @@
 #include "../driver.h"
 
 #define USE_UART_BLOCK_MODE 1
+#define BIT_RATE_115200     2
+#define BIT_RATE_9600       33
+#define BIT_RATE            BIT_RATE_115200
 
-#define BIT_RATE_115200 1
-#define BIT_RATE_9600   33
+#define UART_TIMER_DELAY    33
 
 #define UART_TX_HIGH(num) PioSet((num), 1UL)
 #define UART_TX_LOW(num)  PioSet((num), 0UL)
@@ -40,7 +42,7 @@ typedef struct {
 	u8 stop;
 	u8 parity;
 	volatile u8 bit_send_index;
-	u16 bitrate;
+	volatile u16 bitrate;
 	volatile UART_STATE_E state;
 	volatile u8 size;
 	u8 end_flag;
@@ -64,7 +66,7 @@ static uart_config_t uart_config = {
 	.stop = 1,
 	.parity = 0,
 	.bit_send_index = 0,
-	.bitrate = BIT_RATE_9600,
+	.bitrate = BIT_RATE,
 	.state = UART_IDLE,
 	.ring_buffer[0] = 0,
 	.ring_buffer_size = QUEUE_MAX,
@@ -93,7 +95,7 @@ void uart_byte_enqueue(u8 byte)
 
     if(uart_config.ring_buffer_poll == FALSE)
     {
-    	csr_uart_timer_create(BIT_RATE_9600, uart_timer_cb);
+    	csr_uart_timer_create(UART_TIMER_DELAY, uart_timer_cb);
         uart_config.ring_buffer_poll = TRUE;
     }
 }
@@ -112,7 +114,7 @@ bool uart_byte_dequeue(void)
 }
 
 #if USE_UART_BLOCK_MODE
-volatile u8 delay_add = 2;
+volatile u8 bit_rate = BIT_RATE;
 void uart_delay_add(void);
 void uart_delay_add(void)
 {
@@ -129,7 +131,7 @@ static int uart_send_handler(uint32 *timeout)
 	u8 bit_send = 0;
 	u8 bit_idx = 0;
     u8 done = 0;
-    u8 delay = 0;
+    u8 bit_wait = 0;
     u8 send_en = 1;
 
     UART_TX_LOW(uart_config.tx.num);
@@ -145,8 +147,8 @@ static int uart_send_handler(uint32 *timeout)
                 UART_TX_LOW(uart_config.tx.num);
         }
         send_en = 0;
-        if(delay++ >= delay_add) {
-            delay = 0;
+        if(bit_wait++ >= uart_config.bitrate) {
+            bit_wait = 0;
             send_en = 1;
             bit_idx++;
         }
@@ -240,11 +242,7 @@ static timer_id csr_uart_timer_create(uint32 timeout, timer_callback_arg handler
 static void uart_timer_cb(u16 id)
 {
 	u8 done = 0;
-    #if USE_UART_BLOCK_MODE
-    uint32 timeout = BIT_RATE_115200;
-    #else
-    uint32 timeout = BIT_RATE_9600;
-    #endif
+    uint32 timeout = UART_TIMER_DELAY;
     
     done = uart_send_handler(&timeout);
 	if(1 != done)
