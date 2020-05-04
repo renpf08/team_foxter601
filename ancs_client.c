@@ -1787,54 +1787,6 @@ extern void ReportPanic(const char* file, const char* func, unsigned line, app_p
 
 /*----------------------------------------------------------------------------*
  *  NAME
- *      HandleBleStateSwitch
- *
- *  DESCRIPTION
- *      Function that handles ble state switch.
- *
- *
- *  RETURNS
- *      nothing
- *
- *  NOTE: add by mlw, 20200328 22:06
- *
- *----------------------------------------------------------------------------*/
-extern void HandleBleStateSwitch(bool bSwitchOn);
-extern void HandleBleStateSwitch(bool bSwitchOn)
-{
-    if(bSwitchOn == TRUE)
-    {
-        if((g_app_data.state != app_connected) && 
-           (g_app_data.state != app_fast_advertising) && 
-           (g_app_data.state != app_slow_advertising))
-        {
-            LogReport(__FILE__, __func__, __LINE__, Ancs_Client_ble_set_to_fast_mode_debug);
-            AppSetState(app_fast_advertising, 0x0E);
-        }
-        else
-        {
-            LogReport(__FILE__, __func__, __LINE__, Ancs_Client_ble_mode_no_change_debug);  
-        }
-    }
-    else
-    {
-        if(g_app_data.state == app_connected)
-        {
-            LogReport(__FILE__, __func__, __LINE__, Ancs_Client_ble_set_to_disconnect_mode_debug);
-            g_app_data.pairing_remove_button_pressed = FALSE;
-            AppSetState(app_disconnecting, 0x0F);
-        }
-        else if((g_app_data.state != app_fast_advertising) || (g_app_data.state != app_slow_advertising))
-        {
-            LogReport(__FILE__, __func__, __LINE__, Ancs_Client_ble_set_to_idle_mode_debug);
-            g_app_data.pairing_remove_button_pressed = FALSE;
-            AppSetState(app_idle, 0x10);
-        }
-    }
-}
-
-/*----------------------------------------------------------------------------*
- *  NAME
  *      HandleShortButtonPress
  *
  *  DESCRIPTION
@@ -1847,25 +1799,6 @@ extern void HandleBleStateSwitch(bool bSwitchOn)
  *----------------------------------------------------------------------------*/
 extern void HandleShortButtonPress(void)
 {
-    switch(g_app_data.state)
-    {
-        case app_connected:
-        {
-            HandleBleStateSwitch(FALSE);
-            break;
-        }
-        case app_fast_advertising:
-        case app_slow_advertising:
-        {
-            HandleBleStateSwitch(FALSE);
-            break;
-        }
-        default:
-        {
-            HandleBleStateSwitch(TRUE);
-            break;
-        }
-    }
     #if 0
     /* Handle signal as per current state */
     switch(g_app_data.state)

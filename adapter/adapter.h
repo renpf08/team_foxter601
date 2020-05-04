@@ -57,6 +57,9 @@ ancs_msg_t *ancs_get(void);
 u8 angle_get(void);
 u32 step_get(void);
 
+void ble_switch_on(void);
+void ble_switch_off(void);
+
 int sprintf(char *buf, const char * sFormat, ...);
 int printf(const char * sFormat, ...);
 
