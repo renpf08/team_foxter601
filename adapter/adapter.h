@@ -59,6 +59,7 @@ u32 step_get(void);
 
 void ble_switch_on(void);
 void ble_switch_off(void);
+void uart_delay_add(void);
 
 int sprintf(char *buf, const char * sFormat, ...);
 int printf(const char * sFormat, ...);

@@ -2242,7 +2242,12 @@ void AppInit(sleep_state last_sleep_state)
       * add by mlw at 20200314 01:37
       */
     m_devname_init(devName);
-    printf("system started: %s\r\n", devName);
+    u8 test_cnt = 0;
+    while(test_cnt++ < 10)
+    {
+        printf("system started: %s\r\n", devName);
+        uart_delay_add();
+    }
 
     /* Tell Security Manager module about the value it needs to initialise it's
      * diversifier to.

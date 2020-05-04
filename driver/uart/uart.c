@@ -8,6 +8,9 @@
 #include "user_config.h"
 #include "../driver.h"
 
+#define USE_UART_BLOCK_MODE 1
+
+#define BIT_RATE_115200 1
 #define BIT_RATE_9600   33
 
 #define UART_TX_HIGH(num) PioSet((num), 1UL)
@@ -108,6 +111,58 @@ bool uart_byte_dequeue(void)
     return TRUE;
 }
 
+#if USE_UART_BLOCK_MODE
+volatile u8 delay_add = 2;
+void uart_delay_add(void);
+void uart_delay_add(void)
+{
+    u16 retry = 0;
+    //delay_add++;
+    while(retry < 200)
+    {
+        TimeDelayUSec(5*1000);
+        retry++;
+    }
+}
+static int uart_send_handler(uint32 *timeout)
+{
+	u8 bit_send = 0;
+	u8 bit_idx = 0;
+    u8 done = 0;
+    u8 delay = 0;
+    u8 send_en = 1;
+
+    UART_TX_LOW(uart_config.tx.num);
+    //TimeDelayUSec((u16)*timeout);
+    
+    while(bit_idx < uart_config.data_bit)
+    {
+        if(send_en == 1) {
+            bit_send = (uart_config.ring_buffer[uart_config.ring_buffer_head] >> bit_idx) & 0x01;
+            if(bit_send)
+                UART_TX_HIGH(uart_config.tx.num);
+            else
+                UART_TX_LOW(uart_config.tx.num);
+        }
+        send_en = 0;
+        if(delay++ >= delay_add) {
+            delay = 0;
+            send_en = 1;
+            bit_idx++;
+        }
+    }
+
+    UART_TX_HIGH(uart_config.tx.num);
+    //TimeDelayUSec((u16)*timeout);
+
+    if(uart_byte_dequeue() == FALSE)
+    {
+        done = 1;
+    }
+
+    return done;
+}
+#else
 static int uart_send_handler(uint32 *timeout)
 {
     #ifdef RELEASE_MODE
@@ -166,6 +221,7 @@ static int uart_send_handler(uint32 *timeout)
     }
 	return 0;
 }
+#endif
 
 static timer_id csr_uart_timer_create(uint32 timeout, timer_callback_arg handler)
 {
@@ -184,7 +240,11 @@ static timer_id csr_uart_timer_create(uint32 timeout, timer_callback_arg handler
 static void uart_timer_cb(u16 id)
 {
 	u8 done = 0;
+    #if USE_UART_BLOCK_MODE
+    uint32 timeout = BIT_RATE_115200;
+    #else
     uint32 timeout = BIT_RATE_9600;
+    #endif
     
     done = uart_send_handler(&timeout);
 	if(1 != done)
