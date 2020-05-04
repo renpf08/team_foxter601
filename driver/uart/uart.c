@@ -8,7 +8,7 @@
 #include "user_config.h"
 #include "../driver.h"
 
-#define USE_UART_BLOCK_MODE 1
+#define USE_UART_BLOCK_MODE 0
 #define BIT_RATE_115200     2
 #define BIT_RATE_9600       33
 #define BIT_RATE            BIT_RATE_115200
@@ -114,18 +114,6 @@ bool uart_byte_dequeue(void)
 }
 
 #if USE_UART_BLOCK_MODE
-volatile u8 bit_rate = BIT_RATE;
-void uart_delay_add(void);
-void uart_delay_add(void)
-{
-    u16 retry = 0;
-    //delay_add++;
-    while(retry < 200)
-    {
-        TimeDelayUSec(5*1000);
-        retry++;
-    }
-}
 static int uart_send_handler(uint32 *timeout)
 {
 	u8 bit_send = 0;
@@ -137,8 +125,7 @@ static int uart_send_handler(uint32 *timeout)
     UART_TX_LOW(uart_config.tx.num);
     //TimeDelayUSec((u16)*timeout);
     
-    while(bit_idx < uart_config.data_bit)
-    {
+    while(bit_idx < uart_config.data_bit) {
         if(send_en == 1) {
             bit_send = (uart_config.ring_buffer[uart_config.ring_buffer_head] >> bit_idx) & 0x01;
             if(bit_send)
@@ -157,8 +144,7 @@ static int uart_send_handler(uint32 *timeout)
     UART_TX_HIGH(uart_config.tx.num);
     //TimeDelayUSec((u16)*timeout);
 
-    if(uart_byte_dequeue() == FALSE)
-    {
+    if(uart_byte_dequeue() == FALSE) {
         done = 1;
     }
 
@@ -167,11 +153,7 @@ static int uart_send_handler(uint32 *timeout)
 #else
 static int uart_send_handler(uint32 *timeout)
 {
-    #ifdef RELEASE_MODE
-    //static bool jump = FALSE;
-    #endif
 	u8 bit_send = 0;
-    *timeout = BIT_RATE_9600;
 
     switch(uart_config.state) {
 		case UART_IDLE:
@@ -180,9 +162,6 @@ static int uart_send_handler(uint32 *timeout)
 	    case UART_START:
 			//Put GPIO to logic 0 to indicate the start
 			UART_TX_LOW(uart_config.tx.num);
-            #ifdef RELEASE_MODE
-            //TimeDelayUSec(10);
-            #endif
 			uart_config.bit_send_index = 0;
 			uart_config.state = UART_TRANSFERRING;
 			break;
@@ -205,9 +184,6 @@ static int uart_send_handler(uint32 *timeout)
 		case UART_STOP:
 			//Put GPIO to logic 1 to stop the transferring
 			UART_TX_HIGH(uart_config.tx.num);
-            #ifdef RELEASE_MODE
-            //TimeDelayUSec(10);
-            #endif
         	if(uart_byte_dequeue() == FALSE)
         	{
                 uart_config.state = UART_IDLE;
