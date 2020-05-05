@@ -2,11 +2,12 @@
 #include <pio.h>            /* Programmable I/O configuration and control */
 #include "../adapter.h"
 
-s16 clock_init(void);
+s16 clock_init(adapter_callback cb);
 
 typedef struct {
 	driver_t *drv;
 	clock_t clock;
+	adapter_callback cb;
 }clock_cfg_t;
 
 static clock_cfg_t clock_cfg = {
@@ -20,10 +21,15 @@ static clock_cfg_t clock_cfg = {
 		.minute = 0,
 		.second = 0,
 	},
+	.cb = NULL,
 };
 
 static void clock_timer_increase(void)
 {
+	if(NULL != clock_cfg.cb) {
+		clock_cfg.cb(CLOCK_1_MINUTE, NULL);
+	}
+
 	if(60 == clock_cfg.clock.second) {
 		clock_cfg.clock.second = 0;
 		clock_cfg.clock.minute++;
@@ -58,8 +64,9 @@ static void clock_cb_handler(u16 id)
 	clock_timer_increase();
 }
 
-s16 clock_init(void)
+s16 clock_init(adapter_callback cb)
 {
+	clock_cfg.cb = cb;
 	clock_cfg.drv = get_driver();
 	clock_cfg.drv->timer->timer_start(1000, clock_cb_handler);
 	return 0;

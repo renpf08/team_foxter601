@@ -35,7 +35,7 @@ typedef enum {
     BUTTON_A_M_SHORT_PRESS_VALUE    = ((0x01<<BUTTON_A)|(0x01<<BUTTON_M)),
     BUTTON_B_M_SHORT_PRESS_VALUE    = ((0x01<<BUTTON_B)|(0x01<<BUTTON_M)),
     BUTTON_A_B_M_SHORT_PRESS_VALUE  = ((0x01<<BUTTON_A)|(0x01<<BUTTON_B)|(0x01<<BUTTON_M)),
-    STATE_MAX                       = 0xFF
+    BUTTON_STATE_MAX                       = 0xFF
 }BUTTON_COMBO_EVENT_E;
 
 typedef struct {

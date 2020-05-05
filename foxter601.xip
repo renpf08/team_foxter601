@@ -1,15 +1,27 @@
 <project buildenvironment="{067c869e-5bd9-4595-9f4c-60348133ad8e}" buildenvironmentname="uEnergy" executionenvironmentoption="XAP2+ P0 ELF DWARF BINUTILS UENERGYSDK" buildenvironmentoption="UENERGYSDK" executionenvironmentname="uEnergy" name="CSR uEnergy" executionenvironment="{39e65239-59f4-4d78-b84a-26eaebfaa4de}" >
  <folder name="C Files" >
   <extension name="c" />
+  <folder name="business" >
+   <folder name="state" >
+    <file path="business/state/state.h" />
+    <file path="business/state/state_clock.c" />
+    <file path="business/state/state_low_voltage.c" />
+    <file path="business/state/state_zero_adjust.c" />
+    <file path="business/state/state_ble_switch.c" />
+    <file path="business/state/state_notify.c" />
+    <file path="business/state/state_battery_week_switch.c" />
+    <file path="business/state/state_run_test.c" />
+    <file path="business/state/state_time_adjust.c" />
+   </folder>
+   <file path="business/business.c" />
+   <file path="business/business.h" />
+  </folder>
   <folder name="adapter" >
    <folder name="ble" >
     <file path="adapter/ble/ble.c" />
    </folder>
    <folder name="step" >
     <file path="adapter/step/step.c" />
-   </folder>
-   <folder name="printf" >
-    <file path="adapter/printf/printf.c" />
    </folder>
    <folder name="battery" >
     <file path="adapter/battery/bat.c" />

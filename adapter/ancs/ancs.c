@@ -14,22 +14,6 @@
 #define ANCS_NS_EVENTFLAG_IMPORTANT              (0x02) 
 #define ANCS_NS_EVENTFLAG_RESERVED               ((1<<2)-(1<<7))
 
-#define MESSAGE_POSITION_NONE           0
-#define MESSAGE_POSITION_LINE           0xFF
-#define MESSAGE_POSITION_QQ             0xFF
-#define MESSAGE_POSITION_FACEMESSAGE    0xFF
-#define MESSAGE_POSITION_WECHAT         0xFF
-#define MESSAGE_POSITION_FACEBOOK       5
-#define MESSAGE_POSITION_EMAIL          4
-#define MESSAGE_POSITION_SMS            6
-#define MESSAGE_POSITION_SKYPE          1
-#define MESSAGE_POSITION_COMMING_CALL   8
-#define MESSAGE_POSITION_TWITTER        3
-#define MESSAGE_POSITION_WHATSAPP       2
-#define MESSAGE_POSITION_CALENDAR       0xFF
-#define MESSAGE_POSITION_LINKEDIN       7
-#define MESSAGE_POSITION_NEWS           0xFF
-
 #define APP_ID_STRING_NONE          "none"
 #define APP_ID_STRING_LINE          "jp.naver.line"
 #define APP_ID_STRING_QQ_IPAD       "com.tencent.mipadqq"     //! iPad QQ message ID
@@ -52,24 +36,25 @@ typedef struct app_id_index_t
 	const u8 app_index;
 	const u8 app_id[MAX_LENGTH_APPID];
 }APPIDINDEX;
+
 static const APPIDINDEX app_msg_list[] =
 {
-    {MESSAGE_POSITION_NONE,         APP_ID_STRING_NONE},
-    {MESSAGE_POSITION_LINE,         APP_ID_STRING_LINE},
-    {MESSAGE_POSITION_QQ,           APP_ID_STRING_QQ_IPAD},     //! iPad QQ message ID
-    {MESSAGE_POSITION_QQ,           APP_ID_STRING_QQ_IPHONE},   //! iPhone QQ message ID
-    {MESSAGE_POSITION_FACEMESSAGE,  APP_ID_STRING_FACEMESSAGE}, //! Messenger(Facebook) message ID
-    {MESSAGE_POSITION_WECHAT,       APP_ID_STRING_WECHAT},
-    {MESSAGE_POSITION_FACEBOOK,     APP_ID_STRING_FACEBOOK},    //! Facebook message ID
-    {MESSAGE_POSITION_EMAIL,        APP_ID_STRING_EMAIL},
-    {MESSAGE_POSITION_SMS,          APP_ID_STRING_SMS},
-    {MESSAGE_POSITION_SKYPE,        APP_ID_STRING_SKYPE},
-    {MESSAGE_POSITION_COMMING_CALL, APP_ID_STRING_COMMING_CALL},
-    {MESSAGE_POSITION_TWITTER,      APP_ID_STRING_TWITTER},
-    {MESSAGE_POSITION_WHATSAPP,     APP_ID_STRING_WHATSAPP},
-    {MESSAGE_POSITION_CALENDAR,     APP_ID_STRING_CALENDAR},
-    {MESSAGE_POSITION_LINKEDIN,     APP_ID_STRING_LINKEDIN},
-    {MESSAGE_POSITION_NEWS,         APP_ID_STRING_NEWS},
+    {NOTIFY_NONE,         APP_ID_STRING_NONE},
+    {NOTIFY_LINE,         APP_ID_STRING_LINE},
+    {NOTIFY_QQ,           APP_ID_STRING_QQ_IPAD},     //! iPad QQ message ID
+    {NOTIFY_QQ,           APP_ID_STRING_QQ_IPHONE},   //! iPhone QQ message ID
+    {NOTIFY_FACEMESSAGE,  APP_ID_STRING_FACEMESSAGE}, //! Messenger(Facebook) message ID
+    {NOTIFY_WECHAT,       APP_ID_STRING_WECHAT},
+    {NOTIFY_FACEBOOK,     APP_ID_STRING_FACEBOOK},    //! Facebook message ID
+    {NOTIFY_EMAIL,        APP_ID_STRING_EMAIL},
+    {NOTIFY_SMS,          APP_ID_STRING_SMS},
+    {NOTIFY_SKYPE,        APP_ID_STRING_SKYPE},
+    {NOTIFY_COMMING_CALL, APP_ID_STRING_COMMING_CALL},
+    {NOTIFY_TWITTER,      APP_ID_STRING_TWITTER},
+    {NOTIFY_WHATSAPP,     APP_ID_STRING_WHATSAPP},
+    {NOTIFY_CALENDER,     APP_ID_STRING_CALENDAR},
+    {NOTIFY_LINKIN,     APP_ID_STRING_LINKEDIN},
+    {NOTIFY_NEWS,         APP_ID_STRING_NEWS},
 
 	{0, "\0"} //! Finish here
 };
@@ -113,11 +98,13 @@ static last_data_map_t last_data;
 static packing_msg_t pck_msg;
 ancs_msg_t  ancs_msg = {.cmd = 0x07};
 
+static adapter_callback ancs_cb = NULL;
 
 int ancs_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
 void ancs_business_handle(packing_msg_t* pack_msg);
 void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_source);
 void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source);
+s16 ancs_init(adapter_callback cb);
 
 int ancs_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...)
 {
@@ -163,6 +150,9 @@ void ancs_business_handle(packing_msg_t* pack_msg)
     ancs_msg.sta = pack_msg->evt_id;
     ancs_msg.cnt = pack_msg->cat_cnt;
     SerialSendNotification((u8 *)&ancs_msg, 5); //! send ANCS msg to peer, for test purpose
+    if(NULL != ancs_cb) {
+		ancs_cb(ANCS_NOTIFY_INCOMING, NULL);
+    }
     //ancs_cb_handler();
 }
 void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_source)
@@ -302,4 +292,10 @@ void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source)
 ancs_msg_t *ancs_get(void)
 {
     return &ancs_msg;
+}
+
+s16 ancs_init(adapter_callback cb)
+{
+	ancs_cb = cb;
+	return 0;
 }

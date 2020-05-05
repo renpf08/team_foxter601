@@ -9,11 +9,14 @@ extern bool SerialSendNotification(u8 *data, u16 size);
 
 s16 adapter_init(adapter_callback cb);
 s16 adapter_uninit(void);
+void print(u8 *buf, u16 num);
+void timer_event(u16 ms, timer_cb cb);
 
 clock_t *clock_get(void);
 s16 clock_set(clock_t *ck);
 
 s16 motor_manager_init(void);
+void motor_run_one_step(u8 motor_num, u8 direction);
 s16 motor_hour_to_position(u8 hour);
 s16 motor_minute_to_position(u8 minute);
 s16 motor_date_to_position(u8 day);
@@ -51,7 +54,9 @@ s16 nvm_erase_history_data(void);
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
 void cmd_send_data(uint8 *data, uint16 size);
 cmd_group_t *cmd_get(void);
+
 ancs_msg_t *ancs_get(void);
+
 //void cmd_cb_handler(void);
 //void ancs_cb_handler(void);
 u8 angle_get(void);
