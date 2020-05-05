@@ -85,16 +85,17 @@ static void uart_timer_cb(u16 id);
 void uart_byte_enqueue(u8 byte)
 {
     /** queue is full, discard the oldest byte */
-    if(uart_config.ring_buffer_head == ((uart_config.ring_buffer_tail+1)%uart_config.ring_buffer_size))
-    {
+    if(uart_config.ring_buffer_head == ((uart_config.ring_buffer_tail+1)%uart_config.ring_buffer_size)) {
+        if(uart_config.bit_send_index != 0) { // discard only when there is no byte being processed
+            return;
+        }
         uart_config.ring_buffer_head = (uart_config.ring_buffer_head+1)%uart_config.ring_buffer_size;
     }
     
     uart_config.ring_buffer[uart_config.ring_buffer_tail] = byte;
     uart_config.ring_buffer_tail = (uart_config.ring_buffer_tail+1)%uart_config.ring_buffer_size;
 
-    if(uart_config.ring_buffer_poll == FALSE)
-    {
+    if(uart_config.ring_buffer_poll == FALSE) {
     	csr_uart_timer_create(UART_TIMER_DELAY, uart_timer_cb);
         uart_config.ring_buffer_poll = TRUE;
     }
@@ -105,8 +106,7 @@ bool uart_byte_dequeue(void)
     uart_config.ring_buffer_head = (uart_config.ring_buffer_head+1)%uart_config.ring_buffer_size;
     
     /** queue is empty */
-    if(uart_config.ring_buffer_head == uart_config.ring_buffer_tail)
-    {
+    if(uart_config.ring_buffer_head == uart_config.ring_buffer_tail) {
         return FALSE;
     }
     
@@ -117,7 +117,6 @@ bool uart_byte_dequeue(void)
 static int uart_send_handler(uint32 *timeout)
 {
 	u8 bit_send = 0;
-	u8 bit_idx = 0;
     u8 done = 0;
     u8 bit_wait = 0;
     u8 send_en = 1;
@@ -125,9 +124,10 @@ static int uart_send_handler(uint32 *timeout)
     UART_TX_LOW(uart_config.tx.num);
     //TimeDelayUSec((u16)*timeout);
     
-    while(bit_idx < uart_config.data_bit) {
+    uart_config.bit_send_index = 0;
+    while(uart_config.bit_send_index < uart_config.data_bit) {
         if(send_en == 1) {
-            bit_send = (uart_config.ring_buffer[uart_config.ring_buffer_head] >> bit_idx) & 0x01;
+            bit_send = (uart_config.ring_buffer[uart_config.ring_buffer_head] >> uart_config.bit_send_index) & 0x01;
             if(bit_send)
                 UART_TX_HIGH(uart_config.tx.num);
             else
@@ -137,9 +137,10 @@ static int uart_send_handler(uint32 *timeout)
         if(bit_wait++ >= uart_config.bitrate) {
             bit_wait = 0;
             send_en = 1;
-            bit_idx++;
+            uart_config.bit_send_index++;
         }
     }
+    uart_config.bit_send_index = 0;
 
     UART_TX_HIGH(uart_config.tx.num);
     //TimeDelayUSec((u16)*timeout);
@@ -184,13 +185,10 @@ static int uart_send_handler(uint32 *timeout)
 		case UART_STOP:
 			//Put GPIO to logic 1 to stop the transferring
 			UART_TX_HIGH(uart_config.tx.num);
-        	if(uart_byte_dequeue() == FALSE)
-        	{
+        	if(uart_byte_dequeue() == FALSE) {
                 uart_config.state = UART_IDLE;
                 return 1;
-        	}
-            else
-            {
+        	} else {
                 uart_config.state = UART_START;
             }
 			break;
@@ -206,8 +204,7 @@ static timer_id csr_uart_timer_create(uint32 timeout, timer_callback_arg handler
     const timer_id tId = TimerCreate(timeout, TRUE, handler);
     
     /* If a timer could not be created, panic to restart the app */
-    if (tId == TIMER_INVALID)
-    {
+    if (tId == TIMER_INVALID) {
         //DebugWriteString("\r\nFailed to start timer");
         /* Panic with panic code 0xfe */
         Panic(0xfe);
@@ -221,12 +218,9 @@ static void uart_timer_cb(u16 id)
     uint32 timeout = UART_TIMER_DELAY;
     
     done = uart_send_handler(&timeout);
-	if(1 != done)
-    {
+	if(1 != done) {
 		csr_uart_timer_create(timeout, uart_timer_cb);
-	}
-    else
-    {
+ 	} else {
         uart_config.ring_buffer_poll = FALSE;
     }
 }
@@ -238,8 +232,7 @@ static s16 csr_uart_read(void *args)
 
 static s16 csr_uart_write(u8 *buf, u16 num)
 {
-    for(uart_config.size = 0; uart_config.size < num; uart_config.size++)
-    {
+    for(uart_config.size = 0; uart_config.size < num; uart_config.size++) {
         uart_byte_enqueue(buf[uart_config.size]);
     }
 	return 0;
