@@ -19,28 +19,33 @@ static business_t business = {
 };
 
 static state_t state[] = {
-	STATE_FILL(CLOCK,       CLOCK_1_MINUTE,     CLOCK,       state_clock),
+	STATE_FILL(CLOCK,       CLOCK_1_MINUTE,     	CLOCK,       	state_clock),
 	/*battery mode*/
-	STATE_FILL(CLOCK,       BATTERY_LOW,        LOW_VOLTAGE, state_low_voltage),
-	STATE_FILL(LOW_VOLTAGE, BATTERY_NORMAL,     CLOCK,       state_clock),
+	STATE_FILL(CLOCK,       BATTERY_LOW,        	LOW_VOLTAGE, 	state_low_voltage),
+	STATE_FILL(LOW_VOLTAGE, BATTERY_NORMAL,     	CLOCK,       	state_clock),
 	/*zero adjust mode*/
-	STATE_FILL(CLOCK,       KEY_A_B_LONG_PRESS, ZERO_ADJUST, state_zero_adjust),
-	STATE_FILL(ZERO_ADJUST, KEY_A_SHORT_PRESS,  ZERO_ADJUST, state_zero_adjust),
-	STATE_FILL(ZERO_ADJUST, KEY_B_SHORT_PRESS,  ZERO_ADJUST, state_zero_adjust),
-	STATE_FILL(ZERO_ADJUST, KEY_M_SHORT_PRESS,	ZERO_ADJUST, state_zero_adjust),
-	STATE_FILL(ZERO_ADJUST, KEY_A_B_LONG_PRESS, CLOCK,       state_clock),
+	STATE_FILL(CLOCK,       KEY_A_B_LONG_PRESS, 	ZERO_ADJUST, 	state_zero_adjust),
+	STATE_FILL(ZERO_ADJUST, KEY_A_SHORT_PRESS,  	ZERO_ADJUST, 	state_zero_adjust),
+	STATE_FILL(ZERO_ADJUST, KEY_B_SHORT_PRESS,  	ZERO_ADJUST, 	state_zero_adjust),
+	STATE_FILL(ZERO_ADJUST, KEY_M_SHORT_PRESS,		ZERO_ADJUST, 	state_zero_adjust),
+	STATE_FILL(ZERO_ADJUST, KEY_A_B_LONG_PRESS, 	CLOCK,       	state_clock),
 	/*ble switch open*/	
-	STATE_FILL(CLOCK,       KEY_M_LONG_PRESS,   BLE_SWITCH,  state_ble_switch),
+	STATE_FILL(CLOCK,       KEY_M_LONG_PRESS,   	BLE_SWITCH,  	state_ble_switch),
 	/*notify*/
-	STATE_FILL(CLOCK,       ANCS_NOTIFY_INCOMING,   NOTIFY_COMING,  state_notify)
+	STATE_FILL(CLOCK,       ANCS_NOTIFY_INCOMING,   NOTIFY_COMING,  state_notify),
+	/*battery & week switch*/	
+	STATE_FILL(CLOCK,       KEY_M_SHORT_PRESS,   	BATTERY_WEEK_SWITCH,  state_battery_week_switch),
+	/*time adjust*/
+	STATE_FILL(CLOCK,       KEY_B_M_LONG_PRESS,   	TIME_ADJUST,  	state_time_adjust),
+	/*run test*/
+	STATE_FILL(CLOCK,       KEY_A_B_M_LONG_PRESS,   RUN_TEST,  		state_run_test),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
-	return 0;
 	u16 i = 0;
 
-	print((u8 *)&cb, 1);
+	//print((u8 *)&cb, 1);
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 
 			(state[i].ev == cb)) {
@@ -69,7 +74,7 @@ void zero_adjust_test(u16 id)
 }
 #endif
 
-#define TEST_NOTIFY
+//#define TEST_NOTIFY
 #ifdef TEST_NOTIFY
 void notify_test(u16 id);
 
@@ -90,7 +95,7 @@ s16 business_init(void)
 	#ifdef TEST_NOTIFY
 	timer_event(1000, notify_test);
 	#endif
-	//business.state_now = CLOCK;
-	//state_clock(CLOCK_1_MINUTE, NULL);
+	business.state_now = CLOCK;
+	state_clock(CLOCK_1_MINUTE, NULL);
 	return 0;
 }

@@ -98,11 +98,13 @@ static last_data_map_t last_data;
 static packing_msg_t pck_msg;
 ancs_msg_t  ancs_msg = {.cmd = 0x07};
 
+static adapter_callback ancs_cb = NULL;
 
 int ancs_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
 void ancs_business_handle(packing_msg_t* pack_msg);
 void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_source);
 void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source);
+s16 ancs_init(adapter_callback cb);
 
 int ancs_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...)
 {
@@ -148,6 +150,9 @@ void ancs_business_handle(packing_msg_t* pack_msg)
     ancs_msg.sta = pack_msg->evt_id;
     ancs_msg.cnt = pack_msg->cat_cnt;
     SerialSendNotification((u8 *)&ancs_msg, 5); //! send ANCS msg to peer, for test purpose
+    if(NULL != ancs_cb) {
+		ancs_cb(ANCS_NOTIFY_INCOMING, NULL);
+    }
     //ancs_cb_handler();
 }
 void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_source)
@@ -287,4 +292,10 @@ void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source)
 ancs_msg_t *ancs_get(void)
 {
     return &ancs_msg;
+}
+
+s16 ancs_init(adapter_callback cb)
+{
+	ancs_cb = cb;
+	return 0;
 }

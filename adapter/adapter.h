@@ -54,7 +54,9 @@ s16 nvm_erase_history_data(void);
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
 void cmd_send_data(uint8 *data, uint16 size);
 cmd_group_t *cmd_get(void);
+
 ancs_msg_t *ancs_get(void);
+
 //void cmd_cb_handler(void);
 //void ancs_cb_handler(void);
 u8 angle_get(void);

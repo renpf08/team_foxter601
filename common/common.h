@@ -224,6 +224,9 @@ typedef enum {
 	LOW_VOLTAGE,
 	BLE_SWITCH,
 	NOTIFY_COMING,
+	BATTERY_WEEK_SWITCH,
+	TIME_ADJUST,
+	RUN_TEST,
 	STATE_MAX,
 }STATE_E;
 
@@ -486,14 +489,23 @@ typedef s16 (*timer_start_func)(u16 ms, timer_cb cb);
 typedef s16 (*state_func)(REPORT_E cb, void *args);
 
 enum {
-	hour_motor = 0,
-	minute_motor = 1,
+	minute_motor = 0,
+	hour_motor = 1,
 	activity_motor = 2,
 	date_motor = 3,
 	battery_week_motor = 4,
 	notify_motor = 5,
 	max_motor,
 };
+
+/* enum for event id */
+typedef enum 
+{
+	NOTIFY_ADD = 0,
+	NOTIFY_MODIFY = 1,
+	NOTIFY_REMOVE = 2,
+	NOTIFY_RESERVE = 3,
+}NOTIFY_STATE_E;
 
 typedef struct {
 	STATE_E   init_state;

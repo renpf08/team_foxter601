@@ -90,11 +90,15 @@ u8 hour_list[] = {
 
 s16 motor_hour_to_position(u8 hour)
 {
-	u8 minute_pos = (motor_manager.motor_status[minute_motor].dst_pos == MINUTE_60) ? \
-						MINUTE_0 : motor_manager.motor_status[minute_motor].dst_pos;
+	u8 minute_pos = (motor_manager.motor_status[minute_motor].cur_pos == MINUTE_60) ? \
+						MINUTE_0 : motor_manager.motor_status[minute_motor].cur_pos;
 	
 	if(hour > 12) {
 		hour -= 12;
+	}else if((12 == hour) && (minute_pos >= MINUTE_12)) {
+		hour = 0;
+	}else if((12 == hour) && (minute_pos < MINUTE_12)) {
+		return 0;
 	}
 
 	motor_manager.motor_status[hour_motor].dst_pos = hour_list[hour] + minute_pos/12;
@@ -314,12 +318,12 @@ I      5号Motor为消息显示60格*/
 s16 motor_manager_init(void)
 {
 	motor_manager.drv = get_driver();
-	motor_manager.motor_status[0].motor_ptr = motor_manager.drv->motor_hour;
-	motor_manager.motor_status[1].motor_ptr = motor_manager.drv->motor_minute;
-	motor_manager.motor_status[2].motor_ptr = motor_manager.drv->motor_activity;
-	motor_manager.motor_status[3].motor_ptr = motor_manager.drv->motor_date;
-	motor_manager.motor_status[4].motor_ptr = motor_manager.drv->motor_battery_week;
-	motor_manager.motor_status[5].motor_ptr = motor_manager.drv->motor_notify;
+	motor_manager.motor_status[hour_motor].motor_ptr = motor_manager.drv->motor_hour;
+	motor_manager.motor_status[minute_motor].motor_ptr = motor_manager.drv->motor_minute;
+	motor_manager.motor_status[activity_motor].motor_ptr = motor_manager.drv->motor_activity;
+	motor_manager.motor_status[date_motor].motor_ptr = motor_manager.drv->motor_date;
+	motor_manager.motor_status[battery_week_motor].motor_ptr = motor_manager.drv->motor_battery_week;
+	motor_manager.motor_status[notify_motor].motor_ptr = motor_manager.drv->motor_notify;
 
 	motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler);
 	return 0;

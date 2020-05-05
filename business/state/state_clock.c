@@ -14,16 +14,52 @@ static u8 day[] = {DAY_0,
 	DAY_26, DAY_27,	DAY_28,	DAY_29, DAY_30,
 	DAY_31};
 
+
+#define TEST_CLOCK
+
+#ifdef TEST_CLOCK
+static clock_t clk = {
+	.year = 1970,
+	.month = 1,
+	.day = 1,
+	.week = 0,
+	.hour = 11,
+	.minute = 30,
+	.second = 0,
+};
+
+#endif
+
 s16 state_clock(REPORT_E cb, void *args)
 {
+	//u8 string_hour[4] = {'h', 'o', 'u', 'r'};
+
+	#ifndef TEST_CLOCK	
 	clock_t *clk;
-
-	//u8 string[11] = {'s', 't', 'a', 't', 'e', '_', 'c', 'l', 'o', 'c', 'k'};
-
 	clk = clock_get();
-    motor_minute_to_position(clk->minute);
+	motor_minute_to_position(clk->minute);
 	motor_hour_to_position(clk->hour);
     motor_date_to_position(day[clk->day]);
-	
+	#else
+	clk.minute++;
+	if(60 == clk.minute) {
+		clk.minute = 0;
+		clk.hour++;
+	}
+
+	if(24 == clk.hour) {
+		clk.hour = 0;
+		clk.day++;
+	}
+
+	if(31 == clk.day) {
+		clk.day = 0;
+	}
+
+	motor_minute_to_position(clk.minute);
+	motor_hour_to_position(clk.hour);
+    motor_date_to_position(day[clk.day]);
+	#endif
+
 	return 0;
 }

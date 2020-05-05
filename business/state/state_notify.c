@@ -5,19 +5,22 @@
 #include "../../adapter/adapter.h"
 #include "state.h"
 
-static u8 i = 0;
 s16 state_notify(REPORT_E cb, void *args)
 {
 	STATE_E *state = (STATE_E *)args;
+	ancs_msg_t *ancs_msg = ancs_get();
 
 	u8 string[12] = {'s', 't', 'a', 't', 'e', '_', 'n', 'o', 't', 'i', 'f', 'y'};
 	print(string, 12);
 
-	if(i < NOTIFY_DONE) {
-		motor_notify_to_position(i);
-		i++;
+	if(NOTIFY_ADD == ancs_msg->sta) {
+		if(ancs_msg->type < NOTIFY_DONE) {
+			motor_notify_to_position(ancs_msg->type);
+		}
+	}else if(NOTIFY_REMOVE == ancs_msg->sta) {
+		motor_notify_to_position(NOTIFY_NONE);
 	}
-	
+
 	*state = CLOCK;
 	return 0;
 }

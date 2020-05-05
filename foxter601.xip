@@ -9,6 +9,9 @@
     <file path="business/state/state_zero_adjust.c" />
     <file path="business/state/state_ble_switch.c" />
     <file path="business/state/state_notify.c" />
+    <file path="business/state/state_battery_week_switch.c" />
+    <file path="business/state/state_run_test.c" />
+    <file path="business/state/state_time_adjust.c" />
    </folder>
    <file path="business/business.c" />
    <file path="business/business.h" />
