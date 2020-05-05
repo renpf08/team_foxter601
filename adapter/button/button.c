@@ -169,6 +169,7 @@ s16 button_cb_handler(void *args)
     {
         combo_event_report_value = button_combo_event_handler(button.combo_event_flag);
         button.combo_event_flag = 0;
+        printf("button press:%d\r\n", combo_event_report_value);
     }
     
     return (s16)combo_event_report_value;

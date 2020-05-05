@@ -2,6 +2,9 @@
  <folder name="C Files" >
   <extension name="c" />
   <folder name="adapter" >
+   <folder name="ble" >
+    <file path="adapter/ble/ble.c" />
+   </folder>
    <folder name="step" >
     <file path="adapter/step/step.c" />
    </folder>
