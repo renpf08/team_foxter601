@@ -19,9 +19,11 @@
  *  Public Definitions
  *============================================================================*/
 
-/** The USE_WHITELIST macro */
 #define BLE_ADVERTISING_NAME    "foxter01"
-#define BLE_HARDWARE_VERSION    "v1.0.2.1"
+
+#define DEVICE_MODEL_INFO       "foxter601"
+#define HARDWARE_REVISION       "v1.0.0"
+#define FIRMWARE_REVISION       "v1.2.0"
 
 #define USE_PRINTF_MODE 1
 

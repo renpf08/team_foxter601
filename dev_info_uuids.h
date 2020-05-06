@@ -57,10 +57,4 @@
 #define PRODUCT_ID                                                     0x014C
 #define PRODUCT_VER                                                    0x0100
 
-#if defined(CSR101x_A05)
-#define HARDWARE_REVISION "CSR101x A05"
-#else
-#define HARDWARE_REVISION "Unknown"
-#endif
-
 #endif /* __DEVICE_INFO_UUIDS_H__ */
