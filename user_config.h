@@ -21,7 +21,13 @@
 
 #define BLE_ADVERTISING_NAME    "foxter01"
 
-#define DEVICE_MODEL_INFO       "foxter601"
+/*
+TA601
+TA602
+TA301
+FO601
+*/
+#define DEVICE_MODEL_INFO       "FO601"
 #define HARDWARE_REVISION       "v1.0.0"
 #define FIRMWARE_REVISION       "v1.2.0"
 
