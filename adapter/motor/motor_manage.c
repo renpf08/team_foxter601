@@ -90,18 +90,25 @@ u8 hour_list[] = {
 
 s16 motor_hour_to_position(u8 hour)
 {
-	u8 minute_pos = (motor_manager.motor_status[minute_motor].cur_pos == MINUTE_60) ? \
-						MINUTE_0 : motor_manager.motor_status[minute_motor].cur_pos;
-	
-	if(hour > 12) {
+	/*hour dst position configuration*/
+	u8 minute_pos = (motor_manager.motor_status[minute_motor].dst_pos == MINUTE_60) ? \
+						MINUTE_0 : motor_manager.motor_status[minute_motor].dst_pos;
+
+	if(hour >= 12) {
 		hour -= 12;
-	}else if((12 == hour) && (minute_pos >= MINUTE_12)) {
-		hour = 0;
-	}else if((12 == hour) && (minute_pos < MINUTE_12)) {
-		return 0;
 	}
 
 	motor_manager.motor_status[hour_motor].dst_pos = hour_list[hour] + minute_pos/12;
+	if((HOUR11_8 == motor_manager.motor_status[hour_motor].cur_pos) &&
+	   (HOUR0_0 == motor_manager.motor_status[hour_motor].dst_pos) ){
+		motor_manager.motor_status[hour_motor].dst_pos = HOUR12_0;
+	}
+
+	/*hour cur pos configuration*/
+	if(HOUR12_0 == motor_manager.motor_status[hour_motor].cur_pos) {
+		motor_manager.motor_status[hour_motor].cur_pos = HOUR0_0;
+	}
+	   
 	if(motor_manager.motor_status[hour_motor].dst_pos != 
 	   motor_manager.motor_status[hour_motor].cur_pos) {
 		motor_manager.motor_status[hour_motor].run_flag = 1;
@@ -111,11 +118,17 @@ s16 motor_hour_to_position(u8 hour)
 
 s16 motor_minute_to_position(u8 minute)
 {
+	/*minute dst pos config*/
 	if((MINUTE_59 == motor_manager.motor_status[minute_motor].cur_pos) &&
 		(MINUTE_0 == minute)) {
 		motor_manager.motor_status[minute_motor].dst_pos = MINUTE_60;
 	}else {
 		motor_manager.motor_status[minute_motor].dst_pos = minute;
+	}
+
+	/*minute cur pos config*/
+	if(MINUTE_60 == motor_manager.motor_status[minute_motor].cur_pos) {
+		motor_manager.motor_status[minute_motor].cur_pos = MINUTE_0;
 	}
 	
 	if(motor_manager.motor_status[minute_motor].dst_pos != 
@@ -244,15 +257,6 @@ static void motor_run_check(void)
 		motor_manager.run_motor_num = max_motor;
 		return;
 	}else {
-		if(hour_motor == i) {
-			if(motor_manager.motor_status[hour_motor].cur_pos == HOUR12_0) {
-				motor_manager.motor_status[hour_motor].cur_pos = HOUR0_0;
-			}
-		}else if(minute_motor == i) {
-			if(motor_manager.motor_status[minute_motor].cur_pos == MINUTE_60) {
-				motor_manager.motor_status[minute_motor].cur_pos = MINUTE_0;
-			}
-		}
 		motor_manager.run_step_num = 0;
 		motor_manager.drv->timer->timer_start(1, motor_run_one_unit);
 	}

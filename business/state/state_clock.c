@@ -23,7 +23,7 @@ static clock_t clk = {
 	.month = 1,
 	.day = 1,
 	.week = 0,
-	.hour = 11,
+	.hour = 23,
 	.minute = 30,
 	.second = 0,
 };
