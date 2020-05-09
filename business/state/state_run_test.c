@@ -7,7 +7,6 @@
 
 void state_run_test_handler(u16 id);
 
-
 enum{
 	run,
 	idle,

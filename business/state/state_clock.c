@@ -14,8 +14,7 @@ static u8 day[] = {DAY_0,
 	DAY_26, DAY_27,	DAY_28,	DAY_29, DAY_30,
 	DAY_31};
 
-
-#define TEST_CLOCK
+//#define TEST_CLOCK
 
 #ifdef TEST_CLOCK
 static clock_t clk = {
@@ -34,7 +33,7 @@ s16 state_clock(REPORT_E cb, void *args)
 {
 	//u8 string_hour[4] = {'h', 'o', 'u', 'r'};
 
-	#ifndef TEST_CLOCK	
+	#ifndef TEST_CLOCK
 	clock_t *clk;
 	clk = clock_get();
 	motor_minute_to_position(clk->minute);
