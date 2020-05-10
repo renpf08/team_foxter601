@@ -1,6 +1,11 @@
 #include "ancs_client.h"
 #include "adapter/adapter.h"
 
+static bool is_adv_state = FALSE;
+static adapter_callback ble_switch_cb = NULL;
+
+s16 ble_switch_init(adapter_callback cb);
+
 void ble_switch_on(void)
 {
     if((g_app_data.state != app_connected) && 
@@ -15,7 +20,6 @@ void ble_switch_on(void)
         printf("ble switch on no change\r\n"); 
     }
 }
-
 void ble_switch_off(void)
 {
     if(g_app_data.state == app_connected)
@@ -30,5 +34,21 @@ void ble_switch_off(void)
         AppSetState(app_idle, 0x10);
         printf("ble switch off from advertising\r\n"); 
     }
+}
+void ble_switch_set(bool cur_state)
+{
+    is_adv_state = cur_state;
+    ble_switch_cb(KEY_M_LONG_PRESS, NULL);
+}
+
+bool ble_switch_get(void)
+{
+    return is_adv_state;
+}
+
+s16 ble_switch_init(adapter_callback cb)
+{
+	ble_switch_cb = cb;
+	return 0;
 }
 

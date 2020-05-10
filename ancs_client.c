@@ -2111,6 +2111,8 @@ void AppSetState(app_state new_state, uint8 caller)
                 /* Nothing to do */
             break;
         }
+
+        ble_switch_set((new_state==app_slow_advertising) || (new_state==app_fast_advertising));
     }
 }
 
