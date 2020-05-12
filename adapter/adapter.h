@@ -17,8 +17,13 @@ s16 clock_set(clock_t *ck);
 
 s16 motor_manager_init(void);
 void motor_run_one_step(u8 motor_num, u8 direction);
+
 s16 motor_hour_to_position(u8 hour);
+s16 motor_hour_one_step(u8 hour_step);
+
 s16 motor_minute_to_position(u8 minute);
+s16 motor_minute_one_step(u8 minute_step);
+
 s16 motor_date_to_position(u8 day);
 s16 motor_notify_to_position(u8 notify);
 s16 motor_battery_week_to_position(u8 battery_week);

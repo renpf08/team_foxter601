@@ -26,7 +26,6 @@ static clock_t clk = {
 	.minute = 30,
 	.second = 0,
 };
-
 #endif
 
 s16 state_clock(REPORT_E cb, void *args)
@@ -48,9 +47,9 @@ s16 state_clock(REPORT_E cb, void *args)
 
 	if(24 == clk.hour) {
 		clk.hour = 0;
-		clk.day++;
 	}
-
+	
+	clk.day++;
 	if(31 == clk.day) {
 		clk.day = 0;
 	}

@@ -57,37 +57,11 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	return 0;
 }
 
-//#define TEST_ZERO_ADJUST
-#ifdef TEST_ZERO_ADJUST
-void zero_adjust_test(u16 id);
-
-u8 test[] = {KEY_A_B_LONG_PRESS, KEY_M_SHORT_PRESS, KEY_A_SHORT_PRESS, KEY_A_SHORT_PRESS, KEY_A_SHORT_PRESS, 
-			KEY_B_SHORT_PRESS, KEY_B_SHORT_PRESS, KEY_B_SHORT_PRESS};
-void zero_adjust_test(u16 id)
-{
-	static u8 cnt = 0;
-	if(cnt < sizeof(test)) {
-		state_zero_adjust(test[cnt], NULL);	
-		cnt++;
-	}
-	timer_event(1000, zero_adjust_test);
-}
-#endif
-
-//#define TEST_NOTIFY
-#ifdef TEST_NOTIFY
-void notify_test(u16 id);
-
-void notify_test(u16 id)
-{
-	state_notify(ANCS_NOTIFY_INCOMING, NULL);
-	timer_event(1000, notify_test);
-}
-#endif
-
+#define TEST_RUN_TEST
 s16 business_init(void)
 {
 	adapter_init(adapter_cb_handler);
+	
 	#ifdef TEST_ZERO_ADJUST
 	timer_event(1000, zero_adjust_test);
 	#endif
@@ -95,7 +69,16 @@ s16 business_init(void)
 	#ifdef TEST_NOTIFY
 	timer_event(1000, notify_test);
 	#endif
-	business.state_now = CLOCK;
-	state_clock(CLOCK_1_MINUTE, NULL);
+
+	#ifdef TEST_BLE_SWITCH
+	timer_event(1000, ble_switch_test);
+	#endif
+
+	#ifdef TEST_RUN_TEST
+	state_run_test(KEY_A_B_M_LONG_PRESS, NULL);
+	#endif
+	
+	//business.state_now = CLOCK;
+	//state_clock(CLOCK_1_MINUTE, NULL);
 	return 0;
 }

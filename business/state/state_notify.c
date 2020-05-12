@@ -24,3 +24,9 @@ s16 state_notify(REPORT_E cb, void *args)
 	*state = CLOCK;
 	return 0;
 }
+
+void notify_test(u16 id)
+{
+	state_notify(ANCS_NOTIFY_INCOMING, NULL);
+	timer_event(1000, notify_test);
+}

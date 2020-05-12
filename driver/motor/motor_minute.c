@@ -35,6 +35,9 @@ static csr_motor_minute_cfg_t csr_motor_minute_cfg = {
 
 static s16 csr_motor_minute_positive_first_half(void *args)
 {
+	PioSetDir(csr_motor_minute_cfg.cfg.pos.num, PIO_DIR_OUTPUT);
+	PioSetDir(csr_motor_minute_cfg.cfg.neg.num, PIO_DIR_OUTPUT);
+
 	PioSets(BIT_MASK(csr_motor_minute_cfg.cfg.pos.num)| \
 			BIT_MASK(csr_motor_minute_cfg.cfg.com.num)| \
 			BIT_MASK(csr_motor_minute_cfg.cfg.neg.num),
@@ -46,6 +49,9 @@ static s16 csr_motor_minute_positive_first_half(void *args)
 
 static s16 csr_motor_minute_positive_second_half(void *args)
 {
+	PioSetDir(csr_motor_minute_cfg.cfg.pos.num, PIO_DIR_OUTPUT);
+	PioSetDir(csr_motor_minute_cfg.cfg.neg.num, PIO_DIR_OUTPUT);
+
 	PioSets(BIT_MASK(csr_motor_minute_cfg.cfg.pos.num)| \
 			BIT_MASK(csr_motor_minute_cfg.cfg.com.num)| \
 			BIT_MASK(csr_motor_minute_cfg.cfg.neg.num),
@@ -58,6 +64,9 @@ static s16 csr_motor_minute_positive_second_half(void *args)
 
 static s16 csr_motor_minute_negtive_first_half(void *args)
 {
+	PioSetDir(csr_motor_minute_cfg.cfg.pos.num, PIO_DIR_OUTPUT);
+	PioSetDir(csr_motor_minute_cfg.cfg.neg.num, PIO_DIR_OUTPUT);
+
 	PioSets(BIT_MASK(csr_motor_minute_cfg.cfg.pos.num)| \
 			BIT_MASK(csr_motor_minute_cfg.cfg.com.num)| \
 			BIT_MASK(csr_motor_minute_cfg.cfg.neg.num),
@@ -69,6 +78,9 @@ static s16 csr_motor_minute_negtive_first_half(void *args)
 
 static s16 csr_motor_minute_negtive_second_half(void *args)
 {
+	PioSetDir(csr_motor_minute_cfg.cfg.pos.num, PIO_DIR_OUTPUT);
+	PioSetDir(csr_motor_minute_cfg.cfg.neg.num, PIO_DIR_OUTPUT);
+
 	PioSets(BIT_MASK(csr_motor_minute_cfg.cfg.pos.num)| \
 			BIT_MASK(csr_motor_minute_cfg.cfg.com.num)| \
 			BIT_MASK(csr_motor_minute_cfg.cfg.neg.num),
@@ -86,7 +98,8 @@ static s16 csr_motor_minute_stop(void *args)
 			BIT_MASK(csr_motor_minute_cfg.cfg.neg.num),
 			0x0000UL);
 			
-	//TimeDelayUSec(1);
+	PioSetDir(csr_motor_minute_cfg.cfg.pos.num, PIO_DIR_INPUT);
+	PioSetDir(csr_motor_minute_cfg.cfg.neg.num, PIO_DIR_INPUT);
 	return 0;
 }
 

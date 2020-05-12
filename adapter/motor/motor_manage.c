@@ -68,7 +68,7 @@ static motor_manager_t motor_manager = {
 	.run_motor = NULL,
 	.run_motor_num = max_motor,
 	.run_step_num = 0,
-	.run_interval_ms = 100,
+	.run_interval_ms = 50,
 	.run_direction  = pos,
 };
 
@@ -202,6 +202,28 @@ static void motor_run_continue_check(void)
 	}
 }
 
+s16 motor_hour_one_step(u8 hour_step)
+{
+	motor_manager.motor_status[hour_motor].dst_pos = hour_step;
+	
+	if(motor_manager.motor_status[hour_motor].dst_pos != 
+	   motor_manager.motor_status[hour_motor].cur_pos) {
+		motor_manager.motor_status[hour_motor].run_flag = 1;
+	}
+	return 0;
+}
+
+s16 motor_minute_one_step(u8 minute_step)
+{
+	motor_manager.motor_status[minute_motor].dst_pos = minute_step;
+	
+	if(motor_manager.motor_status[minute_motor].dst_pos != 
+	   motor_manager.motor_status[minute_motor].cur_pos) {
+		motor_manager.motor_status[minute_motor].run_flag = 1;
+	}
+	return 0;
+}
+
 static void motor_run_one_unit(u16 id)
 {
 	switch(motor_manager.motor_status[motor_manager.run_motor_num].run_step_state) {
@@ -255,10 +277,9 @@ static void motor_run_check(void)
 	if(max_motor == i) {
 		motor_manager.run_motor = NULL;
 		motor_manager.run_motor_num = max_motor;
-		return;
 	}else {
 		motor_manager.run_step_num = 0;
-		motor_manager.drv->timer->timer_start(1, motor_run_one_unit);
+		motor_manager.drv->timer->timer_start(10, motor_run_one_unit);
 	}
 }
 

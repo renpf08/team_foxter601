@@ -6,6 +6,7 @@
 #include "state.h"
 
 void state_run_test_handler(u16 id);
+void state_run_test_increase(void);
 
 enum{
 	run,
@@ -44,20 +45,67 @@ static run_test_t run_test = {
 	.work = run,
 };
 
-void state_run_test_handler(u16 id)
+void state_run_test_increase(void)
 {
 	if(pos == run_test.hour_dir) {
 		run_test.hour++;
 		if(HOUR12_0 == run_test.hour) {
 			run_test.hour_dir = neg;
 		}
+	}else {
+		run_test.hour--;
+		if(HOUR0_0 == run_test.hour) {
+			run_test.hour_dir = pos;
+		}
 	}
 
-	motor_hour_to_position(run_test.hour);
-	motor_minute_to_position(run_test.minute);
+	if(pos == run_test.minute_dir) {
+		run_test.minute++;
+		if(MINUTE_60 == run_test.minute) {
+			run_test.minute_dir = neg;
+		}
+	}else {
+		run_test.minute--;
+		if(MINUTE_0 == run_test.minute) {
+			run_test.minute_dir = pos;
+		}
+	}
+
+	if(pos == run_test.day_dir) {
+		run_test.day--;
+		if(DAY_31 == run_test.day) {
+			run_test.day_dir = neg;
+		}
+	}else {
+		run_test.day++;
+		if(DAY_1 == run_test.day) {
+			run_test.day_dir = pos;
+		}
+	}
+
+	if(pos == run_test.notify_dir) {
+		run_test.notify++;
+		if(NOTIFY_COMMING_CALL == run_test.notify) {
+			run_test.notify_dir = neg;
+		}
+	}else {
+		run_test.notify--;
+		if(NOTIFY_NONE == run_test.notify) {
+			run_test.notify_dir = pos;
+		}
+	}
+
+}
+
+void state_run_test_handler(u16 id)
+{
+	state_run_test_increase();
+
+	motor_hour_one_step(run_test.hour);	
+	motor_minute_one_step(run_test.minute);	
 	motor_date_to_position(run_test.day);
 	motor_notify_to_position(run_test.notify);
-	motor_battery_week_to_position(run_test.battery_week);
+	//motor_battery_week_to_position(run_test.battery_week);
 	motor_activity_to_position(run_test.activity);
 
 	timer_event(1000, state_run_test_handler);
