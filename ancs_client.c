@@ -1782,7 +1782,8 @@ extern void ReportPanic(const char* file, const char* func, unsigned line, app_p
 #ifdef ENABLE_DEBUG_PANIC
     Panic(panic_code);
 #else
-    printf("<error> %s %s %d: code:0x%08X\r\n", file, func, line, panic_code);
+    //printf("<error> %s %s %d: code:0x%08X\r\n", file, func, line, panic_code);
+    print((u8*)&"painc", 5);
 #endif
 }
 
@@ -1952,6 +1953,7 @@ extern void HandlePairingRemoval(void)
 void AppSetState(app_state new_state, uint8 caller)
 {
     app_state old_state = g_app_data.state;
+    bool is_adv = FALSE;
 
     /* Check if the new state to be set is not the same as the present state
      * of the application. 
@@ -2018,6 +2020,7 @@ void AppSetState(app_state new_state, uint8 caller)
             {
                 /* Start advertising and indicate this to user */
                 GattTriggerFastAdverts();
+                is_adv = TRUE;
                 LogReport(__FILE__, __func__, __LINE__, Ancs_Client_ble_state_fast_advertising);
             }
             break;
@@ -2025,6 +2028,7 @@ void AppSetState(app_state new_state, uint8 caller)
             case app_slow_advertising:
             {
                 GattStartAdverts(FALSE);
+                is_adv = TRUE;
                 LogReport(__FILE__, __func__, __LINE__, Ancs_Client_ble_state_slow_advertising);
             }
             break;
@@ -2112,7 +2116,7 @@ void AppSetState(app_state new_state, uint8 caller)
             break;
         }
 
-        ble_switch_set((new_state==app_slow_advertising) || (new_state==app_fast_advertising));
+        ble_switch_set(is_adv);
     }
 }
 

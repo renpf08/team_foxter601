@@ -31,6 +31,9 @@ static state_t state[] = {
 	STATE_FILL(ZERO_ADJUST, KEY_A_B_LONG_PRESS, 	CLOCK,       	state_clock),
 	/*ble switch open*/	
 	STATE_FILL(CLOCK,       KEY_M_LONG_PRESS,   	BLE_SWITCH,  	state_ble_switch),
+	STATE_FILL(BLE_SWITCH,  CLOCK,   	            CLOCK,  	    state_clock),
+	STATE_FILL(CLOCK,       BLE_SWITCH_ON_OFF,   	CLOCK,  	    state_ble_state),
+	STATE_FILL(BLE_SWITCH,  BLE_SWITCH_ON_OFF,   	CLOCK,  	    state_ble_state),
 	/*notify*/
 	STATE_FILL(CLOCK,       ANCS_NOTIFY_INCOMING,   NOTIFY_COMING,  state_notify),
 	/*battery & week switch*/	
@@ -49,7 +52,6 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 
 			(state[i].ev == cb)) {
-
 			business.state_now = state[i].next_state;
 			state[i].func(cb, &business.state_now);
 		}

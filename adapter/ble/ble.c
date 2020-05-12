@@ -1,5 +1,6 @@
 #include "ancs_client.h"
 #include "adapter/adapter.h"
+#include <macros.h>
 
 static bool is_adv_state = FALSE;
 static adapter_callback ble_switch_cb = NULL;
@@ -10,35 +11,28 @@ void ble_switch_on(void)
 {
     if((g_app_data.state != app_connected) && 
        (g_app_data.state != app_fast_advertising) && 
-       (g_app_data.state != app_slow_advertising))
-    {
+       (g_app_data.state != app_slow_advertising)) {
         AppSetState(app_fast_advertising, 0x0E);
-        printf("ble switch on ok\r\n");
-    }
-    else
-    {
-        printf("ble switch on no change\r\n"); 
+    } else {
     }
 }
 void ble_switch_off(void)
 {
-    if(g_app_data.state == app_connected)
-    {
+    if(g_app_data.state == app_connected) {
         g_app_data.pairing_remove_button_pressed = FALSE;
         AppSetState(app_disconnecting, 0x0F);
-        printf("ble switch off from connected\r\n"); 
-    }
-    else if((g_app_data.state != app_fast_advertising) || (g_app_data.state != app_slow_advertising))
-    {
+    } else if((g_app_data.state != app_fast_advertising) || (g_app_data.state != app_slow_advertising)) {
         g_app_data.pairing_remove_button_pressed = FALSE;
         AppSetState(app_idle, 0x10);
-        printf("ble switch off from advertising\r\n"); 
     }
 }
 void ble_switch_set(bool cur_state)
 {
+    if(is_adv_state == cur_state) {
+        return;
+    }
     is_adv_state = cur_state;
-    ble_switch_cb(KEY_M_LONG_PRESS, NULL);
+    ble_switch_cb(BLE_SWITCH_ON_OFF, NULL);
 }
 
 bool ble_switch_get(void)
