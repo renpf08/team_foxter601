@@ -33,7 +33,7 @@ void ble_switch_off(void)
 void ble_switch_set(bool cur_state)
 {
     if(is_adv_state == cur_state) {
-        return;
+        return; // important!!
     }
     if(cur_state == TRUE) print((u8*)&"adv", 3);
     else print((u8*)&"dis", 3);

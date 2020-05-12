@@ -1953,7 +1953,8 @@ extern void HandlePairingRemoval(void)
 void AppSetState(app_state new_state, uint8 caller)
 {
     app_state old_state = g_app_data.state;
-    bool is_adv = FALSE;
+    static bool is_last_adv = FALSE;
+    bool is_now_adv = FALSE;
 
     /* Check if the new state to be set is not the same as the present state
      * of the application. 
@@ -2020,7 +2021,7 @@ void AppSetState(app_state new_state, uint8 caller)
             {
                 /* Start advertising and indicate this to user */
                 GattTriggerFastAdverts();
-                is_adv = TRUE;
+                is_now_adv = TRUE;
                 LogReport(__FILE__, __func__, __LINE__, Ancs_Client_ble_state_fast_advertising);
             }
             break;
@@ -2028,7 +2029,7 @@ void AppSetState(app_state new_state, uint8 caller)
             case app_slow_advertising:
             {
                 GattStartAdverts(FALSE);
-                is_adv = TRUE;
+                is_now_adv = TRUE;
                 LogReport(__FILE__, __func__, __LINE__, Ancs_Client_ble_state_slow_advertising);
             }
             break;
@@ -2116,7 +2117,13 @@ void AppSetState(app_state new_state, uint8 caller)
             break;
         }
 
-        ble_switch_set(is_adv);
+        if(is_last_adv != is_now_adv) { // important!!
+            print((u8*)&"chng", 4);
+            ble_switch_set(is_now_adv);
+        } else {
+            print((u8*)&"keep", 4);
+        }
+        is_last_adv = is_now_adv;
     }
 }
 
