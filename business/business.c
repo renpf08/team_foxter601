@@ -49,7 +49,6 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 
 			(state[i].ev == cb)) {
-
 			business.state_now = state[i].next_state;
 			state[i].func(cb, &business.state_now);
 		}

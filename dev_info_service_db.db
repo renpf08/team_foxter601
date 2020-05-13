@@ -25,18 +25,6 @@ primary_service {
     uuid : UUID_DEVICE_INFO_SERVICE,
     name : "DEVICE_INFO_SERVICE", /* Name will be used in handle name */
 
-    /* Serial number characteristic of device info service */
-    characteristic {
-        uuid : UUID_DEVICE_INFO_SERIAL_NUMBER,
-        properties : read,      /* Characteristic can only be read */
-        #if USE_PAIRING_SUPPORT
-        flags : [FLAG_IRQ,FLAG_ENCR_R],
-        #endif
-        name : "DEVICE_INFO_SERIAL_NUMBER",
-        value : "CSR-ANCS-CLIENT-001" 
-       
-    },
-
     /* Hardware revision characteristic of device info service */
     characteristic {
         uuid : UUID_DEVICE_INFO_HARDWARE_REVISION,
@@ -46,7 +34,28 @@ primary_service {
         #endif
         name : "DEVICE_INFO_HARDWARE_REVISION",
         value : HARDWARE_REVISION
+    },
 
+    /* Firmware revision characteristic */
+    characteristic {
+        uuid : UUID_DEVICE_INFO_FIRMWARE_REVISION,
+        properties : read,      /*Characteristic can only be read */
+        #if USE_PAIRING_SUPPORT
+        flags : [FLAG_IRQ,FLAG_ENCR_R],
+        #endif
+        name : "DEVICE_INFO_FIRMWARE_REVISION",
+        value : FIRMWARE_REVISION
+    },
+
+    /* Software revision characteristic */
+    characteristic {
+        uuid : UUID_DEVICE_INFO_MODEL_NUMBER,
+        properties : read,      /*Characteristic can only be read */
+        #if USE_PAIRING_SUPPORT
+        flags : [FLAG_IRQ,FLAG_ENCR_R],
+        #endif
+        name : "DEVICE_INFO_MODEL_NUMBER",
+        value : DEVICE_MODEL_INFO
     },
 	
     /* system Id characteristic of device info service */
@@ -60,19 +69,18 @@ primary_service {
         #endif
         name : "DEVICE_INFO_SYSTEM_ID",
         size_value : 0x8
+    }
 
-    },
-
-    /* Firmware revision characteristic */
+#if 0
+    /* Serial number characteristic of device info service */
     characteristic {
-        uuid : UUID_DEVICE_INFO_FIRMWARE_REVISION,
-        properties : read,      /*Characteristic can only be read */
+        uuid : UUID_DEVICE_INFO_SERIAL_NUMBER,
+        properties : read,      /* Characteristic can only be read */
         #if USE_PAIRING_SUPPORT
         flags : [FLAG_IRQ,FLAG_ENCR_R],
         #endif
-        name : "DEVICE_INFO_FIRMWARE_REVISION",
-        value : BLE_HARDWARE_VERSION
-
+        name : "DEVICE_INFO_SERIAL_NUMBER",
+        value : "CSR-ANCS-CLIENT-001"
     },
 
     /* Software revision characteristic */
@@ -109,6 +117,7 @@ primary_service {
                  PRODUCT_ID,
                  PRODUCT_VER]
     }  
+#endif
 },  /* This comma to be added only if there are more .db files included
      * after this in app_gatt_db.db  
      */
