@@ -15,8 +15,6 @@ void ble_switch_on(void)
         AppSetState(app_fast_advertising, 0x0E);
     } else {
     }
-    
-    print((u8*)&"on", 2);
 }
 void ble_switch_off(void)
 {
@@ -27,16 +25,12 @@ void ble_switch_off(void)
         g_app_data.pairing_remove_button_pressed = FALSE;
         AppSetState(app_idle, 0x10);
     }
-    
-    print((u8*)&"off", 3);
 }
 void ble_switch_set(bool cur_state)
 {
     if(is_adv_state == cur_state) {
         return; // important!!
     }
-    if(cur_state == TRUE) print((u8*)&"adv", 3);
-    else print((u8*)&"dis", 3);
     is_adv_state = cur_state;
     ble_switch_cb(BLE_SWITCH_ON_OFF, NULL);
 }
