@@ -31,9 +31,6 @@ static state_t state[] = {
 	STATE_FILL(ZERO_ADJUST, KEY_A_B_LONG_PRESS, 	CLOCK,       	state_clock),
 	/*ble switch open*/	
 	STATE_FILL(CLOCK,       KEY_M_LONG_PRESS,   	BLE_SWITCH,  	state_ble_switch),
-	STATE_FILL(BLE_SWITCH,  CLOCK,   	            CLOCK,  	    state_clock),
-	STATE_FILL(CLOCK,       BLE_SWITCH_ON_OFF,   	CLOCK,  	    state_ble_state),
-	STATE_FILL(BLE_SWITCH,  BLE_SWITCH_ON_OFF,   	CLOCK,  	    state_ble_state),
 	/*notify*/
 	STATE_FILL(CLOCK,       ANCS_NOTIFY_INCOMING,   NOTIFY_COMING,  state_notify),
 	/*battery & week switch*/	

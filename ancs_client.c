@@ -2256,7 +2256,7 @@ void AppInit(sleep_state last_sleep_state)
       * add by mlw at 20200314 01:37
       */
     m_devname_init(devName);
-    printf("system started: %s\r\n", devName);
+    print(devName, StrLen((char*)devName));
 
     /* Tell Security Manager module about the value it needs to initialise it's
      * diversifier to.

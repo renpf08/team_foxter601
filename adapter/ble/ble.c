@@ -32,7 +32,7 @@ void ble_switch_set(bool cur_state)
         return; // important!!
     }
     is_adv_state = cur_state;
-    ble_switch_cb(BLE_SWITCH_ON_OFF, NULL);
+    ble_switch_cb(BLE_CHANGE, NULL);
 }
 
 bool ble_switch_get(void)
