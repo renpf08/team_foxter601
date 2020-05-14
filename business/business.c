@@ -57,7 +57,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	return 0;
 }
 
-#define TEST_RUN_TEST
+#define TEST_ZERO_ADJUST
 s16 business_init(void)
 {
 	adapter_init(adapter_cb_handler);

@@ -178,6 +178,28 @@ s16 motor_activity_to_position(u8 activity)
 	return 0;
 }
 
+s16 motor_hour_one_step(u8 hour_step)
+{
+	motor_manager.motor_status[hour_motor].dst_pos = hour_step;
+	
+	if(motor_manager.motor_status[hour_motor].dst_pos != 
+	   motor_manager.motor_status[hour_motor].cur_pos) {
+		motor_manager.motor_status[hour_motor].run_flag = 1;
+	}
+	return 0;
+}
+
+s16 motor_minute_one_step(u8 minute_step)
+{
+	motor_manager.motor_status[minute_motor].dst_pos = minute_step;
+	
+	if(motor_manager.motor_status[minute_motor].dst_pos != 
+	   motor_manager.motor_status[minute_motor].cur_pos) {
+		motor_manager.motor_status[minute_motor].run_flag = 1;
+	}
+	return 0;
+}
+
 static void motor_run_continue_check(void)
 {
 	motor_manager.run_step_num++;
@@ -200,28 +222,6 @@ static void motor_run_continue_check(void)
 	}else {
 		motor_manager.drv->timer->timer_start(1, motor_run_one_unit);
 	}
-}
-
-s16 motor_hour_one_step(u8 hour_step)
-{
-	motor_manager.motor_status[hour_motor].dst_pos = hour_step;
-	
-	if(motor_manager.motor_status[hour_motor].dst_pos != 
-	   motor_manager.motor_status[hour_motor].cur_pos) {
-		motor_manager.motor_status[hour_motor].run_flag = 1;
-	}
-	return 0;
-}
-
-s16 motor_minute_one_step(u8 minute_step)
-{
-	motor_manager.motor_status[minute_motor].dst_pos = minute_step;
-	
-	if(motor_manager.motor_status[minute_motor].dst_pos != 
-	   motor_manager.motor_status[minute_motor].cur_pos) {
-		motor_manager.motor_status[minute_motor].run_flag = 1;
-	}
-	return 0;
 }
 
 static void motor_run_one_unit(u16 id)
