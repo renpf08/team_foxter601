@@ -80,7 +80,7 @@ static void bat_cb_handler(u16 id)
 
 	/*callback now*/
 	if(bat_cfg.cur_status != bat_cfg.old_status) {
-		bat_cfg.cb(bat_cfg.cur_status, NULL);
+		//bat_cfg.cb(bat_cfg.cur_status, NULL);
 	}
 
 	/*current status copy to the old status*/

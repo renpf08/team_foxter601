@@ -24,8 +24,7 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 	u8 battery_level = BAT_PECENT_0;
 	STATE_E *state = (STATE_E *)args;
 
-	u8 string[12] = {'s', 't', 'a', 't', 'e', '_', 'b', 'a', 't', 't', 'r', 'y'};
-	print(string, 12);
+	print((u8 *)&"battery_week", 12);
 
 	if(state_week == state_battery_week.cur_state) {
 		state_battery_week.cur_state = state_battery;

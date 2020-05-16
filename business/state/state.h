@@ -16,6 +16,7 @@ void notify_test(u16 id);
 s16 state_battery_week_switch(REPORT_E cb, void *args);
 
 s16 state_run_test(REPORT_E cb, void *args);
+void test_run_test(u16 id);
 
 s16 state_time_adjust(REPORT_E cb, void *args);
 

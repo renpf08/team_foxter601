@@ -33,8 +33,8 @@ s16 csr_event_callback(EVENT_E ev)
 	if(ev >= EVENT_MAX) {
 		return -1;
 	}else if(ev < MAGNETOMETER_READY){
+		//print((u8 *)&ev, 1);
 		u16 combo_event = button_cb_handler((void*)ev);
-    	//adapter.drv->uart->uart_write((u8 *)&ev, 1);
         if(combo_event < REPORT_MAX) {     // sure the button released
         	adapter.cb(combo_event, NULL);
     	    //adapter.drv->uart->uart_write((u8 *)&combo_event, 1);

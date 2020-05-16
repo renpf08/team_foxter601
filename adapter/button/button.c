@@ -174,4 +174,3 @@ s16 button_cb_handler(void *args)
     
     return (s16)combo_event_report_value;
 }
-

@@ -1,11 +1,18 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
+#include <panic.h>          /* Support for applications to panic */
+#include <timer.h>          /* Chip timer functions */
 #include "../driver.h"
+
+static void csr_keym_timer_create(uint32 timeout, timer_callback_arg handler);
+
+#define KEYM_VAL_GET(num)        PioGet(num)
 
 typedef struct {
 	pin_t pin;
 	event_callback keym_cb;
 	EVENT_E last_state;
+	EVENT_E now_state;
 }csr_keym_cfg_t;
 
 static csr_keym_cfg_t csr_keym_cfg = {
@@ -17,23 +24,50 @@ static csr_keym_cfg_t csr_keym_cfg = {
 	.last_state = KEY_M_UP,
 };
 
+static void csr_keym_timer_create(uint32 timeout, timer_callback_arg handler)
+{
+    const timer_id tId = TimerCreate(timeout, TRUE, handler);
+    
+    /* If a timer could not be created, panic to restart the app */
+    if (tId == TIMER_INVALID)
+    {
+        DebugWriteString("\r\nFailed to start timer");
+        /* Panic with panic code 0xfe */
+        Panic(0xfe);
+    }
+}
+
+static void csr_keym_event_recheck(u16 id)
+{
+	if((true == KEYM_VAL_GET(csr_keym_cfg.pin.num)) &&
+		(KEY_M_UP == csr_keym_cfg.now_state)) {
+		csr_keym_cfg.now_state = KEY_M_UP;
+	}else if((false == KEYM_VAL_GET(csr_keym_cfg.pin.num)) &&
+		(KEY_M_DOWN == csr_keym_cfg.now_state)) {
+		csr_keym_cfg.now_state = KEY_M_DOWN;
+	}else {
+		return;
+	}
+
+	if(csr_keym_cfg.last_state == csr_keym_cfg.now_state) {
+		return;
+	} else {
+		if(NULL != csr_keym_cfg.keym_cb) {
+			csr_keym_cfg.keym_cb(csr_keym_cfg.now_state);
+		}
+		csr_keym_cfg.last_state = csr_keym_cfg.now_state;
+	}
+}
+
 s16 csr_keym_event_handler(u32 key_num, u32 key_status)
 {
-	EVENT_E now_state;
 	if(key_num & (0x01UL << csr_keym_cfg.pin.num)) {
 		if(key_status & (0x01UL << csr_keym_cfg.pin.num)) {
-			now_state = KEY_M_UP;
+			csr_keym_cfg.now_state = KEY_M_UP;
+			csr_keym_timer_create(10*MILLISECOND, csr_keym_event_recheck);
 		} else {
-			now_state = KEY_M_DOWN;
-		}
-
-		if(csr_keym_cfg.last_state == now_state) {
-			return 0;
-		} else {
-			if(NULL != csr_keym_cfg.keym_cb) {
-				csr_keym_cfg.keym_cb(now_state);
-			}
-			csr_keym_cfg.last_state = now_state;
+			csr_keym_cfg.now_state = KEY_M_DOWN;			
+			csr_keym_timer_create(10*MILLISECOND, csr_keym_event_recheck);
 		}
 	}
 	return 0;
