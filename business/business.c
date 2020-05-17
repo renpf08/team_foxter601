@@ -34,7 +34,7 @@ static state_t state[] = {
 	/*notify*/
 	STATE_FILL(CLOCK,       ANCS_NOTIFY_INCOMING,   NOTIFY_COMING,  state_notify),
 	/*battery & week switch*/
-	STATE_FILL(CLOCK,       KEY_M_SHORT_PRESS,   	BATTERY_WEEK_SWITCH,  state_battery_week_switch),
+	STATE_FILL(CLOCK,       KEY_M_SHORT_PRESS,   	BATTERY_WEEK_SWITCH,  state_battery_week_switch),	
 	/*time adjust*/
 	STATE_FILL(CLOCK,       KEY_B_M_LONG_PRESS,   	TIME_ADJUST,  	state_time_adjust),
 	/*run test*/
@@ -59,7 +59,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	return 0;
 }
 
-//#define TEST_ZERO_ADJUST
+#define TEST_BATTERY_WEEK
 s16 business_init(void)
 {
 	adapter_init(adapter_cb_handler);
@@ -78,6 +78,10 @@ s16 business_init(void)
 
 	#ifdef TEST_RUN_TEST
 	timer_event(1000, test_run_test);
+	#endif
+
+	#ifdef TEST_BATTERY_WEEK
+	battery_week_test(adapter_cb_handler);
 	#endif
 	
 	business.state_now = CLOCK;

@@ -8,6 +8,9 @@ static void motor_run_positive_one_unit(u16 id);
 static void motor_run_negtive_one_unit(u16 id);
 static void motor_run_continue_check(void);
 
+#define BAT_INTERVAL_STEP 2
+#define WEEK_INTERVAL_STEP 4
+
 enum {
 	FIRST_HALF,
 	RECOVER,
@@ -44,6 +47,7 @@ typedef struct {
 	u8 run_step_num;
 	u8 run_interval_ms;
 	u8 run_direction;
+	u8 bat_week_dst;
 }motor_manager_t;
 
 static motor_manager_t motor_manager = {
@@ -62,7 +66,7 @@ static motor_manager_t motor_manager = {
 			NULL, NOTIFY_NONE, 0, 0, 1, FIRST_HALF, FIRST_HALF
 		},
 		[battery_week_motor] = {
-			NULL, BAT_PECENT_0, 0, 0, 3, FIRST_HALF, FIRST_HALF
+			NULL, BAT_PECENT_0, 0, 0, BAT_INTERVAL_STEP, FIRST_HALF, FIRST_HALF
 		},
 		[activity_motor] = {
 			NULL, ACTIVITY_0, 0, 0, 1, FIRST_HALF, FIRST_HALF
@@ -73,6 +77,7 @@ static motor_manager_t motor_manager = {
 	.run_step_num = 0,
 	.run_interval_ms = 50,
 	.run_direction  = pos,
+	.bat_week_dst = BAT_PECENT_0,
 };
 
 u8 hour_list[] = {
@@ -161,9 +166,38 @@ s16 motor_notify_to_position(u8 notify)
 	return 0;
 }
 
+static void motor_battery_week_change(u16 id)
+{
+	if(BAT_PECENT_100 == motor_manager.motor_status[battery_week_motor].cur_pos) {
+		motor_manager.motor_status[battery_week_motor].dst_pos = motor_manager.bat_week_dst;
+		if(motor_manager.bat_week_dst > BAT_PECENT_100) {
+			motor_manager.motor_status[battery_week_motor].unit_interval_step = BAT_INTERVAL_STEP;
+		}else {
+			motor_manager.motor_status[battery_week_motor].unit_interval_step = WEEK_INTERVAL_STEP;
+		}
+		
+		motor_manager.motor_status[battery_week_motor].run_flag = 1;
+	}else {
+		timer_event(motor_manager.run_interval_ms, motor_battery_week_change);
+	}
+}
+
 s16 motor_battery_week_to_position(u8 battery_week)
 {
-	motor_manager.motor_status[battery_week_motor].dst_pos = battery_week;
+	if((motor_manager.motor_status[battery_week_motor].cur_pos > BAT_PECENT_100) &&
+		(battery_week < BAT_PECENT_100)) {
+		motor_manager.motor_status[battery_week_motor].dst_pos = BAT_PECENT_100;
+		motor_manager.bat_week_dst = battery_week;
+		timer_event(motor_manager.run_interval_ms, motor_battery_week_change);
+	}else if((motor_manager.motor_status[battery_week_motor].cur_pos < BAT_PECENT_100) &&
+		(battery_week > BAT_PECENT_100)) {
+		motor_manager.motor_status[battery_week_motor].dst_pos = BAT_PECENT_100;
+		motor_manager.bat_week_dst = battery_week;
+		timer_event(motor_manager.run_interval_ms, motor_battery_week_change);
+	}else {
+		motor_manager.motor_status[battery_week_motor].dst_pos = battery_week;
+	}
+
 	if(motor_manager.motor_status[battery_week_motor].dst_pos != 
 	   motor_manager.motor_status[battery_week_motor].cur_pos) {
 		motor_manager.motor_status[battery_week_motor].run_flag = 1;
