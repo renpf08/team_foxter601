@@ -39,26 +39,31 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,       KEY_B_M_LONG_PRESS,   	TIME_ADJUST,  	state_time_adjust),
 	/*run test*/
 	STATE_FILL(CLOCK,       KEY_A_B_M_LONG_PRESS,   RUN_TEST,  		state_run_test),
+	/*ble state change*/
+	STATE_FILL(CLOCK,               BLE_ADVERTISE,      CLOCK,                  state_ble_advertise),
+	STATE_FILL(CLOCK,               BLE_CONNECT,        BLE_CONNECTED,          state_ble_connect),
+	STATE_FILL(BLE_SWITCH,          BLE_ADVERTISE,      BLE_ADVERTISING,        state_ble_advertise),
+	STATE_FILL(BLE_SWITCH,          BLE_STOP_ADVERTISE, BLE_STOP_ADVERTISING,   state_ble_stop_advertise),
+	STATE_FILL(BLE_ADVERTISING,     BLE_CONNECT,        BLE_CONNECTED,          state_ble_connect),
+	STATE_FILL(BLE_CONNECTED,       BLE_DISCONNECT,     CLOCK,                  state_ble_disconnect),
+	STATE_FILL(BLE_CONNECTED,       PAIRING_PROC,       PAIR_CODE_GENERATE,     state_pairing_code_generate),
+	STATE_FILL(PAIR_CODE_GENERATE,  BLE_DISCONNECT,     CLOCK,                  state_ble_disconnect),
 	/*cmd parse*/
-	STATE_FILL(CLOCK,               PAIRING_PROC,   PAIR_CODE_GENERATE, state_pairing_code_generate),
-	STATE_FILL(PAIR_CODE_GENERATE,  PAIRING_PROC,   PAIR_CODE_GENERATE, state_pairing_code_generate),
-	STATE_FILL(PAIR_CODE_MATCHING,  PAIRING_PROC,   PAIR_CODE_MATCHING, state_paired_code_matching),
-	STATE_FILL(PAIR_CODE_MATCHING,  PAIRING_PROC,   CLOCK,              state_paired_code_matching),
-
-    /*just for test*/
-	STATE_FILL(BLE_SWITCH,  CLOCK,   	            CLOCK,  	    state_clock),
-	STATE_FILL(CLOCK,       BLE_CHANGE,   	        CLOCK,  	    state_ble_state),
-	STATE_FILL(BLE_SWITCH,  BLE_CHANGE,   	        CLOCK,  	    state_ble_state),
+	STATE_FILL(PAIR_CODE_GENERATE,  PAIRING_PROC,       PAIR_CODE_GENERATE,     state_pairing_code_generate),
+	STATE_FILL(PAIR_CODE_MATCHING,  PAIRING_PROC,       PAIR_CODE_MATCHING,     state_paired_code_matching),
+	STATE_FILL(PAIR_CODE_MATCHING,  PAIRING_PROC,       CLOCK,                  state_paired_code_matching),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
 
-    /*u8 cb_buf[5] = {"cb=xx"};
+    u8 cb_buf[11] = {"cb=xx,st=xx"};
     cb_buf[3] = (cb/10)+'0';
     cb_buf[4] = (cb%10)+'0';
-    print(cb_buf, 5);*/
+    cb_buf[9] = (business.state_now/10)+'0';
+    cb_buf[10] = (business.state_now%10)+'0';
+    print(cb_buf, 11);/**/
     
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 

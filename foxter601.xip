@@ -14,6 +14,10 @@
     <file path="business/state/state_time_adjust.c" />
     <file path="business/state/state_cmd_pairing.c" />
     <file path="business/state/state_cmd_paired.c" />
+    <file path="business/state/state_ble_advertising.c" />
+    <file path="business/state/state_ble_connected.c" />
+    <file path="business/state/state_ble_disconnected.c" />
+    <file path="business/state/state_ble_stop_advertising.c" />
    </folder>
    <file path="business/business.c" />
    <file path="business/business.h" />

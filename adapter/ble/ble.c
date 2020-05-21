@@ -35,10 +35,24 @@ void ble_state_set(app_state cur_state)
         }
     }
     if(ble_last_state == cur_state) {
+        print((u8*)&"ble no change", 13);
         return; // important!!
     }
+
+    if((cur_state == app_fast_advertising) || (cur_state == app_slow_advertising)) {
+        print((u8*)&"ble adv", 7);
+        ble_switch_cb(BLE_ADVERTISE, NULL);
+    } else if(cur_state == app_idle){
+        print((u8*)&"ble idle", 8);
+        ble_switch_cb(BLE_STOP_ADVERTISE, NULL);
+    } else if(cur_state == app_connected){
+        print((u8*)&"ble con", 7);
+        ble_switch_cb(BLE_CONNECT, NULL);
+    } else {
+        print((u8*)&"ble discon", 10);
+        ble_switch_cb(BLE_DISCONNECT, NULL);
+    }
     ble_last_state = cur_state;
-    ble_switch_cb(BLE_CHANGE, NULL);
 }
 
 app_state ble_state_get(void)
