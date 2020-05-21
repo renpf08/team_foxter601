@@ -2,7 +2,7 @@
 #include "adapter/adapter.h"
 #include <macros.h>
 
-static bool is_adv_state = FALSE;
+static app_state ble_last_state = app_init;
 static adapter_callback ble_switch_cb = NULL;
 
 s16 ble_switch_init(adapter_callback cb);
@@ -26,18 +26,24 @@ void ble_switch_off(void)
         AppSetState(app_idle, 0x10);
     }
 }
-void ble_switch_set(bool cur_state)
+void ble_state_set(app_state cur_state)
 {
-    if(is_adv_state == cur_state) {
+    if((cur_state == app_fast_advertising) || (cur_state == app_slow_advertising)) {
+        if((ble_last_state == app_fast_advertising) || (ble_last_state == app_slow_advertising)) {
+            print((u8*)&"adv to adv", 10);
+            return;
+        }
+    }
+    if(ble_last_state == cur_state) {
         return; // important!!
     }
-    is_adv_state = cur_state;
+    ble_last_state = cur_state;
     ble_switch_cb(BLE_CHANGE, NULL);
 }
 
-bool ble_switch_get(void)
+app_state ble_state_get(void)
 {
-    return is_adv_state;
+    return ble_last_state;
 }
 
 s16 ble_switch_init(adapter_callback cb)

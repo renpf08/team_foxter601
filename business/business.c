@@ -39,6 +39,11 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,       KEY_B_M_LONG_PRESS,   	TIME_ADJUST,  	state_time_adjust),
 	/*run test*/
 	STATE_FILL(CLOCK,       KEY_A_B_M_LONG_PRESS,   RUN_TEST,  		state_run_test),
+
+    /*just for test*/
+	STATE_FILL(BLE_SWITCH,  CLOCK,   	            CLOCK,  	    state_clock),
+	STATE_FILL(CLOCK,       BLE_CHANGE,   	        CLOCK,  	    state_ble_state),
+	STATE_FILL(BLE_SWITCH,  BLE_CHANGE,   	        CLOCK,  	    state_ble_state),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)
@@ -95,6 +100,6 @@ s16 business_init(void)
 	timer_event(1000, notify_test);
 	#endif
 	business.state_now = CLOCK;
-	state_clock(CLOCK_1_MINUTE, NULL);
+	//state_clock(CLOCK_1_MINUTE, NULL);
 	return 0;
 }

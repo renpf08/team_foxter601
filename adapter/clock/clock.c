@@ -27,7 +27,7 @@ static clock_cfg_t clock_cfg = {
 static void clock_timer_increase(void)
 {
 	if(NULL != clock_cfg.cb) {
-		clock_cfg.cb(CLOCK_1_MINUTE, NULL);
+		//clock_cfg.cb(CLOCK_1_MINUTE, NULL);
 	}
 
 	if(60 == clock_cfg.clock.second) {

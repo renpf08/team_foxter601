@@ -11,6 +11,7 @@ extern s16 button_cb_handler(void *args);
 //module init
 extern s16 clock_init(adapter_callback cb);
 extern s16 ancs_init(adapter_callback cb);
+extern s16 cmd_init(adapter_callback cb);
 
 extern s16 step_sample_init(void);
 extern s16 mag_sample_init(void);
@@ -132,6 +133,7 @@ s16 adapter_init(adapter_callback cb)
 	//module init
 	clock_init(cb);
 	ancs_init(cb);
+    cmd_init(cb);
 	motor_manager_init();
 	battery_init(cb);
     step_sample_init();

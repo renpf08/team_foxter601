@@ -19,6 +19,7 @@ typedef struct cmdEntry_T {
 }CMDENTRY, *LPCMDENTRY;
 
 cmd_group_t cmd_group;
+static adapter_callback cmd_cb = NULL;
 
 static u8 cmd_pairing_code(u8 *buffer, u8 length);
 static u8 cmd_user_info(u8 *buffer, u8 length);
@@ -36,6 +37,7 @@ static u8 cmd_find_watch(u8 *buffer, u8 length);
 static u8 cmd_set_ancs_bond_req(u8 *buffer, u8 length);
 static u8 cmd_read_time_steps(u8 *buffer, u8 length);
 void cmd_parse(u8* content, u8 length);
+s16 cmd_init(adapter_callback cb);
 
 static const CMDENTRY cmdList[] =
 {
@@ -237,5 +239,10 @@ void cmd_send_data(uint8 *data, uint16 size)
 cmd_group_t *cmd_get(void)
 {
     return &cmd_group;
+}
+s16 cmd_init(adapter_callback cb)
+{
+	cmd_cb = cb;
+	return 0;
 }
 
