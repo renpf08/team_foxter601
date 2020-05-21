@@ -39,6 +39,11 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,       KEY_B_M_LONG_PRESS,   	TIME_ADJUST,  	state_time_adjust),
 	/*run test*/
 	STATE_FILL(CLOCK,       KEY_A_B_M_LONG_PRESS,   RUN_TEST,  		state_run_test),
+	/*cmd parse*/
+	STATE_FILL(CLOCK,               PAIRING_PROC,   PAIR_CODE_GENERATE, state_pairing_code_generate),
+	STATE_FILL(PAIR_CODE_GENERATE,  PAIRING_PROC,   PAIR_CODE_GENERATE, state_pairing_code_generate),
+	STATE_FILL(PAIR_CODE_MATCHING,  PAIRING_PROC,   PAIR_CODE_MATCHING, state_paired_code_matching),
+	STATE_FILL(PAIR_CODE_MATCHING,  PAIRING_PROC,   CLOCK,              state_paired_code_matching),
 
     /*just for test*/
 	STATE_FILL(BLE_SWITCH,  CLOCK,   	            CLOCK,  	    state_clock),
@@ -50,7 +55,11 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
 
-	//print((u8 *)&cb, 1);
+    /*u8 cb_buf[5] = {"cb=xx"};
+    cb_buf[3] = (cb/10)+'0';
+    cb_buf[4] = (cb%10)+'0';
+    print(cb_buf, 5);*/
+    
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 
 			(state[i].ev == cb)) {
@@ -100,6 +109,6 @@ s16 business_init(void)
 	timer_event(1000, notify_test);
 	#endif
 	business.state_now = CLOCK;
-	//state_clock(CLOCK_1_MINUTE, NULL);
+	state_clock(CLOCK_1_MINUTE, NULL);
 	return 0;
 }

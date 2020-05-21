@@ -39,23 +39,23 @@ static u8 cmd_read_time_steps(u8 *buffer, u8 length);
 void cmd_parse(u8* content, u8 length);
 s16 cmd_init(adapter_callback cb);
 
-static const CMDENTRY cmdList[] =
+static const CMDENTRY cmd_list[] =
 {
-    {CMD_PAIRING_CODE,      CMD_PAIRING_CODE_INCOMING,      cmd_pairing_code},
-    {CMD_USER_INFO,         CMD_USER_INFO_INCOMING,         cmd_user_info},
-    {CMD_SYNC_DATE,         CMD_SYNC_DATE_INCOMING,         cmd_sync_date},
-    {CMD_SET_ALARM_CLOCK,   CMD_SET_ALARM_CLOCK_INCOMING,   cmd_set_alarm_clock},
-    {CMD_SET_DISP_FORMAT,   CMD_SET_DISP_FORMAT_INCOMING,   cmd_set_disp_format},
-    {CMD_SYNC_DATA,         CMD_SYNC_DATA_INCOMING,         cmd_sync_data},
-    {CMD_RESPONSE_TO_WATCH, CMD_RESPONSE_TO_WATCH_INCOMING, cmd_response},
-    {CMD_SEND_NOTIFY,       CMD_SEND_NOTIFY_INCOMING,       cmd_send_notify},
-    {CMD_SET_TIME,          CMD_SET_TIME_INCOMING,          cmd_set_time},
-    {CMD_READ_VERSION,      CMD_READ_VERSION_INCOMING,      cmd_read_version},
-    {CMD_SET_CLOCK_POINTER, CMD_SET_CLOCK_POINTER_INCOMING, cmd_set_clock_hand},
-    {CMD_SET_VIBRATION,     CMD_SET_VIBRATION_INCOMING,     cmd_set_vibration},
-    {CMD_SET_FIND_WATCH,    CMD_SET_FIND_WATCH_INCOMING,    cmd_find_watch},
-    {CMD_SET_ANCS_BOND_REQ, CMD_SET_ANCS_BOND_REQ_INCOMING, cmd_set_ancs_bond_req},
-    {CMD_READ_TIME_STEPS,   CMD_READ_TIME_STEPS_INCOMING,   cmd_read_time_steps},
+    {CMD_PAIRING_CODE,      PAIRING_PROC,      cmd_pairing_code},
+    {CMD_USER_INFO,         USER_INFO,         cmd_user_info},
+    {CMD_SYNC_DATE,         SYNC_DATE,         cmd_sync_date},
+    {CMD_SET_ALARM_CLOCK,   SET_ALARM_CLOCK,   cmd_set_alarm_clock},
+    {CMD_SET_DISP_FORMAT,   SET_DISP_FORMAT,   cmd_set_disp_format},
+    {CMD_SYNC_DATA,         SYNC_DATA,         cmd_sync_data},
+    {CMD_RESPONSE_TO_WATCH, RESPONSE_TO_WATCH, cmd_response},
+    {CMD_SEND_NOTIFY,       SEND_NOTIFY,       cmd_send_notify},
+    {CMD_SET_TIME,          SET_TIME,          cmd_set_time},
+    {CMD_READ_VERSION,      READ_VERSION,      cmd_read_version},
+    {CMD_SET_CLOCK_POINTER, SET_CLOCK_POINTER, cmd_set_clock_hand},
+    {CMD_SET_VIBRATION,     SET_VIBRATION,     cmd_set_vibration},
+    {CMD_SET_FIND_WATCH,    SET_FIND_WATCH,    cmd_find_watch},
+    {CMD_SET_ANCS_BOND_REQ, SET_ANCS_BOND_REQ, cmd_set_ancs_bond_req},
+    {CMD_READ_TIME_STEPS,   READ_TIME_STEPS,   cmd_read_time_steps},
 
 	{CMD_APP_NONE,          REPORT_MAX, NULL}
 };
@@ -215,19 +215,20 @@ void cmd_parse(u8* content, u8 length)
 		return;
 	}
 
-    while(cmdList[i].cmd != CMD_APP_NONE)
+    while(cmd_list[i].cmd != CMD_APP_NONE)
     {
-        if(cmdList[i].cmd == content[0])
+        if(cmd_list[i].cmd == content[0])
         {
-            cmdList[i].handler(content, length);
+            cmd_list[i].handler(content, length);
             break;
         }
         i++;
     }
 
-    if(cmdList[i].cmd != CMD_APP_NONE)
+    if(cmd_list[i].cmd != CMD_APP_NONE)
     {
-        //cmd_cb_handler(...);
+        print((u8*)&"parse cmd", 9);
+        cmd_cb(cmd_list[i].report, NULL);
     }
     
     //get_driver()->uart->uart_write((unsigned char*)content, length);
