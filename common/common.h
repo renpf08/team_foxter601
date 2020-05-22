@@ -539,4 +539,10 @@ typedef struct {
 	state_func func;
 }state_t;
 
+typedef struct {
+    u16 pair_code;
+    u8 hour;
+    u8 minute;
+} pair_code_t;
+
 #endif

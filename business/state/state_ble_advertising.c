@@ -7,7 +7,6 @@
 #include "state.h"
 
 #define NOTIFY_SWING_INTERVAL   1000
-
 static bool notify_swing_start = FALSE;
 
 static void notify_swing_cb_handler(u16 id)
@@ -19,8 +18,9 @@ static void notify_swing_cb_handler(u16 id)
         }
         return;
     }
+
     print((u8*)&"swing", 5);
-    
+
     if(notify_swing_start == FALSE) {
         notify_swing_start = TRUE;
         motor_notify_to_position(NOTIFY_COMMING_CALL);

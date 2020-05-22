@@ -63,12 +63,12 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
 
-    u8 cb_buf[11] = {"cb=xx,st=xx"};
+    /*u8 cb_buf[11] = {"cb=xx,st=xx"};
     cb_buf[3] = (cb/10)+'0';
     cb_buf[4] = (cb%10)+'0';
     cb_buf[9] = (business.state_now/10)+'0';
     cb_buf[10] = (business.state_now%10)+'0';
-    print(cb_buf, 11);/**/
+    print(cb_buf, 11);*/
     
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 

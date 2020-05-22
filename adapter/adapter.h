@@ -71,5 +71,9 @@ app_state ble_state_get(void);
 
 int sprintf(char *buf, const char * sFormat, ...);
 int printf(const char * sFormat, ...);
+void print_str_hex(u8 *buf, u16 hex_num);
+void print_str_dec(u8 *buf, u16 dec_num);
+u8 bcd_to_hex(u32 bcd_data);
+u32 hex_to_bcd(u8 hex_data);
 
 #endif
