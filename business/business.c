@@ -42,12 +42,17 @@ static state_t state[] = {
 	/*ble state change*/
 	STATE_FILL(CLOCK,               BLE_ADVERTISE,      CLOCK,                  state_ble_advertise),
 	STATE_FILL(CLOCK,               BLE_CONNECT,        BLE_CONNECTED,          state_ble_connect),
+	STATE_FILL(CLOCK,               PAIRING_PROC,       PAIR_CODE_GENERATE,     state_pairing_code_generate),
 	STATE_FILL(BLE_SWITCH,          BLE_ADVERTISE,      BLE_ADVERTISING,        state_ble_advertise),
 	STATE_FILL(BLE_SWITCH,          BLE_STOP_ADVERTISE, BLE_STOP_ADVERTISING,   state_ble_stop_advertise),
 	STATE_FILL(BLE_ADVERTISING,     BLE_CONNECT,        BLE_CONNECTED,          state_ble_connect),
+	STATE_FILL(BLE_CONNECTED,       BLE_ADVERTISE,      CLOCK,                  state_ble_advertise),
 	STATE_FILL(BLE_CONNECTED,       BLE_DISCONNECT,     CLOCK,                  state_ble_disconnect),
 	STATE_FILL(BLE_CONNECTED,       PAIRING_PROC,       PAIR_CODE_GENERATE,     state_pairing_code_generate),
 	STATE_FILL(PAIR_CODE_GENERATE,  BLE_DISCONNECT,     CLOCK,                  state_ble_disconnect),
+	STATE_FILL(PAIR_CODE_GENERATE,  BLE_ADVERTISE,      CLOCK,                  state_ble_advertise),
+	STATE_FILL(PAIR_CODE_MATCHING,  BLE_DISCONNECT,     CLOCK,                  state_ble_disconnect),
+	STATE_FILL(PAIR_CODE_MATCHING,  BLE_ADVERTISE,      CLOCK,                  state_ble_advertise),
 	/*cmd parse*/
 	STATE_FILL(PAIR_CODE_GENERATE,  PAIRING_PROC,       PAIR_CODE_GENERATE,     state_pairing_code_generate),
 	STATE_FILL(PAIR_CODE_MATCHING,  PAIRING_PROC,       PAIR_CODE_MATCHING,     state_paired_code_matching),
