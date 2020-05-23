@@ -9,10 +9,37 @@
 #include "state.h"
 
 #define PAIRING_PROTECT_INTERVAL    100
+#define NOTIFY_SWING_INTERVAL   1000
+bool notify_swing_start = FALSE;
 STATE_E *state = NULL;
 STATE_E state_later = STATE_MAX;
 pair_code_t pair_code = {0, 0, 0, 0};
 
+static void notify_swing_cb_handler(u16 id)
+{
+    app_state cur_state = ble_state_get();
+    if((cur_state != app_fast_advertising) && (cur_state != app_slow_advertising)) {
+        if(notify_swing_start == TRUE) {
+            notify_swing_start = FALSE;
+        }
+        return;
+    }
+
+    print((u8*)&"swing", 5);
+
+    if(notify_swing_start == FALSE) {
+        notify_swing_start = TRUE;
+        motor_notify_to_position(NOTIFY_COMMING_CALL);
+    } else {
+        notify_swing_start = FALSE;
+        motor_notify_to_position(NOTIFY_NONE);
+    }
+    timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
+}
+static void pairing_protect_cb_handler(u16 id)
+{
+    *state = state_later;
+}
 void pair_code_generate(void)
 {
     u16 old_pair_code = 0;
@@ -47,11 +74,7 @@ void pair_code_generate(void)
 	motor_hour_to_position(pair_code.hour);
 	motor_minute_to_position(pair_code.minute);
 }
-static void pairing_protect_cb_handler(u16 id)
-{
-    *state = state_later;
-}
-s16 state_pairing(REPORT_E cb, void *args)
+s16 state_ble_pairing(REPORT_E cb, void *args)
 {
 
     u8* code = cmd_get()->pair_code.code;
@@ -79,6 +102,36 @@ s16 state_pairing(REPORT_E cb, void *args)
         return 0;
     }
     timer_event(PAIRING_PROTECT_INTERVAL, pairing_protect_cb_handler);
+
+	return 0;
+}
+s16 state_ble_stop_advertise(REPORT_E cb, void *args)
+{
+    print((u8*)&"adv stop", 8);
+    pair_code.pair_bgn = 0;
+    motor_notify_to_position(NOTIFY_NONE);
+
+	return 0;
+}
+s16 state_ble_advertise(REPORT_E cb, void *args)
+{
+    print((u8*)&"adv start", 9);
+    pair_code.pair_bgn = 0;
+    timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
+
+	return 0;
+}
+s16 state_ble_disconnect(REPORT_E cb, void *args)
+{
+    print((u8*)&"disconnect", 10);
+    pair_code.pair_bgn = 0;
+
+	return 0;
+}
+s16 state_ble_connect(REPORT_E cb, void *args)
+{
+    print((u8*)&"connect", 7);
+    motor_notify_to_position(NOTIFY_NONE);
 
 	return 0;
 }
