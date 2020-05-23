@@ -227,7 +227,6 @@ void cmd_parse(u8* content, u8 length)
         cmd_cb(cmd_list[i].report, NULL);
     }
     if(cmd_list[i].report == PAIRING_PROC) {
-        print((u8*)&"cmd set to max", 9);
         cmd_cb(REPORT_MAX, NULL);
     }
     
