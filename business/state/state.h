@@ -14,7 +14,6 @@ s16 state_ble_advertise(REPORT_E cb, void *args);
 s16 state_ble_stop_advertise(REPORT_E cb, void *args);
 s16 state_ble_connect(REPORT_E cb, void *args);
 s16 state_ble_disconnect(REPORT_E cb, void *args);
-s16 state_pairing_code_generate(REPORT_E cb, void *args);
-s16 state_paired_code_matching(REPORT_E cb, void *args);
+s16 state_pairing(REPORT_E cb, void *args);
 
 #endif

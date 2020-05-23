@@ -8,9 +8,11 @@
 #include "../business.h"
 #include "state.h"
 
-#define PAIR_SWITCH_INTERVAL   50
-STATE_E *pairing_state = NULL;
-pair_code_t pair_code = {0, 0, 0};
+#define PAIRING_PROTECT_INTERVAL    100
+STATE_E *state = NULL;
+STATE_E state_later = REPORT_MAX;
+pair_code_t pair_code = {0, 0, 0, 0};
+//static bool pairing_protect = FALSE;
 
 void pair_code_generate(void)
 {
@@ -40,42 +42,47 @@ void pair_code_generate(void)
             break;
         }
     }
+    pair_code.pair_bgn = 1;
 	motor_hour_to_position(pair_code.hour);
 	motor_minute_to_position(pair_code.minute);
     print_str_hex((u8*)&"gen pair code=0x", pair_code.pair_code);
     //print_str_dec((u8*)&"hour=", pair_code.hour);
     //print_str_dec((u8*)&"minute=", pair_code.minute);
 }
-static void pairing_code_disp_cb_handler(u16 id)
+static void pairing_protect_cb_handler(u16 id)
 {
-    pair_code_generate();
-    *pairing_state = PAIR_CODE_MATCHING;
+    //pairing_protect = FALSE;
+    *state = state_later;
+    print((u8*)&"pairing state refresh", 21);
 }
-static void pairing_mis_match_cb_handler(u16 id)
+s16 state_pairing(REPORT_E cb, void *args)
 {
-    *pairing_state = PAIR_CODE_GENERATE;
-    print((u8*)&"pairing mis-match", 17);
-}
-s16 state_pairing_code_generate(REPORT_E cb, void *args)
-{
-	pairing_state = (STATE_E *)args;
-    
-	//u8 string[13] = {'s', 't', 'a', 't', 'e', '_', 'b', 'l', 'e', '_', 'p', 'n', 'g'};
-	//print(string, 13);
+    /*if(pairing_protect == TRUE) {
+        return 0;
+    }
+    pairing_protect = TRUE;*/
+    state = (STATE_E *)args;
+    *state = STATE_MAX;
 
     u8* code = cmd_get()->pair_code.code;
     u16 pairing_code = (code[0]<<8)|code[1];
     print_str_hex((u8*)&"recv pairing code=0x", pairing_code);
-
-    *pairing_state = STATE_MAX;
+    
     if(pairing_code == 0xFFFF) {
-        timer_event(PAIR_SWITCH_INTERVAL, pairing_code_disp_cb_handler);
+        pair_code_generate();
+        state_later = PAIRING_INITIATE;//PAIRING_MATCHING;
     } else if(pairing_code == pair_code.pair_code) {
-        *pairing_state = CLOCK;
+        state_later = CLOCK;
+        pair_code.pair_bgn = 0;
         print((u8*)&"pairing match", 13);
+    } else if(pair_code.pair_bgn == 1) {
+        state_later = PAIRING_INITIATE;
+        print((u8*)&"pairing mis-match", 17);
     } else {
-        timer_event(PAIR_SWITCH_INTERVAL, pairing_mis_match_cb_handler);
+        print((u8*)&"pairing code invalid", 20);
     }
+
+    timer_event(PAIRING_PROTECT_INTERVAL, pairing_protect_cb_handler);
 
 	return 0;
 }

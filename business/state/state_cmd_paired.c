@@ -19,7 +19,7 @@ static void paired_mis_match_cb_handler(u16 id)
     pair_code_generate();
 }
 
-s16 state_paired_code_matching(REPORT_E cb, void *args)
+s16 state_pairing_matching(REPORT_E cb, void *args)
 {
 	paired_state = (STATE_E *)args;
     

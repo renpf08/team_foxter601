@@ -210,25 +210,25 @@ void cmd_parse(u8* content, u8 length)
 {
 	u8 i = 0;
 
-	if(length == 0)
-	{
+	if(length == 0) {
 		return;
 	}
 
-    while(cmd_list[i].cmd != CMD_APP_NONE)
-    {
-        if(cmd_list[i].cmd == content[0])
-        {
+    while(cmd_list[i].cmd != CMD_APP_NONE) {
+        if(cmd_list[i].cmd == content[0]) {
             cmd_list[i].handler(content, length);
             break;
         }
         i++;
     }
 
-    if(cmd_list[i].cmd != CMD_APP_NONE)
-    {
+    if(cmd_list[i].cmd != CMD_APP_NONE) {
         print((u8*)&"parse cmd", 9);
         cmd_cb(cmd_list[i].report, NULL);
+    }
+    if(cmd_list[i].report == PAIRING_PROC) {
+        print((u8*)&"cmd set to max", 9);
+        cmd_cb(REPORT_MAX, NULL);
     }
     
     //get_driver()->uart->uart_write((unsigned char*)content, length);

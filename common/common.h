@@ -250,8 +250,8 @@ typedef enum {
 	BATTERY_WEEK_SWITCH,
 	TIME_ADJUST,
 	RUN_TEST,
-	PAIR_CODE_GENERATE,
-	PAIR_CODE_MATCHING,
+	PAIRING_INITIATE,
+	PAIRING_MATCHING,
 	STATE_MAX,
 }STATE_E;
 
@@ -541,6 +541,7 @@ typedef struct {
 
 typedef struct {
     u16 pair_code;
+    u8 pair_bgn;
     u8 hour;
     u8 minute;
 } pair_code_t;
