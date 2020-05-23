@@ -223,7 +223,6 @@ void cmd_parse(u8* content, u8 length)
     }
 
     if(cmd_list[i].cmd != CMD_APP_NONE) {
-        print((u8*)&"parse cmd", 9);
         cmd_cb(cmd_list[i].report, NULL);
     }
     if(cmd_list[i].report == PAIRING_PROC) {
