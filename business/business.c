@@ -46,16 +46,9 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               BLE_CONNECT,        CLOCK,                  state_ble_connect),
 	STATE_FILL(CLOCK,               BLE_DISCONNECT,     CLOCK,                  state_ble_disconnect),
 	STATE_FILL(CLOCK,               PAIRING_PROC,       PAIRING_INITIATE,       state_ble_pairing),
-	//STATE_FILL(BLE_SWITCH,          BLE_ADVERTISE,      CLOCK,                  state_ble_advertise),
-	//STATE_FILL(BLE_SWITCH,          BLE_STOP_ADVERTISE, CLOCK,                  state_ble_stop_advertise),
-	//STATE_FILL(BLE_ADVERTISING,     BLE_CONNECT,        BLE_CONNECTED,          state_ble_connect),
-	//STATE_FILL(BLE_CONNECTED,       BLE_ADVERTISE,      CLOCK,                  state_ble_advertise),
-	//STATE_FILL(BLE_CONNECTED,       BLE_STOP_ADVERTISE, CLOCK,                  state_ble_stop_advertise),
-	//STATE_FILL(BLE_CONNECTED,       BLE_DISCONNECT,     CLOCK,                  state_ble_disconnect),
-	//STATE_FILL(BLE_CONNECTED,       PAIRING_PROC,       PAIRING_INITIATE,       state_ble_pairing),
 	STATE_FILL(PAIRING_INITIATE,    BLE_DISCONNECT,     CLOCK,                  state_ble_disconnect),
 	STATE_FILL(PAIRING_INITIATE,    BLE_ADVERTISE,      CLOCK,                  state_ble_advertise),
-	/*cmd parse*/
+	/*device pairing*/
 	STATE_FILL(PAIRING_INITIATE,    PAIRING_PROC,       PAIRING_INITIATE,       state_ble_pairing),
 	STATE_FILL(PAIRING_INITIATE,    PAIRING_PROC,       CLOCK,                  state_ble_pairing),
 };
