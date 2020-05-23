@@ -30,9 +30,7 @@ static state_t state[] = {
 	STATE_FILL(ZERO_ADJUST,         KEY_M_SHORT_PRESS,		ZERO_ADJUST, 	        state_zero_adjust),
 	STATE_FILL(ZERO_ADJUST,         KEY_A_B_LONG_PRESS, 	CLOCK,       	        state_clock),
 	/*ble switch open*/	
-	//STATE_FILL(CLOCK,             KEY_M_LONG_PRESS,   	BLE_SWITCH,  	        state_ble_switch),
-	//STATE_FILL(CLOCK,               KEY_M_LONG_PRESS,   	CLOCK,  	            state_ble_switch),
-	STATE_FILL(CLOCK,               KEY_A_LONG_PRESS,   	CLOCK,  	            state_ble_switch),
+	STATE_FILL(CLOCK,               KEY_M_LONG_PRESS,   	CLOCK,  	            state_ble_switch),
 	/*notify*/
 	STATE_FILL(CLOCK,               ANCS_NOTIFY_INCOMING,   NOTIFY_COMING,          state_notify),
 	/*battery & week switch*/	
@@ -49,7 +47,7 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               PAIRING_PROC,           PAIRING_INITIATE,       state_ble_pairing),
 	STATE_FILL(PAIRING_INITIATE,    BLE_DISCONNECT,         CLOCK,                  state_ble_disconnect),
 	STATE_FILL(PAIRING_INITIATE,    BLE_ADVERTISE,          CLOCK,                  state_ble_advertise),
-	STATE_FILL(PAIRING_INITIATE,    KEY_A_LONG_PRESS,       CLOCK,                  state_ble_switch),
+	STATE_FILL(PAIRING_INITIATE,    KEY_M_LONG_PRESS,       CLOCK,                  state_ble_switch),
 	/*ble pairing*/
 	STATE_FILL(PAIRING_INITIATE,    PAIRING_PROC,           PAIRING_INITIATE,       state_ble_pairing),
 	STATE_FILL(PAIRING_INITIATE,    PAIRING_PROC,           CLOCK,                  state_ble_pairing),
