@@ -30,7 +30,7 @@ static state_t state[] = {
 	STATE_FILL(ZERO_ADJUST,         KEY_M_SHORT_PRESS,		ZERO_ADJUST, 	        state_zero_adjust),
 	STATE_FILL(ZERO_ADJUST,         KEY_A_B_LONG_PRESS, 	CLOCK,       	        state_clock),
 	/*ble switch open*/	
-	STATE_FILL(CLOCK,               KEY_M_LONG_PRESS,   	CLOCK,  	            state_ble_switch),
+	STATE_FILL(CLOCK,               KEY_M_LONG_PRESS,   	BLE_SWITCH,  	        state_ble_switch),
 	/*notify*/
 	STATE_FILL(CLOCK,               ANCS_NOTIFY_INCOMING,   NOTIFY_COMING,          state_notify),
 	/*battery & week switch*/	
@@ -40,35 +40,40 @@ static state_t state[] = {
 	/*run test*/
 	STATE_FILL(CLOCK,               KEY_A_B_M_LONG_PRESS,   RUN_TEST,  		        state_run_test),
 	/*ble state change*/
-	STATE_FILL(CLOCK,               BLE_ADVERTISE,          CLOCK,                  state_ble_advertise),
-	STATE_FILL(CLOCK,               BLE_STOP_ADVERTISE,     CLOCK,                  state_ble_stop_advertise),
-	STATE_FILL(CLOCK,               BLE_CONNECT,            CLOCK,                  state_ble_connect),
-	STATE_FILL(CLOCK,               BLE_DISCONNECT,         CLOCK,                  state_ble_disconnect),
-	STATE_FILL(CLOCK,               PAIRING_PROC,           PAIRING_INITIATE,       state_ble_pairing),
-	STATE_FILL(PAIRING_INITIATE,    BLE_DISCONNECT,         CLOCK,                  state_ble_disconnect),
-	STATE_FILL(PAIRING_INITIATE,    BLE_ADVERTISE,          CLOCK,                  state_ble_advertise),
-	STATE_FILL(PAIRING_INITIATE,    KEY_M_LONG_PRESS,       CLOCK,                  state_ble_switch),
-	/*ble pairing*/
-	STATE_FILL(PAIRING_INITIATE,    PAIRING_PROC,           PAIRING_INITIATE,       state_ble_pairing),
-	STATE_FILL(PAIRING_INITIATE,    PAIRING_PROC,           CLOCK,                  state_ble_pairing),
+	STATE_FILL(CLOCK,               BLE_ADVERTISE,          BLE_ADVERTISING,        state_ble_advertise),
+	STATE_FILL(CLOCK,               BLE_CONNECT,            BLE_CONNECTED,          state_ble_connect),
+	STATE_FILL(BLE_SWITCH,          BLE_ADVERTISE,          BLE_ADVERTISING,        state_ble_advertise),
+	STATE_FILL(BLE_SWITCH,          BLE_STOP_ADVERTISE,     BLE_STOP_ADVERTISING,   state_ble_stop_advertise),
+	STATE_FILL(BLE_ADVERTISING,     BLE_CONNECT,            BLE_CONNECTED,          state_ble_connect),
+	STATE_FILL(BLE_ADVERTISING,     KEY_M_LONG_PRESS,       BLE_SWITCH,             state_ble_switch),
+	STATE_FILL(BLE_CONNECTED,       PAIRING_PROC,           PAIRING_INITIATE,       state_ble_pairing),
+	STATE_FILL(BLE_CONNECTED,       KEY_M_LONG_PRESS,       BLE_SWITCH,             state_ble_switch),
+	STATE_FILL(BLE_CONNECTED,       BLE_ADVERTISE,          BLE_ADVERTISING,        state_ble_advertise), //app disconnect
+	STATE_FILL(PAIRING_INITIATE,    PAIRING_PROC,           PAIRING_MATCHING,       state_ble_pairing),
+	STATE_FILL(PAIRING_INITIATE,    BLE_ADVERTISE,          BLE_ADVERTISING,        state_ble_advertise), //app disconnect
+	STATE_FILL(PAIRING_INITIATE,    KEY_M_LONG_PRESS,       BLE_SWITCH,             state_ble_switch),
+	STATE_FILL(PAIRING_MATCHING,    CLOCK_1_MINUTE,         CLOCK,                  state_clock),
+	STATE_FILL(BLE_STOP_ADVERTISING,CLOCK_1_MINUTE,         CLOCK,                  state_clock),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
 
-    /*u8 cb_buf[11] = {"cb=xx,st=xx"};
+    u8 cb_buf[11] = {"cb=xx,st=xx"};
     cb_buf[3] = (cb/10)+'0';
     cb_buf[4] = (cb%10)+'0';
     cb_buf[9] = (business.state_now/10)+'0';
     cb_buf[10] = (business.state_now%10)+'0';
-    print(cb_buf, 11);*/
+    print(cb_buf, 11);/**/
     
+
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 
 			(state[i].ev == cb)) {
 			business.state_now = state[i].next_state;
 			state[i].func(cb, &business.state_now);
+            break;
 		}
 	}
 	return 0;

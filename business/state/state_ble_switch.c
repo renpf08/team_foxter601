@@ -8,23 +8,52 @@
 #include "../business.h"
 #include "state.h"
 
-#define PAIRING_PROTECT_INTERVAL    100
 #define NOTIFY_SWING_INTERVAL   1000
+#define CLOCK_REFRESH_INTERVAL  1000
 bool notify_swing_start = FALSE;
-STATE_E *state = NULL;
-STATE_E state_later = STATE_MAX;
 pair_code_t pair_code = {0, 0, 0, 0};
 
+static u8 day2[] = {DAY_0,
+	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
+	DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
+	DAY_11, DAY_12, DAY_13, DAY_14, DAY_15,
+	DAY_16, DAY_17, DAY_18, DAY_19, DAY_20,
+	DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
+	DAY_26, DAY_27,	DAY_28,	DAY_29, DAY_30,
+	DAY_31};
+static void clock_refresh(void)
+{
+    static clock_t last_clk = {0,0,0,0,0,0,0};
+    
+    clock_t *clock = clock_get();
+    if((last_clk.day != clock->day) || (last_clk.hour != clock->hour) || (last_clk.minute != clock->minute)) {
+    	motor_minute_to_position(clock->minute);
+    	motor_hour_to_position(clock->hour);
+        motor_date_to_position(day2[clock->day]);
+    }
+    last_clk.day = clock->day;
+    last_clk.hour = clock->hour;
+    last_clk.minute = clock->minute;
+}
+static void connect_clock_cb_handler(u16 id)
+{
+    if((ble_state_get() != app_connected) || (pair_code.pair_bgn == 1)) {
+        return;
+    }
+    clock_refresh();
+    timer_event(CLOCK_REFRESH_INTERVAL, connect_clock_cb_handler);
+    print((u8*)&"connect clock", 13);
+}
 static void notify_swing_cb_handler(u16 id)
 {
     app_state cur_state = ble_state_get();
     if((cur_state != app_fast_advertising) && (cur_state != app_slow_advertising)) {
         if(notify_swing_start == TRUE) {
             notify_swing_start = FALSE;
+            motor_notify_to_position(NOTIFY_NONE);
         }
         return;
     }
-    //print((u8*)&"swing", 5);
 
     if(notify_swing_start == FALSE) {
         notify_swing_start = TRUE;
@@ -33,11 +62,9 @@ static void notify_swing_cb_handler(u16 id)
         notify_swing_start = FALSE;
         motor_notify_to_position(NOTIFY_NONE);
     }
+    clock_refresh();
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
-}
-static void pairing_protect_cb_handler(u16 id)
-{
-    *state = state_later;
+    print((u8*)&"swing clock", 11);
 }
 void pair_code_generate(void)
 {
@@ -75,32 +102,28 @@ void pair_code_generate(void)
 }
 s16 state_ble_pairing(REPORT_E cb, void *args)
 {
-
+    STATE_E *state = (STATE_E *)args;
     u8* code = cmd_get()->pair_code.code;
     u16 pairing_code = (code[0]<<8)|code[1];
     //print_str_hex((u8*)&"recv pairing code=0x", pairing_code);
     
-    state = (STATE_E *)args;
-    *state = STATE_MAX;
     if(pairing_code == 0xFFFF) {
-        //print((u8*)&"enter pairing mode", 18);
+        print((u8*)&"enter pairing mode", 18);
         pair_code.pair_bgn = 1;
         pair_code_generate();
-        state_later = PAIRING_INITIATE;//PAIRING_MATCHING;
+        *state = PAIRING_INITIATE;
     } else if(pairing_code == pair_code.pair_code) {
-        state_later = CLOCK;
+        *state = PAIRING_MATCHING;
         pair_code.pair_bgn = 0;
         print((u8*)&"pairing match", 13);
     } else if(pair_code.pair_bgn == 1) {
-        state_later = PAIRING_INITIATE;
-        //print((u8*)&"pairing mis-match", 17);
+        *state = PAIRING_INITIATE;
+        print((u8*)&"pairing mis-match", 17);
         pair_code_generate();
     } else {
-        *state = CLOCK;
-        //print((u8*)&"not pairing mode", 16);
+        print((u8*)&"not pairing mode", 16);
         return 0;
     }
-    timer_event(PAIRING_PROTECT_INTERVAL, pairing_protect_cb_handler);
 
 	return 0;
 }
@@ -130,7 +153,9 @@ s16 state_ble_disconnect(REPORT_E cb, void *args)
 s16 state_ble_connect(REPORT_E cb, void *args)
 {
     //print((u8*)&"connect", 7);
+    pair_code.pair_bgn = 0;
     motor_notify_to_position(NOTIFY_NONE);
+    timer_event(CLOCK_REFRESH_INTERVAL, connect_clock_cb_handler);
 
 	return 0;
 }

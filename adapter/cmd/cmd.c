@@ -225,9 +225,6 @@ void cmd_parse(u8* content, u8 length)
     if(cmd_list[i].cmd != CMD_APP_NONE) {
         cmd_cb(cmd_list[i].report, NULL);
     }
-    if(cmd_list[i].report == PAIRING_PROC) {
-        cmd_cb(REPORT_MAX, NULL);
-    }
     
     //get_driver()->uart->uart_write((unsigned char*)content, length);
 }

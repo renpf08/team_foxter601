@@ -49,7 +49,7 @@ void ble_state_set(app_state cur_state)
         //print((u8*)&"ble con", 7);
         ble_switch_cb(BLE_CONNECT, NULL);
     } else {
-        //print((u8*)&"ble discon", 10);
+        print((u8*)&"ble discon", 10);
         ble_switch_cb(BLE_DISCONNECT, NULL);
     }
     ble_last_state = cur_state;
