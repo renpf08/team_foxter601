@@ -39,6 +39,7 @@ void ble_state_set(app_state cur_state)
         return; // important!!
     }
 
+    #if 0
     if((cur_state == app_fast_advertising) || (cur_state == app_slow_advertising)) {
         //print((u8*)&"ble adv", 7);
         ble_switch_cb(BLE_ADVERTISE, NULL);
@@ -52,6 +53,8 @@ void ble_state_set(app_state cur_state)
         print((u8*)&"ble discon", 10);
         ble_switch_cb(BLE_DISCONNECT, NULL);
     }
+    #endif
+    ble_switch_cb(BLE_CHANGE, NULL);
     ble_last_state = cur_state;
 }
 

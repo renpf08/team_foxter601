@@ -177,4 +177,77 @@ pair_code_t *pair_code_get(void)
     return &pair_code;
 }
 
+#if 0
+#define BLE_STATE_FILL(init, event, next, function) {\
+						.init_state = init,\
+						.ev = event,\
+						.next_state = next,\
+						.func = function,\
+					}
+
+typedef enum {
+	BLE_STATE_INIT,
+	BLE_STATE_SWITCH,
+	BLE_STATE_CHANGE,
+	BLE_STATE_PAIRING,
+	BLE_STATE_MAX,
+}BLE_STATE_E;
+
+typedef enum {
+	BLE_REPORT_INIT,
+	BLE_REPORT_SWITCH,
+	BLE_REPORT_CHANGE,
+	BLE_REPORT_PAIRING,
+	BLE_REPORT_MAX,
+}BLE_REPORT_E;
+
+typedef struct {
+	STATE_E now;
+}ble_state_t;
+
+static ble_state_t ble_state = {
+	.ble_state_now = BLE_STATE_INIT,
+};
+
+static state_t ble_state_mc[] = {
+	BLE_STATE_FILL(CLOCK,               BLE_ADVERTISE,          BLE_ADVERTISING,        state_ble_advertise),
+	BLE_STATE_FILL(CLOCK,               BLE_CONNECT,            BLE_CONNECTED,          state_ble_connect),
+	BLE_STATE_FILL(BLE_SWITCH,          BLE_ADVERTISE,          BLE_ADVERTISING,        state_ble_advertise),
+	BLE_STATE_FILL(BLE_SWITCH,          BLE_STOP_ADVERTISE,     BLE_STOP_ADVERTISING,   state_ble_stop_advertise),
+	BLE_STATE_FILL(BLE_ADVERTISING,     BLE_CONNECT,            BLE_CONNECTED,          state_ble_connect),
+	BLE_STATE_FILL(BLE_ADVERTISING,     KEY_M_LONG_PRESS,       BLE_SWITCH,             state_ble_switch),
+	BLE_STATE_FILL(BLE_CONNECTED,       PAIRING_PROC,           PAIRING_INITIATE,       state_ble_pairing),
+	BLE_STATE_FILL(BLE_CONNECTED,       KEY_M_LONG_PRESS,       BLE_SWITCH,             state_ble_switch),
+	BLE_STATE_FILL(BLE_CONNECTED,       BLE_ADVERTISE,          BLE_ADVERTISING,        state_ble_advertise), //app disconnect
+	BLE_STATE_FILL(PAIRING_INITIATE,    PAIRING_PROC,           PAIRING_MATCHING,       state_ble_pairing),
+	BLE_STATE_FILL(PAIRING_INITIATE,    BLE_ADVERTISE,          BLE_ADVERTISING,        state_ble_advertise), //app disconnect
+	BLE_STATE_FILL(PAIRING_INITIATE,    KEY_M_LONG_PRESS,       BLE_SWITCH,             state_ble_switch),
+	BLE_STATE_FILL(PAIRING_MATCHING,    CLOCK_1_MINUTE,         CLOCK,                  state_clock),
+	BLE_STATE_FILL(BLE_STOP_ADVERTISING,CLOCK_1_MINUTE,         CLOCK,                  state_clock),
+};
+
+static s16 state_ble_switch_cb_handler(REPORT_E cb, void *args)
+{
+	u16 i = 0;
+
+    u8 cb_buf[11] = {"cb=xx,st=xx"};
+    cb_buf[3] = (cb/10)+'0';
+    cb_buf[4] = (cb%10)+'0';
+    cb_buf[9] = (ble_state.now/10)+'0';
+    cb_buf[10] = (ble_state.now%10)+'0';
+    print(cb_buf, 11);/**/
+    
+
+	for(i = 0; i < sizeof(ble_state_mc)/sizeof(state_t); i++) {
+		if((ble_state_mc[i].init_state == ble_state.now) && 
+			(ble_state_mc[i].ev == cb)) {
+			ble_state.now = ble_state_mc[i].next_state;
+			ble_state_mc[i].func(cb, &ble_state.now);
+            break;
+		}
+	}
+	return 0;
+}
+
+#endif
 
