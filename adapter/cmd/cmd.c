@@ -41,21 +41,21 @@ s16 cmd_init(adapter_callback cb);
 
 static const CMDENTRY cmd_list[] =
 {
-    {CMD_PAIRING_CODE,      PAIRING_PROC,      cmd_pairing_code},
-    {CMD_USER_INFO,         USER_INFO,         cmd_user_info},
-    {CMD_SYNC_DATE,         SYNC_DATE,         cmd_sync_date},
-    {CMD_SET_ALARM_CLOCK,   SET_ALARM_CLOCK,   cmd_set_alarm_clock},
-    {CMD_SET_DISP_FORMAT,   SET_DISP_FORMAT,   cmd_set_disp_format},
-    {CMD_SYNC_DATA,         SYNC_DATA,         cmd_sync_data},
-    {CMD_RESPONSE_TO_WATCH, RESPONSE_TO_WATCH, cmd_response},
-    {CMD_SEND_NOTIFY,       SEND_NOTIFY,       cmd_send_notify},
-    {CMD_SET_TIME,          SET_TIME,          cmd_set_time},
-    {CMD_READ_VERSION,      READ_VERSION,      cmd_read_version},
-    {CMD_SET_CLOCK_POINTER, SET_CLOCK_POINTER, cmd_set_clock_hand},
-    {CMD_SET_VIBRATION,     SET_VIBRATION,     cmd_set_vibration},
-    {CMD_SET_FIND_WATCH,    SET_FIND_WATCH,    cmd_find_watch},
-    {CMD_SET_ANCS_BOND_REQ, SET_ANCS_BOND_REQ, cmd_set_ancs_bond_req},
-    {CMD_READ_TIME_STEPS,   READ_TIME_STEPS,   cmd_read_time_steps},
+    {CMD_PAIRING_CODE,      BLE_PAIR,           cmd_pairing_code},
+    {CMD_USER_INFO,         USER_INFO,          cmd_user_info},
+    {CMD_SYNC_DATE,         SYNC_DATE,          cmd_sync_date},
+    {CMD_SET_ALARM_CLOCK,   SET_ALARM_CLOCK,    cmd_set_alarm_clock},
+    {CMD_SET_DISP_FORMAT,   SET_DISP_FORMAT,    cmd_set_disp_format},
+    {CMD_SYNC_DATA,         SYNC_DATA,          cmd_sync_data},
+    {CMD_RESPONSE_TO_WATCH, RESPONSE_TO_WATCH,  cmd_response},
+    {CMD_SEND_NOTIFY,       SEND_NOTIFY,        cmd_send_notify},
+    {CMD_SET_TIME,          SET_TIME,           cmd_set_time},
+    {CMD_READ_VERSION,      READ_VERSION,       cmd_read_version},
+    {CMD_SET_CLOCK_POINTER, SET_CLOCK_POINTER,  cmd_set_clock_hand},
+    {CMD_SET_VIBRATION,     SET_VIBRATION,      cmd_set_vibration},
+    {CMD_SET_FIND_WATCH,    SET_FIND_WATCH,     cmd_find_watch},
+    {CMD_SET_ANCS_BOND_REQ, SET_ANCS_BOND_REQ,  cmd_set_ancs_bond_req},
+    {CMD_READ_TIME_STEPS,   READ_TIME_STEPS,    cmd_read_time_steps},
 
 	{CMD_APP_NONE,          REPORT_MAX, NULL}
 };

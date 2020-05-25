@@ -35,7 +35,7 @@ typedef enum {
     BUTTON_A_M_SHORT_PRESS_VALUE    = ((0x01<<BUTTON_A)|(0x01<<BUTTON_M)),
     BUTTON_B_M_SHORT_PRESS_VALUE    = ((0x01<<BUTTON_B)|(0x01<<BUTTON_M)),
     BUTTON_A_B_M_SHORT_PRESS_VALUE  = ((0x01<<BUTTON_A)|(0x01<<BUTTON_B)|(0x01<<BUTTON_M)),
-    BUTTON_STATE_MAX                       = 0xFF
+    BUTTON_STATE_MAX                = 0xFF
 }BUTTON_COMBO_EVENT_E;
 
 typedef struct {
@@ -73,7 +73,7 @@ static button_combo_event_t button_combo_event[] = {
     {KEY_B_M_SHORT_PRESS,   BUTTON_B_M_SHORT_PRESS_VALUE},
     {KEY_A_B_M_LONG_PRESS,  BUTTON_A_B_M_LONG_PRESS_VALUE},
     {KEY_A_B_M_SHORT_PRESS, BUTTON_A_B_M_SHORT_PRESS_VALUE},
-    {REPORT_MAX,            0},
+    {REPORT_MAX,            BUTTON_STATE_MAX},
 };
 
 static button_single_event_t button_single_event[] = {
@@ -104,7 +104,7 @@ REPORT_E button_combo_event_handler(u8 combo_evt_flag)
         comb_state_value = (combo_evt_flag|(combo_evt_flag>>4))&0x0F;
     }
     
-    while(button_combo_event[i].combo_event != STATE_MAX)
+    while(button_combo_event[i].combo_event < BUTTON_STATE_MAX)
     {
         if(button_combo_event[i].combo_event == comb_state_value)
         {

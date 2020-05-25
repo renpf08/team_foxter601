@@ -64,7 +64,7 @@ typedef enum {
 	BLE_STOP_ADVERTISE = 20,
 	BLE_CONNECT = 21,
 	BLE_DISCONNECT = 22,
-    PAIRING_PROC = 23,
+    BLE_PAIR = 23,
     USER_INFO = 24,
     SYNC_DATE = 25,
     SET_ALARM_CLOCK = 26,
@@ -243,6 +243,7 @@ typedef enum {
 	ZERO_ADJUST,
 	LOW_VOLTAGE,
 	BLE_SWITCH,
+	BLE_CHANGING,
 	BLE_ADVERTISING,
 	BLE_STOP_ADVERTISING,
 	BLE_CONNECTED,
@@ -251,8 +252,8 @@ typedef enum {
 	BATTERY_WEEK_SWITCH,
 	TIME_ADJUST,
 	RUN_TEST,
-	PAIRING_INITIATE,
-	PAIRING_MATCHING,
+	BLE_PAIRING,
+	BLE_MATCHING,
 	STATE_MAX,
 }STATE_E;
 
@@ -539,12 +540,5 @@ typedef struct {
 	STATE_E   next_state;
 	state_func func;
 }state_t;
-
-typedef struct {
-    u16 pair_code;
-    u8 pair_bgn;
-    u8 hour;
-    u8 minute;
-} pair_code_t;
 
 #endif

@@ -10,8 +10,14 @@
 
 #define NOTIFY_SWING_INTERVAL   1000
 #define CLOCK_REFRESH_INTERVAL  1000
-bool notify_swing_start = FALSE;
-pair_code_t pair_code = {0, 0, 0, 0};
+
+typedef struct {
+    u16 pair_code;
+    u8 pair_bgn;
+    u8 hour;
+    u8 minute;
+} pair_ctrl_t;
+pair_ctrl_t pair_code = {0, 0, 0, 0};
 
 static u8 day2[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
@@ -35,18 +41,20 @@ static void clock_refresh(void)
     last_clk.hour = clock->hour;
     last_clk.minute = clock->minute;
 }
-static void connect_clock_cb_handler(u16 id)
+static void clock_moving_cb_handler(u16 id)
 {
     if((ble_state_get() != app_connected) || (pair_code.pair_bgn == 1)) {
         return;
     }
+    //print((u8*)&"connect clock", 13);
     clock_refresh();
-    timer_event(CLOCK_REFRESH_INTERVAL, connect_clock_cb_handler);
-    print((u8*)&"connect clock", 13);
+    timer_event(CLOCK_REFRESH_INTERVAL, clock_moving_cb_handler);
 }
 static void notify_swing_cb_handler(u16 id)
 {
+    static bool notify_swing_start = FALSE;
     app_state cur_state = ble_state_get();
+    
     if((cur_state != app_fast_advertising) && (cur_state != app_slow_advertising)) {
         if(notify_swing_start == TRUE) {
             notify_swing_start = FALSE;
@@ -64,7 +72,7 @@ static void notify_swing_cb_handler(u16 id)
     }
     clock_refresh();
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
-    print((u8*)&"swing clock", 11);
+    //print((u8*)&"swing clock", 11);
 }
 void pair_code_generate(void)
 {
@@ -94,72 +102,62 @@ void pair_code_generate(void)
             break;
         }
     }
-    print_str_hex((u8*)&"gen pair code=0x", pair_code.pair_code);
+    print_str_hex((u8*)&"pair code=0x", pair_code.pair_code);
     //print_str_dec((u8*)&"hour=", pair_code.hour);
     //print_str_dec((u8*)&"minute=", pair_code.minute);
 	motor_hour_to_position(pair_code.hour);
 	motor_minute_to_position(pair_code.minute);
 }
-s16 state_ble_pairing(REPORT_E cb, void *args)
+static s16 ble_pair(void *args)
 {
     STATE_E *state = (STATE_E *)args;
     u8* code = cmd_get()->pair_code.code;
     u16 pairing_code = (code[0]<<8)|code[1];
-    //print_str_hex((u8*)&"recv pairing code=0x", pairing_code);
+    print_str_hex((u8*)&"recv code=0x", pairing_code);
     
     if(pairing_code == 0xFFFF) {
-        print((u8*)&"enter pairing mode", 18);
+        print((u8*)&"enter pair mode", 15);
         pair_code.pair_bgn = 1;
         pair_code_generate();
-        *state = PAIRING_INITIATE;
     } else if(pairing_code == pair_code.pair_code) {
-        *state = PAIRING_MATCHING;
+        *state = CLOCK;
         pair_code.pair_bgn = 0;
-        print((u8*)&"pairing match", 13);
+        print((u8*)&"pair match", 10);
     } else if(pair_code.pair_bgn == 1) {
-        *state = PAIRING_INITIATE;
-        print((u8*)&"pairing mis-match", 17);
+        print((u8*)&"pair mis-match", 14);
         pair_code_generate();
     } else {
-        print((u8*)&"not pairing mode", 16);
+        print((u8*)&"not pair mode", 13);
         return 0;
     }
 
 	return 0;
 }
-s16 state_ble_stop_advertise(REPORT_E cb, void *args)
+static u16 ble_change(void *args)
 {
-    //print((u8*)&"adv stop", 8);
-    pair_code.pair_bgn = 0;
-    motor_notify_to_position(NOTIFY_NONE);
+    STATE_E *state_mc = (STATE_E *)args;
+    app_state state_ble = ble_state_get();
+    
+    if((state_ble == app_fast_advertising) || (state_ble == app_slow_advertising)) { // advertising start
+        print((u8*)&"adv start", 9);
+        timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
+    } else if(state_ble == app_idle){ // advertising stop
+        print((u8*)&"adv stop", 8);
+        *state_mc = CLOCK;
+        motor_notify_to_position(NOTIFY_NONE);
+    } else if(state_ble == app_connected){ // connected
+        print((u8*)&"connect", 7);
+        motor_notify_to_position(NOTIFY_NONE);
+        timer_event(CLOCK_REFRESH_INTERVAL, clock_moving_cb_handler);
+    } else { // disconnected
+        print((u8*)&"disconect", 9);
+        *state_mc = CLOCK;
+    }
 
-	return 0;
+    return 0;
 }
-s16 state_ble_advertise(REPORT_E cb, void *args)
-{
-    //print((u8*)&"adv start", 9);
-    pair_code.pair_bgn = 0;
-    timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
-
-	return 0;
-}
-s16 state_ble_disconnect(REPORT_E cb, void *args)
-{
-    //print((u8*)&"disconnect", 10);
-    pair_code.pair_bgn = 0;
-
-	return 0;
-}
-s16 state_ble_connect(REPORT_E cb, void *args)
-{
-    //print((u8*)&"connect", 7);
-    pair_code.pair_bgn = 0;
-    motor_notify_to_position(NOTIFY_NONE);
-    timer_event(CLOCK_REFRESH_INTERVAL, connect_clock_cb_handler);
-
-	return 0;
-}
-s16 state_ble_switch(REPORT_E cb, void *args)
+//----------------------------------------------------
+static u16 ble_switch(void *args)
 {
     app_state cur_state = ble_state_get();
     if((cur_state == app_fast_advertising) || (cur_state == app_slow_advertising) || (cur_state == app_connected)) {
@@ -170,84 +168,21 @@ s16 state_ble_switch(REPORT_E cb, void *args)
         ble_switch_on();
     }
 
+    return 0;
+}
+s16 state_ble_switch(REPORT_E cb, void *args)
+{
+    if(cb == KEY_M_LONG_PRESS) {
+        print((u8*)&"key press", 9);
+        ble_switch(args);
+    } else if(cb == BLE_CHANGE) {
+        print((u8*)&"ble change", 10);
+        ble_change(args);
+    } else if(cb == BLE_PAIR) {
+        print((u8*)&"cmd pair", 8);
+        ble_pair(args);
+    }
+
 	return 0;
 }
-pair_code_t *pair_code_get(void)
-{
-    return &pair_code;
-}
-
-#if 0
-#define BLE_STATE_FILL(init, event, next, function) {\
-						.init_state = init,\
-						.ev = event,\
-						.next_state = next,\
-						.func = function,\
-					}
-
-typedef enum {
-	BLE_STATE_INIT,
-	BLE_STATE_SWITCH,
-	BLE_STATE_CHANGE,
-	BLE_STATE_PAIRING,
-	BLE_STATE_MAX,
-}BLE_STATE_E;
-
-typedef enum {
-	BLE_REPORT_INIT,
-	BLE_REPORT_SWITCH,
-	BLE_REPORT_CHANGE,
-	BLE_REPORT_PAIRING,
-	BLE_REPORT_MAX,
-}BLE_REPORT_E;
-
-typedef struct {
-	STATE_E now;
-}ble_state_t;
-
-static ble_state_t ble_state = {
-	.ble_state_now = BLE_STATE_INIT,
-};
-
-static state_t ble_state_mc[] = {
-	BLE_STATE_FILL(CLOCK,               BLE_ADVERTISE,          BLE_ADVERTISING,        state_ble_advertise),
-	BLE_STATE_FILL(CLOCK,               BLE_CONNECT,            BLE_CONNECTED,          state_ble_connect),
-	BLE_STATE_FILL(BLE_SWITCH,          BLE_ADVERTISE,          BLE_ADVERTISING,        state_ble_advertise),
-	BLE_STATE_FILL(BLE_SWITCH,          BLE_STOP_ADVERTISE,     BLE_STOP_ADVERTISING,   state_ble_stop_advertise),
-	BLE_STATE_FILL(BLE_ADVERTISING,     BLE_CONNECT,            BLE_CONNECTED,          state_ble_connect),
-	BLE_STATE_FILL(BLE_ADVERTISING,     KEY_M_LONG_PRESS,       BLE_SWITCH,             state_ble_switch),
-	BLE_STATE_FILL(BLE_CONNECTED,       PAIRING_PROC,           PAIRING_INITIATE,       state_ble_pairing),
-	BLE_STATE_FILL(BLE_CONNECTED,       KEY_M_LONG_PRESS,       BLE_SWITCH,             state_ble_switch),
-	BLE_STATE_FILL(BLE_CONNECTED,       BLE_ADVERTISE,          BLE_ADVERTISING,        state_ble_advertise), //app disconnect
-	BLE_STATE_FILL(PAIRING_INITIATE,    PAIRING_PROC,           PAIRING_MATCHING,       state_ble_pairing),
-	BLE_STATE_FILL(PAIRING_INITIATE,    BLE_ADVERTISE,          BLE_ADVERTISING,        state_ble_advertise), //app disconnect
-	BLE_STATE_FILL(PAIRING_INITIATE,    KEY_M_LONG_PRESS,       BLE_SWITCH,             state_ble_switch),
-	BLE_STATE_FILL(PAIRING_MATCHING,    CLOCK_1_MINUTE,         CLOCK,                  state_clock),
-	BLE_STATE_FILL(BLE_STOP_ADVERTISING,CLOCK_1_MINUTE,         CLOCK,                  state_clock),
-};
-
-static s16 state_ble_switch_cb_handler(REPORT_E cb, void *args)
-{
-	u16 i = 0;
-
-    u8 cb_buf[11] = {"cb=xx,st=xx"};
-    cb_buf[3] = (cb/10)+'0';
-    cb_buf[4] = (cb%10)+'0';
-    cb_buf[9] = (ble_state.now/10)+'0';
-    cb_buf[10] = (ble_state.now%10)+'0';
-    print(cb_buf, 11);/**/
-    
-
-	for(i = 0; i < sizeof(ble_state_mc)/sizeof(state_t); i++) {
-		if((ble_state_mc[i].init_state == ble_state.now) && 
-			(ble_state_mc[i].ev == cb)) {
-			ble_state.now = ble_state_mc[i].next_state;
-			ble_state_mc[i].func(cb, &ble_state.now);
-            break;
-		}
-	}
-	return 0;
-}
-
-#endif
 
