@@ -122,7 +122,7 @@ static s16 ble_pair(void *args)
     } else if(pairing_code == pair_code.pair_code) {
         *state = CLOCK;
         pair_code.pair_bgn = 0;
-        print((u8*)&"pair match", 10);
+        print((u8*)&"pair matched", 12);
     } else if(pair_code.pair_bgn == 1) {
         print((u8*)&"pair mis-match", 14);
         pair_code_generate();
@@ -156,7 +156,6 @@ static u16 ble_change(void *args)
 
     return 0;
 }
-//----------------------------------------------------
 static u16 ble_switch(void *args)
 {
     app_state cur_state = ble_state_get();
@@ -173,13 +172,13 @@ static u16 ble_switch(void *args)
 s16 state_ble_switch(REPORT_E cb, void *args)
 {
     if(cb == KEY_M_LONG_PRESS) {
-        print((u8*)&"key press", 9);
+        //print((u8*)&"key press", 9);
         ble_switch(args);
     } else if(cb == BLE_CHANGE) {
-        print((u8*)&"ble change", 10);
+        //print((u8*)&"ble change", 10);
         ble_change(args);
     } else if(cb == BLE_PAIR) {
-        print((u8*)&"cmd pair", 8);
+        //print((u8*)&"cmd pair", 8);
         ble_pair(args);
     }
 
