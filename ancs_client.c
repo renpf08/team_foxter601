@@ -1953,19 +1953,19 @@ extern void HandlePairingRemoval(void)
 void AppSetState(app_state new_state, uint8 caller)
 {
     app_state old_state = g_app_data.state;
-    u8 test_hts_table[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-    u8 test_caller[29] = {"blesta new:x,old:x,caller:xx\0"};
+//    u8 test_hts_table[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+//    u8 test_caller[29] = {"blesta new:x,old:x,caller:xx\0"};
 
     /* Check if the new state to be set is not the same as the present state
      * of the application. 
      */
     if (old_state != new_state)
     {
-        test_caller[11] = test_hts_table[new_state];
-        test_caller[17] = test_hts_table[old_state];
-        test_caller[26] = test_hts_table[(caller>>4)&0x0F];
-        test_caller[27] = test_hts_table[caller&0x0F];
-        print(test_caller, 28);
+//        test_caller[11] = test_hts_table[new_state];
+//        test_caller[17] = test_hts_table[old_state];
+//        test_caller[26] = test_hts_table[(caller>>4)&0x0F];
+//        test_caller[27] = test_hts_table[caller&0x0F];
+//        print(test_caller, 28);
         
         /* Handle exiting old state */
         switch (old_state)
