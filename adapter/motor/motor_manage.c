@@ -9,7 +9,7 @@ static void motor_run_negtive_one_unit(u16 id);
 static void motor_run_continue_check(void);
 
 #define BAT_INTERVAL_STEP 2
-#define WEEK_INTERVAL_STEP 4
+#define WEEK_INTERVAL_STEP 5
 
 enum {
 	FIRST_HALF,
@@ -75,7 +75,7 @@ static motor_manager_t motor_manager = {
 	.run_motor = NULL,
 	.run_motor_num = max_motor,
 	.run_step_num = 0,
-	.run_interval_ms = 50,
+	.run_interval_ms = 100,
 	.run_direction  = pos,
 	.bat_week_dst = BAT_PECENT_0,
 };
@@ -168,7 +168,8 @@ s16 motor_notify_to_position(u8 notify)
 
 static void motor_battery_week_change(u16 id)
 {
-	if(BAT_PECENT_100 == motor_manager.motor_status[battery_week_motor].cur_pos) {
+	if((BAT_PECENT_100 == motor_manager.motor_status[battery_week_motor].cur_pos) &&
+		(0 == motor_manager.motor_status[battery_week_motor].run_flag)) {
 		motor_manager.motor_status[battery_week_motor].dst_pos = motor_manager.bat_week_dst;
 		if(motor_manager.bat_week_dst > BAT_PECENT_100) {
 			motor_manager.motor_status[battery_week_motor].unit_interval_step = BAT_INTERVAL_STEP;
@@ -178,7 +179,7 @@ static void motor_battery_week_change(u16 id)
 		
 		motor_manager.motor_status[battery_week_motor].run_flag = 1;
 	}else {
-		timer_event(motor_manager.run_interval_ms, motor_battery_week_change);
+		timer_event(100, motor_battery_week_change);
 	}
 }
 

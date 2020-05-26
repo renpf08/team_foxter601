@@ -93,6 +93,18 @@ void state_run_test_increase(void)
 		}
 	}
 
+	if(pos == run_test.battery_week_dir) {
+		run_test.battery_week--;
+		if(SUNDAY == run_test.battery_week) {
+			run_test.battery_week_dir = neg;
+		}
+	}else {
+		run_test.battery_week++;
+		if(BAT_PECENT_0 == run_test.battery_week) {
+			run_test.battery_week_dir = pos;
+		}
+	}
+
 	if(pos == run_test.notify_dir) {
 		run_test.notify++;
 		if((NOTIFY_DONE - 1) == run_test.notify) {
@@ -126,7 +138,7 @@ void state_run_test_handler(u16 id)
 	motor_minute_one_step(run_test.minute);	
 	motor_date_to_position(run_test.day);
 	motor_notify_to_position(run_test.notify);
-	//motor_battery_week_to_position(run_test.battery_week);
+	motor_battery_week_to_position(run_test.battery_week);
 	motor_activity_to_position(run_test.activity);
 
 	if(looping == run_test.test_status) {
@@ -163,6 +175,12 @@ s16 state_run_test(REPORT_E cb, void *args)
 			run_test.day_dir = neg;
 		}else {
 			run_test.day_dir = pos;
+		}
+
+		if(SUNDAY == run_test.battery_week) {
+			run_test.battery_week_dir = neg;
+		}else {
+			run_test.battery_week_dir = pos;
 		}
 
 		if((NOTIFY_DONE - 1) == run_test.notify) {

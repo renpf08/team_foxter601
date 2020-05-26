@@ -7,8 +7,7 @@
 
 s16 state_time_adjust(REPORT_E cb, void *args)
 {
-	u8 string[17] = {'s', 't', 'a', 't', 'e', '_', 't', 'i', 'm', 'e', '_', 'a', 'd', 'j', 'u', 't'};
-	print(string, 17);
+	print((u8 *)&"time_adjust", 11);
 
 
 	return 0;

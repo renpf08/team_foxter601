@@ -59,9 +59,11 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	return 0;
 }
 
-#define TEST_BATTERY_WEEK
+//#define TEST_BATTERY_WEEK
 s16 business_init(void)
 {
+	s16 battery_week_status;
+
 	adapter_init(adapter_cb_handler);
 	
 	#ifdef TEST_ZERO_ADJUST
@@ -83,6 +85,11 @@ s16 business_init(void)
 	#ifdef TEST_BATTERY_WEEK
 	battery_week_test(adapter_cb_handler);
 	#endif
+
+	battery_week_status = state_battery_week_status_get();
+	if(state_battery == battery_week_status) {
+		state_battery_week_switch(KEY_M_SHORT_PRESS, NULL);
+	}
 	
 	business.state_now = CLOCK;
 	state_clock(CLOCK_1_MINUTE, NULL);

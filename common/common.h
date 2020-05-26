@@ -230,6 +230,11 @@ typedef enum {
 	STATE_MAX,
 }STATE_E;
 
+typedef enum {
+	state_battery,
+	state_week,
+}STATE_BATTERY_WEEK_E;
+
 typedef struct {
 	u16 year;
 	u8 month;	
