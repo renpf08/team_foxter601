@@ -43,6 +43,8 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               KEY_B_M_LONG_PRESS,   	TIME_ADJUST,            state_time_adjust),
 	/*run test*/
 	STATE_FILL(CLOCK,               KEY_A_B_M_LONG_PRESS,   RUN_TEST,               state_run_test),
+	/*cmd handleer*/
+	STATE_FILL(CLOCK,               SET_TIME,               SET_DATE_TIME,          state_set_date_time),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)

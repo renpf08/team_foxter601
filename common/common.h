@@ -62,13 +62,13 @@ typedef enum {
 	BLE_CHANGE = 18,
     BLE_PAIR = 19,
     USER_INFO = 20,
-    SYNC_DATE = 21,
+    SET_TIME = 21,
     SET_ALARM_CLOCK = 22,
     SET_DISP_FORMAT = 23,
     SYNC_DATA = 24,
     RESPONSE_TO_WATCH = 25,
     SEND_NOTIFY = 26,
-    SET_TIME = 27,
+    SET_POINTERS = 27,
     READ_VERSION = 28,
     SET_CLOCK_POINTER = 29,
     SET_VIBRATION = 30,
@@ -246,6 +246,7 @@ typedef enum {
 	RUN_TEST,
 	BLE_PAIRING,
 	BLE_MATCHING,
+	SET_DATE_TIME,
 	STATE_MAX,
 }STATE_E;
 
@@ -319,13 +320,13 @@ typedef struct {
 typedef enum {
     CMD_PAIRING_CODE        = 0x00,
     CMD_USER_INFO           = 0x01,
-    CMD_SYNC_DATE           = 0x02,
+    CMD_SET_TIME            = 0x02,
     CMD_SET_ALARM_CLOCK     = 0x03,
     CMD_SET_DISP_FORMAT     = 0x04,
     CMD_SYNC_DATA           = 0x05,
     CMD_RESPONSE_TO_WATCH   = 0x06,
     CMD_SEND_NOTIFY         = 0x07,
-    CMD_SET_TIME            = 0x08,
+    CMD_SET_POINTERS        = 0x08,
     CMD_READ_VERSION        = 0x09, //! need to response
     CMD_SET_CLOCK_POINTER   = 0x0A,
     CMD_SET_VIBRATION       = 0x0B,
@@ -369,7 +370,7 @@ typedef struct {
     u8 minute;
     u8 second;
     u8 week;
-} cmd_sync_date_t;
+} cmd_set_time_t;
 typedef struct {
     u8 cmd;
     u8 clock1_alarm_switch;
@@ -414,19 +415,19 @@ typedef struct {
 } cmd_send_notify_t;
 typedef struct { 
     u8 cmd; 
-    u8 clock_hand1;
-    u8 clock_hand1_pos;
-    u8 clock_hand2;
-    u8 clock_hand2_pos;
-    u8 clock_hand3;
-    u8 clock_hand3_pos;
-    u8 clock_hand4;
-    u8 clock_hand4_pos;
-    u8 clock_hand5;
-    u8 clock_hand5_pos;
-    u8 clock_hand6;
-    u8 clock_hand6_pos;
-} cmd_set_time_t;
+    u8 hour_pointer;
+    u8 hour_pointer_pos;
+    u8 minute_pointer;
+    u8 minute_pointer_pos;
+    u8 week_pointer;
+    u8 week_pointer_pos;
+    u8 day_pointer;
+    u8 day_pointer_pos;
+    u8 battery_pointer;
+    u8 battery_pointer_pos;
+    u8 notify_pointer;
+    u8 notify_pointer_pos;
+} cmd_set_pointers_t;
 typedef struct { 
     u8 cmd; 
     u8 serial_num;
@@ -459,13 +460,13 @@ typedef struct {
 typedef struct {
     cmd_pairing_code_t pair_code;
     cmd_user_info_t user_info;
-    cmd_sync_date_t sync_date;
+    cmd_set_time_t set_time;
     cmd_set_alarm_clock_t set_alarm_clock;
     cmd_set_disp_format_t set_disp;
     cmd_sync_data_t sync_data;
     cmd_response_t send_resp;
     cmd_send_notify_t send_notif;
-    cmd_set_time_t set_time;
+    cmd_set_pointers_t set_pointers;
     cmd_read_version_t read_ver;
     cmd_set_clock_hand_t set_clock_hand;
     cmd_set_vibration_t set_vib;

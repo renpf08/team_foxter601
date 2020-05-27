@@ -54,6 +54,7 @@ static void clock_timer_increase(void)
 		clock_cfg.clock.month = 1;
 		clock_cfg.clock.year++;
 	}
+    //print_date_time((u8*)&"now=", &clock_cfg.clock);
 }
 
 static void clock_cb_handler(u16 id)
