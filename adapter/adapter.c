@@ -204,11 +204,62 @@ void print_str_dec(u8 *buf, u16 dec_num)
     print(sbuf, i);
 }
 
+void print_date_time(u8 *buf, clock_t *datm)
+{
+    u8 dec_table[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+    u8 i = 0;
+    u8 len = StrLen((s8*)buf);
+    u8 sbuf[32] = {0};
+    u16 year = datm->year;
+
+    for(i = 0; i < len; i++) {
+        sbuf[i] = buf[i];
+    }
+    sbuf[i++] = dec_table[year/1000]; year %= 1000;
+    sbuf[i++] = dec_table[year/100]; year %= 100;
+    sbuf[i++] = dec_table[year/10]; year %= 10;
+    sbuf[i++] = dec_table[year];
+    sbuf[i++] = '/';
+    sbuf[i++] = dec_table[datm->month/10];
+    sbuf[i++] = dec_table[datm->month%10];
+    sbuf[i++] = '/';
+    sbuf[i++] = dec_table[datm->day/10];
+    sbuf[i++] = dec_table[datm->day%10];
+    sbuf[i++] = ' ';
+    sbuf[i++] = dec_table[datm->hour/10];
+    sbuf[i++] = dec_table[datm->hour%10];
+    sbuf[i++] = ':';
+    sbuf[i++] = dec_table[datm->minute/10];
+    sbuf[i++] = dec_table[datm->minute%10];
+    sbuf[i++] = ':';
+    sbuf[i++] = dec_table[datm->second/10];
+    sbuf[i++] = dec_table[datm->second%10];
+    sbuf[i++] = ' ';
+    sbuf[i++] = 'w';
+    sbuf[i++] = dec_table[datm->week];
+
+    print(sbuf, i);
+}
+
+#if 0
 u8 bcd_to_hex(u32 bcd_data)
 {
     u8 temp;
     temp=((bcd_data>>8)*100)|((bcd_data>>4)*10)|(bcd_data&0x0f);
     return temp;
+}
+#endif
+
+u8 bcd_to_hex(u8 bcd_data)
+{
+  u8 x = (bcd_data & 0xF0) >> 4;
+
+    if (x > 9 || (bcd_data & 0x0F) > 9) {
+        return 0;
+    }
+    else {
+        return (x << 3) + (x << 1) + (bcd_data & 0x0F);
+    }
 }
 
 u32 hex_to_bcd(u8 hex_data)

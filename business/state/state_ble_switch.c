@@ -27,35 +27,13 @@ static u8 day2[] = {DAY_0,
 	DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
 	DAY_26, DAY_27,	DAY_28,	DAY_29, DAY_30,
 	DAY_31};
-static void clock_refresh(void)
-{
-    static clock_t last_clk = {0,0,0,0,0,0,0};
-    
-    clock_t *clock = clock_get();
-    if((last_clk.day != clock->day) || (last_clk.hour != clock->hour) || (last_clk.minute != clock->minute)) {
-    	motor_minute_to_position(clock->minute);
-    	motor_hour_to_position(clock->hour);
-        motor_date_to_position(day2[clock->day]);
-    }
-    last_clk.day = clock->day;
-    last_clk.hour = clock->hour;
-    last_clk.minute = clock->minute;
-}
-static void clock_moving_cb_handler(u16 id)
-{
-    if((ble_state_get() != app_connected) || (pair_code.pair_bgn == 1)) {
-        return;
-    }
-    //print((u8*)&"connect clock", 13);
-    clock_refresh();
-    timer_event(CLOCK_REFRESH_INTERVAL, clock_moving_cb_handler);
-}
 static void notify_swing_cb_handler(u16 id)
 {
     static bool notify_swing_start = FALSE;
     app_state cur_state = ble_state_get();
+    clock_t *clock = clock_get();
     
-    if((cur_state != app_fast_advertising) && (cur_state != app_slow_advertising)) {
+    if(cur_state != app_advertising) {
         if(notify_swing_start == TRUE) {
             notify_swing_start = FALSE;
             motor_notify_to_position(NOTIFY_NONE);
@@ -70,7 +48,11 @@ static void notify_swing_cb_handler(u16 id)
         notify_swing_start = FALSE;
         motor_notify_to_position(NOTIFY_NONE);
     }
-    clock_refresh();
+    
+	motor_minute_to_position(clock->minute);
+	motor_hour_to_position(clock->hour);
+    motor_date_to_position(day2[clock->day]);
+    
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
     //print((u8*)&"swing clock", 11);
 }
@@ -119,15 +101,19 @@ static s16 ble_pair(void *args)
         print((u8*)&"enter pair mode", 15);
         pair_code.pair_bgn = 1;
         pair_code_generate();
+        ble_state_set(app_pairing);
     } else if(pairing_code == pair_code.pair_code) {
-        *state = CLOCK;
-        pair_code.pair_bgn = 0;
         print((u8*)&"pair matched", 12);
+        pair_code.pair_bgn = 0;
+        ble_state_set(app_pairing_ok);
+        *state = CLOCK;
     } else if(pair_code.pair_bgn == 1) {
         print((u8*)&"pair mis-match", 14);
         pair_code_generate();
+        ble_state_set(app_pairing);
     } else {
         print((u8*)&"not pair mode", 13);
+        *state = CLOCK;
         return 0;
     }
 
@@ -138,7 +124,7 @@ static u16 ble_change(void *args)
     STATE_E *state_mc = (STATE_E *)args;
     app_state state_ble = ble_state_get();
     
-    if((state_ble == app_fast_advertising) || (state_ble == app_slow_advertising)) { // advertising start
+    if(state_ble == app_advertising) { // advertising start
         print((u8*)&"adv start", 9);
         timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
     } else if(state_ble == app_idle){ // advertising stop
@@ -148,7 +134,7 @@ static u16 ble_change(void *args)
     } else if(state_ble == app_connected){ // connected
         print((u8*)&"connect", 7);
         motor_notify_to_position(NOTIFY_NONE);
-        timer_event(CLOCK_REFRESH_INTERVAL, clock_moving_cb_handler);
+        *state_mc = CLOCK;
     } else { // disconnected
         print((u8*)&"disconect", 9);
         *state_mc = CLOCK;
@@ -159,7 +145,7 @@ static u16 ble_change(void *args)
 static u16 ble_switch(void *args)
 {
     app_state cur_state = ble_state_get();
-    if((cur_state == app_fast_advertising) || (cur_state == app_slow_advertising) || (cur_state == app_connected)) {
+    if((cur_state == app_advertising) || (cur_state == app_connected)) {
         print((u8*)&"switch off", 10);
         ble_switch_off();
     } else {

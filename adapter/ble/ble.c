@@ -28,15 +28,19 @@ void ble_switch_off(void)
 }
 void ble_state_set(app_state cur_state)
 {
+    if(cur_state == app_pairing) {
+        ble_last_state = cur_state;
+        return;
+    } else if (cur_state == app_pairing_ok) {
+        ble_last_state = app_connected;
+        return;
+    }
     if((cur_state == app_fast_advertising) || (cur_state == app_slow_advertising)) {
-        if((ble_last_state == app_fast_advertising) || (ble_last_state == app_slow_advertising)) {
-            print((u8*)&"adv to adv", 10);
-            return;
-        }
+        cur_state = app_advertising;
     }
     if(ble_last_state == cur_state) {
         print((u8*)&"ble no change", 13);
-        return; // important!!
+        return;
     }
     ble_last_state = cur_state;
     ble_switch_cb(BLE_CHANGE, NULL);

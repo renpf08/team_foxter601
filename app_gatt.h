@@ -255,6 +255,11 @@ typedef enum app_state_tag
     /* Enters when disconnect is initiated by the application */
     app_disconnecting,
 
+    /** add by mlw, 20200528 11:21 */
+    app_pairing,
+    app_pairing_ok,
+    app_advertising,
+
     /* Idle state */
     app_idle,
 
