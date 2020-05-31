@@ -38,6 +38,7 @@ static state_t state[] = {
 	STATE_FILL(BLE_SWITCH,          BLE_PAIR,               BLE_SWITCH,             state_ble_switch),
 	/*notify*/
 	STATE_FILL(CLOCK,               ANCS_NOTIFY_INCOMING,   NOTIFY_COMING,          state_notify),
+	STATE_FILL(CLOCK,               ANDROID_NOTIFY,         NOTIFY_COMING,          state_notify),
 	/*battery & week switch*/	
 	STATE_FILL(CLOCK,               KEY_M_SHORT_PRESS,   	BATTERY_WEEK_SWITCH,    state_battery_week_switch),
 	/*time adjust*/

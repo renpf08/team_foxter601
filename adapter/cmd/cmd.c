@@ -28,7 +28,7 @@ static u8 cmd_set_alarm_clock(u8 *buffer, u8 length);
 static u8 cmd_set_disp_format(u8 *buffer, u8 length);
 static u8 cmd_sync_data(u8 *buffer, u8 length);
 static u8 cmd_response(u8 *buffer, u8 length);
-static u8 cmd_send_notify(u8 *buffer, u8 length);
+static u8 cmd_recv_notify(u8 *buffer, u8 length);
 static u8 cmd_set_pointers(u8 *buffer, u8 length);
 static u8 cmd_read_version(u8 *buffer, u8 length);
 static u8 cmd_set_clock_hand(u8 *buffer, u8 length);
@@ -48,7 +48,7 @@ static const CMDENTRY cmd_list[] =
     {CMD_SET_DISP_FORMAT,   SET_DISP_FORMAT,    cmd_set_disp_format},
     {CMD_SYNC_DATA,         SYNC_DATA,          cmd_sync_data},
     {CMD_RESPONSE_TO_WATCH, RESPONSE_TO_WATCH,  cmd_response},
-    {CMD_SEND_NOTIFY,       SEND_NOTIFY,        cmd_send_notify},
+    {CMD_RECV_NOTIFY,       ANDROID_NOTIFY,     cmd_recv_notify},
     {CMD_SET_POINTERS,      SET_POINTERS,       cmd_set_pointers},
     {CMD_READ_VERSION,      READ_VERSION,       cmd_read_version},
     {CMD_SET_CLOCK_POINTER, SET_CLOCK_POINTER,  cmd_set_clock_hand},
@@ -149,9 +149,9 @@ static u8 cmd_response(u8 *buffer, u8 length)
     MemCopy(&cmd_group.send_resp, buffer, sizeof(cmd_response_t));
     return 0;
 }
-static u8 cmd_send_notify(u8 *buffer, u8 length)
+static u8 cmd_recv_notify(u8 *buffer, u8 length)
 {
-    MemCopy(&cmd_group.send_notif, buffer, sizeof(cmd_send_notify_t));
+    MemCopy(&cmd_group.recv_notif, buffer, sizeof(cmd_recv_notify_t));
     return 0;
 }
 static u8 cmd_set_pointers(u8 *buffer, u8 length)

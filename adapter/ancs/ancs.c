@@ -96,7 +96,7 @@ typedef struct
 
 static last_data_map_t last_data;
 static packing_msg_t pck_msg;
-ancs_msg_t  ancs_msg = {.cmd = 0x07};
+app_msg_t  ancs_msg = {.cmd = 0x07};
 
 static adapter_callback ancs_cb = NULL;
 
@@ -289,7 +289,7 @@ void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source)
         }
     }
 }
-ancs_msg_t *ancs_get(void)
+app_msg_t *ancs_get(void)
 {
     return &ancs_msg;
 }
