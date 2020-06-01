@@ -8,11 +8,17 @@
 s16 state_notify(REPORT_E cb, void *args)
 {
 	STATE_E *state = (STATE_E *)args;
-	ancs_msg_t *ancs_msg = ancs_get();
+	app_msg_t *ancs_msg = NULL;
 
-	u8 string[12] = {'s', 't', 'a', 't', 'e', '_', 'n', 'o', 't', 'i', 'f', 'y'};
-	print(string, 12);
+    if(cb == ANCS_NOTIFY_INCOMING) {
+        ancs_msg = ancs_get();
+    } else if(cb == ANDROID_NOTIFY) {
+        ancs_msg = &cmd_get()->recv_notif;
+    }
 
+    //print_str_dec((u8*)&"notify type=", (u16)ancs_msg->type);
+    //print_str_dec((u8*)&"notify sta=", (u16)ancs_msg->sta);
+    
 	if(NOTIFY_ADD == ancs_msg->sta) {
 		if(ancs_msg->type < NOTIFY_DONE) {
 			motor_notify_to_position(ancs_msg->type);
