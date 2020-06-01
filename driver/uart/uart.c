@@ -8,7 +8,7 @@
 #include "user_config.h"
 #include "../driver.h"
 
-#define USE_UART_BLOCK_MODE 1
+#define USE_UART_BLOCK_MODE 0
 #define BIT_RATE_115200     2
 #define BIT_RATE_9600       33
 #define BIT_RATE            BIT_RATE_115200

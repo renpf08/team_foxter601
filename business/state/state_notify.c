@@ -16,8 +16,8 @@ s16 state_notify(REPORT_E cb, void *args)
         ancs_msg = &cmd_get()->recv_notif;
     }
 
-    print_str_dec((u8*)&"notify type=", (u16)ancs_msg->type);
-    print_str_dec((u8*)&"notify sta=", (u16)ancs_msg->sta);
+    //print_str_dec((u8*)&"notify type=", (u16)ancs_msg->type);
+    //print_str_dec((u8*)&"notify sta=", (u16)ancs_msg->sta);
     
 	if(NOTIFY_ADD == ancs_msg->sta) {
 		if(ancs_msg->type < NOTIFY_DONE) {
