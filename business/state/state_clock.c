@@ -15,7 +15,7 @@ static u8 day[] = {DAY_0,
 	DAY_31};
 
 
-//#define TEST_CLOCK
+#define TEST_CLOCK
 
 #ifdef TEST_CLOCK
 static clock_t clk = {
