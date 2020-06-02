@@ -138,7 +138,7 @@ void state_run_test_handler(u16 id)
 	motor_minute_one_step(run_test.minute);	
 	motor_date_to_position(run_test.day);
 	motor_notify_to_position(run_test.notify);
-	motor_battery_week_to_position(run_test.battery_week);
+	//motor_battery_week_to_position(run_test.battery_week);
 	motor_activity_to_position(run_test.activity);
 
 	if(looping == run_test.test_status) {
@@ -153,8 +153,7 @@ void state_run_test_exit(u16 id)
 
 s16 state_run_test(REPORT_E cb, void *args)
 {
-	u8 string[13] = {'s', 't', 'a', 't', 'e', '_', 'r', 'u', 'n', 't', 'e', 's', 't'};
-	print(string, 13);
+	print((u8 *)&"run_test", 8);
 
 	if(run == run_test.work) {
 		run_test.work = idle;
@@ -209,5 +208,5 @@ s16 state_run_test(REPORT_E cb, void *args)
 void test_run_test(u16 id)
 {
 	state_run_test(KEY_A_B_M_LONG_PRESS, NULL);
-	timer_event(10000, test_run_test);
+	//timer_event(10000, test_run_test);
 }
