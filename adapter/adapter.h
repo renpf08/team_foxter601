@@ -1,6 +1,8 @@
 #ifndef ADAPTER_H
 #define ADAPTER_H
 
+#include "../ancs_client.h"
+
 #include "../common/common.h"
 #include "../driver/driver.h"
 
@@ -60,7 +62,7 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
 void cmd_send_data(uint8 *data, uint16 size);
 cmd_group_t *cmd_get(void);
 
-ancs_msg_t *ancs_get(void);
+app_msg_t *ancs_get(void);
 
 //void cmd_cb_handler(void);
 //void ancs_cb_handler(void);
@@ -69,8 +71,15 @@ u32 step_get(void);
 
 void ble_switch_on(void);
 void ble_switch_off(void);
+void ble_state_set(app_state cur_state);
+app_state ble_state_get(void);
 
 int sprintf(char *buf, const char * sFormat, ...);
 int printf(const char * sFormat, ...);
+void print_str_hex(u8 *buf, u16 hex_num);
+void print_str_dec(u8 *buf, u16 dec_num);
+void print_date_time(u8 *buf, clock_t *datm);
+u8 bcd_to_hex(u8 bcd_data);
+u32 hex_to_bcd(u8 hex_data);
 
 #endif

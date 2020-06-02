@@ -55,6 +55,7 @@ s16 state_clock(REPORT_E cb, void *args)
 		clk.day = 0;
 	}
 
+    //print((u8*)&"system clock", 12);
 	motor_minute_to_position(clk.minute);
 	motor_hour_to_position(clk.hour);
     motor_date_to_position(day[clk.day]);

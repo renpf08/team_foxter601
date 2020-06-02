@@ -1782,7 +1782,8 @@ extern void ReportPanic(const char* file, const char* func, unsigned line, app_p
 #ifdef ENABLE_DEBUG_PANIC
     Panic(panic_code);
 #else
-    printf("<error> %s %s %d: code:0x%08X\r\n", file, func, line, panic_code);
+    //printf("<error> %s %s %d: code:0x%08X\r\n", file, func, line, panic_code);
+    print((u8*)&"painc", 5);
 #endif
 }
 
@@ -1952,12 +1953,20 @@ extern void HandlePairingRemoval(void)
 void AppSetState(app_state new_state, uint8 caller)
 {
     app_state old_state = g_app_data.state;
+//    u8 test_hts_table[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+//    u8 test_caller[29] = {"blesta new:x,old:x,caller:xx\0"};
 
     /* Check if the new state to be set is not the same as the present state
      * of the application. 
      */
     if (old_state != new_state)
     {
+//        test_caller[11] = test_hts_table[new_state];
+//        test_caller[17] = test_hts_table[old_state];
+//        test_caller[26] = test_hts_table[(caller>>4)&0x0F];
+//        test_caller[27] = test_hts_table[caller&0x0F];
+//        print(test_caller, 28);
+        
         /* Handle exiting old state */
         switch (old_state)
         {
@@ -2111,6 +2120,8 @@ void AppSetState(app_state new_state, uint8 caller)
                 /* Nothing to do */
             break;
         }
+
+        ble_state_set(new_state);
     }
 }
 
@@ -2237,7 +2248,7 @@ void AppInit(sleep_state last_sleep_state)
       * add by mlw at 20200314 01:37
       */
     m_devname_init(devName);
-    printf("system started: %s\r\n", devName);
+    print(devName, StrLen((char*)devName));
 
     /* Tell Security Manager module about the value it needs to initialise it's
      * diversifier to.
@@ -2267,6 +2278,8 @@ void AppInit(sleep_state last_sleep_state)
     
     /** add by mlw at 20200318 15:05(seems not necessary.) */
     AncsServiceDataInit();
+
+    //ble_switch_off();
 }
 
 /*----------------------------------------------------------------------------*

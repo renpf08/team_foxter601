@@ -59,6 +59,23 @@ typedef enum {
 	BATTERY_NORMAL = 15,
 	CLOCK_1_MINUTE = 16,
 	ANCS_NOTIFY_INCOMING = 17,
+	ANDROID_NOTIFY = 18,
+	BLE_CHANGE = 19,
+    BLE_PAIR = 20,
+    USER_INFO = 21,
+    SET_TIME = 22,
+    SET_ALARM_CLOCK = 23,
+    SET_DISP_FORMAT = 24,
+    SYNC_DATA = 25,
+    RESPONSE_TO_WATCH = 26,
+    SEND_NOTIFY = 27,
+    SET_POINTERS = 28,
+    READ_VERSION = 29,
+    SET_CLOCK_POINTER = 30,
+    SET_VIBRATION = 31,
+    SET_FIND_WATCH = 32,
+    SET_ANCS_BOND_REQ = 33,
+    READ_TIME_STEPS = 34,
 	REPORT_MAX,
 }REPORT_E;
 
@@ -218,15 +235,17 @@ typedef enum {
 }ACTIVITY_E;
 
 typedef enum {
-	INIT,
-	CLOCK,
-	ZERO_ADJUST,
-	LOW_VOLTAGE,
-	BLE_SWITCH,
-	NOTIFY_COMING,
-	BATTERY_WEEK_SWITCH,
-	TIME_ADJUST,
-	RUN_TEST,
+	INIT = 0,
+	CLOCK = 1,
+	ZERO_ADJUST = 2,
+	LOW_VOLTAGE = 3,
+	BLE_SWITCH = 4,
+	BLE_CHANGING = 5,
+	NOTIFY_COMING = 6,
+	BATTERY_WEEK_SWITCH = 7,
+	TIME_ADJUST = 8,
+	RUN_TEST = 9,
+	SET_DATE_TIME = 10,
 	STATE_MAX,
 }STATE_E;
 
@@ -302,16 +321,26 @@ typedef struct {
 	motor_cfg_t motor_notify_cfg;
 }cfg_t;
 
+typedef struct
+{
+    u8 cmd; //! fixed to 0x07
+    u8 sta; //! fixed to: 0:added, 1:modified, 2:removed
+    u8 level; //! 0~255, look appMsgList[] of MESSAGE_POSITION_xxx for details
+    u8 type; //! look appMsgList[] of APP_ID_STRING_xxx's index for details
+    u8 cnt; //! msg count
+} app_msg_t;
+typedef app_msg_t cmd_recv_notify_t;
+
 typedef enum {
     CMD_PAIRING_CODE        = 0x00,
     CMD_USER_INFO           = 0x01,
-    CMD_SYNC_DATE           = 0x02,
+    CMD_SET_TIME            = 0x02,
     CMD_SET_ALARM_CLOCK     = 0x03,
     CMD_SET_DISP_FORMAT     = 0x04,
     CMD_SYNC_DATA           = 0x05,
     CMD_RESPONSE_TO_WATCH   = 0x06,
-    CMD_SEND_NOTIFY         = 0x07,
-    CMD_SET_TIME            = 0x08,
+    CMD_RECV_NOTIFY         = 0x07,
+    CMD_SET_POINTERS        = 0x08,
     CMD_READ_VERSION        = 0x09, //! need to response
     CMD_SET_CLOCK_POINTER   = 0x0A,
     CMD_SET_VIBRATION       = 0x0B,
@@ -355,7 +384,7 @@ typedef struct {
     u8 minute;
     u8 second;
     u8 week;
-} cmd_sync_date_t;
+} cmd_set_time_t;
 typedef struct {
     u8 cmd;
     u8 clock1_alarm_switch;
@@ -391,28 +420,28 @@ typedef struct {
     u8 watch_cmd;
     u8 resp_value;
 } cmd_response_t;
+//typedef struct { 
+//    u8 cmd; 
+//    u8 notif_sta;
+//    u8 imp_level;
+//    u8 msg_type;
+//    u8 msg_cnt;
+//} cmd_recv_notify_t;
 typedef struct { 
     u8 cmd; 
-    u8 notif_sta;
-    u8 imp_level;
-    u8 msg_type;
-    u8 msg_cnt;
-} cmd_send_notify_t;
-typedef struct { 
-    u8 cmd; 
-    u8 clock_hand1;
-    u8 clock_hand1_pos;
-    u8 clock_hand2;
-    u8 clock_hand2_pos;
-    u8 clock_hand3;
-    u8 clock_hand3_pos;
-    u8 clock_hand4;
-    u8 clock_hand4_pos;
-    u8 clock_hand5;
-    u8 clock_hand5_pos;
-    u8 clock_hand6;
-    u8 clock_hand6_pos;
-} cmd_set_time_t;
+    u8 hour_pointer;
+    u8 hour_pointer_pos;
+    u8 minute_pointer;
+    u8 minute_pointer_pos;
+    u8 week_pointer;
+    u8 week_pointer_pos;
+    u8 day_pointer;
+    u8 day_pointer_pos;
+    u8 battery_pointer;
+    u8 battery_pointer_pos;
+    u8 notify_pointer;
+    u8 notify_pointer_pos;
+} cmd_set_pointers_t;
 typedef struct { 
     u8 cmd; 
     u8 serial_num;
@@ -445,13 +474,13 @@ typedef struct {
 typedef struct {
     cmd_pairing_code_t pair_code;
     cmd_user_info_t user_info;
-    cmd_sync_date_t sync_date;
+    cmd_set_time_t set_time;
     cmd_set_alarm_clock_t set_alarm_clock;
     cmd_set_disp_format_t set_disp;
     cmd_sync_data_t sync_data;
     cmd_response_t send_resp;
-    cmd_send_notify_t send_notif;
-    cmd_set_time_t set_time;
+    cmd_recv_notify_t recv_notif;
+    cmd_set_pointers_t set_pointers;
     cmd_read_version_t read_ver;
     cmd_set_clock_hand_t set_clock_hand;
     cmd_set_vibration_t set_vib;
@@ -459,15 +488,6 @@ typedef struct {
     cmd_set_ancs_bond_req_t set_ancs_bond;
     cmd_read_time_steps_t read_time_step;
 } cmd_group_t;
-
-typedef struct
-{
-    u8 cmd; //! fixed to 0x07
-    u8 sta; //! fixed to: 0:added, 1:modified, 2:removed
-    u8 level; //! 0~255, look appMsgList[] of MESSAGE_POSITION_xxx for details
-    u8 type; //! look appMsgList[] of APP_ID_STRING_xxx's index for details
-    u8 cnt; //! msg count
-} ancs_msg_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);
