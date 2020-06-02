@@ -181,10 +181,10 @@ static u8 cmd_find_watch(u8 *buffer, u8 length)
 }
 static u8 cmd_set_ancs_bond_req(u8 *buffer, u8 length)
 {
-    /** initiate ANCS service discovering, for test purpose */
-    //if((length == 2) && (cmd_buffer->action == 0xAA)) DiscoverServices();
-          
-    MemCopy(&cmd_group.set_ancs_bond, buffer, sizeof(cmd_set_ancs_bond_req_t));  
+    if(buffer[1] == 0xAA) {
+        DiscoverServices();
+    }
+    //MemCopy(&cmd_group.set_ancs_bond, buffer, sizeof(cmd_set_ancs_bond_req_t));  
     return 0;
 }
 static u8 cmd_read_time_steps(u8 *buffer, u8 length)
