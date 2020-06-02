@@ -14,6 +14,22 @@
 #define ANCS_NS_EVENTFLAG_IMPORTANT              (0x02) 
 #define ANCS_NS_EVENTFLAG_RESERVED               ((1<<2)-(1<<7))
 
+#define MESSAGE_IMPORTANCE_NONE           0
+#define MESSAGE_IMPORTANCE_LINE           0xFF
+#define MESSAGE_IMPORTANCE_QQ             0xFF
+#define MESSAGE_IMPORTANCE_FACEMESSAGE    0xFF
+#define MESSAGE_IMPORTANCE_WECHAT         0xFF
+#define MESSAGE_IMPORTANCE_FACEBOOK       5
+#define MESSAGE_IMPORTANCE_EMAIL          4
+#define MESSAGE_IMPORTANCE_SMS            6
+#define MESSAGE_IMPORTANCE_SKYPE          1
+#define MESSAGE_IMPORTANCE_COMMING_CALL   8
+#define MESSAGE_IMPORTANCE_TWITTER        3
+#define MESSAGE_IMPORTANCE_WHATSAPP       2
+#define MESSAGE_IMPORTANCE_CALENDAR       0xFF
+#define MESSAGE_IMPORTANCE_LINKEDIN       7
+#define MESSAGE_IMPORTANCE_NEWS           0xFF
+
 #define APP_ID_STRING_NONE          "none"
 #define APP_ID_STRING_LINE          "jp.naver.line"
 #define APP_ID_STRING_QQ_IPAD       "com.tencent.mipadqq"     //! iPad QQ message ID
@@ -34,29 +50,30 @@
 typedef struct app_id_index_t
 {
 	const u8 app_index;
+    const u8 msg_level;
 	const u8 app_id[MAX_LENGTH_APPID];
 }APPIDINDEX;
 
 static const APPIDINDEX app_msg_list[] =
 {
-    {NOTIFY_NONE,         APP_ID_STRING_NONE},
-    {NOTIFY_LINE,         APP_ID_STRING_LINE},
-    {NOTIFY_QQ,           APP_ID_STRING_QQ_IPAD},     //! iPad QQ message ID
-    {NOTIFY_QQ,           APP_ID_STRING_QQ_IPHONE},   //! iPhone QQ message ID
-    {NOTIFY_FACEMESSAGE,  APP_ID_STRING_FACEMESSAGE}, //! Messenger(Facebook) message ID
-    {NOTIFY_WECHAT,       APP_ID_STRING_WECHAT},
-    {NOTIFY_FACEBOOK,     APP_ID_STRING_FACEBOOK},    //! Facebook message ID
-    {NOTIFY_EMAIL,        APP_ID_STRING_EMAIL},
-    {NOTIFY_SMS,          APP_ID_STRING_SMS},
-    {NOTIFY_SKYPE,        APP_ID_STRING_SKYPE},
-    {NOTIFY_COMMING_CALL, APP_ID_STRING_COMMING_CALL},
-    {NOTIFY_TWITTER,      APP_ID_STRING_TWITTER},
-    {NOTIFY_WHATSAPP,     APP_ID_STRING_WHATSAPP},
-    {NOTIFY_CALENDER,     APP_ID_STRING_CALENDAR},
-    {NOTIFY_LINKIN,     APP_ID_STRING_LINKEDIN},
-    {NOTIFY_NEWS,         APP_ID_STRING_NEWS},
+    {NOTIFY_NONE,         MESSAGE_IMPORTANCE_NONE,          APP_ID_STRING_NONE},
+    {NOTIFY_LINE,         MESSAGE_IMPORTANCE_LINE,          APP_ID_STRING_LINE},
+    {NOTIFY_QQ,           MESSAGE_IMPORTANCE_QQ,            APP_ID_STRING_QQ_IPAD},     //! iPad QQ message ID
+    {NOTIFY_QQ,           MESSAGE_IMPORTANCE_QQ,            APP_ID_STRING_QQ_IPHONE},   //! iPhone QQ message ID
+    {NOTIFY_FACEMESSAGE,  MESSAGE_IMPORTANCE_FACEMESSAGE,   APP_ID_STRING_FACEMESSAGE}, //! Messenger(Facebook) message ID
+    {NOTIFY_WECHAT,       MESSAGE_IMPORTANCE_WECHAT,        APP_ID_STRING_WECHAT},
+    {NOTIFY_FACEBOOK,     MESSAGE_IMPORTANCE_FACEBOOK,      APP_ID_STRING_FACEBOOK},    //! Facebook message ID
+    {NOTIFY_EMAIL,        MESSAGE_IMPORTANCE_EMAIL,         APP_ID_STRING_EMAIL},
+    {NOTIFY_SMS,          MESSAGE_IMPORTANCE_SMS,           APP_ID_STRING_SMS},
+    {NOTIFY_SKYPE,        MESSAGE_IMPORTANCE_SKYPE,         APP_ID_STRING_SKYPE},
+    {NOTIFY_COMMING_CALL, MESSAGE_IMPORTANCE_COMMING_CALL,  APP_ID_STRING_COMMING_CALL},
+    {NOTIFY_TWITTER,      MESSAGE_IMPORTANCE_TWITTER,       APP_ID_STRING_TWITTER},
+    {NOTIFY_WHATSAPP,     MESSAGE_IMPORTANCE_WHATSAPP,      APP_ID_STRING_WHATSAPP},
+    {NOTIFY_CALENDER,     MESSAGE_IMPORTANCE_CALENDAR,      APP_ID_STRING_CALENDAR},
+    {NOTIFY_LINKIN,       MESSAGE_IMPORTANCE_LINKEDIN,      APP_ID_STRING_LINKEDIN},
+    {NOTIFY_NEWS,         MESSAGE_IMPORTANCE_NEWS,          APP_ID_STRING_NEWS},
 
-	{0, "\0"} //! Finish here
+	{0, 0, "\0"} //! Finish here
 };
 
 /* enum for notification attribute id 
@@ -140,10 +157,10 @@ void ancs_business_handle(packing_msg_t* pack_msg)
     }
     else
     {
-        ANCS_LOG_INFO("2> level           (importance) = %d\r\n", app_msg_list[i].app_index);
+        ANCS_LOG_INFO("2> level           (importance) = %d\r\n", app_msg_list[i].msg_level);
         ANCS_LOG_INFO("3> attr app id   (message type) = %s\r\n", app_msg_list[i].app_id);
-        ancs_msg.level = app_msg_list[i].app_index;
-        ancs_msg.type = i;
+        ancs_msg.level = app_msg_list[i].msg_level;
+        ancs_msg.type = app_msg_list[i].app_index;
     }
     ANCS_LOG_INFO("4> cat cnt      (message count) = %d\r\n", pack_msg->cat_cnt); 
     
@@ -151,6 +168,7 @@ void ancs_business_handle(packing_msg_t* pack_msg)
     ancs_msg.cnt = pack_msg->cat_cnt;
     SerialSendNotification((u8 *)&ancs_msg, 5); //! send ANCS msg to peer, for test purpose
     if(NULL != ancs_cb) {
+        //print((u8*)&"ancs",4);
 		ancs_cb(ANCS_NOTIFY_INCOMING, NULL);
     }
     //ancs_cb_handler();
