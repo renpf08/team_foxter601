@@ -7,8 +7,6 @@
 
 s16 state_time_adjust(REPORT_E cb, void *args)
 {
-	print((u8 *)&"time_adjust", 11);
-
 
 	return 0;
 }

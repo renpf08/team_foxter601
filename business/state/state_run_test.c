@@ -153,9 +153,6 @@ void state_run_test_exit(u16 id)
 
 s16 state_run_test(REPORT_E cb, void *args)
 {
-	u8 string[13] = {'s', 't', 'a', 't', 'e', '_', 'r', 'u', 'n', 't', 'e', 's', 't'};
-	print(string, 13);
-
 	if(run == run_test.work) {
 		run_test.work = idle;
 		run_test.state = (STATE_E *)args;
@@ -206,8 +203,10 @@ s16 state_run_test(REPORT_E cb, void *args)
 	return 0;
 }
 
+#if 0
 void test_run_test(u16 id)
 {
 	state_run_test(KEY_A_B_M_LONG_PRESS, NULL);
 	timer_event(10000, test_run_test);
 }
+#endif
