@@ -83,16 +83,6 @@ static u8 cmd_set_time(u8 *buffer, u8 length)
     year = (u16)((set_time->year[0]<<8 & 0xFF00) | set_time->year[1]);
     days[2] = (0 == (year % 400) || (0 == (year % 4) && (0 != (year % 100))))?29:28;
 
-//    clock_t date_time;
-//    date_time.year = bcd_to_hex(set_time->year[0])*100 + bcd_to_hex(set_time->year[1]);
-//    date_time.month = bcd_to_hex(set_time->month);
-//    date_time.day = bcd_to_hex(set_time->day);
-//    date_time.hour = bcd_to_hex(set_time->hour);
-//    date_time.minute = bcd_to_hex(set_time->minute);
-//    date_time.second = bcd_to_hex(set_time->second);
-//    date_time.week = bcd_to_hex(set_time->week);
-//    print_date_time((u8*)&"get=", &date_time);
-
     if(set_time->month > 0x12) return 1;
     if(set_time->day > days[set_time->month]) return 2;
     if(set_time->hour > 0x23) return 3;

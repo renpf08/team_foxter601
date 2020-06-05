@@ -50,10 +50,6 @@
  */
 #define ANCS_MAX_NOTIF_ATT_LENGTH                     (20)
 
-#define ANCSS_LOG_ERROR(...)
-#define ANCSS_LOG_WARNING(...)
-#define ANCSS_LOG_INFO(...)
-#define ANCSS_LOG_DEBUG(...)
 
 /*============================================================================*
  *  Private Data Types
@@ -203,7 +199,6 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                 data_src.uuid[i] = p_data[i+1];
             }
             #if !USE_MY_ANCS
-            ANCSS_LOG_DEBUG("## uuid = %02X%02X%02X%02X\r\n", p_data[1], p_data[2], p_data[3], p_data[4]);
             #endif
             break;
             
@@ -217,31 +212,24 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                 switch(attrId)
                 {
                     case ancs_notif_att_id_app_id :
-                    ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_attr_id_app_id);
                     break;
                     
                     case ancs_notif_att_id_title :
-                    ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_attr_id_title);
                     break;
                     
                     case ancs_notif_att_id_subtitle :
-                    ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_attr_id_sub_title);
                     break;
                     
                     case ancs_notif_att_id_message :
-                    ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_attr_id_message);
                     break;
                     
                     case ancs_notif_att_id_message_size :
-                    ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_attr_id_message_size);
                     break;
                     
                     case ancs_notif_att_id_date :
-                    ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_attr_id_date);
                     break;
                     
                     default :
-                    ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_attr_id_reserved);
                     b_skip_reserved = TRUE;
                     break;
                 }
@@ -291,14 +279,12 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                 if(!attribute_data.pending_len)
                 {
                     #if !USE_MY_ANCS
-                    ANCSS_LOG_DEBUG("** Attr Len = 0x%04X\r\n", attribute_data.attr_len);
                     
                     if(attribute_data.attr_len > 0)
                     {                                      //! let this work to be done bellow
                     }
                     else
                     {
-                        ANCSS_LOG_DEBUG("** \r\n");
                     }
                     #endif
                     state = ds_decoder_attrdata;
@@ -391,7 +377,6 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                 if((attribute_data.pending_attr_data == 0) && (attribute_data.attr_len == 0))
                 {
                     #if !USE_MY_ANCS
-                    ANCSS_LOG_INFO("** Attribute Data = %s\r\n", (const char*)&dataSrc.attrData); //! be care to use packed-data here
                     #endif
                     ancs_data_source_handle(p_data, size_value, &data_src);
                     MemSet(&data_src.attr_data, 0, sizeof(data_src.attr_data));
@@ -444,8 +429,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 		notiSrc.cid = p_ind->cid;
 
 		#if !USE_MY_ANCS
-		ANCSS_LOG_DEBUG("** \r\n");
-		ANCSS_LOG_DEBUG("** Conn ID = %04X\r\n", g_cid);
 		#endif
 
 		/* 1st byte of the Notification - Event ID */
@@ -454,14 +437,12 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 		#if !USE_MY_ANCS
 		if(curr_data == ancs_event_id_notif_added)
 		{
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_event_id_added);
 			#ifdef ENABLE_LCD_DISPLAY
 			ClearLCDDisplay();
 			#endif  /* ENABLE_LCD_DISPLAY */
 		}
 		else if(curr_data == ancs_event_id_notif_modified)
 		{
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_event_id_modified);
 			#ifdef ENABLE_LCD_DISPLAY
 			ClearLCDDisplay();
 			#endif  /* ENABLE_LCD_DISPLAY */
@@ -469,11 +450,9 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 		else if(curr_data == ancs_event_id_notif_removed)
 		{
 			notif_removed = TRUE;
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_event_id_removed);
 		}
 		else
 		{
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_event_id_reserved);
 		}
 		#endif
 
@@ -483,15 +462,12 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 		#if !USE_MY_ANCS
 		if(curr_data == ANCS_NS_EVENTFLAG_SILENT)
 		{
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_event_flags_silent);
 		}
 		else if(curr_data == ANCS_NS_EVENTFLAG_IMPORTANT)
 		{
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_event_flags_important);
 		}
 		else /* Reserved */
 		{
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_event_flags_reserved);
 		}
 		#endif
 
@@ -502,11 +478,9 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 		switch(curr_data)
 		{
 			case ancs_cat_id_other:
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_other);
 			break;
 
 			case ancs_cat_id_incoming_call:
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_incoming_call);
 
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
@@ -517,7 +491,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_missed_call:
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_missed_call);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -527,7 +500,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_vmail:
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_vmail);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -537,7 +509,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_social:
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_social);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -547,7 +518,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_schedule:
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_schedule);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -557,7 +527,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_email:
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_email);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -567,7 +536,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_news:
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_news);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -577,7 +545,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_hnf:
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_hnf);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -587,7 +554,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_bnf:
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_buf);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -597,7 +563,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_location:
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_location);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -607,7 +572,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			break;
 
 			case ancs_cat_id_entertainment:
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_entertainment);
 			#ifdef ENABLE_LCD_DISPLAY
 			if(!notif_removed)
 			{
@@ -616,7 +580,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 			#endif /* ENABLE_LCD_DISPLAY */
 			break;
 			default:
-            ///LogReport(__FILE__, __func__, __LINE__, Ancs_Service_Data_cat_id_reserved);
 			break;
 		}
 
@@ -633,7 +596,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 
 		/* 4rd byte of the Notification - Cat Count */
         #if !USE_MY_ANCS
-		ANCSS_LOG_DEBUG("** Cat Count = %d\r\n", p_ind->value[ANCS_NS_OFFSET_CAT_COUNT]);
         #endif
 		notiSrc.source.cat_cnt = p_ind->value[ANCS_NS_OFFSET_CAT_COUNT];
 
@@ -648,7 +610,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 		}
 
 		#if !USE_MY_ANCS
-		ANCSS_LOG_DEBUG("** UUID = %02X%02X%02X%02X\r\n", uuid_data.data[0],uuid_data.data[1],uuid_data.data[2],uuid_data.data[3]);
 		g_last_received_notification = curr_data;
 		#endif
         

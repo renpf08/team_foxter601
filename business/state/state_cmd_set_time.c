@@ -26,7 +26,6 @@ s16 state_set_date_time(REPORT_E cb, void *args)
         *state = CLOCK;
     }
     clock_set(&clock);
-    print_date_time((u8*)&"set time=", &clock);
 
 	return 0;
 }

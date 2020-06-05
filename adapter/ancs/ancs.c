@@ -4,11 +4,6 @@
 #include "ancs_client.h"
 #include "adapter/adapter.h"
 
-#define ANCS_LOG_ERROR(...)    ancs_log(__FILE__, __func__, __LINE__, "<error>", __VA_ARGS__)
-#define ANCS_LOG_WARNING(...)  ancs_log(__FILE__, __func__, __LINE__, "<warning>", __VA_ARGS__)
-#define ANCS_LOG_INFO(...)     ancs_log(__FILE__, __func__, __LINE__, "<info>", __VA_ARGS__)
-#define ANCS_LOG_DEBUG(...)    ancs_log(__FILE__, __func__, __LINE__, "<debug>", __VA_ARGS__)
-
 /* Notification Source Event Flags */
 #define ANCS_NS_EVENTFLAG_SILENT                 (0x01) 
 #define ANCS_NS_EVENTFLAG_IMPORTANT              (0x02) 
@@ -117,16 +112,10 @@ app_msg_t  ancs_msg = {.cmd = 0x07};
 
 static adapter_callback ancs_cb = NULL;
 
-int ancs_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
 void ancs_business_handle(packing_msg_t* pack_msg);
 void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_source);
 void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source);
 s16 ancs_init(adapter_callback cb);
-
-int ancs_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...)
-{
-    return 0;
-}
 
 void ancs_business_handle(packing_msg_t* pack_msg)
 {
@@ -144,25 +133,16 @@ void ancs_business_handle(packing_msg_t* pack_msg)
     MemCopy(last_data.uuid, pack_msg->uuid, 4);
     MemCopy(last_data.appid, app_msg_list[i].app_id, sizeof(app_msg_list[i].app_id));
     
-    ANCS_LOG_INFO("-> uuid = %02X%02X%02X%02X\r\n", pack_msg->uuid[0],pack_msg->uuid[1],pack_msg->uuid[2],pack_msg->uuid[3]);
-    ANCS_LOG_INFO("0> cat id          (notif type) = %d\r\n", pack_msg->cat_id);
-    ANCS_LOG_INFO("1> event id       (notif state) = %d\r\n", pack_msg->evt_id);
-    //ANCS_LOG_INFO("2> event flag (importance)      = %s\r\n", ancs_notif_event_flag_str[pack_msg->evt_flag]);
     if(app_msg_list[i].app_id[0] == 0)
     {
-        ANCS_LOG_INFO("2> level           (importance) = <invalid>\r\n");
-        ANCS_LOG_INFO("3> attr app id   (message type) = <not found>\r\n");
         ancs_msg.level = 255; //! invalid if proMst.msgType = 255
         ancs_msg.type = 255; //! indicated unknown message
     }
     else
     {
-        ANCS_LOG_INFO("2> level           (importance) = %d\r\n", app_msg_list[i].msg_level);
-        ANCS_LOG_INFO("3> attr app id   (message type) = %s\r\n", app_msg_list[i].app_id);
         ancs_msg.level = app_msg_list[i].msg_level;
         ancs_msg.type = app_msg_list[i].app_index;
     }
-    ANCS_LOG_INFO("4> cat cnt      (message count) = %d\r\n", pack_msg->cat_cnt); 
     
     ancs_msg.sta = pack_msg->evt_id;
     ancs_msg.cnt = pack_msg->cat_cnt;
@@ -178,10 +158,6 @@ void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_s
     u8 i = 0;
     #if USE_MY_ANCS_DEBUG
     u8 *uuid = p_data_source->uuid;
-    ANCS_LOG_DEBUG("++ uuid       = %02X%02X%02X%02X\r\n", uuid[0],uuid[1],uuid[2],uuid[3]);
-    ANCS_LOG_DEBUG("++ attr id    = %d\r\n", p_data_source->attr_id);
-    ANCS_LOG_DEBUG("++ attr len   = %d\r\n", p_data_source->attr_len);
-    ANCS_LOG_DEBUG("++ attr data  = %s\r\n", p_data_source->attr_data);
     #endif
 
     if(p_data_source->attr_id == appid)
@@ -238,11 +214,6 @@ void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source)
     /** if noti.source.evtFlag is other value than 1 and 2, then just set it to 3 */
     noti_src->evt_flag = ((noti_src->evt_flag>2)||(noti_src->evt_flag<1))?3:noti_src->evt_flag;
     #if USE_MY_ANCS_DEBUG
-    ANCS_LOG_DEBUG("-- uuid       = %02X%02X%02X%02X\r\n", noti_src->uuid[0],noti_src->uuid[1],noti_src->uuid[2],noti_src->uuid[3]);
-    ANCS_LOG_DEBUG("-- event id   = %d\r\n", noti_src->evt_id);
-    ANCS_LOG_DEBUG("-- event flag = %d\r\n", noti_src->evt_flag);
-    ANCS_LOG_DEBUG("-- cat id     = %d\r\n", noti_src->cat_id);
-    ANCS_LOG_DEBUG("*- cat cnt    = %d\r\n", noti_src->cat_cnt);
     #endif
 
     /** packing stage 1: pack the notif soure */
@@ -263,18 +234,12 @@ void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source)
         //if((pck_msg.cat_id == ancs_cat_id_missed_call) || (MemCmp(last_data.uuid, pck_msg.uuid, 4) == 0))
         if(MemCmp(last_data.uuid, pck_msg.uuid, 4) == 0)
         {
-            ///LogReport(__FILE__, __func__, __LINE__, M_Ancs_removed_event_occur);
             MemCopy(pck_msg.attr_id_app_id_data, last_data.appid, sizeof(APP_ID_STRING_COMMING_CALL));
             ancs_business_handle(&pck_msg);
         }
         else
         {
             /** actually, as many removed-events would comes togther, we just handle one whos uuid was match to the last added-event  */
-            /*ANCS_LOG_DEBUG("removed event uuid not match:\r\n");
-            ANCS_LOG_DEBUG("event id = %d\r\n", notiSrc->evtId);
-            ANCS_LOG_DEBUG("f-b uuid = %02X%02X%02X%02X - %02X%02X%02X%02X\r\n", 
-                            lastData.uuid[0],lastData.uuid[1],lastData.uuid[2],lastData.uuid[3],
-                            pckMsg.uuid[0],pckMsg.uuid[1],pckMsg.uuid[2],pckMsg.uuid[3]);*/
         }
         MemSet(&last_data, 0, sizeof(last_data_map_t));
     }
@@ -302,7 +267,6 @@ void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source)
         /** if cat id did not indicate a known app, need to request to data source */
         else
         {
-            ///LogReport(__FILE__, __func__, __LINE__, M_Ancs_send_data_source_request);
             AncsGetNotificationAttributeCmd(p_noti_source->cid);
         }
     }

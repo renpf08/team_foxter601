@@ -84,9 +84,7 @@ void pair_code_generate(void)
             break;
         }
     }
-    print_str_hex((u8*)&"pair code=0x", pair_code.pair_code);
-    //print_str_dec((u8*)&"hour=", pair_code.hour);
-    //print_str_dec((u8*)&"minute=", pair_code.minute);
+    //print_str_hex((u8*)&"pair code=0x", pair_code.pair_code);
 	motor_hour_to_position(pair_code.hour);
 	motor_minute_to_position(pair_code.minute);
 }
@@ -95,24 +93,24 @@ static s16 ble_pair(void *args)
     STATE_E *state = (STATE_E *)args;
     u8* code = cmd_get()->pair_code.code;
     u16 pairing_code = (code[0]<<8)|code[1];
-    print_str_hex((u8*)&"recv code=0x", pairing_code);
+    //print_str_hex((u8*)&"recv code=0x", pairing_code);
     
     if(pairing_code == 0xFFFF) {
-        print((u8*)&"enter pair mode", 15);
+        //print((u8*)&"enter pair mode", 15);
         pair_code.pair_bgn = 1;
         pair_code_generate();
         ble_state_set(app_pairing);
     } else if(pairing_code == pair_code.pair_code) {
-        print((u8*)&"pair matched", 12);
+        //print((u8*)&"pair matched", 12);
         pair_code.pair_bgn = 0;
         ble_state_set(app_pairing_ok);
         *state = CLOCK;
     } else if(pair_code.pair_bgn == 1) {
-        print((u8*)&"pair mis-match", 14);
+        //print((u8*)&"pair mis-match", 14);
         pair_code_generate();
         ble_state_set(app_pairing);
     } else {
-        print((u8*)&"not pair mode", 13);
+        //print((u8*)&"not pair mode", 13);
         *state = CLOCK;
         return 0;
     }
@@ -125,18 +123,18 @@ static u16 ble_change(void *args)
     app_state state_ble = ble_state_get();
     
     if(state_ble == app_advertising) { // advertising start
-        print((u8*)&"adv start", 9);
+        //print((u8*)&"adv start", 9);
         timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
     } else if(state_ble == app_idle){ // advertising stop
-        print((u8*)&"adv stop", 8);
+        //print((u8*)&"adv stop", 8);
         *state_mc = CLOCK;
         motor_notify_to_position(NOTIFY_NONE);
     } else if(state_ble == app_connected){ // connected
-        print((u8*)&"connect", 7);
+        //print((u8*)&"connect", 7);
         motor_notify_to_position(NOTIFY_NONE);
         *state_mc = CLOCK;
     } else { // disconnected
-        print((u8*)&"disconect", 9);
+        //print((u8*)&"disconect", 9);
         *state_mc = CLOCK;
     }
 
@@ -146,10 +144,10 @@ static u16 ble_switch(void *args)
 {
     app_state cur_state = ble_state_get();
     if((cur_state == app_advertising) || (cur_state == app_connected)) {
-        print((u8*)&"switch off", 10);
+        //print((u8*)&"switch off", 10);
         ble_switch_off();
     } else {
-        print((u8*)&"switch on", 9);
+        //print((u8*)&"switch on", 9);
         ble_switch_on();
     }
 

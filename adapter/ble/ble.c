@@ -39,7 +39,7 @@ void ble_state_set(app_state cur_state)
         cur_state = app_advertising;
     }
     if(ble_last_state == cur_state) {
-        print((u8*)&"ble no change", 13);
+        //print((u8*)&"ble no change", 13);
         return;
     }
     ble_last_state = cur_state;
