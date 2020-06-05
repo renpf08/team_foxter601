@@ -18,7 +18,7 @@ typedef struct {
     u8 minute;
 } pair_ctrl_t;
 pair_ctrl_t pair_code = {0, 0, 0, 0};
-
+static bool swing_en = FALSE;
 static u8 day2[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
 	DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
@@ -122,7 +122,7 @@ static u16 ble_change(void *args)
     STATE_E *state_mc = (STATE_E *)args;
     app_state state_ble = ble_state_get();
     
-    if(state_ble == app_advertising) { // advertising start
+    if((state_ble == app_advertising) && (swing_en == TRUE)) { // advertising start
         //print((u8*)&"adv start", 9);
         timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
     } else if(state_ble == app_idle){ // advertising stop
@@ -131,6 +131,7 @@ static u16 ble_change(void *args)
         motor_notify_to_position(NOTIFY_NONE);
     } else if(state_ble == app_connected){ // connected
         //print((u8*)&"connect", 7);
+        if(swing_en == FALSE) swing_en = TRUE;
         motor_notify_to_position(NOTIFY_NONE);
         *state_mc = CLOCK;
     } else { // disconnected
@@ -143,6 +144,13 @@ static u16 ble_change(void *args)
 static u16 ble_switch(void *args)
 {
     app_state cur_state = ble_state_get();
+    if(swing_en == FALSE) { // first KEY_M_LONG_PRESS
+        swing_en = TRUE;
+        if(cur_state == app_advertising) {
+            ble_change(NULL);
+            return 0;
+        }
+    }
     if((cur_state == app_advertising) || (cur_state == app_connected)) {
         //print((u8*)&"switch off", 10);
         ble_switch_off();
