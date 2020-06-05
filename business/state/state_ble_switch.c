@@ -59,8 +59,7 @@ static void notify_swing_cb_handler(u16 id)
 void pair_code_generate(void)
 {
     u16 old_pair_code = 0;
-    u8 bcd_hour = 0;
-    u8 bcd_minute = 0;
+    u8 bcd_time_buf[2] = {0, 0};
     
     while(1) {
         old_pair_code = pair_code.pair_code;
@@ -77,14 +76,15 @@ void pair_code_generate(void)
             pair_code.minute %= 12;
         }
         pair_code.minute *= 5;
-        bcd_hour = hex_to_bcd(pair_code.hour);
-        bcd_minute = hex_to_bcd(pair_code.minute);
-        pair_code.pair_code = (bcd_hour<<8)|bcd_minute;
+        bcd_time_buf[0] = hex_to_bcd(pair_code.hour);
+        bcd_time_buf[1] = hex_to_bcd(pair_code.minute);
+        pair_code.pair_code = (bcd_time_buf[0]<<8)|bcd_time_buf[1];
         if(pair_code.pair_code != old_pair_code) {
             break;
         }
     }
     //print_str_hex((u8*)&"pair code=0x", pair_code.pair_code);
+    send_ble(bcd_time_buf, 2);
 	motor_hour_to_position(pair_code.hour);
 	motor_minute_to_position(pair_code.minute);
 }
@@ -101,7 +101,7 @@ static s16 ble_pair(void *args)
         pair_code_generate();
         ble_state_set(app_pairing);
     } else if(pairing_code == pair_code.pair_code) {
-        //print((u8*)&"pair matched", 12);
+        send_ble((u8*)&"pair matched", 12);
         pair_code.pair_bgn = 0;
         ble_state_set(app_pairing_ok);
         *state = CLOCK;
