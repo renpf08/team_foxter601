@@ -87,9 +87,12 @@ void pair_code_generate(void)
             break;
         }
     }
-    print_str_hex((u8*)&"pair code=0x", pair_code.pair_code);
-    //print_str_dec((u8*)&"hour=", pair_code.hour);
-    //print_str_dec((u8*)&"minute=", pair_code.minute);
+    //print_str_hex((u8*)&"pair code=0x", pair_code.pair_code);
+	print((u8 *)&"pair_hour:", 10);
+	print(&pair_code.hour, 1);
+	print((u8 *)&"pair_min:", 9);
+	print(&pair_code.minute, 1);
+	
 	motor_hour_to_position(pair_code.hour);
 	motor_minute_to_position(pair_code.minute);
 }
@@ -99,8 +102,11 @@ static s16 ble_pair(void *args)
     STATE_E *state = (STATE_E *)args;
     u8* code = cmd_get()->pair_code.code;
     u16 pairing_code = (code[0]<<8)|code[1];
-    print_str_hex((u8*)&"recv code=0x", pairing_code);
-    
+    //print_str_hex((u8*)&"recv code=0x", pairing_code);
+
+	print((u8 *)&"recv_code:", 10);
+	print((u8 *)&pairing_code, 2);
+	
     if(pairing_code == 0xFFFF) {
         print((u8*)&"enter pair mode", 15);
         pair_code.pair_bgn = 1;

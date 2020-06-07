@@ -74,7 +74,7 @@ typedef struct {
 #define HISTORY_CONTROL_LENGTH                  (sizeof(ctrl_t))/* word width */
 
 #define CONST_TIME_GRANULARITY                  (96)
-#define CONST_RING_BUFFER_LENGTH                (31+1)/* unit: day(1 byte more than acturlly need) */
+#define CONST_RING_BUFFER_LENGTH                (7+1)/* unit: day(1 byte more than acturlly need) */
 #define CONST_DATA_ONEDAY_LENGTH                (sizeof(data_t))
 #define HISTORY_DATA_OFFSET                     (HISTORY_CONTROL_OFFSET+HISTORY_CONTROL_LENGTH)
 #define HISTORY_DATA_LENGTH                     (CONST_DATA_ONEDAY_LENGTH*CONST_RING_BUFFER_LENGTH)/* store 20 days's history */

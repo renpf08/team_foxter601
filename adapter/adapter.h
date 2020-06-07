@@ -74,11 +74,11 @@ void ble_switch_off(void);
 void ble_state_set(app_state cur_state);
 app_state ble_state_get(void);
 
-int sprintf(char *buf, const char * sFormat, ...);
-int printf(const char * sFormat, ...);
-void print_str_hex(u8 *buf, u16 hex_num);
-void print_str_dec(u8 *buf, u16 dec_num);
-void print_date_time(u8 *buf, clock_t *datm);
+//int sprintf(char *buf, const char * sFormat, ...);
+//int printf(const char * sFormat, ...);
+//void print_str_hex(u8 *buf, u16 hex_num);
+//void print_str_dec(u8 *buf, u16 dec_num);
+//void print_date_time(u8 *buf, clock_t *datm);
 u8 bcd_to_hex(u8 bcd_data);
 u32 hex_to_bcd(u8 hex_data);
 

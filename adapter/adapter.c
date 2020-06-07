@@ -159,6 +159,7 @@ void print(u8 *buf, u16 num)
 	}
 }
 
+#if 0
 void print_str_hex(u8 *buf, u16 hex_num)
 {
     u8 hex_table[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
@@ -240,6 +241,7 @@ void print_date_time(u8 *buf, clock_t *datm)
 
     print(sbuf, i);
 }
+#endif
 
 #if 0
 u8 bcd_to_hex(u32 bcd_data)
@@ -278,7 +280,9 @@ void timer_event(u16 ms, timer_cb cb)
 	adapter.drv->timer->timer_start(ms, cb);
 }
 
+#if 0
 int printf(const char * sFormat, ...)
 {
 	return 0;
 }
+#endif
