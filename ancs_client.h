@@ -265,7 +265,9 @@ typedef enum
     Ancs_Client_system_started                                      = (LOG_DEBUG|95), 
 }log_report_code;
 
+#if 0
 extern void LogReport(const char* file, const char* func, unsigned line, log_report_code log_report_code);
+#endif
 
 /*============================================================================*
  *  Public Data Declarations

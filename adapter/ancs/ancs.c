@@ -263,7 +263,7 @@ void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source)
         //if((pck_msg.cat_id == ancs_cat_id_missed_call) || (MemCmp(last_data.uuid, pck_msg.uuid, 4) == 0))
         if(MemCmp(last_data.uuid, pck_msg.uuid, 4) == 0)
         {
-            LogReport(__FILE__, __func__, __LINE__, M_Ancs_removed_event_occur);
+            //LogReport(__FILE__, __func__, __LINE__, M_Ancs_removed_event_occur);
             MemCopy(pck_msg.attr_id_app_id_data, last_data.appid, sizeof(APP_ID_STRING_COMMING_CALL));
             ancs_business_handle(&pck_msg);
         }
@@ -302,7 +302,7 @@ void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source)
         /** if cat id did not indicate a known app, need to request to data source */
         else
         {
-            LogReport(__FILE__, __func__, __LINE__, M_Ancs_send_data_source_request);
+            //LogReport(__FILE__, __func__, __LINE__, M_Ancs_send_data_source_request);
             AncsGetNotificationAttributeCmd(p_noti_source->cid);
         }
     }
