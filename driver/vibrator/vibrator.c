@@ -7,7 +7,6 @@
 
 typedef struct {
 	pin_t vib_pin;
-	
 }csr_vibrator_cfg_t;
 
 static csr_vibrator_cfg_t csr_vibrator_cfg = {

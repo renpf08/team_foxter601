@@ -8,7 +8,9 @@
 
 #define BIT_MASK(num) (0x01UL << (num))
 
-#define QUEUE_BUFFER    100
+#define VAL_GET(num)        PioGet(num)
+
+#define QUEUE_BUFFER    40
 
 typedef struct {
 	u8 x_l;
@@ -363,6 +365,7 @@ typedef struct {
     u8 cmd; 
     u8 code[2];
 } cmd_pairing_code_t;
+
 typedef struct 
 {
     u8 cmd; 
@@ -375,6 +378,7 @@ typedef struct
     u8 height;
     u8 weight;
 } cmd_user_info_t;
+
 typedef struct {
     u8 cmd; 
     u8 year[2];
@@ -385,6 +389,7 @@ typedef struct {
     u8 second;
     u8 week;
 } cmd_set_time_t;
+
 typedef struct {
     u8 cmd;
     u8 clock1_alarm_switch;
@@ -538,5 +543,21 @@ typedef struct {
 	STATE_E   next_state;
 	state_func func;
 }state_t;
+
+typedef struct {
+	pin_t pin;
+	event_callback key_cb;
+	EVENT_E last_state;
+	EVENT_E now_state;
+}csr_key_cfg_t;
+
+#define POS_HIGH(num) PioSet((num), 1UL)
+#define POS_LOW(num) PioSet((num), 0UL)
+
+#define COM_HIGH(num) PioSet((num), 1UL)
+#define COM_LOW(num) PioSet((num), 0UL)
+
+#define NEG_HIGH(num) PioSet((num), 1UL)
+#define NEG_LOW(num) PioSet((num), 0UL)
 
 #endif

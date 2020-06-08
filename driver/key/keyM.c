@@ -4,45 +4,21 @@
 #include <timer.h>          /* Chip timer functions */
 #include "../driver.h"
 
-static void csr_keym_timer_create(uint32 timeout, timer_callback_arg handler);
-
-#define KEYM_VAL_GET(num)        PioGet(num)
-
-typedef struct {
-	pin_t pin;
-	event_callback keym_cb;
-	EVENT_E last_state;
-	EVENT_E now_state;
-}csr_keym_cfg_t;
-
-static csr_keym_cfg_t csr_keym_cfg = {
+static csr_key_cfg_t csr_keym_cfg = {
 	.pin = {
 				.group = 0,
 				.num = 0,
            },
-	.keym_cb = NULL,
+	.key_cb = NULL,
 	.last_state = KEY_M_UP,
 };
 
-static void csr_keym_timer_create(uint32 timeout, timer_callback_arg handler)
-{
-    const timer_id tId = TimerCreate(timeout, TRUE, handler);
-    
-    /* If a timer could not be created, panic to restart the app */
-    if (tId == TIMER_INVALID)
-    {
-        DebugWriteString("\r\nFailed to start timer");
-        /* Panic with panic code 0xfe */
-        Panic(0xfe);
-    }
-}
-
 static void csr_keym_event_recheck(u16 id)
 {
-	if((true == KEYM_VAL_GET(csr_keym_cfg.pin.num)) &&
+	if((true == VAL_GET(csr_keym_cfg.pin.num)) &&
 		(KEY_M_UP == csr_keym_cfg.now_state)) {
 		csr_keym_cfg.now_state = KEY_M_UP;
-	}else if((false == KEYM_VAL_GET(csr_keym_cfg.pin.num)) &&
+	}else if((false == VAL_GET(csr_keym_cfg.pin.num)) &&
 		(KEY_M_DOWN == csr_keym_cfg.now_state)) {
 		csr_keym_cfg.now_state = KEY_M_DOWN;
 	}else {
@@ -52,8 +28,8 @@ static void csr_keym_event_recheck(u16 id)
 	if(csr_keym_cfg.last_state == csr_keym_cfg.now_state) {
 		return;
 	} else {
-		if(NULL != csr_keym_cfg.keym_cb) {
-			csr_keym_cfg.keym_cb(csr_keym_cfg.now_state);
+		if(NULL != csr_keym_cfg.key_cb) {
+			csr_keym_cfg.key_cb(csr_keym_cfg.now_state);
 		}
 		csr_keym_cfg.last_state = csr_keym_cfg.now_state;
 	}
@@ -64,10 +40,10 @@ s16 csr_keym_event_handler(u32 key_num, u32 key_status)
 	if(key_num & (0x01UL << csr_keym_cfg.pin.num)) {
 		if(key_status & (0x01UL << csr_keym_cfg.pin.num)) {
 			csr_keym_cfg.now_state = KEY_M_UP;
-			csr_keym_timer_create(10*MILLISECOND, csr_keym_event_recheck);
+			timer_create(10*MILLISECOND, csr_keym_event_recheck);
 		} else {
-			csr_keym_cfg.now_state = KEY_M_DOWN;			
-			csr_keym_timer_create(10*MILLISECOND, csr_keym_event_recheck);
+			csr_keym_cfg.now_state = KEY_M_DOWN;
+			timer_create(10*MILLISECOND, csr_keym_event_recheck);
 		}
 	}
 	return 0;
@@ -77,7 +53,7 @@ static s16 csr_keym_init(cfg_t *args, event_callback cb)
 {
 	csr_keym_cfg.pin.group = args->keym_cfg.group;
 	csr_keym_cfg.pin.num = args->keym_cfg.num;
-	csr_keym_cfg.keym_cb = cb;
+	csr_keym_cfg.key_cb = cb;
 	
     /* Configure button to be controlled directly */
     PioSetMode(csr_keym_cfg.pin.num, pio_mode_user);
@@ -99,7 +75,7 @@ static s16 csr_keym_init(cfg_t *args, event_callback cb)
 
 static s16 csr_keym_uninit(void)
 {
-	csr_keym_cfg.keym_cb = NULL;
+	csr_keym_cfg.key_cb = NULL;
 	return 0;
 }
 

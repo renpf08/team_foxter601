@@ -106,6 +106,7 @@ typedef struct
      
      u8   Read_3D_Error_Count;       /*Ôö¼ÓÒ»¸ö¶ÁÈ¡3Öá¼ÓËÙ¼Æ³ö´í¼ÆÊı*/
 }STEP_COUNT_T;
+
 STEP_COUNT_T Step_Count_data = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0},{0,0,0,0,0,0,0,0},0,0,0,0,0,0,0,0,0,0,0,0};  
 
 /*¸öÈËĞÅÏ¢»ñÈ¡²¿·Ö*/
@@ -120,6 +121,7 @@ typedef struct
     u32  One_Minu_Medium_Sport_Calorie;  /*Ò»·ÖÖÓÇ¿ÔË¶¯¿¨Â·ÀïÖµ£¬µ¥Î»Ğ¡¿¨*/
     u32  One_Minu_Light_Sport_Calorie;  /*Ò»·ÖÖÓÇ¿ÔË¶¯¿¨Â·ÀïÖµ£¬µ¥Î»Ğ¡¿¨*/
 }BODY_INFO_T;
+
 BODY_INFO_T Body_Info_data;
 
 u8 Z_Acce_Val=0;  /*Ä£Äâµç×ÓÂŞÅÌÓÃ*/
@@ -309,7 +311,7 @@ static void StepCountProce(void)
         }
         else if(Step_Count_data.Pro_Step==PRO_STEP_RISING)
         {
-            for(i=0;i<32;i++) /*Ô­íÊÇ40*/
+            for(i=0;i<32;i++) /*Ô­íÊ?0*/
             {
                 Temp=GetXYZ_Acce_Data();
                 if(Temp<0xFFFE){ 

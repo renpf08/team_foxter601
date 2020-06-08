@@ -4,10 +4,12 @@
 #include "ancs_client.h"
 #include "adapter/adapter.h"
 
+#if 0
 #define ANCS_LOG_ERROR(...)    ancs_log(__FILE__, __func__, __LINE__, "<error>", __VA_ARGS__)
 #define ANCS_LOG_WARNING(...)  ancs_log(__FILE__, __func__, __LINE__, "<warning>", __VA_ARGS__)
 #define ANCS_LOG_INFO(...)     ancs_log(__FILE__, __func__, __LINE__, "<info>", __VA_ARGS__)
 #define ANCS_LOG_DEBUG(...)    ancs_log(__FILE__, __func__, __LINE__, "<debug>", __VA_ARGS__)
+#endif
 
 /* Notification Source Event Flags */
 #define ANCS_NS_EVENTFLAG_SILENT                 (0x01) 
@@ -117,16 +119,18 @@ app_msg_t  ancs_msg = {.cmd = 0x07};
 
 static adapter_callback ancs_cb = NULL;
 
-int ancs_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
+//int ancs_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...);
 void ancs_business_handle(packing_msg_t* pack_msg);
 void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_source);
 void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source);
 s16 ancs_init(adapter_callback cb);
 
+#if 0
 int ancs_log(const char* file, const char* func, unsigned line, const char* level, const char * sFormat, ...)
 {
     return 0;
 }
+#endif
 
 void ancs_business_handle(packing_msg_t* pack_msg)
 {
@@ -143,27 +147,36 @@ void ancs_business_handle(packing_msg_t* pack_msg)
     
     MemCopy(last_data.uuid, pack_msg->uuid, 4);
     MemCopy(last_data.appid, app_msg_list[i].app_id, sizeof(app_msg_list[i].app_id));
-    
+
+	#if 0
     ANCS_LOG_INFO("-> uuid = %02X%02X%02X%02X\r\n", pack_msg->uuid[0],pack_msg->uuid[1],pack_msg->uuid[2],pack_msg->uuid[3]);
     ANCS_LOG_INFO("0> cat id          (notif type) = %d\r\n", pack_msg->cat_id);
     ANCS_LOG_INFO("1> event id       (notif state) = %d\r\n", pack_msg->evt_id);
     //ANCS_LOG_INFO("2> event flag (importance)      = %s\r\n", ancs_notif_event_flag_str[pack_msg->evt_flag]);
+	#endif
     if(app_msg_list[i].app_id[0] == 0)
     {
+    	#if 0
         ANCS_LOG_INFO("2> level           (importance) = <invalid>\r\n");
         ANCS_LOG_INFO("3> attr app id   (message type) = <not found>\r\n");
+		#endif
         ancs_msg.level = 255; //! invalid if proMst.msgType = 255
         ancs_msg.type = 255; //! indicated unknown message
     }
     else
     {
+    	#if 0
         ANCS_LOG_INFO("2> level           (importance) = %d\r\n", app_msg_list[i].msg_level);
         ANCS_LOG_INFO("3> attr app id   (message type) = %s\r\n", app_msg_list[i].app_id);
+		#endif
         ancs_msg.level = app_msg_list[i].msg_level;
         ancs_msg.type = app_msg_list[i].app_index;
     }
+	
+	#if 0
     ANCS_LOG_INFO("4> cat cnt      (message count) = %d\r\n", pack_msg->cat_cnt); 
-    
+    #endif
+	
     ancs_msg.sta = pack_msg->evt_id;
     ancs_msg.cnt = pack_msg->cat_cnt;
     SerialSendNotification((u8 *)&ancs_msg, 5); //! send ANCS msg to peer, for test purpose
@@ -178,10 +191,12 @@ void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_s
     u8 i = 0;
     #if USE_MY_ANCS_DEBUG
     u8 *uuid = p_data_source->uuid;
+	#if 0
     ANCS_LOG_DEBUG("++ uuid       = %02X%02X%02X%02X\r\n", uuid[0],uuid[1],uuid[2],uuid[3]);
     ANCS_LOG_DEBUG("++ attr id    = %d\r\n", p_data_source->attr_id);
     ANCS_LOG_DEBUG("++ attr len   = %d\r\n", p_data_source->attr_len);
     ANCS_LOG_DEBUG("++ attr data  = %s\r\n", p_data_source->attr_data);
+	#endif
     #endif
 
     if(p_data_source->attr_id == appid)

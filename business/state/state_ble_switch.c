@@ -14,11 +14,9 @@
 typedef struct {
     u16 pair_code;
     u8 pair_bgn;
-    u8 hour;
-    u8 minute;
 } pair_ctrl_t;
 
-pair_ctrl_t pair_code = {0, 0, 0, 0};
+pair_ctrl_t pair_code = {0, 0};
 
 static u8 day2[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
@@ -56,12 +54,13 @@ static void notify_swing_cb_handler(u16 id)
     motor_date_to_position(day2[clock->day]);
     
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
-    //print((u8*)&"swing clock", 11);
 }
 
 void pair_code_generate(void)
 {
     u16 old_pair_code = 0;
+	u8 hour;
+    u8 minute;
     u8 bcd_hour = 0;
     u8 bcd_minute = 0;
     
@@ -71,17 +70,17 @@ void pair_code_generate(void)
         while((pair_code.pair_code == 0) || (pair_code.pair_code == 0xFFFF)) {
             pair_code.pair_code = Random16();
         }
-        pair_code.hour = (pair_code.pair_code>>8)&0x00FF;
-        pair_code.minute = pair_code.pair_code&0x00FF;
-        while(pair_code.hour >= 12) {
-            pair_code.hour %= 12;
+        hour = (pair_code.pair_code>>8)&0x00FF;
+        minute = pair_code.pair_code&0x00FF;
+        while(hour >= 12) {
+            hour %= 12;
         }
-        while(pair_code.minute >= 12) {
-            pair_code.minute %= 12;
+        while(minute >= 12) {
+            minute %= 12;
         }
-        pair_code.minute *= 5;
-        bcd_hour = hex_to_bcd(pair_code.hour);
-        bcd_minute = hex_to_bcd(pair_code.minute);
+        minute *= 5;
+        bcd_hour = hex_to_bcd(hour);
+        bcd_minute = hex_to_bcd(minute);
         pair_code.pair_code = (bcd_hour<<8)|bcd_minute;
         if(pair_code.pair_code != old_pair_code) {
             break;
@@ -89,12 +88,12 @@ void pair_code_generate(void)
     }
     //print_str_hex((u8*)&"pair code=0x", pair_code.pair_code);
 	print((u8 *)&"pair_hour:", 10);
-	print(&pair_code.hour, 1);
+	print(&hour, 1);
 	print((u8 *)&"pair_min:", 9);
-	print(&pair_code.minute, 1);
+	print(&minute, 1);
 	
-	motor_hour_to_position(pair_code.hour);
-	motor_minute_to_position(pair_code.minute);
+	motor_hour_to_position(hour);
+	motor_minute_to_position(minute);
 }
 
 static s16 ble_pair(void *args)

@@ -20,7 +20,6 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 	STATE_E *state = (STATE_E *)args;
 
 	//print((u8 *)&"battery_week", 12);
-
 	if(state_week == state_battery_week.cur_state) {
 		state_battery_week.cur_state = state_battery;
 		/*get battery level*/
@@ -42,8 +41,8 @@ s16 state_battery_week_status_get(void)
 	return state_battery_week.cur_state;
 }
 
+#if 0
 static adapter_callback battery_week_cb = NULL;
-
 static void battery_week_test_handler(u16 id)
 {
 	if(NULL != battery_week_cb) {
@@ -57,3 +56,4 @@ void battery_week_test(adapter_callback cb)
 	battery_week_cb = cb;
 	battery_week_test_handler(0);
 }
+#endif

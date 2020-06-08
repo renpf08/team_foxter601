@@ -1,7 +1,11 @@
 #ifndef DRIVER_H
 #define DRIVER_H
 
-#include"../common/common.h"
+#include "../common/common.h"
+#include <timer.h>          /* Chip timer functions */
+#include <pio.h>            /* Programmable I/O configuration and control */
+#include <panic.h>          /* Support for applications to panic */
+#include <debug.h>          /* Simple host interface to the UART driver */
 
 typedef struct {
 	init 			uart_init;
@@ -82,6 +86,7 @@ typedef struct {
 	motor_t		*motor_notify;
 }driver_t;
 
+void timer_create(uint32 timeout, timer_callback_arg handler);
 s16 csr_keya_event_handler(u32 key_num, u32 key_status);
 s16 csr_keyb_event_handler(u32 key_num, u32 key_status);
 s16 csr_keym_event_handler(u32 key_num, u32 key_status);

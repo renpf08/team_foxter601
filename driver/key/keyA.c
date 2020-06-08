@@ -4,45 +4,21 @@
 #include <timer.h>          /* Chip timer functions */
 #include "../driver.h"
 
-static void csr_keya_timer_create(uint32 timeout, timer_callback_arg handler);
-
-#define KEYA_VAL_GET(num)        PioGet(num)
-
-typedef struct {
-	pin_t pin;
-	event_callback keya_cb;
-	EVENT_E last_state;
-	EVENT_E now_state;
-}csr_keya_cfg_t;
-
-static csr_keya_cfg_t csr_keya_cfg = {
+static csr_key_cfg_t csr_keya_cfg = {
 	.pin = {
 				.group = 0,
 				.num = 0,
            },
-	.keya_cb = NULL,
+	.key_cb = NULL,
 	.last_state = KEY_A_UP,
 };
 
-static void csr_keya_timer_create(uint32 timeout, timer_callback_arg handler)
-{
-    const timer_id tId = TimerCreate(timeout, TRUE, handler);
-    
-    /* If a timer could not be created, panic to restart the app */
-    if (tId == TIMER_INVALID)
-    {
-        DebugWriteString("\r\nFailed to start timer");
-        /* Panic with panic code 0xfe */
-        Panic(0xfe);
-    }
-}
-
 static void csr_keya_event_recheck(u16 id)
 {
-	if((true == KEYA_VAL_GET(csr_keya_cfg.pin.num)) &&
+	if((true == VAL_GET(csr_keya_cfg.pin.num)) &&
 		(KEY_A_UP == csr_keya_cfg.now_state)) {
 		csr_keya_cfg.now_state = KEY_A_UP;
-	}else if((false == KEYA_VAL_GET(csr_keya_cfg.pin.num)) &&
+	}else if((false == VAL_GET(csr_keya_cfg.pin.num)) &&
 		(KEY_A_DOWN == csr_keya_cfg.now_state)) {
 		csr_keya_cfg.now_state = KEY_A_DOWN;
 	}else {
@@ -52,8 +28,8 @@ static void csr_keya_event_recheck(u16 id)
 	if(csr_keya_cfg.last_state == csr_keya_cfg.now_state) {
 		return;
 	} else {
-		if(NULL != csr_keya_cfg.keya_cb) {
-			csr_keya_cfg.keya_cb(csr_keya_cfg.now_state);
+		if(NULL != csr_keya_cfg.key_cb) {
+			csr_keya_cfg.key_cb(csr_keya_cfg.now_state);
 		}
 		csr_keya_cfg.last_state = csr_keya_cfg.now_state;
 	}
@@ -64,10 +40,10 @@ s16 csr_keya_event_handler(u32 key_num, u32 key_status)
 	if(key_num & (0x01UL << csr_keya_cfg.pin.num)) {
 		if(key_status & (0x01UL << csr_keya_cfg.pin.num)) {
 			csr_keya_cfg.now_state = KEY_A_UP;
-			csr_keya_timer_create(10*MILLISECOND, csr_keya_event_recheck);
+			timer_create(10*MILLISECOND, csr_keya_event_recheck);
 		} else {
 			csr_keya_cfg.now_state = KEY_A_DOWN;
-			csr_keya_timer_create(10*MILLISECOND, csr_keya_event_recheck);
+			timer_create(10*MILLISECOND, csr_keya_event_recheck);
 		}
 	}
 	return 0;
@@ -77,7 +53,7 @@ static s16 csr_keya_init(cfg_t *args, event_callback cb)
 {
 	csr_keya_cfg.pin.group = args->keya_cfg.group;
 	csr_keya_cfg.pin.num = args->keya_cfg.num;
-	csr_keya_cfg.keya_cb = cb;
+	csr_keya_cfg.key_cb = cb;
 	
     /* Configure button to be controlled directly */
     PioSetMode(csr_keya_cfg.pin.num, pio_mode_user);
@@ -99,7 +75,7 @@ static s16 csr_keya_init(cfg_t *args, event_callback cb)
 
 static s16 csr_keya_uninit(void)
 {
-	csr_keya_cfg.keya_cb = NULL;
+	csr_keya_cfg.key_cb = NULL;
 	return 0;
 }
 
