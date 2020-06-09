@@ -110,6 +110,7 @@ u8 calculate_angle(int16 x_val,int16 y_val,int16 z_val)
 	}
 	return x_temp;
 }
+
 void mag_get_measure_val(void)
 {
     u8 temp_flag=0;/*X_Temp,Y_Temp,Z_Temp;*/

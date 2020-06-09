@@ -227,6 +227,7 @@ s16 nvm_read_pairing_code(u16 *buffer, u8 index)
 
     return 0;
 }
+
 s16 nvm_write_pairing_code(u16 *buffer, u8 index)
 {
     nvm_write(buffer, PAIRING_CODE_LENGTH, PAIRING_CODE_OFFSET);
@@ -240,72 +241,84 @@ s16 nvm_read_date_time(u16 *buffer, u8 index)
 
     return 0;
 }
+
 s16 nvm_write_date_time(u16 *buffer, u8 index)
 {
     nvm_write(buffer, SYSTEM_DATE_TIME_LENGTH, SYSTEM_DATE_TIME_OFFSET);
 
     return 0;
 }
+
 s16 nvm_read_alarm_clock_single(u16 *buffer, u8 index)
 {
     nvm_read(buffer, ALARM_CLOCK_SINGLE_LENGTH, ALARM_CLOCK_OFFSET+index*ALARM_CLOCK_SINGLE_LENGTH);
 
     return 0; 
 }
+
 s16 nvm_write_alarm_clock_single(u16 *buffer, u8 index)
 {
     nvm_write(buffer, ALARM_CLOCK_SINGLE_LENGTH, ALARM_CLOCK_OFFSET+index*ALARM_CLOCK_SINGLE_LENGTH); 
 
     return 0;
 }
+
 s16 nvm_read_alarm_clock_total(u16 *buffer, u8 index)
 {
     nvm_read(buffer, ALARM_CLOCK_LENGTH, ALARM_CLOCK_OFFSET);
 
     return 0;
 }
+
 s16 nvm_write_alarm_clock_total(u16 *buffer, u8 index)
 {
     nvm_write(buffer, ALARM_CLOCK_LENGTH, ALARM_CLOCK_OFFSET); 
 
     return 0;
 }
+
 s16 nvm_read_display_setting(u16 *buffer, u8 index)
 {
     nvm_read(buffer, DISPLAY_SETTING_LENGTH, DISPLAY_SETTING_OFFSET);
 
     return 0;
 }
+
 s16 nvm_write_display_setting(u16 *buffer, u8 index)
 {
     nvm_write(buffer, DISPLAY_SETTING_LENGTH, DISPLAY_SETTING_OFFSET);  
 
     return 0;
 }
+
 s16 nvm_read_personal_info(u16 *buffer, u8 index)
 {
     nvm_read(buffer, PERSONAL_INFO_LENGTH, PERSONAL_INFO_OFFSET);
 
     return 0;
 }
+
 s16 nvm_write_personal_info(u16 *buffer, u8 index)
 {
     nvm_write(buffer, PERSONAL_INFO_LENGTH, PERSONAL_INFO_OFFSET);
 
     return 0;
 }
+
 s16 nvm_read_history_setting(u16 *buffer, u8 index)
 {
     nvm_read(buffer, SPORT_SETTING_LENGTH, SPORT_SETTING_OFFSET);
 
     return 0;
 }
+
 s16 nvm_write_history_setting(u16 *buffer, u8 index)
 {
     nvm_write(buffer, SPORT_SETTING_LENGTH, SPORT_SETTING_OFFSET);
 
     return 0;
 }
+
 s16 nvm_read_history_data(u16 *buffer, u8 index)
 {
     ctrl_t ctrl;
@@ -337,6 +350,7 @@ s16 nvm_read_history_data(u16 *buffer, u8 index)
 
     return ready;
 }
+
 s16 nvm_write_history_data(u16 *buffer, u8 index)
 {
     ctrl_t ctrl = {.ctrl1.ctrl3=0, .index1.index3=0};
@@ -381,6 +395,7 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
 
     return 0;
 }
+
 s16 nvm_write_step_data(u16 *buffer, u8 index)
 {
     data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
@@ -390,6 +405,7 @@ s16 nvm_write_step_data(u16 *buffer, u8 index)
 
     return 0;
 }
+
 s16 nvm_write_sleep_data(u16 *buffer, u8 index)
 {
     data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
@@ -399,11 +415,11 @@ s16 nvm_write_sleep_data(u16 *buffer, u8 index)
 
     return 0;
 }
+
 s16 nvm_erase_history_data(void)
 {
     ctrl_t ctrl = {.ctrl1.ctrl3=0, .index1.index3=0};
     
     nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
-
     return 0;
 }

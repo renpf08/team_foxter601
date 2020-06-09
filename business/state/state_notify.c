@@ -43,6 +43,7 @@ static const notify_convert_t notif_convert_list[] =
     {NOTIFY_RECV_CALENDER,      NOTIFY_CALENDER},
     {NOTIFY_RECV_LINKIN,        NOTIFY_LINKIN},
 };
+
 s16 state_notify(REPORT_E cb, void *args)
 {
 	STATE_E *state = (STATE_E *)args;

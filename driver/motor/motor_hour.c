@@ -105,24 +105,22 @@ static s16 csr_motor_hour_init(cfg_t *args, event_callback cb)
 				BIT_MASK(csr_motor_hour_cfg.neg.num),
 				pio_mode_user);
 	
-	PioSetDir(csr_motor_hour_cfg.pos.num, PIO_DIR_OUTPUT);
+	PioSetDir(csr_motor_hour_cfg.pos.num, PIO_DIR_INPUT);
 	PioSetDir(csr_motor_hour_cfg.com.num, PIO_DIR_OUTPUT);
-	PioSetDir(csr_motor_hour_cfg.neg.num, PIO_DIR_OUTPUT);
+	PioSetDir(csr_motor_hour_cfg.neg.num, PIO_DIR_INPUT);
 	
 	PioSetPullModes(BIT_MASK(csr_motor_hour_cfg.pos.num)| \
 					BIT_MASK(csr_motor_hour_cfg.com.num)| \
 					BIT_MASK(csr_motor_hour_cfg.neg.num),
 					pio_mode_no_pulls);
 
-	PioSets(BIT_MASK(csr_motor_hour_cfg.pos.num)| \
-			BIT_MASK(csr_motor_hour_cfg.com.num)| \
-			BIT_MASK(csr_motor_hour_cfg.neg.num),
-			0x0000UL);
+	PioSets(BIT_MASK(csr_motor_hour_cfg.com.num), 0x0000UL);
 	return 0;
 }
 
 static s16 csr_motor_hour_uninit(void)
 {
+#if 0
 	csr_motor_hour_cfg.pos.group = 0;
 	csr_motor_hour_cfg.pos.num = 0;
 
@@ -131,7 +129,7 @@ static s16 csr_motor_hour_uninit(void)
 
 	csr_motor_hour_cfg.neg.group = 0;
 	csr_motor_hour_cfg.neg.num = 0;
-
+#endif
 	return 0;
 }
 

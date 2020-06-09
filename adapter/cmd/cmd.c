@@ -128,6 +128,7 @@ static u8 cmd_set_alarm_clock(u8 *buffer, u8 length)
     MemCopy(&cmd_group.set_alarm_clock, buffer, sizeof(cmd_set_alarm_clock_t));
     return 0;
 }
+
 static u8 cmd_set_disp_format(u8 *buffer, u8 length)
 {
     cmd_set_disp_format_t* disp_format = (cmd_set_disp_format_t*)buffer;
@@ -139,46 +140,55 @@ static u8 cmd_set_disp_format(u8 *buffer, u8 length)
     MemCopy(&cmd_group.set_disp, buffer, sizeof(cmd_set_disp_format_t));
     return 0;
 }
+
 static u8 cmd_sync_data(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.sync_data, buffer, sizeof(cmd_sync_data_t));
     return 0;
 }
+
 static u8 cmd_response(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.send_resp, buffer, sizeof(cmd_response_t));
     return 0;
 }
+
 static u8 cmd_recv_notify(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.recv_notif, buffer, sizeof(cmd_recv_notify_t));
     return 0;
 }
+
 static u8 cmd_set_pointers(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.set_pointers, buffer, sizeof(cmd_set_pointers_t));
     return 0;
 }
+
 static u8 cmd_read_version(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.read_ver, buffer, sizeof(cmd_read_version_t));
     return 0;
 }
+
 static u8 cmd_set_clock_hand(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.set_clock_hand, buffer, sizeof(cmd_set_clock_hand_t));
     return 0;
 }
+
 static u8 cmd_set_vibration(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.set_vib, buffer, sizeof(cmd_set_vibration_t));
     return 0;
 }
+
 static u8 cmd_find_watch(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.find_watch, buffer, sizeof(cmd_find_watch_t));
     return 0;
 }
+
 static u8 cmd_set_ancs_bond_req(u8 *buffer, u8 length)
 {
     if(buffer[1] == 0xAA) {
@@ -187,11 +197,13 @@ static u8 cmd_set_ancs_bond_req(u8 *buffer, u8 length)
     //MemCopy(&cmd_group.set_ancs_bond, buffer, sizeof(cmd_set_ancs_bond_req_t));  
     return 0;
 }
+
 static u8 cmd_read_time_steps(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.read_time_step, buffer, sizeof(cmd_read_time_steps_t)); 
     return 0;
 }
+
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer)
 {
     u8 len = 0;
@@ -239,17 +251,19 @@ void cmd_parse(u8* content, u8 length)
     
     //get_driver()->uart->uart_write((unsigned char*)content, length);
 }
+
 void cmd_send_data(uint8 *data, uint16 size)
 {
     SerialSendNotification(data, size);
 }
+
 cmd_group_t *cmd_get(void)
 {
     return &cmd_group;
 }
+
 s16 cmd_init(adapter_callback cb)
 {
 	cmd_cb = cb;
 	return 0;
 }
-

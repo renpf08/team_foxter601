@@ -409,6 +409,7 @@ typedef struct {
     u8 clock4_hour;
     u8 clock4_minute;
 } cmd_set_alarm_clock_t;
+
 typedef struct { 
     u8 cmd; 
     u8 custm_disp;
@@ -416,15 +417,18 @@ typedef struct {
     u8 main_target;
     u8 used_hand;
 } cmd_set_disp_format_t;
+
 typedef struct { 
     u8 cmd; 
     u8 sync_data; 
 } cmd_sync_data_t;
+
 typedef struct { 
     u8 cmd; 
     u8 watch_cmd;
     u8 resp_value;
 } cmd_response_t;
+
 //typedef struct { 
 //    u8 cmd; 
 //    u8 notif_sta;
@@ -432,6 +436,7 @@ typedef struct {
 //    u8 msg_type;
 //    u8 msg_cnt;
 //} cmd_recv_notify_t;
+
 typedef struct { 
     u8 cmd; 
     u8 hour_pointer;
@@ -447,35 +452,42 @@ typedef struct {
     u8 notify_pointer;
     u8 notify_pointer_pos;
 } cmd_set_pointers_t;
+
 typedef struct { 
     u8 cmd; 
     u8 serial_num;
     u8 fw_version;
     u8 system_id;
 } cmd_read_version_t;
+
 typedef struct { 
     u8 cmd; 
     u8 clock_hand_num;
     u8 clock_hand_pos;
     u8 clock_hand_rotation;
 } cmd_set_clock_hand_t;
+
 typedef struct { 
     u8 cmd; 
     u8 vib_mode;
     u8 vib_times;
 } cmd_set_vibration_t;
+
 typedef struct { 
     u8 cmd; 
     u8 alarm_type; 
 } cmd_find_watch_t;
+
 typedef struct { 
     u8 cmd; 
     u8 action; 
 } cmd_set_ancs_bond_req_t;
+
 typedef struct { 
     u8 cmd; 
     u8 type; 
 } cmd_read_time_steps_t;
+
 typedef struct {
     cmd_pairing_code_t pair_code;
     cmd_user_info_t user_info;

@@ -66,6 +66,7 @@ typedef struct
      u32 FifteenMinuteMove;  /*十五分钟的运动量*/
 	 u16 AsleepInfo_Data_Table[12]; /*一天睡眠信息存储表*/
 }ASLEEP_DATA_INFO_T;  /*睡眠时间点信息数据结构*/
+
 ASLEEP_DATA_INFO_T Asleep_Data_Info;
 
 /***************************************************************************************/
@@ -144,6 +145,7 @@ void Acute_Sport_Time_Count_Init(void)
     Acute_Sport_Time_Count_data.MinuteTimeCount=0;
     Acute_Sport_Time_Count_data.OverTimeCount=0;
 }
+
 void Acute_Sport_Time_Count_Pro(void)
 {
     if(Acute_Sport_Time_Count_data.OverTimeCount)  Acute_Sport_Time_Count_data.OverTimeCount++;
@@ -177,6 +179,7 @@ void Acute_Sport_Time_Count_Pro(void)
        Acute_Sport_Time_Count_Init();
     }
 }
+
 /*计算带符号的8比特位数的平方*/
 u16 CaculateAsbSquare(u8 Temp)
 {
@@ -192,6 +195,7 @@ u16 CaculateAsbSquare(u8 Temp)
         ReturnVal=TempVal*TempVal;
      return ReturnVal;
 }
+
 /*初始化数据缓冲区*/
 void InitVal(u16 *ValS,u16 Val, u8 Length)
 {
@@ -201,6 +205,7 @@ void InitVal(u16 *ValS,u16 Val, u8 Length)
         ValS[i]=Val;
     }
 }
+
 /*求某数组的几个数平均值*/
 u16 AverageVal(u16 *Val,u8 Num)
 {
@@ -217,6 +222,7 @@ u16 AverageVal(u16 *Val,u8 Num)
    }
     return ReturnVal;
 }
+
 /*求前4个采样值的平均值，把新的数据推入缓冲区*/
 u16 AverageValPro(u16 *Val,u16 New,u8 Num)
 {
@@ -274,6 +280,7 @@ u16 GetXYZ_Acce_Data(void)
     
     return Return;
 }
+
 void Step_Count_data_Init(void)
 {
    Step_Count_data.DataGetCount=0;/*获取0个值*/
@@ -288,6 +295,7 @@ void Step_Count_data_Init(void)
    Step_Count_data.LastChangeTime=0;   /*解决一些步数突变的问题*/
    Step_Count_data.StepsChangeTimeBuffer=0; /*解决有时前几步变化的问题*/
 }
+
 static void StepCountProce(void);
 static void StepCountProce(void)
 {
@@ -539,6 +547,7 @@ static void StepCountProce(void)
         }
     }
 }
+
 static void step_sample_handler(u16 id)
 {
     StepCountProce();
@@ -563,14 +572,15 @@ static void step_sample_handler(u16 id)
     
 	get_driver()->timer->timer_start(280, step_sample_handler);
 }
+
 s16 step_sample_init(void)
 {
 	get_driver()->timer->timer_start(280, step_sample_handler);  
     Step_Count_data.Pro_Step=PRO_STEP_START;  
 	return 0;
 }
+
 u32 step_get(void)
 {
     return Total_Sport_Info_data.StepCounts;
 }
-

@@ -18,7 +18,10 @@ typedef struct {
 
 pair_ctrl_t pair_code = {0, 0};
 
-static u8 day2[] = {DAY_0,
+static void notify_swing_cb_handler(u16 id)
+{
+    static bool notify_swing_start = FALSE;
+	u8 day2[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
 	DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
 	DAY_11, DAY_12, DAY_13, DAY_14, DAY_15,
@@ -26,10 +29,7 @@ static u8 day2[] = {DAY_0,
 	DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
 	DAY_26, DAY_27,	DAY_28,	DAY_29, DAY_30,
 	DAY_31};
-
-static void notify_swing_cb_handler(u16 id)
-{
-    static bool notify_swing_start = FALSE;
+	
     app_state cur_state = ble_state_get();
     clock_t *clock = clock_get();
     
