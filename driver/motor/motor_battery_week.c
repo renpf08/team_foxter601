@@ -118,22 +118,6 @@ static s16 csr_motor_battery_week_init(cfg_t *args, event_callback cb)
 	return 0;
 }
 
-static s16 csr_motor_battery_week_uninit(void)
-{
-#if 0
-	csr_motor_battery_week_cfg.pos.group = 0;
-	csr_motor_battery_week_cfg.pos.num = 0;
-
-	csr_motor_battery_week_cfg.com.group = 0;
-	csr_motor_battery_week_cfg.com.num = 0;
-
-	csr_motor_battery_week_cfg.neg.group = 0;
-	csr_motor_battery_week_cfg.neg.num = 0;
-#endif
-
-	return 0;
-}
-
 motor_t csr_motor_battery_week = {
 	.motor_init = csr_motor_battery_week_init,
 	.motor_positive_first_half = csr_motor_battery_week_positive_first_half,
@@ -141,5 +125,4 @@ motor_t csr_motor_battery_week = {
 	.motor_stop = csr_motor_battery_week_stop,
 	.motor_negtive_first_half = csr_motor_battery_week_negtive_first_half,
 	.motor_negtive_second_half = csr_motor_battery_week_negtive_second_half,
-	.motor_uninit = csr_motor_battery_week_uninit,
 };

@@ -118,21 +118,6 @@ static s16 csr_motor_minute_init(cfg_t *args, event_callback cb)
 	return 0;
 }
 
-static s16 csr_motor_minute_uninit(void)
-{
-#if 0
-	csr_motor_minute_cfg.pos.group = 0;
-	csr_motor_minute_cfg.pos.num = 0;
-
-	csr_motor_minute_cfg.com.group = 0;
-	csr_motor_minute_cfg.com.num = 0;
-
-	csr_motor_minute_cfg.neg.group = 0;
-	csr_motor_minute_cfg.neg.num = 0;
-#endif
-	return 0;
-}
-
 motor_t csr_motor_minute = {
 	.motor_init = csr_motor_minute_init,
 	.motor_positive_first_half = csr_motor_minute_positive_first_half,
@@ -140,5 +125,4 @@ motor_t csr_motor_minute = {
 	.motor_stop = csr_motor_minute_stop,
 	.motor_negtive_first_half = csr_motor_minute_negtive_first_half,
 	.motor_negtive_second_half = csr_motor_minute_negtive_second_half,
-	.motor_uninit = csr_motor_minute_uninit,
 };

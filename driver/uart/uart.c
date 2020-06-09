@@ -254,21 +254,8 @@ static s16 csr_uart_init(cfg_t *args, event_callback cb)
 	return 0;
 }
 
-static s16 csr_uart_uninit(void)
-{
-#if 0
-	UART_TX_HIGH(uart_config.tx.num);
-	uart_config.tx.group = 0;
-	uart_config.tx.num = 0;
-	uart_config.rx.group = 0;
-	uart_config.rx.num = 0;
-#endif	
-	return 0;
-}
-
 uart_t csr_uart = {
 	.uart_init = csr_uart_init,
 	.uart_read = csr_uart_read,
 	.uart_write = csr_uart_write,
-	.uart_uninit = csr_uart_uninit,
 };

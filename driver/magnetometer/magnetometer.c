@@ -371,28 +371,7 @@ static s16 csr_magnetometer_init(cfg_t *args, event_callback cb)
 	}
 }
 
-static s16 csr_magnetometer_uninit(void)
-{
-	csr_magnetometer_stop_i2c();
-	
-	//scl
-	csr_mag3110.cfg.scl.group = 0;
-	csr_mag3110.cfg.scl.num = 0;
-
-	//sda	
-	csr_mag3110.cfg.sda.group = 0;
-	csr_mag3110.cfg.sda.num = 0;
-
-	//int1
-	csr_mag3110.cfg.int1.group = 0;
-	csr_mag3110.cfg.int1.num = 0;
-
-	csr_mag3110.magnetometer_cb = NULL;
-	return 0;
-}
-
 magnetometer_t csr_magnetometer = {
 	.magnetometer_init = csr_magnetometer_init,
 	.magnetometer_read = csr_magnetometer_read,
-	.magnetometer_uninit = csr_magnetometer_uninit,
 };

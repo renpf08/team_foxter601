@@ -511,7 +511,6 @@ typedef s16 (*adapter_callback)(REPORT_E cb, void *args);
 typedef s16 (*driver_callback_handler)(void *args);
 
 typedef s16 (*init)(cfg_t *args, event_callback cb);
-typedef s16 (*uninit)(void);
 typedef s16 (*read)(void *args);
 typedef s16 (*write)(u8 *buf, u16 num);
 

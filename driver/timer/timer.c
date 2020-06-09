@@ -22,13 +22,7 @@ static s16 csr_timer_init(cfg_t *args, event_callback cb)
 	return 0;
 }
 
-static s16 csr_timer_unint(void)
-{
-	return 0;
-}
-
 timer_t csr_timer = {
 	.timer_init = csr_timer_init,
 	.timer_start = csr_timer_start,
-	.timer_uninit = csr_timer_unint,
 };

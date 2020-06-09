@@ -73,13 +73,6 @@ static s16 csr_keyb_init(cfg_t *args, event_callback cb)
 	return 0;
 }
 
-static s16 csr_keyb_uninit(void)
-{
-	csr_keyb_cfg.key_cb = NULL;
-	return 0;
-}
-
 key_t csr_keyb = {
 	.key_init = csr_keyb_init,
-	.key_uninit = csr_keyb_uninit,
 };

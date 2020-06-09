@@ -73,13 +73,6 @@ static s16 csr_keya_init(cfg_t *args, event_callback cb)
 	return 0;
 }
 
-static s16 csr_keya_uninit(void)
-{
-	csr_keya_cfg.key_cb = NULL;
-	return 0;
-}
-
 key_t csr_keya = {
 	.key_init = csr_keya_init,
-	.key_uninit = csr_keya_uninit,
 };

@@ -30,14 +30,8 @@ static s16 csr_flash_init(cfg_t *args, event_callback cb)
 	return 0;
 }
 
-static s16 csr_flash_uninit(void)
-{
-	return 0;
-}
-
 flash_t csr_flash = {
 	.flash_init = csr_flash_init,
 	.flash_read = csr_flash_read,
 	.flash_write = csr_flash_write,
-	.flash_uninit = csr_flash_uninit,
 };
