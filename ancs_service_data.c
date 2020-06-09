@@ -282,13 +282,6 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                     }
                     g_ancs_data[i] = '\0';
 
-                    #ifdef ENABLE_LCD_DISPLAY
-                    if(attribute_data.attr_id  == ancs_notif_att_id_subtitle)
-                    {
-                        WriteDataToLcdDisplay((const char*)&g_ancs_data[0],data_len,TRUE);
-                    }
-                    #endif /* ENABLE_LCD_DISPLAY */
-                    
                     /* Update till, what we have read */
                     count += data_len;
                     attribute_data.pending_attr_data -= data_len;
@@ -321,13 +314,6 @@ static bool ancsParseData(uint8 *p_data, uint16 size_value)
                         
                         g_ancs_data[i] = '\0';
 
-                        #ifdef ENABLE_LCD_DISPLAY
-                        if(attribute_data.attr_id  == ancs_notif_att_id_subtitle)
-                        {
-                            WriteDataToLcdDisplay((const char*)&g_ancs_data[0],data_len,TRUE);
-                        }
-                        #endif /* ENABLE_LCD_DISPLAY */
-                        
                         /* Is more data remaining? */
                         attribute_data.pending_attr_data =
                         (attribute_data.attr_len - data_len);
@@ -410,14 +396,6 @@ static bool ancsHandleNotificationSourceData(GATT_CHAR_VAL_IND_T *p_ind)
 		}
 
         ancs_noti_source_handle(p_ind, &notiSrc);
-        
-        #if 0
-		if(!notif_removed) //! modified by mlw at 20200319 09:51
-		{
-			/* Send Notification Attribute Request */
-			AncsGetNotificationAttributeCmd(g_cid);
-		}
-        #endif
 	}
 
 	return TRUE;

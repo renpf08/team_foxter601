@@ -42,7 +42,4 @@ FO601
 /* Short button press time duration */
 #define SHORT_BUTTON_PRESS_TIMER                  (2 * SECOND)
 
-#ifdef ENABLE_LCD_DISPLAY
-#define LCD_I2C_ADDRESS                            (0x3C)                                          
-#endif /* ENABLE_LCD_DISPLAY */
 #endif /* __USER_CONFIG_H__ */
