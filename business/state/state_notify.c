@@ -47,9 +47,12 @@ s16 state_notify(REPORT_E cb, void *args)
 {
 	STATE_E *state = (STATE_E *)args;
 	app_msg_t *ancs_msg = NULL;
+    u8 *tMsg = NULL;
 
     if(cb == ANCS_NOTIFY_INCOMING) {
         ancs_msg = ancs_get();
+        tMsg = (u8*)&ancs_msg[1];
+        send_ble(tMsg, 4);
     } else if(cb == ANDROID_NOTIFY) {
         ancs_msg = &cmd_get()->recv_notif;
         //print_str_dec((u8*)&"android type=", (u16)ancs_msg->type);

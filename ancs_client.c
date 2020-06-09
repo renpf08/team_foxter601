@@ -824,34 +824,6 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                     {
                         GattOnConnection(p_event_data->cid);
                     }
-
-                    #if USE_CONNECT_BONDING
-                    /* Initiate slave security request if the remote host 
-                     * supports security feature. This is added for this device 
-                     * to work against legacy hosts that don't support security
-                     */
-
-                    /* Security supported by the remote host */
-                    if(!GattIsAddressResolvableRandom(&g_app_data.con_bd_addr))
-                    {
-                        /* Non-Apple Device.Initiate Security request */
-                        SMRequestSecurityLevel(&g_app_data.con_bd_addr);
-                    }
-                    else /* APPLE Device */
-                    {
-                        /* Check if have the remote gatt handles cached */
-                        if(!g_app_data.remote_gatt_handles_present)
-                        {
-                            /* Start Gatt Database discovery. */
-                            DiscoverServices(); 
-                        }
-                        
-                        /** ANCS service handles is useful? */
-                        else
-                        {
-                        }
-                    }
-                    #endif
                 }
             }
             else

@@ -4,11 +4,6 @@
 #include "ancs_client.h"
 #include "adapter/adapter.h"
 
-/* Notification Source Event Flags */
-#define ANCS_NS_EVENTFLAG_SILENT                 (0x01) 
-#define ANCS_NS_EVENTFLAG_IMPORTANT              (0x02) 
-#define ANCS_NS_EVENTFLAG_RESERVED               ((1<<2)-(1<<7))
-
 #define MESSAGE_IMPORTANCE_NONE           0
 #define MESSAGE_IMPORTANCE_LINE           0xFF
 #define MESSAGE_IMPORTANCE_QQ             0xFF
@@ -71,33 +66,14 @@ static const APPIDINDEX app_msg_list[] =
 	{0, 0, "\0"} //! Finish here
 };
 
-/* enum for notification attribute id 
- * NOTE: need to one-to-one correspondence with @ref ancs_event_id in ancs_service_data.h
-*/
-typedef enum
-{
-    appid = 0x0,
-    title,
-    subtitle,
-    message,
-    messageSize,
-    date
-}att_id_str;
-
 typedef struct
 {
-    u8 recv_attr_id_fragment;                       //! receive msg count, total fragment = REQ_ANCS_NOTIF_ATT_ID_TOTAL
     u8 uuid[4];                                     //! message UUID
     u8 evt_id;                                      //! added, modified, removed, reserved
     u8 evt_flag;                                    //! silent, important, reserved
     u8 cat_id;                                      //! 0other,1incomingCall,2missedCall,3vmail,4social,5schedule,6email,7news,8health,9bussiness,10location,11entertainment,12~255reserved
     u8 cat_cnt;                                     //! message count indicated by catId
-    u8 attr_id_app_id_data[MAX_LENGTH_ATTTDATA];    //! app name, e.g. QQ->com.tencent.mqq
-    u8 attr_id_title_data[MAX_LENGTH_ATTTDATA];     //! contact name
-    u8 attr_id_sub_title_data[MAX_LENGTH_ATTTDATA]; //! sub contact name
-    u8 attr_id_message_data[MAX_LENGTH_ATTTDATA];   //! message content
-    uint16 attr_id_message_size;                    //! message length
-    u8 attr_id_date_data[MAX_LENGTH_ATTTDATA];      //! date and time that the message was received
+    u8 attr_id_app_id[MAX_LENGTH_APPID];       //! app name, e.g. QQ->com.tencent.mqq
 } packing_msg_t;
 
 typedef struct
@@ -123,7 +99,7 @@ void ancs_business_handle(packing_msg_t* pack_msg)
 
     while(app_msg_list[i].app_id[0] != 0)
     {
-        if(MemCmp(pack_msg->attr_id_app_id_data, app_msg_list[i].app_id, sizeof(app_msg_list[i].app_id)) == 0)
+        if(MemCmp(pack_msg->attr_id_app_id, app_msg_list[i].app_id, sizeof(app_msg_list[i].app_id)) == 0)
         {
             break;
         }
@@ -146,51 +122,19 @@ void ancs_business_handle(packing_msg_t* pack_msg)
     
     ancs_msg.sta = pack_msg->evt_id;
     ancs_msg.cnt = pack_msg->cat_cnt;
-    SerialSendNotification((u8 *)&ancs_msg, 5); //! send ANCS msg to peer, for test purpose
     if(NULL != ancs_cb) {
-        //print((u8*)&"ancs",4);
 		ancs_cb(ANCS_NOTIFY_INCOMING, NULL);
     }
-    //ancs_cb_handler();
 }
 void ancs_data_source_handle(u8 *p_data, u16 size_value, data_source_t *p_data_source)
 {
     u8 i = 0;
-    #if USE_MY_ANCS_DEBUG
-    u8 *uuid = p_data_source->uuid;
-    #endif
 
-    if(p_data_source->attr_id == appid)
+    if(p_data_source->attr_id == 0)
     {
-        for(i = 0; i < p_data_source->attr_len; i++) pck_msg.attr_id_app_id_data[i] = p_data_source->attr_data[i];
-    }
-    else if(p_data_source->attr_id == title)
-    {
-        for(i = 0; i < p_data_source->attr_len; i++) pck_msg.attr_id_title_data[i] = p_data_source->attr_data[i];
-    }
-    else if(p_data_source->attr_id == subtitle)
-    {
-        for(i = 0; i < p_data_source->attr_len; i++) pck_msg.attr_id_sub_title_data[i] = p_data_source->attr_data[i];
-    }
-    else if(p_data_source->attr_id == message)
-    {
-        for(i = 0; i < p_data_source->attr_len; i++) pck_msg.attr_id_message_data[i] = p_data_source->attr_data[i];
-    }
-    else if(p_data_source->attr_id == messageSize)
-    {
-        for(i = 0; i < p_data_source->attr_len; i++)
-        {
-            pck_msg.attr_id_message_size *= 10;
-            pck_msg.attr_id_message_size += (p_data_source->attr_data[i]-'0');
+        for(i = 0; i < p_data_source->attr_len; i++) {
+            pck_msg.attr_id_app_id[i] = p_data_source->attr_data[i];
         }
-    }
-    else if(p_data_source->attr_id == date)
-    {
-        for(i = 0; i < p_data_source->attr_len; i++) pck_msg.attr_id_date_data[i] = p_data_source->attr_data[i];
-    }
-    
-    if(++pck_msg.recv_attr_id_fragment >= REQ_ANCS_NOTIF_ATT_ID_TOTAL)
-    {
         ancs_business_handle(&pck_msg);
         MemSet(&pck_msg, 0, sizeof(packing_msg_t));
     }
@@ -213,8 +157,6 @@ void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source)
     source_t *noti_src = (source_t*)&p_noti_source->source;
     /** if noti.source.evtFlag is other value than 1 and 2, then just set it to 3 */
     noti_src->evt_flag = ((noti_src->evt_flag>2)||(noti_src->evt_flag<1))?3:noti_src->evt_flag;
-    #if USE_MY_ANCS_DEBUG
-    #endif
 
     /** packing stage 1: pack the notif soure */
     MemSet(&pck_msg, 0, sizeof(packing_msg_t));
@@ -234,7 +176,7 @@ void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source)
         //if((pck_msg.cat_id == ancs_cat_id_missed_call) || (MemCmp(last_data.uuid, pck_msg.uuid, 4) == 0))
         if(MemCmp(last_data.uuid, pck_msg.uuid, 4) == 0)
         {
-            MemCopy(pck_msg.attr_id_app_id_data, last_data.appid, sizeof(APP_ID_STRING_COMMING_CALL));
+            MemCopy(pck_msg.attr_id_app_id, last_data.appid, sizeof(APP_ID_STRING_COMMING_CALL));
             ancs_business_handle(&pck_msg);
         }
         else
@@ -256,11 +198,11 @@ void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source)
            (pck_msg.cat_id == ancs_cat_id_schedule)||
            (pck_msg.cat_id == ancs_cat_id_news)) //! did news need to be request data source???
         {
-			if((pck_msg.cat_id == ancs_cat_id_incoming_call)) MemCopy(pck_msg.attr_id_app_id_data, APP_ID_STRING_COMMING_CALL, sizeof(APP_ID_STRING_COMMING_CALL));
-			if((pck_msg.cat_id == ancs_cat_id_missed_call)) MemCopy(pck_msg.attr_id_app_id_data, APP_ID_STRING_COMMING_CALL, sizeof(APP_ID_STRING_COMMING_CALL));
-			if((pck_msg.cat_id == ancs_cat_id_email)) MemCopy(pck_msg.attr_id_app_id_data, APP_ID_STRING_EMAIL, sizeof(APP_ID_STRING_EMAIL));
-			if((pck_msg.cat_id == ancs_cat_id_schedule)) MemCopy(pck_msg.attr_id_app_id_data, APP_ID_STRING_CALENDAR, sizeof(APP_ID_STRING_CALENDAR));
-			if((pck_msg.cat_id == ancs_cat_id_news)) MemCopy(pck_msg.attr_id_app_id_data, APP_ID_STRING_NEWS, sizeof(APP_ID_STRING_NEWS));
+			if((pck_msg.cat_id == ancs_cat_id_incoming_call)) MemCopy(pck_msg.attr_id_app_id, APP_ID_STRING_COMMING_CALL, sizeof(APP_ID_STRING_COMMING_CALL));
+			if((pck_msg.cat_id == ancs_cat_id_missed_call)) MemCopy(pck_msg.attr_id_app_id, APP_ID_STRING_COMMING_CALL, sizeof(APP_ID_STRING_COMMING_CALL));
+			if((pck_msg.cat_id == ancs_cat_id_email)) MemCopy(pck_msg.attr_id_app_id, APP_ID_STRING_EMAIL, sizeof(APP_ID_STRING_EMAIL));
+			if((pck_msg.cat_id == ancs_cat_id_schedule)) MemCopy(pck_msg.attr_id_app_id, APP_ID_STRING_CALENDAR, sizeof(APP_ID_STRING_CALENDAR));
+			if((pck_msg.cat_id == ancs_cat_id_news)) MemCopy(pck_msg.attr_id_app_id, APP_ID_STRING_NEWS, sizeof(APP_ID_STRING_NEWS));
             ancs_business_handle(&pck_msg);
         }
         
