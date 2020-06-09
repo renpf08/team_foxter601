@@ -634,7 +634,7 @@ static void handleBondingChanceTimerExpiry(timer_id tid)
         /* The bonding chance timer has expired. This means the remote has not
          * encrypted the link using old keys. Disconnect the link.
          */
-        AppSetState(app_disconnecting, 0x01);
+        AppSetState(app_disconnecting);
     }/* else it may be due to some race condition. Ignore it. */
 }
 
@@ -673,7 +673,7 @@ static void handleSignalGattCancelConnectCfm(GATT_CANCEL_CONNECT_CFM_T
         }
         else
         {
-            AppSetState(app_fast_advertising, 0x02);
+            AppSetState(app_fast_advertising);
         }
     }
     else
@@ -686,12 +686,12 @@ static void handleSignalGattCancelConnectCfm(GATT_CANCEL_CONNECT_CFM_T
              */
             case app_fast_advertising:
             {
-                AppSetState(app_slow_advertising, 0x03);
+                AppSetState(app_slow_advertising);
             }
             break;
             case app_slow_advertising:
             {
-                AppSetState(app_fast_advertising, 0x04); //! AppSetState(app_idle, 0x04);
+                AppSetState(app_fast_advertising); //! AppSetState(app_idle, 0x04);
             }
             break; 
             /** add by mlw, 20200328 20:39 */
@@ -757,7 +757,7 @@ static void handleSignalLmDisconnectComplete(
                 appDataInit();
 
                 /* Restart advertising */
-                AppSetState(app_fast_advertising, 0x05);
+                AppSetState(app_fast_advertising);
             }
             break;
             default:
@@ -797,7 +797,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                 /* Store received UCID */
                 g_app_data.st_ucid = p_event_data->cid;
 
-                AppSetState(app_connected, 0x06);
+                AppSetState(app_connected);
       
 
                 if(g_app_data.bonded == TRUE && 
@@ -831,7 +831,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                 /* Else wait for user activity before we start advertising 
                  * again
                  */
-                AppSetState(app_fast_advertising, 0x08); //! AppSetState(app_idle, 0x08);
+                AppSetState(app_fast_advertising); //! AppSetState(app_idle, 0x08);
             }
         }
         break;
@@ -1170,7 +1170,7 @@ static void handleSignalSmSimplePairingCompleteInd(
                  */
                  if(p_event_data->status == sm_status_repeated_attempts)
                  {
-                    AppSetState(app_disconnecting, 0x09);
+                    AppSetState(app_disconnecting);
                  }
                  else if(g_app_data.bonded)
                  {
@@ -1293,7 +1293,7 @@ static void handleSignalGattDbCfm(GATT_ADD_DB_CFM_T *p_event_data)
             {
                  /* Database is set up. So start advertising */
                 /**original advertise mode: fast adv 30s -> slow adv 60s -> idle*/
-                AppSetState(app_fast_advertising, 0x0A);
+                AppSetState(app_fast_advertising);
                 
                 /** new advertise mode: slow adv mode with no fast adv or idle*/
                 /*AppSetState(app_slow_advertising);*/
@@ -1462,7 +1462,7 @@ static void handleGattReadCharValCfm(GATT_READ_CHAR_VAL_CFM_T *p_event_data)
            when we receive disconnect indication */
 
         /* Something went wrong. We can't recover, so disconnect */
-        AppSetState(app_disconnecting, 0x0B);
+        AppSetState(app_disconnecting);
     }
 }
 
@@ -1535,7 +1535,7 @@ static void handleGattWriteCharValCfm(GATT_WRITE_CHAR_VAL_CFM_T *p_event_data)
         else
         {
             /* Something went wrong. We can't recover, so disconnect */
-            AppSetState(app_disconnecting, 0x0C);
+            AppSetState(app_disconnecting);
         }
     }
 }
@@ -1632,7 +1632,7 @@ extern void OtaTimerHandler(timer_id tid)
         /* The remote device does not support anything interesting.
          * Disconnect and wait for some one else to connect.
          */
-        AppSetState(app_disconnecting, 0x0D);
+        AppSetState(app_disconnecting);
 
     }
 }
@@ -1750,14 +1750,14 @@ extern void HandleShortButtonPress(void)
              * list. Once advertisements are stopped, reset the whitelist
              * and trigger advertisements again for any host to connect
              */
-            //! AppSetState(app_fast_advertising, 0x14); //! there is bug to lead the system reboot when set to fast advertising mode
+            //! AppSetState(app_fast_advertising); //! there is bug to lead the system reboot when set to fast advertising mode
             GattStopAdverts();
         }
         break;
         case app_idle:
         {
             /* Start fast undirected advertisements. */
-            AppSetState(app_fast_advertising, 0x15);
+            AppSetState(app_fast_advertising);
         }
         break;
         default:
@@ -1812,7 +1812,7 @@ extern void HandlePairingRemoval(void)
                  * and services data related to bonding status will get 
                  * updated while exiting disconnecting state
                  */
-                AppSetState(app_disconnecting, 0x16);
+                AppSetState(app_disconnecting);
 
                 /* Reset and clear the whitelist */
                 LsResetWhiteList();
@@ -1857,7 +1857,7 @@ extern void HandlePairingRemoval(void)
                 LsResetWhiteList();
 
                 /* Start fast undirected advertisements. */
-                AppSetState(app_fast_advertising, 0x17);
+                AppSetState(app_fast_advertising);
             }
             break;
 
@@ -1878,7 +1878,7 @@ extern void HandlePairingRemoval(void)
  *      Nothing.
  *
  *----------------------------------------------------------------------------*/
-void AppSetState(app_state new_state, uint8 caller)
+void AppSetState(app_state new_state)
 {
     app_state old_state = g_app_data.state;
 //    u8 test_hts_table[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
@@ -2452,7 +2452,7 @@ void HandleConnectReq(void)
     /* Start advertising */
     if(g_app_data.state == app_idle)
     {
-        AppSetState(app_fast_advertising, 0x18);
+        AppSetState(app_fast_advertising);
     }
 }
 
@@ -2472,7 +2472,7 @@ void HandleDisconnectReq(void)
    if(app_connected == AppGetState())
     {
         /* Initiate a disconnect */
-        AppSetState(app_disconnecting, 0x19);
+        AppSetState(app_disconnecting);
     }
 }
 
@@ -2618,7 +2618,7 @@ void APP_Move_Bonded(uint8 caller)
     /* OTA Service data initialisation */
     OtaDataInit();
     
-    //AppSetState(app_fast_advertising, 0x1A);
+    //AppSetState(app_fast_advertising);
     //GattStopAdverts();
 }
 

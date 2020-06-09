@@ -162,7 +162,7 @@ extern APP_DATA_T g_app_data;
  *  Public Function Prototypes
  *============================================================================*/
 /* This function is used to set the state of the application*/
-extern void AppSetState(app_state new_state, uint8 caller);
+extern void AppSetState(app_state new_state);
 
 /* HandleShortButtonPress handles short button presses */
 extern void HandleShortButtonPress(void);

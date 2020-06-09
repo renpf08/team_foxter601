@@ -12,7 +12,7 @@ void ble_switch_on(void)
     if((g_app_data.state != app_connected) && 
        (g_app_data.state != app_fast_advertising) && 
        (g_app_data.state != app_slow_advertising)) {
-        AppSetState(app_fast_advertising, 0x0E);
+        AppSetState(app_fast_advertising);
     } else {
     }
 }
@@ -20,10 +20,10 @@ void ble_switch_off(void)
 {
     if(g_app_data.state == app_connected) {
         g_app_data.pairing_remove_button_pressed = FALSE;
-        AppSetState(app_disconnecting, 0x0F);
+        AppSetState(app_disconnecting);
     } else if((g_app_data.state != app_fast_advertising) || (g_app_data.state != app_slow_advertising)) {
         g_app_data.pairing_remove_button_pressed = FALSE;
-        AppSetState(app_idle, 0x10);
+        AppSetState(app_idle);
     }
 }
 void ble_state_set(app_state cur_state)
