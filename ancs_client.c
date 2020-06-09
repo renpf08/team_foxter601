@@ -1718,8 +1718,10 @@ extern void ReportPanic(const char* file, const char* func, unsigned line, app_p
 #ifdef ENABLE_DEBUG_PANIC
     Panic(panic_code);
 #else
-    //printf("<error> %s %s %d: code:0x%08X\r\n", file, func, line, panic_code);
-    print((u8*)&"painc", 5);
+    u8 panic_buf[8] = {"painc=xx"};
+    panic_buf[6] = panic_code/10 + '0';
+    panic_buf[7] = panic_code%10 + '0';
+    print(panic_buf, 8);
 #endif
 }
 
