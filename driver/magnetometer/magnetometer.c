@@ -183,6 +183,7 @@ static void csr_magnetometer_start_i2c(void)
 	SCL_HIGH(csr_mag3110.cfg.scl.num);
 }
 
+#if 0
 static void csr_magnetometer_stop_i2c(void)
 {
 	//SDA CONFIGURATION
@@ -193,6 +194,7 @@ static void csr_magnetometer_stop_i2c(void)
 	SDA_HIGH(csr_mag3110.cfg.sda.num);
 	SCL_HIGH(csr_mag3110.cfg.scl.num);
 }
+#endif
 
 static u8 csr_magnetometer_reg_read(u8 reg, u8 *buf, u8 num)
 {

@@ -93,38 +93,6 @@ static s16 driver_init(void)
 	return 0;
 }
 
-void driver_uninit(void)
-{
-	//timer uninit
-	adapter.drv->timer->timer_uninit();
-	adapter.drv->battery->battery_uninit();
-	adapter.drv->keya->key_uninit();
-	adapter.drv->flash->flash_uninit();
-
-	//uart uninit
-	adapter.drv->uart->uart_uninit();
-
-	//vibrator uninit	
-	adapter.drv->vibrator->vibrator_off(NULL);
-	adapter.drv->vibrator->vibrator_uninit();
-
-	//gsensor uninit
-	adapter.drv->gsensor->gsensor_uninit();
-
-	//magnetometer uninit
-	adapter.drv->magnetometer->magnetometer_uninit();
-
-	//motor uninit
-	adapter.drv->motor_hour->motor_uninit();
-	adapter.drv->motor_minute->motor_uninit();
-	adapter.drv->motor_activity->motor_uninit();
-	adapter.drv->motor_date->motor_uninit();
-	adapter.drv->motor_battery_week->motor_uninit();
-	adapter.drv->motor_notify->motor_uninit();
-	
-	adapter.drv = NULL;
-}
-
 s16 adapter_init(adapter_callback cb)
 {
 	//driver init
@@ -140,13 +108,6 @@ s16 adapter_init(adapter_callback cb)
     step_sample_init();
     mag_sample_init();
     ble_switch_init(cb);
-	return 0;
-}
-
-s16 adapter_uninit()
-{
-	driver_uninit();
-	adapter.cb = NULL;
 	return 0;
 }
 
@@ -279,10 +240,3 @@ void timer_event(u16 ms, timer_cb cb)
 {
 	adapter.drv->timer->timer_start(ms, cb);
 }
-
-#if 0
-int printf(const char * sFormat, ...)
-{
-	return 0;
-}
-#endif
