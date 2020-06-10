@@ -10,7 +10,6 @@
 extern bool SerialSendNotification(u8 *data, u16 size);
 
 s16 adapter_init(adapter_callback cb);
-s16 adapter_uninit(void);
 void print(u8 *buf, u16 num);
 void timer_event(u16 ms, timer_cb cb);
 
@@ -19,8 +18,13 @@ s16 clock_set(clock_t *ck);
 
 s16 motor_manager_init(void);
 void motor_run_one_step(u8 motor_num, u8 direction);
+
 s16 motor_hour_to_position(u8 hour);
+s16 motor_hour_one_step(u8 hour_step);
+
 s16 motor_minute_to_position(u8 minute);
+s16 motor_minute_one_step(u8 minute_step);
+
 s16 motor_date_to_position(u8 day);
 s16 motor_notify_to_position(u8 notify);
 s16 motor_battery_week_to_position(u8 battery_week);
@@ -69,11 +73,11 @@ void ble_switch_off(void);
 void ble_state_set(app_state cur_state);
 app_state ble_state_get(void);
 
-int sprintf(char *buf, const char * sFormat, ...);
-int printf(const char * sFormat, ...);
-void print_str_hex(u8 *buf, u16 hex_num);
-void print_str_dec(u8 *buf, u16 dec_num);
-void print_date_time(u8 *buf, clock_t *datm);
+//int sprintf(char *buf, const char * sFormat, ...);
+//int printf(const char * sFormat, ...);
+//void print_str_hex(u8 *buf, u16 hex_num);
+//void print_str_dec(u8 *buf, u16 dec_num);
+//void print_date_time(u8 *buf, clock_t *datm);
 u8 bcd_to_hex(u8 bcd_data);
 u32 hex_to_bcd(u8 hex_data);
 

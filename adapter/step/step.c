@@ -66,6 +66,7 @@ typedef struct
      u32 FifteenMinuteMove;  /*Ê®Îå·ÖÖÓµÄÔË¶¯Á¿*/
 	 u16 AsleepInfo_Data_Table[12]; /*Ò»ÌìË¯ÃßĞÅÏ¢´æ´¢±í*/
 }ASLEEP_DATA_INFO_T;  /*Ë¯ÃßÊ±¼äµãĞÅÏ¢Êı¾İ½á¹¹*/
+
 ASLEEP_DATA_INFO_T Asleep_Data_Info;
 
 /***************************************************************************************/
@@ -106,6 +107,7 @@ typedef struct
      
      u8   Read_3D_Error_Count;       /*Ôö¼ÓÒ»¸ö¶ÁÈ¡3Öá¼ÓËÙ¼Æ³ö´í¼ÆÊı*/
 }STEP_COUNT_T;
+
 STEP_COUNT_T Step_Count_data = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0},{0,0,0,0,0,0,0,0},0,0,0,0,0,0,0,0,0,0,0,0};  
 
 /*¸öÈËĞÅÏ¢»ñÈ¡²¿·Ö*/
@@ -120,6 +122,7 @@ typedef struct
     u32  One_Minu_Medium_Sport_Calorie;  /*Ò»·ÖÖÓÇ¿ÔË¶¯¿¨Â·ÀïÖµ£¬µ¥Î»Ğ¡¿¨*/
     u32  One_Minu_Light_Sport_Calorie;  /*Ò»·ÖÖÓÇ¿ÔË¶¯¿¨Â·ÀïÖµ£¬µ¥Î»Ğ¡¿¨*/
 }BODY_INFO_T;
+
 BODY_INFO_T Body_Info_data;
 
 u8 Z_Acce_Val=0;  /*Ä£Äâµç×ÓÂŞÅÌÓÃ*/
@@ -142,6 +145,7 @@ void Acute_Sport_Time_Count_Init(void)
     Acute_Sport_Time_Count_data.MinuteTimeCount=0;
     Acute_Sport_Time_Count_data.OverTimeCount=0;
 }
+
 void Acute_Sport_Time_Count_Pro(void)
 {
     if(Acute_Sport_Time_Count_data.OverTimeCount)  Acute_Sport_Time_Count_data.OverTimeCount++;
@@ -175,6 +179,7 @@ void Acute_Sport_Time_Count_Pro(void)
        Acute_Sport_Time_Count_Init();
     }
 }
+
 /*¼ÆËã´ø·ûºÅµÄ8±ÈÌØÎ»ÊıµÄÆ½·½*/
 u16 CaculateAsbSquare(u8 Temp)
 {
@@ -190,6 +195,7 @@ u16 CaculateAsbSquare(u8 Temp)
         ReturnVal=TempVal*TempVal;
      return ReturnVal;
 }
+
 /*³õÊ¼»¯Êı¾İ»º³åÇø*/
 void InitVal(u16 *ValS,u16 Val, u8 Length)
 {
@@ -199,6 +205,7 @@ void InitVal(u16 *ValS,u16 Val, u8 Length)
         ValS[i]=Val;
     }
 }
+
 /*ÇóÄ³Êı×éµÄ¼¸¸öÊıÆ½¾ùÖµ*/
 u16 AverageVal(u16 *Val,u8 Num)
 {
@@ -215,6 +222,7 @@ u16 AverageVal(u16 *Val,u8 Num)
    }
     return ReturnVal;
 }
+
 /*ÇóÇ°4¸ö²ÉÑùÖµµÄÆ½¾ùÖµ£¬°ÑĞÂµÄÊı¾İÍÆÈë»º³åÇø*/
 u16 AverageValPro(u16 *Val,u16 New,u8 Num)
 {
@@ -272,6 +280,7 @@ u16 GetXYZ_Acce_Data(void)
     
     return Return;
 }
+
 void Step_Count_data_Init(void)
 {
    Step_Count_data.DataGetCount=0;/*»ñÈ¡0¸öÖµ*/
@@ -286,6 +295,7 @@ void Step_Count_data_Init(void)
    Step_Count_data.LastChangeTime=0;   /*½â¾öÒ»Ğ©²½ÊıÍ»±äµÄÎÊÌâ*/
    Step_Count_data.StepsChangeTimeBuffer=0; /*½â¾öÓĞÊ±Ç°¼¸²½±ä»¯µÄÎÊÌâ*/
 }
+
 static void StepCountProce(void);
 static void StepCountProce(void)
 {
@@ -309,7 +319,7 @@ static void StepCountProce(void)
         }
         else if(Step_Count_data.Pro_Step==PRO_STEP_RISING)
         {
-            for(i=0;i<32;i++) /*Ô­íÊÇ40*/
+            for(i=0;i<32;i++) /*Ô­íÊ?0*/
             {
                 Temp=GetXYZ_Acce_Data();
                 if(Temp<0xFFFE){ 
@@ -537,6 +547,7 @@ static void StepCountProce(void)
         }
     }
 }
+
 static void step_sample_handler(u16 id)
 {
     StepCountProce();
@@ -561,14 +572,15 @@ static void step_sample_handler(u16 id)
     
 	get_driver()->timer->timer_start(280, step_sample_handler);
 }
+
 s16 step_sample_init(void)
 {
 	get_driver()->timer->timer_start(280, step_sample_handler);  
     Step_Count_data.Pro_Step=PRO_STEP_START;  
 	return 0;
 }
+
 u32 step_get(void)
 {
     return Total_Sport_Info_data.StepCounts;
 }
-

@@ -43,6 +43,7 @@ static const notify_convert_t notif_convert_list[] =
     {NOTIFY_RECV_CALENDER,      NOTIFY_CALENDER},
     {NOTIFY_RECV_LINKIN,        NOTIFY_LINKIN},
 };
+
 s16 state_notify(REPORT_E cb, void *args)
 {
 	STATE_E *state = (STATE_E *)args;
@@ -71,3 +72,11 @@ s16 state_notify(REPORT_E cb, void *args)
 	*state = CLOCK;
 	return 0;
 }
+
+#if 0
+void notify_test(u16 id)
+{
+	state_notify(ANCS_NOTIFY_INCOMING, NULL);
+	timer_event(1000, notify_test);
+}
+#endif

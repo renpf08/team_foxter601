@@ -21,6 +21,7 @@ typedef struct {
     int16 mag_z_offset;
 	u16 mag_x_y_z_val;/*jim magnetism*/
 }mag_t;
+
 mag_t mag;
 
 s16 mag_cb_handler(void *args)
@@ -38,9 +39,9 @@ s16 mag_cb_handler(void *args)
 	return 0;
 }
 
-u16 tan_table[45]={2,5,9,12,16,19,23,27,31,34,38,42,47,51,55,60,65,70,75,81,87,93,100,107,115,123,133,143,154,166,180,196,214,236,261,290,327,373,433,514,631,814,1143,1908,5729};/*jim magnetism*/
 u8 calculate_angle(int16 x_val,int16 y_val,int16 z_val)
 {
+	u16 tan_table[45]={2,5,9,12,16,19,23,27,31,34,38,42,47,51,55,60,65,70,75,81,87,93,100,107,115,123,133,143,154,166,180,196,214,236,261,290,327,373,433,514,631,814,1143,1908,5729};/*jim magnetism*/
     u8 temp_angle=0,i=0;
     u16 x_temp=0xFF,y_temp=0xFF;
 	/*由X,Y,Z三轴的磁力值算出角度*/
@@ -109,6 +110,7 @@ u8 calculate_angle(int16 x_val,int16 y_val,int16 z_val)
 	}
 	return x_temp;
 }
+
 void mag_get_measure_val(void)
 {
     u8 temp_flag=0;/*X_Temp,Y_Temp,Z_Temp;*/
@@ -209,4 +211,3 @@ u8 angle_get(void)
 {
     return mag.angle_value;
 }
-

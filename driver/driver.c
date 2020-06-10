@@ -41,3 +41,16 @@ driver_t *get_driver(void)
 {
 	return &csr_driver;
 }
+
+void timer_create(uint32 timeout, timer_callback_arg handler)
+{
+    const timer_id tId = TimerCreate(timeout, TRUE, handler);
+    
+    /* If a timer could not be created, panic to restart the app */
+    if (tId == TIMER_INVALID)
+    {
+        DebugWriteString("\r\nFailed to start timer");
+        /* Panic with panic code 0xfe */
+        Panic(0xfe);
+    }
+}

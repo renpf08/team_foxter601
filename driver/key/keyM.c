@@ -1,39 +1,49 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
+#include <panic.h>          /* Support for applications to panic */
+#include <timer.h>          /* Chip timer functions */
 #include "../driver.h"
 
-typedef struct {
-	pin_t pin;
-	event_callback keym_cb;
-	EVENT_E last_state;
-}csr_keym_cfg_t;
-
-static csr_keym_cfg_t csr_keym_cfg = {
+static csr_key_cfg_t csr_keym_cfg = {
 	.pin = {
 				.group = 0,
 				.num = 0,
            },
-	.keym_cb = NULL,
+	.key_cb = NULL,
 	.last_state = KEY_M_UP,
 };
 
+static void csr_keym_event_recheck(u16 id)
+{
+	if((true == VAL_GET(csr_keym_cfg.pin.num)) &&
+		(KEY_M_UP == csr_keym_cfg.now_state)) {
+		csr_keym_cfg.now_state = KEY_M_UP;
+	}else if((false == VAL_GET(csr_keym_cfg.pin.num)) &&
+		(KEY_M_DOWN == csr_keym_cfg.now_state)) {
+		csr_keym_cfg.now_state = KEY_M_DOWN;
+	}else {
+		return;
+	}
+
+	if(csr_keym_cfg.last_state == csr_keym_cfg.now_state) {
+		return;
+	} else {
+		if(NULL != csr_keym_cfg.key_cb) {
+			csr_keym_cfg.key_cb(csr_keym_cfg.now_state);
+		}
+		csr_keym_cfg.last_state = csr_keym_cfg.now_state;
+	}
+}
+
 s16 csr_keym_event_handler(u32 key_num, u32 key_status)
 {
-	EVENT_E now_state;
 	if(key_num & (0x01UL << csr_keym_cfg.pin.num)) {
 		if(key_status & (0x01UL << csr_keym_cfg.pin.num)) {
-			now_state = KEY_M_UP;
+			csr_keym_cfg.now_state = KEY_M_UP;
+			timer_create(10*MILLISECOND, csr_keym_event_recheck);
 		} else {
-			now_state = KEY_M_DOWN;
-		}
-
-		if(csr_keym_cfg.last_state == now_state) {
-			return 0;
-		} else {
-			if(NULL != csr_keym_cfg.keym_cb) {
-				csr_keym_cfg.keym_cb(now_state);
-			}
-			csr_keym_cfg.last_state = now_state;
+			csr_keym_cfg.now_state = KEY_M_DOWN;
+			timer_create(10*MILLISECOND, csr_keym_event_recheck);
 		}
 	}
 	return 0;
@@ -43,7 +53,7 @@ static s16 csr_keym_init(cfg_t *args, event_callback cb)
 {
 	csr_keym_cfg.pin.group = args->keym_cfg.group;
 	csr_keym_cfg.pin.num = args->keym_cfg.num;
-	csr_keym_cfg.keym_cb = cb;
+	csr_keym_cfg.key_cb = cb;
 	
     /* Configure button to be controlled directly */
     PioSetMode(csr_keym_cfg.pin.num, pio_mode_user);
@@ -63,13 +73,6 @@ static s16 csr_keym_init(cfg_t *args, event_callback cb)
 	return 0;
 }
 
-static s16 csr_keym_uninit(void)
-{
-	csr_keym_cfg.keym_cb = NULL;
-	return 0;
-}
-
 key_t csr_keym = {
 	.key_init = csr_keym_init,
-	.key_uninit = csr_keym_uninit,
 };

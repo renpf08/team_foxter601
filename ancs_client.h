@@ -166,6 +166,7 @@ typedef struct
 #define LOG_DEBUG   0x0000
 #endif
 
+#if 0
 typedef enum
 {
     Serial_Service_init_ancs_service_discovering                    = (LOG_DEBUG|1),
@@ -266,6 +267,7 @@ typedef enum
 }log_report_code;
 
 extern void LogReport(const char* file, const char* func, unsigned line, log_report_code log_report_code);
+#endif
 
 /*============================================================================*
  *  Public Data Declarations

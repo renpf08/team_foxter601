@@ -5,17 +5,7 @@
 #include "../../adapter/adapter.h"
 #include "state.h"
 
-static u8 day[] = {DAY_0,
-	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
-	DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
-	DAY_11, DAY_12, DAY_13, DAY_14, DAY_15,
-	DAY_16, DAY_17, DAY_18, DAY_19, DAY_20,
-	DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
-	DAY_26, DAY_27,	DAY_28,	DAY_29, DAY_30,
-	DAY_31};
-
-
-#define TEST_CLOCK
+//#define TEST_CLOCK
 
 #ifdef TEST_CLOCK
 static clock_t clk = {
@@ -23,18 +13,27 @@ static clock_t clk = {
 	.month = 1,
 	.day = 1,
 	.week = 0,
-	.hour = 11,
+	.hour = 23,
 	.minute = 30,
 	.second = 0,
 };
-
 #endif
 
 s16 state_clock(REPORT_E cb, void *args)
 {
-	//u8 string_hour[4] = {'h', 'o', 'u', 'r'};
+	u8 day[] = {DAY_0,
+		DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
+		DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
+		DAY_11, DAY_12, DAY_13, DAY_14, DAY_15,
+		DAY_16, DAY_17, DAY_18, DAY_19, DAY_20,
+		DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
+		DAY_26, DAY_27, DAY_28, DAY_29, DAY_30,
+		DAY_31};
 
-	#ifndef TEST_CLOCK	
+	//u8 string_hour[4] = {'h', 'o', 'u', 'r'};
+	print((u8 *)&"clock", 5);
+
+	#ifndef TEST_CLOCK
 	clock_t *clk;
 	clk = clock_get();
 	motor_minute_to_position(clk->minute);
@@ -49,9 +48,9 @@ s16 state_clock(REPORT_E cb, void *args)
 
 	if(24 == clk.hour) {
 		clk.hour = 0;
-		clk.day++;
 	}
-
+	
+	clk.day++;
 	if(31 == clk.day) {
 		clk.day = 0;
 	}

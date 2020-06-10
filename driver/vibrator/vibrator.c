@@ -7,7 +7,6 @@
 
 typedef struct {
 	pin_t vib_pin;
-	
 }csr_vibrator_cfg_t;
 
 static csr_vibrator_cfg_t csr_vibrator_cfg = {
@@ -42,17 +41,8 @@ static s16 csr_vibrator_init(cfg_t *args, event_callback cb)
 	return 0;
 }
 
-static s16 csr_vibrator_uninit(void)
-{
-	PioSetDir(csr_vibrator_cfg.vib_pin.num, PIO_DIR_INPUT);
-	csr_vibrator_cfg.vib_pin.group = 0;
-	csr_vibrator_cfg.vib_pin.num = 0;
-	return 0;
-}
-
 vibrator_t csr_vibrator = {
 	.vibrator_init = csr_vibrator_init,
 	.vibrator_on = csr_vibrator_on,
 	.vibrator_off = csr_vibrator_off,
-	.vibrator_uninit = csr_vibrator_uninit,
 };

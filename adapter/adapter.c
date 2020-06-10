@@ -36,8 +36,8 @@ s16 csr_event_callback(EVENT_E ev)
 	if(ev >= EVENT_MAX) {
 		return -1;
 	}else if(ev < MAGNETOMETER_READY){
+		//print((u8 *)&ev, 1);
 		u16 combo_event = button_cb_handler((void*)ev);
-    	//adapter.drv->uart->uart_write((u8 *)&ev, 1);
         if(combo_event < REPORT_MAX) {     // sure the button released
         	adapter.cb(combo_event, NULL);
     	    //adapter.drv->uart->uart_write((u8 *)&combo_event, 1);
@@ -93,38 +93,6 @@ static s16 driver_init(void)
 	return 0;
 }
 
-void driver_uninit(void)
-{
-	//timer uninit
-	adapter.drv->timer->timer_uninit();
-	adapter.drv->battery->battery_uninit();
-	adapter.drv->keya->key_uninit();
-	adapter.drv->flash->flash_uninit();
-
-	//uart uninit
-	adapter.drv->uart->uart_uninit();
-
-	//vibrator uninit	
-	adapter.drv->vibrator->vibrator_off(NULL);
-	adapter.drv->vibrator->vibrator_uninit();
-
-	//gsensor uninit
-	adapter.drv->gsensor->gsensor_uninit();
-
-	//magnetometer uninit
-	adapter.drv->magnetometer->magnetometer_uninit();
-
-	//motor uninit
-	adapter.drv->motor_hour->motor_uninit();
-	adapter.drv->motor_minute->motor_uninit();
-	adapter.drv->motor_activity->motor_uninit();
-	adapter.drv->motor_date->motor_uninit();
-	adapter.drv->motor_battery_week->motor_uninit();
-	adapter.drv->motor_notify->motor_uninit();
-	
-	adapter.drv = NULL;
-}
-
 s16 adapter_init(adapter_callback cb)
 {
 	//driver init
@@ -143,13 +111,6 @@ s16 adapter_init(adapter_callback cb)
 	return 0;
 }
 
-s16 adapter_uninit()
-{
-	driver_uninit();
-	adapter.cb = NULL;
-	return 0;
-}
-
 void print(u8 *buf, u16 num)
 {
 	u8 rn[2] = {0x0d, 0x0a};
@@ -159,6 +120,7 @@ void print(u8 *buf, u16 num)
 	}
 }
 
+#if 0
 void print_str_hex(u8 *buf, u16 hex_num)
 {
     u8 hex_table[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
@@ -240,6 +202,7 @@ void print_date_time(u8 *buf, clock_t *datm)
 
     print(sbuf, i);
 }
+#endif
 
 #if 0
 u8 bcd_to_hex(u32 bcd_data)
@@ -276,9 +239,4 @@ u32 hex_to_bcd(u8 hex_data)
 void timer_event(u16 ms, timer_cb cb)
 {
 	adapter.drv->timer->timer_start(ms, cb);
-}
-
-int printf(const char * sFormat, ...)
-{
-	return 0;
 }

@@ -5,17 +5,12 @@
 #include "../../adapter/adapter.h"
 #include "state.h"
 
-typedef enum {
-	state_battery,
-	state_week,
-}STATE_BATTERY_WEEK_E;
-
 typedef struct {
 	u8 cur_state;
 }state_battery_week_t;
 
 static state_battery_week_t state_battery_week = {
-	.cur_state = state_week,
+	.cur_state = state_battery,
 };
 
 s16 state_battery_week_switch(REPORT_E cb, void *args)
@@ -24,9 +19,7 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 	u8 battery_level = BAT_PECENT_0;
 	STATE_E *state = (STATE_E *)args;
 
-	u8 string[12] = {'s', 't', 'a', 't', 'e', '_', 'b', 'a', 't', 't', 'r', 'y'};
-	print(string, 12);
-
+	//print((u8 *)&"battery_week", 12);
 	if(state_week == state_battery_week.cur_state) {
 		state_battery_week.cur_state = state_battery;
 		/*get battery level*/
@@ -42,3 +35,25 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 	*state = CLOCK;
 	return 0;
 }
+
+s16 state_battery_week_status_get(void)
+{
+	return state_battery_week.cur_state;
+}
+
+#if 0
+static adapter_callback battery_week_cb = NULL;
+static void battery_week_test_handler(u16 id)
+{
+	if(NULL != battery_week_cb) {
+		battery_week_cb(KEY_M_SHORT_PRESS, NULL);
+		timer_event(10000, battery_week_test_handler);
+	}
+}
+
+void battery_week_test(adapter_callback cb)
+{
+	battery_week_cb = cb;
+	battery_week_test_handler(0);
+}
+#endif

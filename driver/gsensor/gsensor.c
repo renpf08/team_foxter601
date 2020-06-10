@@ -182,39 +182,7 @@ static s16 csr_gsensor_init(cfg_t *args, event_callback cb)
 	return 0;
 }
 
-static s16 csr_gsensor_uninit(void)
-{
-	csr_gsensor_lis3dh.cfg.clk.group = 0;
-	csr_gsensor_lis3dh.cfg.clk.num = 0;
-
-	//mosi pin
-	csr_gsensor_lis3dh.cfg.mosi.group = 0;
-	csr_gsensor_lis3dh.cfg.mosi.num = 0;
-
-	//miso pin
-	csr_gsensor_lis3dh.cfg.miso.group = 0;
-	csr_gsensor_lis3dh.cfg.miso.num = 0;
-
-	//cs pin
-	csr_gsensor_lis3dh.cfg.cs.group = 0;
-	csr_gsensor_lis3dh.cfg.cs.num = 0;
-
-	//int1 pin
-	csr_gsensor_lis3dh.cfg.int1.group = 0;
-	csr_gsensor_lis3dh.cfg.int1.num = 0;
-
-	//int2 pin
-	csr_gsensor_lis3dh.cfg.int2.group = 0;
-	csr_gsensor_lis3dh.cfg.int2.num = 0;
-
-	//cb
-	csr_gsensor_lis3dh.gsensor_cb = NULL;
-
-	return 0;
-}
-
 gsensor_t csr_gsensor = {
 	.gsensor_init = csr_gsensor_init,
 	.gsensor_read = csr_gsensor_read,
-	.gsensor_uninit = csr_gsensor_uninit,
 };

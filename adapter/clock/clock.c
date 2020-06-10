@@ -26,13 +26,12 @@ static clock_cfg_t clock_cfg = {
 
 static void clock_timer_increase(void)
 {
-	if(NULL != clock_cfg.cb) {
-		clock_cfg.cb(CLOCK_1_MINUTE, NULL);
-	}
-
 	if(60 == clock_cfg.clock.second) {
 		clock_cfg.clock.second = 0;
 		clock_cfg.clock.minute++;
+		if(NULL != clock_cfg.cb) {
+			clock_cfg.cb(CLOCK_1_MINUTE, NULL);
+		}
 	}
 
 	if(60 == clock_cfg.clock.minute) {
@@ -43,6 +42,10 @@ static void clock_timer_increase(void)
 	if(24 == clock_cfg.clock.hour) {
 		clock_cfg.clock.hour = 0;
 		clock_cfg.clock.day++;
+		clock_cfg.clock.week++;
+		if(7 == clock_cfg.clock.week) {
+			clock_cfg.clock.week = SUNDAY;
+		}
 	}
 
 	if(31 == clock_cfg.clock.day) {
@@ -61,7 +64,6 @@ static void clock_cb_handler(u16 id)
 {
 	clock_cfg.drv->timer->timer_start(1000, clock_cb_handler);
 	clock_cfg.clock.second++;
-	//clock_cfg.drv->uart->uart_write(&clock_cfg.clock.second, 1);
 	clock_timer_increase();
 }
 

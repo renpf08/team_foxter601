@@ -56,4 +56,3 @@ s16 ble_switch_init(adapter_callback cb)
 	ble_switch_cb = cb;
 	return 0;
 }
-

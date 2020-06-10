@@ -8,7 +8,9 @@
 
 #define BIT_MASK(num) (0x01UL << (num))
 
-#define QUEUE_BUFFER    100
+#define VAL_GET(num)        PioGet(num)
+
+#define QUEUE_BUFFER    40
 
 typedef struct {
 	u8 x_l;
@@ -249,6 +251,11 @@ typedef enum {
 	STATE_MAX,
 }STATE_E;
 
+typedef enum {
+	state_battery,
+	state_week,
+}STATE_BATTERY_WEEK_E;
+
 typedef struct {
 	u16 year;
 	u8 month;	
@@ -358,6 +365,7 @@ typedef struct {
     u8 cmd; 
     u8 code[2];
 } cmd_pairing_code_t;
+
 typedef struct 
 {
     u8 cmd; 
@@ -370,6 +378,7 @@ typedef struct
     u8 height;
     u8 weight;
 } cmd_user_info_t;
+
 typedef struct {
     u8 cmd; 
     u8 year[2];
@@ -380,6 +389,7 @@ typedef struct {
     u8 second;
     u8 week;
 } cmd_set_time_t;
+
 typedef struct {
     u8 cmd;
     u8 clock1_alarm_switch;
@@ -399,6 +409,7 @@ typedef struct {
     u8 clock4_hour;
     u8 clock4_minute;
 } cmd_set_alarm_clock_t;
+
 typedef struct { 
     u8 cmd; 
     u8 custm_disp;
@@ -406,15 +417,18 @@ typedef struct {
     u8 main_target;
     u8 used_hand;
 } cmd_set_disp_format_t;
+
 typedef struct { 
     u8 cmd; 
     u8 sync_data; 
 } cmd_sync_data_t;
+
 typedef struct { 
     u8 cmd; 
     u8 watch_cmd;
     u8 resp_value;
 } cmd_response_t;
+
 //typedef struct { 
 //    u8 cmd; 
 //    u8 notif_sta;
@@ -422,6 +436,7 @@ typedef struct {
 //    u8 msg_type;
 //    u8 msg_cnt;
 //} cmd_recv_notify_t;
+
 typedef struct { 
     u8 cmd; 
     u8 hour_pointer;
@@ -437,35 +452,42 @@ typedef struct {
     u8 notify_pointer;
     u8 notify_pointer_pos;
 } cmd_set_pointers_t;
+
 typedef struct { 
     u8 cmd; 
     u8 serial_num;
     u8 fw_version;
     u8 system_id;
 } cmd_read_version_t;
+
 typedef struct { 
     u8 cmd; 
     u8 clock_hand_num;
     u8 clock_hand_pos;
     u8 clock_hand_rotation;
 } cmd_set_clock_hand_t;
+
 typedef struct { 
     u8 cmd; 
     u8 vib_mode;
     u8 vib_times;
 } cmd_set_vibration_t;
+
 typedef struct { 
     u8 cmd; 
     u8 alarm_type; 
 } cmd_find_watch_t;
+
 typedef struct { 
     u8 cmd; 
     u8 action; 
 } cmd_set_ancs_bond_req_t;
+
 typedef struct { 
     u8 cmd; 
     u8 type; 
 } cmd_read_time_steps_t;
+
 typedef struct {
     cmd_pairing_code_t pair_code;
     cmd_user_info_t user_info;
@@ -489,7 +511,6 @@ typedef s16 (*adapter_callback)(REPORT_E cb, void *args);
 typedef s16 (*driver_callback_handler)(void *args);
 
 typedef s16 (*init)(cfg_t *args, event_callback cb);
-typedef s16 (*uninit)(void);
 typedef s16 (*read)(void *args);
 typedef s16 (*write)(u8 *buf, u16 num);
 
@@ -533,5 +554,21 @@ typedef struct {
 	STATE_E   next_state;
 	state_func func;
 }state_t;
+
+typedef struct {
+	pin_t pin;
+	event_callback key_cb;
+	EVENT_E last_state;
+	EVENT_E now_state;
+}csr_key_cfg_t;
+
+#define POS_HIGH(num) PioSet((num), 1UL)
+#define POS_LOW(num) PioSet((num), 0UL)
+
+#define COM_HIGH(num) PioSet((num), 1UL)
+#define COM_LOW(num) PioSet((num), 0UL)
+
+#define NEG_HIGH(num) PioSet((num), 1UL)
+#define NEG_LOW(num) PioSet((num), 0UL)
 
 #endif
