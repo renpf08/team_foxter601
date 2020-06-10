@@ -100,6 +100,7 @@ static bool getSystemId(SYSTEM_ID_T * sys_id)
 
     if(CSReadBdaddr(&bdaddr))
     {
+        #if 0
         /* Manufacturer-defined identifier */
         sys_id->byte[0] = (uint8)(bdaddr.lap);
         sys_id->byte[1] = (uint8)(bdaddr.lap >> 8);
@@ -111,7 +112,15 @@ static bool getSystemId(SYSTEM_ID_T * sys_id)
         sys_id->byte[5] = (uint8)(bdaddr.uap);
         sys_id->byte[6] = (uint8)(bdaddr.nap);
         sys_id->byte[7] = (uint8)(bdaddr.nap >> 8);
-
+        #endif
+        sys_id->byte[0] = (uint8)(bdaddr.nap);
+        sys_id->byte[1] = (uint8)(bdaddr.nap >> 8);        
+        sys_id->byte[2] = (uint8)(bdaddr.uap);
+        sys_id->byte[3] = (uint8)(bdaddr.lap);
+        sys_id->byte[4] = (uint8)(bdaddr.lap >> 8);
+        sys_id->byte[5] = (uint8)(bdaddr.lap >> 16);
+        sys_id->byte[6] = (uint8)(SYSTEM_ID_FIXED_CONSTANT);
+        sys_id->byte[7] = (uint8)(SYSTEM_ID_FIXED_CONSTANT >> 8);
         return TRUE;
     }
     else

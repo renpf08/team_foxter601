@@ -7,6 +7,7 @@
 */
 
 #include <mem.h>
+#include <buf_utils.h>
 #include "serial_service.h"
 #include "adapter/adapter.h"
 
@@ -25,7 +26,7 @@ static u8 cmd_pairing_code(u8 *buffer, u8 length);
 static u8 cmd_user_info(u8 *buffer, u8 length);
 static u8 cmd_set_time(u8 *buffer, u8 length);
 static u8 cmd_set_alarm_clock(u8 *buffer, u8 length);
-static u8 cmd_set_disp_format(u8 *buffer, u8 length);
+static u8 cmd_notify_switch(u8 *buffer, u8 length);
 static u8 cmd_sync_data(u8 *buffer, u8 length);
 static u8 cmd_response(u8 *buffer, u8 length);
 static u8 cmd_recv_notify(u8 *buffer, u8 length);
@@ -45,7 +46,7 @@ static const CMDENTRY cmd_list[] =
     {CMD_USER_INFO,         USER_INFO,          cmd_user_info},
     {CMD_SET_TIME,          SET_TIME,           cmd_set_time},
     {CMD_SET_ALARM_CLOCK,   SET_ALARM_CLOCK,    cmd_set_alarm_clock},
-    {CMD_SET_DISP_FORMAT,   SET_DISP_FORMAT,    cmd_set_disp_format},
+    {CMD_NOTIFY_SWITCH,     NOTIFY_SWITCH,      cmd_notify_switch},
     {CMD_SYNC_DATA,         SYNC_DATA,          cmd_sync_data},
     {CMD_RESPONSE_TO_WATCH, RESPONSE_TO_WATCH,  cmd_response},
     {CMD_RECV_NOTIFY,       ANDROID_NOTIFY,     cmd_recv_notify},
@@ -118,15 +119,15 @@ static u8 cmd_set_alarm_clock(u8 *buffer, u8 length)
     MemCopy(&cmd_group.set_alarm_clock, buffer, sizeof(cmd_set_alarm_clock_t));
     return 0;
 }
-static u8 cmd_set_disp_format(u8 *buffer, u8 length)
+static u8 cmd_notify_switch(u8 *buffer, u8 length)
 {
-    cmd_set_disp_format_t* disp_format = (cmd_set_disp_format_t*)buffer;
-
-    if(disp_format->clock_format > 1) return 1;
-    if(disp_format->main_target > 4) return 1;
-    if(disp_format->used_hand > 1) return 1;
+//    cmd_group.notify_switch.cmd = buffer[0];
+//    MemCopy(&cmd_group.notify_switch.notify, &buffer[1], 3);
+//    cmd_group.notify_switch.rev2 = buffer[4];
     
-    MemCopy(&cmd_group.set_disp, buffer, sizeof(cmd_set_disp_format_t));
+    volatile u8 si = sizeof(cmd_notify_switch_t);
+    if(si)
+    MemCopy(&cmd_group.notify_switch, buffer, sizeof(cmd_notify_switch_t));
     return 0;
 }
 static u8 cmd_sync_data(u8 *buffer, u8 length)
@@ -182,28 +183,35 @@ static u8 cmd_read_time_steps(u8 *buffer, u8 length)
     MemCopy(&cmd_group.read_time_step, buffer, sizeof(cmd_read_time_steps_t)); 
     return 0;
 }
-u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer)
+u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
 {
-    u8 len = 0;
-    u16 test_nap = 0x1234;
-    u16 test_uap = 0x5678;
-    u16 test_lap = 0x9ABC;
+    u16 length = 0; 
+    u8 rsp_buf[20];
+    u8 clear_reg = 0;
+    u8 *tmp_buf = rsp_buf;
+    BD_ADDR_T addr;
 
-    buffer[len++] = 0x00;
-    buffer[len++] = cmd_type;
-    buffer[len++] = result;
+    CSReadBdaddr(&addr);
+    BufWriteUint8((uint8 **)&tmp_buf,0x00);
+    BufWriteUint8((uint8 **)&tmp_buf,cmd_type);
+    BufWriteUint8((uint8 **)&tmp_buf,result);
     if(cmd_type == CMD_SYNC_DATA) return 0;
-    if(cmd_type == CMD_PAIRING_CODE)
-    {
-        buffer[len++] = (test_nap>>8)&0x00FF;
-        buffer[len++] = test_nap&0x00FF;
-        buffer[len++] = (test_uap>>8)&0x00FF;
-        buffer[len++] = test_uap&0x00FF;
-        buffer[len++] = (test_lap>>8)&0x00FF;
-        buffer[len++] = test_lap&0x00FF;
+    if(cmd_type == CMD_PAIRING_CODE) {
+        if((data[0] == 0xFF) && (data[1] == 0xFF)) clear_reg = 1;
+        BufWriteUint16((uint8 **)&tmp_buf, addr.nap);
+        BufWriteUint8((uint8 **)&tmp_buf, addr.uap);
+
+        BufWriteUint16((uint8 **)&tmp_buf,( addr.lap));
+        BufWriteUint8((uint8 **)&tmp_buf,( addr.lap>>16));
+    }
+    length = tmp_buf - rsp_buf;
+    cmd_send_data(rsp_buf, length);
+    if(clear_reg == 1) {
+        rsp_buf[2] = 0xFF;
+        cmd_send_data(rsp_buf, length);
     }
 
-    return len;
+    return length;
 }
 
 void cmd_parse(u8* content, u8 length)
@@ -218,6 +226,7 @@ void cmd_parse(u8* content, u8 length)
     while(cmd_list[i].cmd != CMD_APP_NONE) {
         if(cmd_list[i].cmd == content[0]) {
             res = cmd_list[i].handler(content, length);
+            cmd_resp(cmd_list[i].cmd, res, content);
             break;
         }
         i++;
@@ -231,6 +240,7 @@ void cmd_parse(u8* content, u8 length)
 }
 void cmd_send_data(uint8 *data, uint16 size)
 {
+    size = (size >20)?20:size;
     SerialSendNotification(data, size);
 }
 cmd_group_t *cmd_get(void)

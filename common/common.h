@@ -65,7 +65,7 @@ typedef enum {
     USER_INFO = 21,
     SET_TIME = 22,
     SET_ALARM_CLOCK = 23,
-    SET_DISP_FORMAT = 24,
+    NOTIFY_SWITCH = 24,
     SYNC_DATA = 25,
     RESPONSE_TO_WATCH = 26,
     SEND_NOTIFY = 27,
@@ -331,7 +331,7 @@ typedef enum {
     CMD_USER_INFO           = 0x01,
     CMD_SET_TIME            = 0x02,
     CMD_SET_ALARM_CLOCK     = 0x03,
-    CMD_SET_DISP_FORMAT     = 0x04,
+    CMD_NOTIFY_SWITCH       = 0x04,
     CMD_SYNC_DATA           = 0x05,
     CMD_RESPONSE_TO_WATCH   = 0x06,
     CMD_RECV_NOTIFY         = 0x07,
@@ -400,12 +400,9 @@ typedef struct {
     u8 clock4_minute;
 } cmd_set_alarm_clock_t;
 typedef struct { 
-    u8 cmd; 
-    u8 custm_disp;
-    u8 clock_format;
-    u8 main_target;
-    u8 used_hand;
-} cmd_set_disp_format_t;
+    u8 cmd;
+    u8 en[4];
+} cmd_notify_switch_t;
 typedef struct { 
     u8 cmd; 
     u8 sync_data; 
@@ -471,7 +468,7 @@ typedef struct {
     cmd_user_info_t user_info;
     cmd_set_time_t set_time;
     cmd_set_alarm_clock_t set_alarm_clock;
-    cmd_set_disp_format_t set_disp;
+    cmd_notify_switch_t notify_switch;
     cmd_sync_data_t sync_data;
     cmd_response_t send_resp;
     cmd_recv_notify_t recv_notif;
