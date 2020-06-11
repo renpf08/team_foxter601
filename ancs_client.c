@@ -835,7 +835,6 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                     if(!GattIsAddressResolvableRandom(&g_app_data.con_bd_addr))
                     {
                         /* Non-Apple Device.Initiate Security request */
-                        //LogReport(__FILE__, __func__, __LINE__, Ancs_Client_non_apple_device_initiate_security_request);
                         SMRequestSecurityLevel(&g_app_data.con_bd_addr);
                     }
                     else /* APPLE Device */
@@ -844,14 +843,12 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                         if(!g_app_data.remote_gatt_handles_present)
                         {
                             /* Start Gatt Database discovery. */
-                            //LogReport(__FILE__, __func__, __LINE__, Ancs_Client_ancs_service_discovering);
                             DiscoverServices(); 
                         }
                         
                         /** ANCS service handles is useful? */
                         else
                         {
-                            //LogReport(__FILE__, __func__, __LINE__, Ancs_Client_ancs_service_handles_is_useful);
                         }
                     }
                     #endif
