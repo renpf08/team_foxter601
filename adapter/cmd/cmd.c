@@ -11,7 +11,7 @@
 #include "serial_service.h"
 #include "adapter/adapter.h"
 
-typedef u8 (* LFPCMDHANDLER)(u8 *buffer, u8 length);
+typedef s16 (* LFPCMDHANDLER)(u8 *buffer, u8 length);
 
 typedef struct cmdEntry_T {
 	const cmd_app_send_t cmd;
@@ -22,21 +22,21 @@ typedef struct cmdEntry_T {
 cmd_group_t cmd_group;
 static adapter_callback cmd_cb = NULL;
 
-static u8 cmd_pairing_code(u8 *buffer, u8 length);
-static u8 cmd_user_info(u8 *buffer, u8 length);
-static u8 cmd_set_time(u8 *buffer, u8 length);
-static u8 cmd_set_alarm_clock(u8 *buffer, u8 length);
-static u8 cmd_notify_switch(u8 *buffer, u8 length);
-static u8 cmd_sync_data(u8 *buffer, u8 length);
-static u8 cmd_response(u8 *buffer, u8 length);
-static u8 cmd_recv_notify(u8 *buffer, u8 length);
-static u8 cmd_set_pointers(u8 *buffer, u8 length);
-static u8 cmd_read_version(u8 *buffer, u8 length);
-static u8 cmd_set_clock_hand(u8 *buffer, u8 length);
-static u8 cmd_set_vibration(u8 *buffer, u8 length);
-static u8 cmd_find_watch(u8 *buffer, u8 length);
-static u8 cmd_set_ancs_bond_req(u8 *buffer, u8 length);
-static u8 cmd_read_time_steps(u8 *buffer, u8 length);
+static s16 cmd_pairing_code(u8 *buffer, u8 length);
+static s16 cmd_user_info(u8 *buffer, u8 length);
+static s16 cmd_set_time(u8 *buffer, u8 length);
+static s16 cmd_set_alarm_clock(u8 *buffer, u8 length);
+static s16 cmd_notify_switch(u8 *buffer, u8 length);
+static s16 cmd_sync_data(u8 *buffer, u8 length);
+static s16 cmd_response(u8 *buffer, u8 length);
+static s16 cmd_recv_notify(u8 *buffer, u8 length);
+static s16 cmd_set_pointers(u8 *buffer, u8 length);
+static s16 cmd_read_version(u8 *buffer, u8 length);
+static s16 cmd_set_clock_hand(u8 *buffer, u8 length);
+static s16 cmd_set_vibration(u8 *buffer, u8 length);
+static s16 cmd_find_watch(u8 *buffer, u8 length);
+static s16 cmd_set_ancs_bond_req(u8 *buffer, u8 length);
+static s16 cmd_read_time_steps(u8 *buffer, u8 length);
 void cmd_parse(u8* content, u8 length);
 s16 cmd_init(adapter_callback cb);
 
@@ -61,12 +61,12 @@ static const CMDENTRY cmd_list[] =
 	{CMD_APP_NONE,          REPORT_MAX, NULL}
 };
 
-static u8 cmd_pairing_code(u8 *buffer, u8 length)
+static s16 cmd_pairing_code(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.pair_code, buffer, sizeof(cmd_pairing_code_t));
     return 0;
 }
-static u8 cmd_user_info(u8 *buffer, u8 length)
+static s16 cmd_user_info(u8 *buffer, u8 length)
 {
     cmd_user_info_t* user_info = (cmd_user_info_t*)buffer;
 
@@ -75,7 +75,7 @@ static u8 cmd_user_info(u8 *buffer, u8 length)
     MemCopy(&cmd_group.user_info, buffer, sizeof(cmd_user_info_t));
     return 0;
 }
-static u8 cmd_set_time(u8 *buffer, u8 length)
+static s16 cmd_set_time(u8 *buffer, u8 length)
 {
     u8 days[13] = {00,31,28,31,30,31,30,31,31,30,31,30,31};
     u16 year = 0;
@@ -96,7 +96,7 @@ static u8 cmd_set_time(u8 *buffer, u8 length)
     return 0;
 }
 
-static u8 cmd_set_alarm_clock(u8 *buffer, u8 length)
+static s16 cmd_set_alarm_clock(u8 *buffer, u8 length)
 {
     cmd_set_alarm_clock_t* alarm_clock = (cmd_set_alarm_clock_t*)buffer;
 
@@ -121,61 +121,61 @@ static u8 cmd_set_alarm_clock(u8 *buffer, u8 length)
     return 0;
 }
 
-static u8 cmd_notify_switch(u8 *buffer, u8 length)
+static s16 cmd_notify_switch(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.notify_switch, buffer, sizeof(cmd_notify_switch_t));
     return 0;
 }
 
-static u8 cmd_sync_data(u8 *buffer, u8 length)
+static s16 cmd_sync_data(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.sync_data, buffer, sizeof(cmd_sync_data_t));
     return 0;
 }
 
-static u8 cmd_response(u8 *buffer, u8 length)
+static s16 cmd_response(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.send_resp, buffer, sizeof(cmd_response_t));
     return 0;
 }
 
-static u8 cmd_recv_notify(u8 *buffer, u8 length)
+static s16 cmd_recv_notify(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.recv_notif, buffer, sizeof(cmd_recv_notify_t));
     return 0;
 }
 
-static u8 cmd_set_pointers(u8 *buffer, u8 length)
+static s16 cmd_set_pointers(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.set_pointers, buffer, sizeof(cmd_set_pointers_t));
     return 0;
 }
 
-static u8 cmd_read_version(u8 *buffer, u8 length)
+static s16 cmd_read_version(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.read_ver, buffer, sizeof(cmd_read_version_t));
     return 0;
 }
 
-static u8 cmd_set_clock_hand(u8 *buffer, u8 length)
+static s16 cmd_set_clock_hand(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.set_clock_hand, buffer, sizeof(cmd_set_clock_hand_t));
     return 0;
 }
 
-static u8 cmd_set_vibration(u8 *buffer, u8 length)
+static s16 cmd_set_vibration(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.set_vib, buffer, sizeof(cmd_set_vibration_t));
     return 0;
 }
 
-static u8 cmd_find_watch(u8 *buffer, u8 length)
+static s16 cmd_find_watch(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.find_watch, buffer, sizeof(cmd_find_watch_t));
     return 0;
 }
 
-static u8 cmd_set_ancs_bond_req(u8 *buffer, u8 length)
+static s16 cmd_set_ancs_bond_req(u8 *buffer, u8 length)
 {
     if(buffer[1] == 0xAA) {
         DiscoverServices();
@@ -184,7 +184,7 @@ static u8 cmd_set_ancs_bond_req(u8 *buffer, u8 length)
     return 0;
 }
 
-static u8 cmd_read_time_steps(u8 *buffer, u8 length)
+static s16 cmd_read_time_steps(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.read_time_step, buffer, sizeof(cmd_read_time_steps_t)); 
     return 0;
@@ -224,7 +224,7 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
 void cmd_parse(u8* content, u8 length)
 {
 	u8 i = 0;
-    u8 res = 0;
+    s16 res = 0;
 
 	if(length == 0) {
 		return;
@@ -233,14 +233,14 @@ void cmd_parse(u8* content, u8 length)
     while(cmd_list[i].cmd != CMD_APP_NONE) {
         if(cmd_list[i].cmd == content[0]) {
             res = cmd_list[i].handler(content, length);
-            cmd_resp(cmd_list[i].cmd, res, &content[1]);
             break;
         }
         i++;
     }
 
     if((cmd_list[i].cmd != CMD_APP_NONE) && (res == 0)) {
-        cmd_cb(cmd_list[i].report, NULL);
+        res = cmd_cb(cmd_list[i].report, NULL);
+        cmd_resp(cmd_list[i].cmd, res, &content[1]);
     }
     
     //get_driver()->uart->uart_write((unsigned char*)content, length);

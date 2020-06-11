@@ -104,6 +104,7 @@ void pair_code_generate(void)
 
 static s16 ble_pair(void *args)
 {
+    s16 res = 0;
     STATE_E *state = (STATE_E *)args;
     u8* code = cmd_get()->pair_code.code;
     u16 pairing_code = (code[0]<<8)|code[1];
@@ -126,13 +127,13 @@ static s16 ble_pair(void *args)
         BLE_SEND_LOG((u8*)&"pair mis-match", 14);
         pair_code_generate();
         ble_state_set(app_pairing);
+        res = 1;
     } else {
         //print((u8*)&"not pair mode", 13);
         *state = CLOCK;
-        return 0;
     }
 
-	return 0;
+	return res;
 }
 
 static u16 ble_change(void *args)
@@ -189,16 +190,18 @@ static u16 ble_switch(void *args)
 
 s16 state_ble_switch(REPORT_E cb, void *args)
 {
+    s16 res = 0;
+    
     if(cb == KEY_M_LONG_PRESS) {
         //print((u8*)&"key press", 9);
-        ble_switch(args);
+        res = ble_switch(args);
     } else if(cb == BLE_CHANGE) {
         //print((u8*)&"ble change", 10);
-        ble_change(args);
+        res = ble_change(args);
     } else if(cb == BLE_PAIR) {
         //print((u8*)&"cmd pair", 8);
-        ble_pair(args);
+        res = ble_pair(args);
     }
 
-	return 0;
+	return res;
 }

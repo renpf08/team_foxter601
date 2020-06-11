@@ -54,6 +54,7 @@ static state_t state[] = {
 static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
+    s16 res = 0;
 
 	print((u8 *)&cb, 1);
 
@@ -61,11 +62,11 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 		if((state[i].init_state == business.state_now) && 
 			(state[i].ev == cb)) {
 			business.state_now = state[i].next_state;
-			state[i].func(cb, &business.state_now);
+			res = state[i].func(cb, &business.state_now);
             break;
 		}
 	}
-	return 0;
+	return res;
 }
 
 //#define TEST_BATTERY_WEEK
