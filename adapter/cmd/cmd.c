@@ -77,19 +77,20 @@ static u8 cmd_user_info(u8 *buffer, u8 length)
 }
 static u8 cmd_set_time(u8 *buffer, u8 length)
 {
-    u8 days[13] = {0x00,0x31,0x28,0x31,0x30,0x31,0x30,0x31,0x31,0x30,0x31,0x30,0x31};
+    u8 days[13] = {00,31,28,31,30,31,30,31,31,30,31,30,31};
     u16 year = 0;
     volatile cmd_set_time_t* set_time = (cmd_set_time_t*)buffer;
 
-    year = (u16)((set_time->year[0]<<8 & 0xFF00) | set_time->year[1]);
+    year = (u16)((set_time->year[1]<<8 & 0xFF00) | set_time->year[0]);
     days[2] = (0 == (year % 400) || (0 == (year % 4) && (0 != (year % 100))))?29:28;
 
-    if(set_time->month > 0x12) return 1;
-    if(set_time->day > days[set_time->month]) return 2;
-    if(set_time->hour > 0x23) return 3;
-    if(set_time->minute > 0x59) return 4;
-    if(set_time->second > 0x59) return 5;
-    if(set_time->week > 0x07) return 6;
+    if((year > 2120) || (year < 2020)) return 1;
+    if(set_time->month > 12) return 2;
+    if(set_time->day > days[set_time->month]) return 3;
+    if(set_time->hour > 0x23) return 4;
+    if(set_time->minute > 0x59) return 5;
+    if(set_time->second > 0x59) return 6;
+    if(set_time->week > 0x07) return 7;
     
     MemCopy(&cmd_group.set_time, buffer, sizeof(cmd_set_time_t));
     return 0;
@@ -232,7 +233,7 @@ void cmd_parse(u8* content, u8 length)
     while(cmd_list[i].cmd != CMD_APP_NONE) {
         if(cmd_list[i].cmd == content[0]) {
             res = cmd_list[i].handler(content, length);
-            cmd_resp(cmd_list[i].cmd, res, content);
+            cmd_resp(cmd_list[i].cmd, res, &content[1]);
             break;
         }
         i++;

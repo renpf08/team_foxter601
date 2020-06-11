@@ -57,6 +57,18 @@ static void clock_timer_increase(void)
 		clock_cfg.clock.month = 1;
 		clock_cfg.clock.year++;
 	}
+    /*
+    cmd_set_time_t time;
+    time.cmd = 02;
+    time.year[0] = clock_cfg.clock.year&0x00FF;
+    time.year[1] = clock_cfg.clock.year>>8&0x00FF;
+    time.month = clock_cfg.clock.month;
+    time.day = clock_cfg.clock.day;
+    time.hour = clock_cfg.clock.hour;
+    time.minute = clock_cfg.clock.minute;
+    time.second = clock_cfg.clock.second;
+    time.week = clock_cfg.clock.week;
+    BLE_SEND_LOG((u8*)&time, sizeof(cmd_set_time_t));*/
 }
 
 static void clock_cb_handler(u16 id)
