@@ -45,11 +45,11 @@ static void notify_swing_cb_handler(u16 id)
     if(notify_swing_start == FALSE) {
         notify_swing_start = TRUE;
         motor_notify_to_position(NOTIFY_COMMING_CALL);
-        print((u8*)&"forward", 7);
+        //print((u8*)&"forward", 7);
     } else {
         notify_swing_start = FALSE;
         motor_notify_to_position(NOTIFY_NONE);
-        print((u8*)&"backward", 8);
+        //print((u8*)&"backward", 8);
     }
     
 	motor_minute_to_position(clock->minute);
@@ -137,22 +137,25 @@ static u16 ble_change(void *args)
     STATE_E *state_mc = (STATE_E *)args;
     app_state state_ble = ble_state_get();
     
-    if((state_ble == app_advertising) && (swing_en == TRUE)) { // advertising start
-        print((u8*)&"adv start", 9);
-        timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
+    if(state_ble == app_advertising) { // advertising start
+        if(swing_en == TRUE) {
+            print((u8*)&"adv swing", 9);
+            timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
+            return 0;
+        } else {
+            print((u8*)&"adv start", 9);
+        }
     } else if(state_ble == app_idle){ // advertising stop
         print((u8*)&"adv stop", 8);
-        *state_mc = CLOCK;
         motor_notify_to_position(NOTIFY_NONE);
     } else if(state_ble == app_connected){ // connected
         print((u8*)&"connect", 7);
         if(swing_en == FALSE) swing_en = TRUE;
         motor_notify_to_position(NOTIFY_NONE);
-        *state_mc = CLOCK;
     } else { // disconnected
         print((u8*)&"disconect", 9);
-        *state_mc = CLOCK;
     }
+    *state_mc = CLOCK;
 
     return 0;
 }
