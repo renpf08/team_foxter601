@@ -204,6 +204,7 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
     BufWriteUint8((uint8 **)&tmp_buf,result);
     switch(cmd_type) {
         case CMD_SYNC_DATA: 
+        case CMD_USER_INFO: 
         break;
         case CMD_PAIRING_CODE: 
             BufWriteUint16((uint8 **)&tmp_buf, addr.nap);
