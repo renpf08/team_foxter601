@@ -121,12 +121,6 @@ static u8 cmd_set_alarm_clock(u8 *buffer, u8 length)
 }
 static u8 cmd_notify_switch(u8 *buffer, u8 length)
 {
-//    cmd_group.notify_switch.cmd = buffer[0];
-//    MemCopy(&cmd_group.notify_switch.notify, &buffer[1], 3);
-//    cmd_group.notify_switch.rev2 = buffer[4];
-    
-    volatile u8 si = sizeof(cmd_notify_switch_t);
-    if(si)
     MemCopy(&cmd_group.notify_switch, buffer, sizeof(cmd_notify_switch_t));
     return 0;
 }
