@@ -71,7 +71,7 @@ static s16 cmd_user_info(u8 *buffer, u8 length)
 {
     cmd_user_info_t* user_info = (cmd_user_info_t*)buffer;
 
-    if(user_info->sex > 1) return 1;
+    if(user_info->gender > 1) return 1;
     
     MemCopy(&cmd_group.user_info, buffer, sizeof(cmd_user_info_t));
     return 0;
@@ -212,22 +212,27 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
             BufWriteUint8((uint8 **)&tmp_buf,( addr.lap>>16));
             break;
         case CMD_READ_TIME_STEPS:
-            if(data[0] == 0x00) {
-                BufWriteUint8((uint8 **)&tmp_buf,data[0]);
+            BufWriteUint8((uint8 **)&tmp_buf,data[0]);
+            if(data[0] == 0x00) { // data & time
                 BufWriteUint16((uint8 **)&tmp_buf, cmd_time->year);
-                BufWriteUint8((uint8 **)&tmp_buf,cmd_time->month);
-                BufWriteUint8((uint8 **)&tmp_buf,cmd_time->day);
-                BufWriteUint8((uint8 **)&tmp_buf,cmd_time->hour);
-                BufWriteUint8((uint8 **)&tmp_buf,cmd_time->minute);
-                BufWriteUint8((uint8 **)&tmp_buf,cmd_time->second);
-                BufWriteUint8((uint8 **)&tmp_buf,cmd_time->week);
-            } else if(data[0] == 0x01) {
-                BufWriteUint8((uint8 **)&tmp_buf,data[0]);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->month);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->day);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->hour);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->minute);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->second);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->week);
+            } else if(data[0] == 0x01) { // target total steps
+                *tmp_buf++ = cmd_group.user_info.target_steps[3];
+                *tmp_buf++ = cmd_group.user_info.target_steps[2];
+                *tmp_buf++ = cmd_group.user_info.target_steps[1];
+                *tmp_buf++ = cmd_group.user_info.target_steps[0];
+            } else if(data[0] == 0xFF) { // ANCS connect state
+				BufWriteUint8((uint8 **)&tmp_buf, (uint8)(g_app_data.remote_gatt_handles_present));
             }
         break;
 
         default:
-        break;
+        return 0;
     }
     length = tmp_buf - rsp_buf;
     BLE_SEND_DATA(rsp_buf, length);

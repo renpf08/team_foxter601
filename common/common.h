@@ -369,12 +369,12 @@ typedef struct {
 typedef struct 
 {
     u8 cmd; 
-    u8 target_step[4];
-    u8 target_dist[4];
+    u8 target_steps[4];
+    u8 target_dists[4];
     u8 target_calorie[4];
-    u8 target_floor[2];
+    u8 target_floors[2];
     u8 target_stre_exer[2];
-    u8 sex;
+    u8 gender;
     u8 height;
     u8 weight;
 } cmd_user_info_t;
