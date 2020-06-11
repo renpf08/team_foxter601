@@ -115,7 +115,7 @@ static s16 ble_pair(void *args)
         pair_code_generate();
         ble_state_set(app_pairing);
     } else if(pairing_code == pair_code.pair_code) {
-        BLE_SEND_DATA((u8*)&"pair matched", 12);
+        BLE_SEND_LOG((u8*)&"pair matched", 12);
         pair_code.pair_bgn = 0;
         ble_state_set(app_pairing_ok);
         *state = CLOCK;

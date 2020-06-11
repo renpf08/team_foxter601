@@ -7,15 +7,12 @@
 #include "../driver/driver.h"
 
 extern bool ble_send_data(uint8 *data, uint16 size);
-#if USE_BLE_LOG
-extern bool ble_send_log(uint8 *data, uint16 size);
-#endif
-
 #define BLE_SEND_DATA(data, size)   ble_send_data(data, size)
 #if USE_BLE_LOG
+extern bool ble_send_log(uint8 *data, uint16 size);
 #define BLE_SEND_LOG(data, size)    ble_send_log(data, size)
 #else
-#define BLE_SEND_LOG(data, size)    (...)
+#define BLE_SEND_LOG(data, size)
 #endif
 
 s16 adapter_init(adapter_callback cb);

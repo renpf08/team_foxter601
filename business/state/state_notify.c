@@ -74,7 +74,7 @@ s16 state_notify(REPORT_E cb, void *args)
     }
     if(msg_idx != 0xFF) {
         if((msg_en & (1UL<<msg_idx)) == 0) {
-            BLE_SEND_DATA((u8*)&"off", 3);
+            BLE_SEND_LOG((u8*)&"off", 3);
         	*state = CLOCK;
         	return 0;
         }
@@ -86,7 +86,7 @@ s16 state_notify(REPORT_E cb, void *args)
 	}else if(NOTIFY_REMOVE == ancs_msg->sta) {
 		motor_notify_to_position(NOTIFY_NONE);
 	}
-    BLE_SEND_DATA((u8*)ancs_msg, sizeof(app_msg_t));
+    BLE_SEND_LOG((u8*)ancs_msg, sizeof(app_msg_t));
 
 	*state = CLOCK;
 	return 0;
