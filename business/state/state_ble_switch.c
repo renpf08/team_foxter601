@@ -108,23 +108,23 @@ static s16 ble_pair(void *args)
 
 	print((u8 *)&"recv_code:", 10);
 	print((u8 *)&pairing_code, 2);
-	
+
     if(pairing_code == 0xFFFF) {
-        print((u8*)&"enter pair mode", 15);
+        //print((u8*)&"enter pair mode", 15);
         pair_code.pair_bgn = 1;
         pair_code_generate();
         ble_state_set(app_pairing);
     } else if(pairing_code == pair_code.pair_code) {
-        print((u8*)&"pair matched", 12);
+        send_ble((u8*)&"pair matched", 12);
         pair_code.pair_bgn = 0;
         ble_state_set(app_pairing_ok);
         *state = CLOCK;
     } else if(pair_code.pair_bgn == 1) {
-        print((u8*)&"pair mis-match", 14);
+        //print((u8*)&"pair mis-match", 14);
         pair_code_generate();
         ble_state_set(app_pairing);
     } else {
-        print((u8*)&"not pair mode", 13);
+        //print((u8*)&"not pair mode", 13);
         *state = CLOCK;
         return 0;
     }
@@ -171,10 +171,10 @@ static u16 ble_switch(void *args)
         }
     }
     if((cur_state == app_advertising) || (cur_state == app_connected)) {
-        print((u8*)&"switch off", 10);
+        //print((u8*)&"switch off", 10);
         ble_switch_off();
     } else {
-        print((u8*)&"switch on", 9);
+        //print((u8*)&"switch on", 9);
         ble_switch_on();
     }
 

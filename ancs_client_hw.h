@@ -57,14 +57,5 @@ extern void AppHwDataInit(void);
 
 /* This function handles the PIO changed event. */
 extern void HandlePIOChangedEvent(uint32 pio_changed);
- 
-#ifdef ENABLE_LCD_DISPLAY
-/* Write data to LCD display */
-extern void WriteDataToLcdDisplay(const char* data,
-                                  uint8 len,
-                                  bool isdatasource);
-
-extern void ClearLCDDisplay(void);
-#endif /* ENABLE_LCD_DISPLAY */
 
 #endif /*__ANCS_CLIENT_HW_H__*/

@@ -160,8 +160,6 @@ extern void WriteDiscAncsServiceHandlesToNVM(void)
                 sizeof(g_disc_ancs_char[index].start_handle),
                 offset + NVM_DISC_ANCS_NOTIFICATION_HANDLE_OFFSET + (index));
     }
-    
-    //LogReport(__FILE__, __func__, __LINE__, Discovered_Ancs_write_ancs_service_handles_ok);
 }
 
 /*----------------------------------------------------------------------------*
@@ -203,12 +201,10 @@ extern void ReadDiscoveredAncsServiceHandlesFromNVM(uint16 *p_offset,
                     *p_offset + NVM_DISC_ANCS_NOTIFICATION_HANDLE_OFFSET + 
                     (index));
         }
-        //LogReport(__FILE__, __func__, __LINE__, Discovered_Ancs_read_ancs_service_handles_ok);
     }
     
     else //! add by mlw at 20200316 14:04
     {
-        //LogReport(__FILE__, __func__, __LINE__, Discovered_Ancs_read_ancs_service_handles_faild);
     }
     /* Increment the offset by the number of words of NVM memory required 
      * by the discovered Device Information Service.
