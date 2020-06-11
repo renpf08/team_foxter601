@@ -62,10 +62,13 @@ static void notify_swing_cb_handler(u16 id)
 void pair_code_generate(void)
 {
     u16 old_pair_code = 0;
-	u8 hour;
-    u8 minute;
-    u8 bcd_hour = 0;
-    u8 bcd_minute = 0;
+    typedef struct {
+        u8 bcd_hour;
+        u8 bcd_minute;
+        u8 hour;
+        u8 minute;
+    } pair_t;
+    pair_t pair = {0,0,0,0};
     
     while(1) {
         old_pair_code = pair_code.pair_code;
@@ -73,30 +76,30 @@ void pair_code_generate(void)
         while((pair_code.pair_code == 0) || (pair_code.pair_code == 0xFFFF)) {
             pair_code.pair_code = Random16();
         }
-        hour = (pair_code.pair_code>>8)&0x00FF;
-        minute = pair_code.pair_code&0x00FF;
-        while(hour >= 12) {
-            hour %= 12;
+        pair.hour = (pair_code.pair_code>>8)&0x00FF;
+       pair. minute = pair_code.pair_code&0x00FF;
+        while(pair.hour >= 12) {
+            pair.hour %= 12;
         }
-        while(minute >= 12) {
-            minute %= 12;
+        while(pair.minute >= 12) {
+            pair.minute %= 12;
         }
-        minute *= 5;
-        bcd_hour = hex_to_bcd(hour);
-        bcd_minute = hex_to_bcd(minute);
-        pair_code.pair_code = (bcd_hour<<8)|bcd_minute;
+        pair.minute *= 5;
+        pair.bcd_hour = hex_to_bcd(pair.hour);
+        pair.bcd_minute = hex_to_bcd(pair.minute);
+        pair_code.pair_code = (pair.bcd_hour<<8)|pair.bcd_minute;
         if(pair_code.pair_code != old_pair_code) {
             break;
         }
     }
-    //print_str_hex((u8*)&"pair code=0x", pair_code.pair_code);
-	print((u8 *)&"pair_hour:", 10);
-	print(&hour, 1);
-	print((u8 *)&"pair_min:", 9);
-	print(&minute, 1);
+    BLE_SEND_LOG((u8*)&pair, 2);
+	//print((u8 *)&"pair_hour:", 10);
+	//print(&pair.hour, 1);
+	//print((u8 *)&"pair_min:", 9);
+	//print(&pair.minute, 1);
 	
-	motor_hour_to_position(hour);
-	motor_minute_to_position(minute);
+	motor_hour_to_position(pair.hour);
+	motor_minute_to_position(pair.minute);
 }
 
 static s16 ble_pair(void *args)
@@ -106,8 +109,8 @@ static s16 ble_pair(void *args)
     u16 pairing_code = (code[0]<<8)|code[1];
     //print_str_hex((u8*)&"recv code=0x", pairing_code);
 
-	print((u8 *)&"recv_code:", 10);
-	print((u8 *)&pairing_code, 2);
+	//print((u8 *)&"recv_code:", 10);
+	//print((u8 *)&pairing_code, 2);
 
     if(pairing_code == 0xFFFF) {
         //print((u8*)&"enter pair mode", 15);
@@ -120,7 +123,7 @@ static s16 ble_pair(void *args)
         ble_state_set(app_pairing_ok);
         *state = CLOCK;
     } else if(pair_code.pair_bgn == 1) {
-        //print((u8*)&"pair mis-match", 14);
+        BLE_SEND_LOG((u8*)&"pair mis-match", 14);
         pair_code_generate();
         ble_state_set(app_pairing);
     } else {
@@ -170,11 +173,14 @@ static u16 ble_switch(void *args)
             return 0;
         }
     }
-    if((cur_state == app_advertising) || (cur_state == app_connected)) {
-        //print((u8*)&"switch off", 10);
+    if((cur_state == app_advertising) || 
+        (cur_state == app_connected) || 
+        (cur_state == app_pairing) || 
+        (cur_state == app_pairing_ok)) {
+        print((u8*)&"switch off", 10);
         ble_switch_off();
     } else {
-        //print((u8*)&"switch on", 9);
+        print((u8*)&"switch on", 9);
         ble_switch_on();
     }
 
