@@ -87,10 +87,10 @@ static u8 cmd_set_time(u8 *buffer, u8 length)
     if((year > 2120) || (year < 2020)) return 1;
     if(set_time->month > 12) return 2;
     if(set_time->day > days[set_time->month]) return 3;
-    if(set_time->hour > 0x23) return 4;
-    if(set_time->minute > 0x59) return 5;
-    if(set_time->second > 0x59) return 6;
-    if(set_time->week > 0x07) return 7;
+    if(set_time->hour > 23) return 4;
+    if(set_time->minute > 59) return 5;
+    if(set_time->second > 59) return 6;
+    if(set_time->week > 07) return 7;
     
     MemCopy(&cmd_group.set_time, buffer, sizeof(cmd_set_time_t));
     return 0;
