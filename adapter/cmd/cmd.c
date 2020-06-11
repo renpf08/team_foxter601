@@ -21,6 +21,7 @@ typedef struct cmdEntry_T {
 
 cmd_group_t cmd_group;
 static adapter_callback cmd_cb = NULL;
+static clock_t *cmd_time;
 
 static s16 cmd_pairing_code(u8 *buffer, u8 length);
 static s16 cmd_user_info(u8 *buffer, u8 length);
@@ -194,7 +195,6 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
 {
     u16 length = 0; 
     u8 rsp_buf[20];
-    u8 clear_reg = 0;
     u8 *tmp_buf = rsp_buf;
     BD_ADDR_T addr;
 
@@ -202,18 +202,36 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
     BufWriteUint8((uint8 **)&tmp_buf,0x00);
     BufWriteUint8((uint8 **)&tmp_buf,cmd_type);
     BufWriteUint8((uint8 **)&tmp_buf,result);
-    if(cmd_type == CMD_SYNC_DATA) return 0;
-    if(cmd_type == CMD_PAIRING_CODE) {
-        if((data[0] == 0xFF) && (data[1] == 0xFF)) clear_reg = 1;
-        BufWriteUint16((uint8 **)&tmp_buf, addr.nap);
-        BufWriteUint8((uint8 **)&tmp_buf, addr.uap);
+    switch(cmd_type) {
+        case CMD_SYNC_DATA: 
+        break;
+        case CMD_PAIRING_CODE: 
+            BufWriteUint16((uint8 **)&tmp_buf, addr.nap);
+            BufWriteUint8((uint8 **)&tmp_buf, addr.uap);
+            BufWriteUint16((uint8 **)&tmp_buf,( addr.lap));
+            BufWriteUint8((uint8 **)&tmp_buf,( addr.lap>>16));
+            break;
+        case CMD_READ_TIME_STEPS:
+            if(data[0] == 0x00) {
+                BufWriteUint8((uint8 **)&tmp_buf,data[0]);
+                BufWriteUint16((uint8 **)&tmp_buf, cmd_time->year);
+                BufWriteUint8((uint8 **)&tmp_buf,cmd_time->month);
+                BufWriteUint8((uint8 **)&tmp_buf,cmd_time->day);
+                BufWriteUint8((uint8 **)&tmp_buf,cmd_time->hour);
+                BufWriteUint8((uint8 **)&tmp_buf,cmd_time->minute);
+                BufWriteUint8((uint8 **)&tmp_buf,cmd_time->second);
+                BufWriteUint8((uint8 **)&tmp_buf,cmd_time->week);
+            } else if(data[0] == 0x01) {
+                BufWriteUint8((uint8 **)&tmp_buf,data[0]);
+            }
+        break;
 
-        BufWriteUint16((uint8 **)&tmp_buf,( addr.lap));
-        BufWriteUint8((uint8 **)&tmp_buf,( addr.lap>>16));
+        default:
+        break;
     }
     length = tmp_buf - rsp_buf;
     BLE_SEND_DATA(rsp_buf, length);
-    if(clear_reg == 1) {
+    if((cmd_type == CMD_PAIRING_CODE) && (data[0] == 0xFF) && (data[1] == 0xFF)) {
         rsp_buf[2] = 0xFF;
         BLE_SEND_DATA(rsp_buf, length);
     }
@@ -249,6 +267,12 @@ void cmd_parse(u8* content, u8 length)
 cmd_group_t *cmd_get(void)
 {
     return &cmd_group;
+}
+
+s16 cmd_refresh_time(clock_t *ck)
+{
+    cmd_time = ck;
+	return 0;
 }
 
 s16 cmd_init(adapter_callback cb)

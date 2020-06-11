@@ -64,6 +64,7 @@ s16 nvm_write_sleep_data(u16 *buffer, u8 index);
 s16 nvm_erase_history_data(void);
 
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
+s16 cmd_refresh_time(clock_t *ck);
 cmd_group_t *cmd_get(void);
 
 app_msg_t *ancs_get(void);
