@@ -211,10 +211,10 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
         BufWriteUint8((uint8 **)&tmp_buf,( addr.lap>>16));
     }
     length = tmp_buf - rsp_buf;
-    cmd_send_data(rsp_buf, length);
+    BLE_SEND_DATA(rsp_buf, length);
     if(clear_reg == 1) {
         rsp_buf[2] = 0xFF;
-        cmd_send_data(rsp_buf, length);
+        BLE_SEND_DATA(rsp_buf, length);
     }
 
     return length;
@@ -243,12 +243,6 @@ void cmd_parse(u8* content, u8 length)
     }
     
     //get_driver()->uart->uart_write((unsigned char*)content, length);
-}
-
-void cmd_send_data(uint8 *data, uint16 size)
-{
-    size = (size >20)?20:size;
-    SerialSendNotification(data, size);
 }
 
 cmd_group_t *cmd_get(void)

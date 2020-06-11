@@ -135,6 +135,9 @@ extern void SerialHandleAccessRead(GATT_ACCESS_IND_T *p_ind)
     switch(p_ind->handle)
     {
         case HANDLE_SERIAL_DATA_C_CFG:
+        #if USE_BLE_LOG
+        case HANDLE_SERIAL_LOG_C_CFG:
+        #endif
         {
              p_val = value;
              
@@ -178,18 +181,21 @@ extern void SerialHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
 
     switch(p_ind->handle)
     {
-        case HANDLE_SERIAL_DATA_TRANSFER:
+        case HANDLE_SERIAL_SEND_DATA:
         {
         }
         break;
         
-        case HANDLE_SERIAL_DATA_ATDR:
+        case HANDLE_SERIAL_RECV_DATA:
         {
             cmd_parse((u8*)p_ind->value, (uint8)p_ind->size_value);
         }
         break;
         
         case HANDLE_SERIAL_DATA_C_CFG:
+        #if USE_BLE_LOG
+        case HANDLE_SERIAL_LOG_C_CFG:
+        #endif
         {
             client_config = BufReadUint16(&p_value);
             
@@ -298,7 +304,7 @@ extern bool SerialCheckHandleRange(uint16 handle)
  *      TRUE, if notification is initiated, else FALSE
  *----------------------------------------------------------------------------*/
 
-extern bool SerialSendNotification(uint8 *data, uint16 size)
+extern bool SerialSendNotification(uint8 *data, uint16 size, uint16 handle)
 {
     if(size <= SERIAL_RX_DATA_LENGTH)
     {
@@ -307,7 +313,7 @@ extern bool SerialSendNotification(uint8 *data, uint16 size)
         if(g_serial_data.serial_client_config == gatt_client_config_notification)
         {
             GattCharValueNotification(GetConnectionID(),
-                                  HANDLE_SERIAL_DATA_TRANSFER,
+                                  handle,
                                   size,
                                   data);
 
@@ -318,6 +324,19 @@ extern bool SerialSendNotification(uint8 *data, uint16 size)
 
     return FALSE;
 }
+
+extern bool ble_send_data(uint8 *data, uint16 size)
+{
+    size = (size>20)?20:size;
+    return SerialSendNotification(data, size, HANDLE_SERIAL_SEND_DATA);
+}
+#if USE_BLE_LOG
+extern bool ble_send_log(uint8 *data, uint16 size)
+{
+    size = (size>20)?20:size;
+    return SerialSendNotification(data, size, HANDLE_SERIAL_SEND_LOG);
+}
+#endif
 
 #if 0
 /*----------------------------------------------------------------------------*
