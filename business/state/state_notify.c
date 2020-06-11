@@ -72,12 +72,11 @@ s16 state_notify(REPORT_E cb, void *args)
         }
         i++;
     }
-    if(msg_idx != 0xFF) {
-        if((msg_en & (1UL<<msg_idx)) == 0) {
-            BLE_SEND_LOG((u8*)&"off", 3);
-        	*state = CLOCK;
-        	return 0;
-        }
+    if(((msg_idx != 0xFF) && (msg_en & (1UL<<msg_idx)) == 0) || 
+        (msg_idx == 0xFF)) {
+        BLE_SEND_LOG((u8*)&"off", 3);
+    	*state = CLOCK;
+    	return 0;
     }
 	if(NOTIFY_ADD == ancs_msg->sta) {
 		if(ancs_msg->type < NOTIFY_DONE) {
