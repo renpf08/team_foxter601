@@ -49,6 +49,7 @@ static s16 csr_motor_activity_positive_second_half(void *args)
 
 static s16 csr_motor_activity_negtive_first_half(void *args)
 {
+
 	PioSetDir(csr_motor_activity_cfg.pos.num, PIO_DIR_OUTPUT);
 	PioSetDir(csr_motor_activity_cfg.neg.num, PIO_DIR_OUTPUT);
 

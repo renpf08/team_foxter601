@@ -20,11 +20,12 @@ static motor_cfg_t csr_motor_notify_cfg = {
 
 static s16 csr_motor_notify_positive_first_half(void *args)
 {
+	PioSets(BIT_MASK(csr_motor_notify_cfg.com.num),	0x00UL);
+
 	PioSetDir(csr_motor_notify_cfg.pos.num, PIO_DIR_OUTPUT);
 	PioSetDir(csr_motor_notify_cfg.neg.num, PIO_DIR_OUTPUT);
 
 	PioSets(BIT_MASK(csr_motor_notify_cfg.pos.num)| \
-			BIT_MASK(csr_motor_notify_cfg.com.num)| \
 			BIT_MASK(csr_motor_notify_cfg.neg.num),
 			0x00UL);
 
@@ -34,6 +35,7 @@ static s16 csr_motor_notify_positive_first_half(void *args)
 
 static s16 csr_motor_notify_positive_second_half(void *args)
 {
+
 	PioSetDir(csr_motor_notify_cfg.pos.num, PIO_DIR_OUTPUT);
 	PioSetDir(csr_motor_notify_cfg.neg.num, PIO_DIR_OUTPUT);
 
@@ -43,7 +45,7 @@ static s16 csr_motor_notify_positive_second_half(void *args)
 			0x00UL);
 
 	COM_HIGH(csr_motor_notify_cfg.com.num);
-	NEG_HIGH(csr_motor_notify_cfg.neg.num);	
+	NEG_HIGH(csr_motor_notify_cfg.neg.num);
 	return 0;
 }
 
@@ -105,9 +107,11 @@ static s16 csr_motor_notify_init(cfg_t *args, event_callback cb)
 				BIT_MASK(csr_motor_notify_cfg.neg.num),
 				pio_mode_user);
 	
-	PioSetDir(csr_motor_notify_cfg.pos.num, PIO_DIR_INPUT);
+	//PioSetDir(csr_motor_notify_cfg.pos.num, PIO_DIR_INPUT);	
+	PioSetDir(csr_motor_notify_cfg.pos.num, PIO_DIR_OUTPUT);
 	PioSetDir(csr_motor_notify_cfg.com.num, PIO_DIR_OUTPUT);
-	PioSetDir(csr_motor_notify_cfg.neg.num, PIO_DIR_INPUT);
+	//PioSetDir(csr_motor_notify_cfg.neg.num, PIO_DIR_INPUT);
+	PioSetDir(csr_motor_notify_cfg.neg.num, PIO_DIR_OUTPUT);
 	
 	PioSetPullModes(BIT_MASK(csr_motor_notify_cfg.pos.num)| \
 					BIT_MASK(csr_motor_notify_cfg.com.num)| \
