@@ -11,7 +11,7 @@ s16 state_ble_switch(REPORT_E cb, void *args);
 //void ble_switch_test(u16 id);
 
 s16 state_notify(REPORT_E cb, void *args);
-//void notify_test(u16 id);
+void notify_test(void);
 
 s16 state_battery_week_switch(REPORT_E cb, void *args);
 s16 state_battery_week_status_get(void);
