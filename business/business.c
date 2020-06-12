@@ -56,7 +56,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	u16 i = 0;
     s16 res = 0;
 
-	print((u8 *)&cb, 1);
+	//print((u8 *)&cb, 1);
 
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 
