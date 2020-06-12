@@ -74,16 +74,17 @@ s16 state_notify(REPORT_E cb, void *args)
 	return 0;
 }
 
-#if 1
+#if 0
 void notify_test_timeout(u16 id);
 void notify_test_timeout(u16 id)
 {
-	motor_notify_to_position(NOTIFY_NONE);
+	motor_notify_to_position(NOTIFY_SMS);
 }
 
 void notify_test(void)
 {
 #if 0
+	NOTIFY_NONE = 0,
 	NOTIFY_SKYPE = 1,
 	NOTIFY_WHATSAPP = 2,
 	NOTIFY_TWITTER = 3,
@@ -91,6 +92,7 @@ void notify_test(void)
 	NOTIFY_FACEBOOK = 5,
 	NOTIFY_SMS = 6,
 	NOTIFY_LINKIN = 7,
+	NOTIFY_COMMING_CALL = 8,
 #endif
 	motor_notify_to_position(NOTIFY_LINKIN);
 	timer_event(2000, notify_test_timeout);
