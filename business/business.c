@@ -56,6 +56,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	u16 i = 0;
     s16 res = 0;
 
+	return 0;
 	//print((u8 *)&cb, 1);
 
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
@@ -69,10 +70,10 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	return res;
 }
 
-//#define TEST_BATTERY_WEEK
+#define TEST_NOTIFY
 s16 business_init(void)
 {
-	s16 battery_week_status;
+	//s16 battery_week_status;
 
 	adapter_init(adapter_cb_handler);
 	
@@ -81,7 +82,7 @@ s16 business_init(void)
 	#endif
 
 	#ifdef TEST_NOTIFY
-	timer_event(1000, notify_test);
+	notify_test();
 	#endif
 
 	#ifdef TEST_BLE_SWITCH
@@ -96,6 +97,7 @@ s16 business_init(void)
 	battery_week_test(adapter_cb_handler);
 	#endif
 
+	#if 0
 	battery_week_status = state_battery_week_status_get();
 	if(state_battery == battery_week_status) {
 		state_battery_week_switch(KEY_M_SHORT_PRESS, NULL);
@@ -103,5 +105,6 @@ s16 business_init(void)
 	
 	business.state_now = CLOCK;
 	state_clock(CLOCK_1_MINUTE, NULL);
+	#endif
 	return 0;
 }
