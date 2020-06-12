@@ -342,9 +342,9 @@ typedef enum {
     CMD_SYNC_DATA           = 0x05,
     CMD_RESPONSE_TO_WATCH   = 0x06,
     CMD_RECV_NOTIFY         = 0x07,
-    CMD_SET_POINTERS        = 0x08,
-    CMD_READ_VERSION        = 0x09, //! need to response
-    CMD_SET_CLOCK_POINTER   = 0x0A,
+    CMD_SET_POINTERS        = 0x08, //! set all clock hands
+    CMD_READ_VERSION        = 0x09, //! not use, has moved to DEVICE_INF_SERVICE
+    CMD_SET_CLOCK_POINTER   = 0x0A, //! set single clock hand
     CMD_SET_VIBRATION       = 0x0B,
     CMD_SET_FIND_WATCH      = 0x0C,
     CMD_SET_ANCS_BOND_REQ   = 0x0D,

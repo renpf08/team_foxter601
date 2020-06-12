@@ -52,7 +52,7 @@ static const CMDENTRY cmd_list[] =
     {CMD_RESPONSE_TO_WATCH, RESPONSE_TO_WATCH,  cmd_response},
     {CMD_RECV_NOTIFY,       ANDROID_NOTIFY,     cmd_recv_notify},
     {CMD_SET_POINTERS,      SET_POINTERS,       cmd_set_pointers},
-    {CMD_READ_VERSION,      READ_VERSION,       cmd_read_version},
+    {CMD_READ_VERSION,      READ_VERSION,       cmd_read_version}, // not use, has moved to DEVICE_INF_SERVICE
     {CMD_SET_CLOCK_POINTER, SET_CLOCK_POINTER,  cmd_set_clock_hand},
     {CMD_SET_VIBRATION,     SET_VIBRATION,      cmd_set_vibration},
     {CMD_SET_FIND_WATCH,    SET_FIND_WATCH,     cmd_find_watch},
@@ -203,16 +203,31 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
     BufWriteUint8((uint8 **)&tmp_buf,cmd_type);
     BufWriteUint8((uint8 **)&tmp_buf,result);
     switch(cmd_type) {
-        case CMD_SYNC_DATA: 
-        case CMD_USER_INFO: 
-        break;
-        case CMD_PAIRING_CODE: 
+        case CMD_USER_INFO:         // 0x01
+        case CMD_SET_TIME:          // 0x02
+        case CMD_SET_ALARM_CLOCK:   // 0x03
+        case CMD_NOTIFY_SWITCH:     // 0x04
+        case CMD_RECV_NOTIFY:       // 0x07
+        case CMD_SET_POINTERS:      // 0x08(set all clock hands)
+        case CMD_SET_CLOCK_POINTER: // 0x0A(set single clock hand)
+        case CMD_SET_VIBRATION:     // 0x0B
+        case CMD_SET_FIND_WATCH:    // 0x0C
+            break; // only need to response 3 bytes: 0x00, cmd type, result
+        case CMD_RESPONSE_TO_WATCH: // 0x06
+        case CMD_READ_VERSION:      // 0x09(not use, has moved to DEVICE_INF_SERVICE)
+        case CMD_SET_ANCS_BOND_REQ: // 0x0A
+            return 0; // no need to send response
+        case CMD_PAIRING_CODE:      // 0x00
             BufWriteUint16((uint8 **)&tmp_buf, addr.nap);
             BufWriteUint8((uint8 **)&tmp_buf, addr.uap);
             BufWriteUint16((uint8 **)&tmp_buf,( addr.lap));
             BufWriteUint8((uint8 **)&tmp_buf,( addr.lap>>16));
             break;
-        case CMD_READ_TIME_STEPS:
+        case CMD_SYNC_DATA:         // 0x05
+            tmp_buf--; // no need to send "result" msg
+            BufWriteUint8((uint8 **)&tmp_buf, 0x00); // dummy response: 0x00, ended to send...
+            break;
+        case CMD_READ_TIME_STEPS:   // 0x0E
             BufWriteUint8((uint8 **)&tmp_buf,data[0]);
             if(data[0] == 0x00) { // data & time
                 BufWriteUint16((uint8 **)&tmp_buf, cmd_time->year);
@@ -230,10 +245,10 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
             } else if(data[0] == 0xFF) { // ANCS connect state
 				BufWriteUint8((uint8 **)&tmp_buf, (uint8)(g_app_data.remote_gatt_handles_present));
             }
-        break;
+            break;
 
         default:
-        return 0;
+            return 0;
     }
     length = tmp_buf - rsp_buf;
     BLE_SEND_DATA(rsp_buf, length);
