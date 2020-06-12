@@ -107,11 +107,9 @@ static s16 csr_motor_notify_init(cfg_t *args, event_callback cb)
 				BIT_MASK(csr_motor_notify_cfg.neg.num),
 				pio_mode_user);
 	
-	//PioSetDir(csr_motor_notify_cfg.pos.num, PIO_DIR_INPUT);
-	PioSetDir(csr_motor_notify_cfg.pos.num, PIO_DIR_OUTPUT);
+	PioSetDir(csr_motor_notify_cfg.pos.num, PIO_DIR_INPUT);
 	PioSetDir(csr_motor_notify_cfg.com.num, PIO_DIR_OUTPUT);
-	//PioSetDir(csr_motor_notify_cfg.neg.num, PIO_DIR_INPUT);
-	PioSetDir(csr_motor_notify_cfg.neg.num, PIO_DIR_OUTPUT);
+	PioSetDir(csr_motor_notify_cfg.neg.num, PIO_DIR_INPUT);
 	
 	PioSetPullModes(BIT_MASK(csr_motor_notify_cfg.pos.num)| \
 					BIT_MASK(csr_motor_notify_cfg.com.num)| \

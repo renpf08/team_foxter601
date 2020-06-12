@@ -83,7 +83,16 @@ void notify_test_timeout(u16 id)
 
 void notify_test(void)
 {
-	motor_notify_to_position(NOTIFY_COMMING_CALL);
+#if 0
+	NOTIFY_SKYPE = 1,
+	NOTIFY_WHATSAPP = 2,
+	NOTIFY_TWITTER = 3,
+	NOTIFY_EMAIL = 4,
+	NOTIFY_FACEBOOK = 5,
+	NOTIFY_SMS = 6,
+	NOTIFY_LINKIN = 7,
+#endif
+	motor_notify_to_position(NOTIFY_LINKIN);
 	timer_event(2000, notify_test_timeout);
 }
 #endif
