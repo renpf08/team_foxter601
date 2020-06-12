@@ -74,10 +74,16 @@ s16 state_notify(REPORT_E cb, void *args)
 	return 0;
 }
 
-#if 0
-void notify_test(u16 id)
+#if 1
+void notify_test_timeout(u16 id);
+void notify_test_timeout(u16 id)
 {
-	state_notify(ANCS_NOTIFY_INCOMING, NULL);
-	timer_event(1000, notify_test);
+	motor_notify_to_position(NOTIFY_NONE);
+}
+
+void notify_test(void)
+{
+	motor_notify_to_position(NOTIFY_COMMING_CALL);
+	timer_event(2000, notify_test_timeout);
 }
 #endif
