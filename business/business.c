@@ -43,6 +43,10 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               KEY_M_SHORT_PRESS,   	BATTERY_WEEK_SWITCH,    state_battery_week_switch),
 	/*time adjust*/
 	STATE_FILL(CLOCK,               KEY_B_M_LONG_PRESS,   	TIME_ADJUST,            state_time_adjust),
+	STATE_FILL(TIME_ADJUST,         KEY_A_SHORT_PRESS,   	TIME_ADJUST,            state_time_adjust),	
+	STATE_FILL(TIME_ADJUST,         KEY_B_SHORT_PRESS,   	TIME_ADJUST,            state_time_adjust),
+	STATE_FILL(TIME_ADJUST,         KEY_M_SHORT_PRESS,   	TIME_ADJUST,            state_time_adjust),
+	STATE_FILL(TIME_ADJUST,         KEY_B_M_LONG_PRESS,   	CLOCK,            		state_clock),
 	/*run test*/
 	STATE_FILL(CLOCK,       		KEY_A_B_M_LONG_PRESS,   RUN_TEST,  				state_run_test),
 	STATE_FILL(RUN_TEST,    		KEY_A_B_M_LONG_PRESS,   RUN_TEST,  				state_run_test),
@@ -95,6 +99,10 @@ s16 business_init(void)
 	battery_week_test(adapter_cb_handler);
 	#endif
 
+	#ifdef TEST_TIME_ADJUST
+	timer_event(1000, time_adjust_test);
+	#endif
+	
 	#if 1
 	battery_week_status = state_battery_week_status_get();
 	if(state_battery == battery_week_status) {

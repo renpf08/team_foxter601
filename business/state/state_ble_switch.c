@@ -20,16 +20,7 @@ pair_ctrl_t pair_code = {0, 0};
 
 static void notify_swing_cb_handler(u16 id)
 {
-    static bool notify_swing_start = FALSE;
-	u8 day2[] = {DAY_0,
-	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
-	DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
-	DAY_11, DAY_12, DAY_13, DAY_14, DAY_15,
-	DAY_16, DAY_17, DAY_18, DAY_19, DAY_20,
-	DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
-	DAY_26, DAY_27,	DAY_28,	DAY_29, DAY_30,
-	DAY_31};
-	
+    static bool notify_swing_start = FALSE;	
     app_state cur_state = ble_state_get();
     clock_t *clock = clock_get();
     
@@ -51,7 +42,7 @@ static void notify_swing_cb_handler(u16 id)
     
 	motor_minute_to_position(clock->minute);
 	motor_hour_to_position(clock->hour);
-    motor_date_to_position(day2[clock->day]);
+    motor_date_to_position(date[clock->day]);
     
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
 }
@@ -135,18 +126,18 @@ static u16 ble_change(void *args)
     app_state state_ble = ble_state_get();
     
     if(state_ble == app_advertising) { // advertising start
-        print((u8*)&"adv start", 9);
+        //print((u8*)&"adv start", 9);
         timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
     } else if(state_ble == app_idle){ // advertising stop
-        print((u8*)&"adv stop", 8);
+        //print((u8*)&"adv stop", 8);
         *state_mc = CLOCK;
         motor_notify_to_position(NOTIFY_NONE);
     } else if(state_ble == app_connected){ // connected
-        print((u8*)&"connect", 7);
+        //print((u8*)&"connect", 7);
         motor_notify_to_position(NOTIFY_NONE);
         *state_mc = CLOCK;
     } else { // disconnected
-        print((u8*)&"disconect", 9);
+        //print((u8*)&"disconect", 9);
         *state_mc = CLOCK;
     }
 

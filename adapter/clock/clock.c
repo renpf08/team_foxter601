@@ -24,6 +24,8 @@ static clock_cfg_t clock_cfg = {
 	.cb = NULL,
 };
 
+
+
 static void clock_timer_increase(void)
 {
 	if(60 == clock_cfg.clock.second) {
