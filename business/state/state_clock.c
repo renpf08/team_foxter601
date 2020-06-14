@@ -23,6 +23,7 @@ static clock_t clk = {
 #endif
 static void sport_activity_calc(void)
 {
+<<<<<<< 623b5bf2031e949068396d4e8e85f8be19a96f51
     u32 target_steps = cmd_get()->user_info.target_steps;
     u32 current_steps = sport_get()->StepCounts;
     u8 activity = 40; // total 40 grids
@@ -38,6 +39,10 @@ static void alarm_clock_check(clock_t *clock)
 {
     cmd_set_alarm_clock_t *alarm_clock = (cmd_set_alarm_clock_t*)&cmd_get()->set_alarm_clock;
     u8 i = 0;
+=======
+	//u8 string_hour[4] = {'h', 'o', 'u', 'r'};
+	//print((u8 *)&"clock", 5);
+>>>>>>> inint state_time_adjust
 
     for(i = 0; i < 4; i++) {
         if((alarm_clock->aclk[i].en == 1) && 
@@ -84,8 +89,17 @@ s16 state_clock(REPORT_E cb, void *args)
 	clk = clock_get();
 	motor_minute_to_position(clk->minute);
 	motor_hour_to_position(clk->hour);
+<<<<<<< 623b5bf2031e949068396d4e8e85f8be19a96f51
     motor_date_to_position(day_table[clk->day]);
     minute_data_handler(clk);
+=======
+<<<<<<< HEAD
+    motor_date_to_position(day[clk->day]);
+    cmd_refresh_time(clk);
+=======
+    motor_date_to_position(date[clk->day]);
+>>>>>>> inint state_time_adjust
+>>>>>>> inint state_time_adjust
 	#else
 	clk.minute++;
 	if(60 == clk.minute) {
@@ -105,8 +119,13 @@ s16 state_clock(REPORT_E cb, void *args)
     //print((u8*)&"system clock", 12);
 	motor_minute_to_position(clk.minute);
 	motor_hour_to_position(clk.hour);
+<<<<<<< 623b5bf2031e949068396d4e8e85f8be19a96f51
     motor_date_to_position(day_table[clk.day]);
     minute_data_handler(clk);
+=======
+    motor_date_to_position(date[clk.day]);
+    cmd_refresh_time(clk);
+>>>>>>> inint state_time_adjust
 	#endif
 
 	return 0;
