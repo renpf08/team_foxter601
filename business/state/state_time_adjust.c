@@ -86,7 +86,7 @@ s16 state_time_adjust(REPORT_E cb, void *args)
 	return 0;
 }
 
-#if 0
+#if 1
 static u8 seq_num = 0;
 static u8 time_adjust_test_seq[] = {KEY_A_B_LONG_PRESS, KEY_A_SHORT_PRESS, KEY_A_SHORT_PRESS, KEY_A_SHORT_PRESS,
 							 					 		KEY_B_SHORT_PRESS, KEY_B_SHORT_PRESS, KEY_B_SHORT_PRESS,
@@ -99,10 +99,5 @@ void time_adjust_test(u16 id)
 		timer_event(2000, time_adjust_test);
 	}
 }
-#else
-void time_adjust_test(u16 id)
-{
-	motor_hour_test_run(pos);
-	motor_hour_test_run(neg);
-}
+
 #endif
