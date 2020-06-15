@@ -338,7 +338,7 @@ void motor_run_handler(u16 id)
 			motor_manager.run_direction = pos;
 			motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
 		}else {
-			motor_manager.run_direction = neg;			
+			motor_manager.run_direction = neg;
 			motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
 		}
 	}

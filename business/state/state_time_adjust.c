@@ -18,25 +18,26 @@ static state_time_adjust_t state_time_adj = {
 };
 
 u8 time_adj_motor[TIME_MOTOR_MAX] = {minute_motor, hour_motor, date_motor, battery_week_motor};
-
 static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 {
 	switch(motor_num) {
 		case hour_motor:
 			if(pos == direction) {
 				state_time_adj.clk->hour++;
-			}else {
+			}else if(neg == direction){
 				state_time_adj.clk->hour--;
 			}
 			motor_hour_to_position(state_time_adj.clk->hour);
+			print(&state_time_adj.clk->hour, 1);
 			break;
 		case minute_motor:
 			if(pos == direction) {
 				state_time_adj.clk->minute++;
-			}else {
+			}else if(neg == direction){
 				state_time_adj.clk->minute--;
 			}
 			motor_minute_to_position(state_time_adj.clk->minute);
+			print(&state_time_adj.clk->minute, 1);
 			break;
 		case date_motor:
 			if(pos == direction) {
@@ -50,7 +51,7 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 			if(pos == direction) {
 				state_time_adj.clk->week++;
 			}else {
-				state_time_adj.clk->week++;
+				state_time_adj.clk->week--;
 			}
 			motor_battery_week_to_position(state_time_adj.clk->week);
 			break;
@@ -61,7 +62,7 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 
 s16 state_time_adjust(REPORT_E cb, void *args)
 {
-	print((u8 *)&"time_adjust", 11);
+	//print((u8 *)&"time_adjust", 11);
 
 	if(KEY_A_B_LONG_PRESS == cb) {
 		state_time_adj.clk = clock_get();
@@ -85,7 +86,7 @@ s16 state_time_adjust(REPORT_E cb, void *args)
 	return 0;
 }
 
-#if 1
+#if 0
 static u8 seq_num = 0;
 static u8 time_adjust_test_seq[] = {KEY_A_B_LONG_PRESS, KEY_A_SHORT_PRESS, KEY_A_SHORT_PRESS, KEY_A_SHORT_PRESS,
 							 					 		KEY_B_SHORT_PRESS, KEY_B_SHORT_PRESS, KEY_B_SHORT_PRESS,
@@ -95,6 +96,39 @@ void time_adjust_test(u16 id)
 {
 	if(seq_num < sizeof(time_adjust_test_seq)) {
 		state_time_adjust(time_adjust_test_seq[seq_num++], NULL);
+		timer_event(2000, time_adjust_test);
+	}
+}
+#else
+static u8 seq_num = 0;
+void time_adjust_test(u16 id)
+{
+	switch(seq_num) {
+		case 0:
+			motor_hour_to_position(1);
+			break;
+		case 1:
+			motor_hour_to_position(0);
+			break;
+		#if 0
+		case 2:
+			motor_minute_to_position();
+			break;
+		case 3:
+			motor_minute_to_position();
+			break;
+		case 4:
+			motor_minute_to_position();
+			break;
+		case 5:
+			motor_minute_to_position();
+			break;
+		#endif
+		default :
+			break;
+	}
+	seq_num++;
+	if(seq_num < 2) {
 		timer_event(2000, time_adjust_test);
 	}
 }
