@@ -439,7 +439,7 @@ s16 motor_manager_init(void)
 	return 0;
 }
 
-#if 1
+#if 0
 void time_delay_ms(u16 ms);
 void time_delay_ms(u16 ms)
 {
