@@ -77,7 +77,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 #define TEST_TIME_ADJUST
 s16 business_init(void)
 {
-	s16 battery_week_status;
+	//s16 battery_week_status;
 
 	adapter_init(adapter_cb_handler);
 	
