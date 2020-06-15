@@ -433,3 +433,43 @@ s16 motor_manager_init(void)
 	motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler);
 	return 0;
 }
+
+#if 1
+void time_delay_ms(u16 ms);
+void time_delay_ms(u16 ms)
+{
+    for(; ms > 0; ms--)
+    {
+        TimeDelayUSec(1000);
+    }
+} /* TimeDelayMSec */
+
+s16 motor_hour_test_run(u8 direction)
+{
+	u8 cnt;
+	if(pos == direction) {
+		for(cnt = 0; cnt < 5; cnt++) {
+			motor_manager.drv->motor_hour->motor_positive_first_half(NULL);
+			time_delay_ms(5);
+			motor_manager.drv->motor_hour->motor_stop(NULL);
+			time_delay_ms(5);
+			motor_manager.drv->motor_hour->motor_positive_second_half(NULL);
+			time_delay_ms(5);
+			motor_manager.drv->motor_hour->motor_stop(NULL);
+			time_delay_ms(5);
+		}
+	} else if(neg == direction) {
+		for(cnt = 0; cnt < 5; cnt++) {
+			motor_manager.drv->motor_hour->motor_negtive_first_half(NULL);
+			time_delay_ms(5);
+			motor_manager.drv->motor_hour->motor_stop(NULL);
+			time_delay_ms(5);
+			motor_manager.drv->motor_hour->motor_negtive_second_half(NULL);
+			time_delay_ms(5);
+			motor_manager.drv->motor_hour->motor_stop(NULL);
+			time_delay_ms(5);
+		}
+	}
+	return 0;
+}
+#endif
