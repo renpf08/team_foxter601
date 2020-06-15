@@ -5,6 +5,7 @@
 
 void motor_run_handler(u16 id);
 static void motor_run_positive_one_unit(u16 id);
+static void motor_run_negtive_one_unit(u16 id);
 static void motor_run_continue_check(void);
 
 #define BAT_INTERVAL_STEP 2
@@ -254,7 +255,11 @@ static void motor_run_continue_check(void)
 			motor_manager.motor_status[motor_manager.run_motor_num].run_flag = 0;
 		}
 	}else {
-		motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
+		if(pos == motor_manager.run_direction) {
+			motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
+		}else {
+			motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
+		}
 	}
 }
 
@@ -458,6 +463,7 @@ s16 motor_hour_test_run(u8 direction)
 			motor_manager.drv->motor_hour->motor_stop(NULL);
 			time_delay_ms(5);
 		}
+		time_delay_ms(2000);
 	} else if(neg == direction) {
 		for(cnt = 0; cnt < 5; cnt++) {
 			motor_manager.drv->motor_hour->motor_negtive_first_half(NULL);
@@ -469,6 +475,7 @@ s16 motor_hour_test_run(u8 direction)
 			motor_manager.drv->motor_hour->motor_stop(NULL);
 			time_delay_ms(5);
 		}
+		time_delay_ms(2000);
 	}
 	return 0;
 }
