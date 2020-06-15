@@ -27,7 +27,7 @@ void motor_run_one_step(u8 motor_num, u8 direction);
 
 s16 motor_hour_to_position(u8 hour);
 s16 motor_hour_one_step(u8 hour_step);
-s16 motor_hour_test_run(u8 direction);
+//s16 motor_hour_test_run(u8 direction);
 
 s16 motor_minute_to_position(u8 minute);
 s16 motor_minute_one_step(u8 minute_step);

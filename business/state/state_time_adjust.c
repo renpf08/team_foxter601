@@ -99,5 +99,4 @@ void time_adjust_test(u16 id)
 		timer_event(2000, time_adjust_test);
 	}
 }
-
 #endif
