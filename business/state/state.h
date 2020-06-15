@@ -5,7 +5,7 @@ s16 state_clock(REPORT_E cb, void *args);
 s16 state_low_voltage(REPORT_E cb, void *args);
 
 s16 state_zero_adjust(REPORT_E cb, void *args);
-//void zero_adjust_test(u16 id);
+void zero_adjust_test(u16 id);
 
 s16 state_ble_switch(REPORT_E cb, void *args);
 //void ble_switch_test(u16 id);
