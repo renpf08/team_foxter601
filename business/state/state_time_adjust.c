@@ -100,36 +100,9 @@ void time_adjust_test(u16 id)
 	}
 }
 #else
-static u8 seq_num = 0;
 void time_adjust_test(u16 id)
 {
-	switch(seq_num) {
-		case 0:
-			motor_hour_to_position(1);
-			break;
-		case 1:
-			motor_hour_to_position(0);
-			break;
-		#if 0
-		case 2:
-			motor_minute_to_position();
-			break;
-		case 3:
-			motor_minute_to_position();
-			break;
-		case 4:
-			motor_minute_to_position();
-			break;
-		case 5:
-			motor_minute_to_position();
-			break;
-		#endif
-		default :
-			break;
-	}
-	seq_num++;
-	if(seq_num < 2) {
-		timer_event(2000, time_adjust_test);
-	}
+	motor_hour_test_run(pos);
+	motor_hour_test_run(neg);
 }
 #endif
