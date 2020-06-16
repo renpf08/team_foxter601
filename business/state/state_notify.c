@@ -25,25 +25,24 @@ typedef enum {
 typedef struct {
     NOTIFY_RECV_E recv_msg; // no use
     NOTIFY_E disp_msg;
-    u16 mask_bit;
 } notify_convert_t;
 
 static const notify_convert_t notif_convert_list[] =
 {
-    {NOTIFY_RECV_CALL,          NOTIFY_COMMING_CALL,    0x0001},
-    {NOTIFY_RECV_SMS,           NOTIFY_SMS,             0x0002},
-    {NOTIFY_RECV_EMAIL,         NOTIFY_EMAIL,           0x0004},
-    {NOTIFY_RECV_QQ,            NOTIFY_QQ,              0x0008},
-    {NOTIFY_RECV_WECHAT,        NOTIFY_WECHAT,          0x0010},
-    {NOTIFY_RECV_FACEBOOK,      NOTIFY_FACEBOOK,        0x0020},
-    {NOTIFY_RECV_FACEMESSENGE,  NOTIFY_FACEBOOK,        0x0040},
-    {NOTIFY_RECV_LINE,          NOTIFY_LINE,            0x0080},
-    {NOTIFY_RECV_SKYPE,         NOTIFY_SKYPE,           0x0100},
-    {NOTIFY_RECV_TWITTER,       NOTIFY_TWITTER,         0x0200},
-    {NOTIFY_RECV_WHATSAPP,      NOTIFY_WHATSAPP,        0x0400},
-    {NOTIFY_RECV_CALENDER,      NOTIFY_CALENDER,        0x0800},
-    {NOTIFY_RECV_LINKIN,        NOTIFY_LINKIN,          0x1000},
-    {0xFF,                      0xFF,                   0xFFFF},
+    {NOTIFY_RECV_CALL,          NOTIFY_COMMING_CALL},
+    {NOTIFY_RECV_SMS,           NOTIFY_SMS},
+    {NOTIFY_RECV_EMAIL,         NOTIFY_EMAIL},
+    {NOTIFY_RECV_QQ,            NOTIFY_QQ},
+    {NOTIFY_RECV_WECHAT,        NOTIFY_WECHAT},
+    {NOTIFY_RECV_FACEBOOK,      NOTIFY_FACEBOOK},
+    {NOTIFY_RECV_FACEMESSENGE,  NOTIFY_FACEBOOK},
+    {NOTIFY_RECV_LINE,          NOTIFY_LINE},
+    {NOTIFY_RECV_SKYPE,         NOTIFY_SKYPE},
+    {NOTIFY_RECV_TWITTER,       NOTIFY_TWITTER},
+    {NOTIFY_RECV_WHATSAPP,      NOTIFY_WHATSAPP},
+    {NOTIFY_RECV_CALENDER,      NOTIFY_CALENDER},
+    {NOTIFY_RECV_LINKIN,        NOTIFY_LINKIN},
+    {0xFF,                      0xFF},
 };
 
 s16 state_notify(REPORT_E cb, void *args)
