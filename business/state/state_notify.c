@@ -23,36 +23,37 @@ typedef enum {
 }NOTIFY_RECV_E;
 
 typedef struct {
-    NOTIFY_RECV_E recv_msg;
+    NOTIFY_RECV_E recv_msg; // no use
     NOTIFY_E disp_msg;
+    u16 mask_bit;
 } notify_convert_t;
 
 static const notify_convert_t notif_convert_list[] =
 {
-    {NOTIFY_RECV_CALL,          NOTIFY_COMMING_CALL},
-    {NOTIFY_RECV_SMS,           NOTIFY_SMS},
-    {NOTIFY_RECV_EMAIL,         NOTIFY_EMAIL},
-    {NOTIFY_RECV_QQ,            NOTIFY_QQ},
-    {NOTIFY_RECV_WECHAT,        NOTIFY_WECHAT},
-    {NOTIFY_RECV_FACEBOOK,      NOTIFY_FACEBOOK},
-    {NOTIFY_RECV_FACEMESSENGE,  NOTIFY_FACEBOOK},
-    {NOTIFY_RECV_LINE,          NOTIFY_LINE},
-    {NOTIFY_RECV_SKYPE,         NOTIFY_SKYPE},
-    {NOTIFY_RECV_TWITTER,       NOTIFY_TWITTER},
-    {NOTIFY_RECV_WHATSAPP,      NOTIFY_WHATSAPP},
-    {NOTIFY_RECV_CALENDER,      NOTIFY_CALENDER},
-    {NOTIFY_RECV_LINKIN,        NOTIFY_LINKIN},
-    {0xFF,                      0xFF},
+    {NOTIFY_RECV_CALL,          NOTIFY_COMMING_CALL,    0x0001},
+    {NOTIFY_RECV_SMS,           NOTIFY_SMS,             0x0002},
+    {NOTIFY_RECV_EMAIL,         NOTIFY_EMAIL,           0x0004},
+    {NOTIFY_RECV_QQ,            NOTIFY_QQ,              0x0008},
+    {NOTIFY_RECV_WECHAT,        NOTIFY_WECHAT,          0x0010},
+    {NOTIFY_RECV_FACEBOOK,      NOTIFY_FACEBOOK,        0x0020},
+    {NOTIFY_RECV_FACEMESSENGE,  NOTIFY_FACEBOOK,        0x0040},
+    {NOTIFY_RECV_LINE,          NOTIFY_LINE,            0x0080},
+    {NOTIFY_RECV_SKYPE,         NOTIFY_SKYPE,           0x0100},
+    {NOTIFY_RECV_TWITTER,       NOTIFY_TWITTER,         0x0200},
+    {NOTIFY_RECV_WHATSAPP,      NOTIFY_WHATSAPP,        0x0400},
+    {NOTIFY_RECV_CALENDER,      NOTIFY_CALENDER,        0x0800},
+    {NOTIFY_RECV_LINKIN,        NOTIFY_LINKIN,          0x1000},
+    {0xFF,                      0xFF,                   0xFFFF},
 };
 
 s16 state_notify(REPORT_E cb, void *args)
 {
 	STATE_E *state = (STATE_E *)args;
 	app_msg_t *ancs_msg = NULL;
-    volatile u8 msg_idx = 0xFF;
     u8 i = 0;
     u8 *en = cmd_get()->notify_switch.en;
-    u32 msg_en = 0;
+    volatile u32 msg_en = 0;
+    volatile u8 msg = 0;
 
     for(i = 0; i < 4; i++) {
         msg_en  <<= 8;
@@ -64,17 +65,22 @@ s16 state_notify(REPORT_E cb, void *args)
         ancs_msg = &cmd_get()->recv_notif;
         ancs_msg->type = (u16)notif_convert_list[ancs_msg->type].disp_msg;
     }
+    msg = ancs_msg->type;
     i = 0;
     while(notif_convert_list[i].disp_msg != 0xFF) {
-        if(notif_convert_list[i].disp_msg == ancs_msg->type) {
-            msg_idx = notif_convert_list[i].recv_msg;
+        if(notif_convert_list[i].disp_msg == msg) {
             break;
         }
         i++;
     }
-    if(((msg_idx != 0xFF) && (msg_en & (1UL<<msg_idx)) == 0) || 
-        (msg_idx == 0xFF)) {
-        BLE_SEND_LOG((u8*)&"off", 3);
+    if(i == 0xFF) { // notify switch off
+        BLE_SEND_LOG((u8*)&"\xFF\xFF\xFF", 3);
+        ancs_msg->sta = NOTIFY_RESERVE;
+    } else if((msg_en & (1UL<<i)) == 0) { // notify out of range
+        BLE_SEND_LOG((u8*)&"\x00\x00\x00", 3);
+        ancs_msg->sta = NOTIFY_RESERVE;
+    }
+    if(ancs_msg->sta == NOTIFY_RESERVE) {
     	*state = CLOCK;
     	return 0;
     }

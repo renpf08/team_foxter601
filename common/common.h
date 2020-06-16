@@ -174,14 +174,14 @@ typedef enum {
 
 typedef enum {
 	NOTIFY_NONE = 0,
-	NOTIFY_SKYPE = 1,
-	NOTIFY_WHATSAPP = 2,
-	NOTIFY_TWITTER = 3,
-	NOTIFY_EMAIL = 4,
-	NOTIFY_FACEBOOK = 5,
-	NOTIFY_SMS = 6,
-	NOTIFY_LINKIN = 7,
-	NOTIFY_COMMING_CALL = 8,
+	NOTIFY_SKYPE = 1,       // mask bit:8
+	NOTIFY_WHATSAPP = 2,    // mask bit:10
+	NOTIFY_TWITTER = 3,     // mask bit:9
+	NOTIFY_EMAIL = 4,       // mask bit:2
+	NOTIFY_FACEBOOK = 5,    // mask bit:5
+	NOTIFY_SMS = 6,         // mask bit:1
+	NOTIFY_LINKIN = 7,      // mask bit:12
+	NOTIFY_COMMING_CALL = 8,// mask bit:0
 	NOTIFY_DONE,
 	NOTIFY_LINE,
 	NOTIFY_QQ,
