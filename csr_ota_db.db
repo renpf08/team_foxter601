@@ -81,14 +81,15 @@ primary_service {
 
     /* Serial Data Transfer characteristic */
     characteristic  {
-        uuid:	UUID_SERIAL_DATA_TRANSFER,
-        name:	"SERIAL_DATA_TRANSFER",
+        uuid:	UUID_SERIAL_SEND_DATA,
+        name:	"SERIAL_SEND_DATA",
+        //value : "ble data",
 
         /* Dynamic value maintained by the application */
         #if USE_PAIRING_SUPPORT
         flags:	[FLAG_IRQ, FLAG_ENCR_W],
         #else
-           flags : [FLAG_IRQ],
+        flags : [FLAG_IRQ],
         #endif
 
         properties:	[notify],
@@ -104,10 +105,34 @@ primary_service {
         }
     },
 
+    #if USE_BLE_LOG
     /* Serial Data Transfer characteristic */
     characteristic  {
-        uuid:	UUID_SERIAL_DATA_ATDR,
-        name:	"SERIAL_DATA_ATDR",
+        uuid:	UUID_SERIAL_SEND_LOG,
+        name:	"SERIAL_SEND_LOG",
+        //value : "ble log",
+
+        /* Dynamic value maintained by the application */
+        #if USE_PAIRING_SUPPORT
+        flags:	[FLAG_IRQ, FLAG_ENCR_W],
+        #else
+        flags : [FLAG_IRQ],
+        #endif
+
+        properties:	[notify],
+        size_value:	20,
+
+		client_config {
+           flags : [FLAG_IRQ],
+           name : "SERIAL_LOG_C_CFG"
+        }
+    },
+    #endif
+
+    /* Serial Data Transfer characteristic */
+    characteristic  {
+        uuid:	UUID_SERIAL_RECV_DATA,
+        name:	"SERIAL_RECV_DATA",
 
         /* Dynamic value maintained by the application */
         #if USE_PAIRING_SUPPORT

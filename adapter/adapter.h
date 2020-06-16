@@ -6,8 +6,14 @@
 #include "../common/common.h"
 #include "../driver/driver.h"
 
-#define SerialSendNotification send_ble
-extern bool SerialSendNotification(u8 *data, u16 size);
+extern bool ble_send_data(uint8 *data, uint16 size);
+#define BLE_SEND_DATA(data, size)   ble_send_data(data, size)
+#if USE_BLE_LOG
+extern bool ble_send_log(uint8 *data, uint16 size);
+#define BLE_SEND_LOG(data, size)    ble_send_log(data, size)
+#else
+#define BLE_SEND_LOG(data, size)
+#endif
 
 s16 adapter_init(adapter_callback cb);
 void print(u8 *buf, u16 num);
@@ -58,7 +64,7 @@ s16 nvm_write_sleep_data(u16 *buffer, u8 index);
 s16 nvm_erase_history_data(void);
 
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
-void cmd_send_data(uint8 *data, uint16 size);
+s16 cmd_refresh_time(clock_t *ck);
 cmd_group_t *cmd_get(void);
 
 app_msg_t *ancs_get(void);

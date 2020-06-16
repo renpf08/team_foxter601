@@ -354,7 +354,7 @@ extern void OtaHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
                 ota_serv_data.ota_reset_required = TRUE;
 
                 /* Disconnect from the remote device */
-                AppSetState(app_disconnecting, 0x1B);
+                AppSetState(app_disconnecting);
 
             }
             break;

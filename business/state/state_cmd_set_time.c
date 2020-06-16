@@ -12,22 +12,21 @@ s16 state_set_date_time(REPORT_E cb, void *args)
     clock_t clock;
     app_state state_ble = ble_state_get();
 
-    clock.year = bcd_to_hex(time->year[0])*100 + bcd_to_hex(time->year[1]);
-    clock.month = bcd_to_hex(time->month);
-    clock.day = bcd_to_hex(time->day);
-    clock.hour = bcd_to_hex(time->hour);
-    clock.minute = bcd_to_hex(time->minute);
-    clock.second = bcd_to_hex(time->second);
-    clock.week = bcd_to_hex(time->week);
+    clock.year = time->year[1]<<8 | time->year[0];
+    clock.month = time->month;
+    clock.day = time->day;
+    clock.week = time->week;
+    clock.hour = time->hour;
+    clock.minute = time->minute;
+    clock.second = time->second;
     
     if(state_ble == app_pairing) {
         *state = BLE_SWITCH;
     } else {
         *state = CLOCK;
     }
+    BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
     clock_set(&clock);
-	//print((u8*)&"set_time:", 9);
-    //print_date_time((u8*)&"set time=", &clock);
 
 	return 0;
 }

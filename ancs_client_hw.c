@@ -115,20 +115,6 @@ extern void InitAncsHardware(void)
     PioSetEventMask(PIO_BIT_MASK(BUTTON_PIO), pio_event_mode_both);
     /* Set the I2C pins to pull down */
     PioSetI2CPullMode(pio_i2c_pull_mode_strong_pull_down);
-    
-#ifdef ENABLE_LCD_DISPLAY
-    /* Initialize the LCD display PIO */
-	LcdDisplayInitI2c();
-	LcdDisplayInitRst();
-
-    /* Initialize the LCD display */
-    LcdDisplayInit(LCD_I2C_ADDRESS);    
-    
-    /* Initialize the LCD display PWM */    
-    LcdDisplayInitPwm();
-		
-#endif /*ENABLE_LCD_DISPLAY*/   
-  
 }
 
 /*----------------------------------------------------------------------------*
@@ -148,65 +134,6 @@ extern void AppHwDataInit(void)
     TimerDelete(g_app_hw_data.button_press_tid);
     g_app_hw_data.button_press_tid = TIMER_INVALID;
 }  
-
-#ifdef ENABLE_LCD_DISPLAY
-/*----------------------------------------------------------------------------*
- *  NAME
- *      WriteDataToLcdDisplay
- *
- *  DESCRIPTION
- *      This function writes the data to LCD display.
- *
- *  RETURNS
- *      Nothing.
- *
- *----------------------------------------------------------------------------*/
-extern void WriteDataToLcdDisplay(const char* data,
-								   uint8 len,
-								   bool isdatasource)
-{
-    if(!isdatasource)
-    {
-       /* Write the received ANCS notification */  
-		 LcdDisplayBacklight(5, 10); /* Backlight on (dim flash). */
-         LcdDisplaySetCursor(LCD_I2C_ADDRESS, 0, 0);
-		 LcdDisplayI2cWriteString(LCD_I2C_ADDRESS,
-                                  (const uint8 *)data);
-    }
-    else
-    {
-       /* Write the received data source notification */ 
-       LcdDisplaySetCursor(LCD_I2C_ADDRESS, g_current_display_index, 1);
-	   
-	   /* Update the display index. If in case of partial data received,
-		* We will display only the available data. The remaining data will
-		* be displayed starting from the g_current_display_index.
-		*/
-	   g_current_display_index += len;
-	   LcdDisplayI2cWriteString(LCD_I2C_ADDRESS,
-                                (const uint8 *)data);
-    }
-}
-/*----------------------------------------------------------------------------*
- *  NAME
- *      ClearLCDDisplay
- *
- *  DESCRIPTION
- *      This function clears the LCD display.
- *
- *  RETURNS
- *      Nothing.
- *
- *----------------------------------------------------------------------------*/
-extern void ClearLCDDisplay(void)
-{
-	/* Reset the current display index to start */
-	g_current_display_index = 0;
-	
-	/*Clear the display*/
-    LcdDisplayClear(LCD_I2C_ADDRESS);
-}
-#endif /*ENABLE_LCD_DISPLAY */
 
 /*----------------------------------------------------------------------------*
  *  NAME

@@ -44,7 +44,7 @@ extern void SerialReadDataFromNVM(bool bonded,uint16 *p_offset);
 extern bool SerialCheckHandleRange(uint16 handle);
 
 /* Sends the serial service notification. */
-extern bool SerialSendNotification(uint8 *data, uint16 size);
+extern bool SerialSendNotification(uint8 *data, uint16 size, uint16 handle);
 
 /* Function that configures the UART port. */
 //extern void SerialConfigureUart(bool bhigh);

@@ -27,14 +27,16 @@
 #define APP_ID_STRING_FACEMESSAGE   "com.facebook.Messenger"  //! Messenger(Facebook) message ID
 #define APP_ID_STRING_WECHAT        "com.tencent.xin"
 #define APP_ID_STRING_FACEBOOK      "com.facebook.Facebook"   //! Facebook message ID
-#define APP_ID_STRING_EMAIL         "email" //...
+#define APP_ID_STRING_EMAIL         "com.apple.mobilemail"
 #define APP_ID_STRING_SMS           "com.apple.MobileSMS"
 #define APP_ID_STRING_SKYPE         "com.skype.tomskype"
+#define APP_ID_STRING_SKYPE2        "com.skype.skype"
 #define APP_ID_STRING_COMMING_CALL  "com.apple.mobilephone"
 #define APP_ID_STRING_TWITTER       "com.atebits.Tweetie2"
 #define APP_ID_STRING_WHATSAPP      "net.whatsapp.WhatsApp"
 #define APP_ID_STRING_CALENDAR      "calendar" //...
 #define APP_ID_STRING_LINKEDIN      "com.linkedin.LinkedIn"
+#define APP_ID_STRING_LINKEDIN2     "com.linkedin.Zephyr"
 #define APP_ID_STRING_NEWS          "news" //...
 
 typedef struct app_id_index_t
@@ -56,11 +58,13 @@ static const APPIDINDEX app_msg_list[] =
     {NOTIFY_EMAIL,        MESSAGE_IMPORTANCE_EMAIL,         APP_ID_STRING_EMAIL},
     {NOTIFY_SMS,          MESSAGE_IMPORTANCE_SMS,           APP_ID_STRING_SMS},
     {NOTIFY_SKYPE,        MESSAGE_IMPORTANCE_SKYPE,         APP_ID_STRING_SKYPE},
+    {NOTIFY_SKYPE,        MESSAGE_IMPORTANCE_SKYPE,         APP_ID_STRING_SKYPE2},
     {NOTIFY_COMMING_CALL, MESSAGE_IMPORTANCE_COMMING_CALL,  APP_ID_STRING_COMMING_CALL},
     {NOTIFY_TWITTER,      MESSAGE_IMPORTANCE_TWITTER,       APP_ID_STRING_TWITTER},
     {NOTIFY_WHATSAPP,     MESSAGE_IMPORTANCE_WHATSAPP,      APP_ID_STRING_WHATSAPP},
     {NOTIFY_CALENDER,     MESSAGE_IMPORTANCE_CALENDAR,      APP_ID_STRING_CALENDAR},
     {NOTIFY_LINKIN,       MESSAGE_IMPORTANCE_LINKEDIN,      APP_ID_STRING_LINKEDIN},
+    {NOTIFY_LINKIN,       MESSAGE_IMPORTANCE_LINKEDIN,      APP_ID_STRING_LINKEDIN2},
     {NOTIFY_NEWS,         MESSAGE_IMPORTANCE_NEWS,          APP_ID_STRING_NEWS},
 
 	{0, 0, "\0"} //! Finish here
@@ -96,7 +100,7 @@ s16 ancs_init(adapter_callback cb);
 void ancs_business_handle(packing_msg_t* pack_msg)
 {
     u8 i = 0;
-
+    
     while(app_msg_list[i].app_id[0] != 0)
     {
         if(MemCmp(pack_msg->attr_id_app_id, app_msg_list[i].app_id, sizeof(app_msg_list[i].app_id)) == 0)
@@ -113,6 +117,8 @@ void ancs_business_handle(packing_msg_t* pack_msg)
     {
         ancs_msg.level = 255; //! invalid if proMst.msgType = 255
         ancs_msg.type = 255; //! indicated unknown message
+        
+        BLE_SEND_LOG((u8*)&pack_msg->attr_id_app_id, StrLen((char*)pack_msg->attr_id_app_id));
     }
     else
     {
@@ -194,15 +200,15 @@ void ancs_noti_source_handle(GATT_CHAR_VAL_IND_T *p_ind, noti_t *p_noti_source)
         }
         /** the cat id indicate the known app, so don't need to request to data source */
         else if((pck_msg.cat_id == ancs_cat_id_incoming_call)||
-           (pck_msg.cat_id == ancs_cat_id_email)||
-           (pck_msg.cat_id == ancs_cat_id_schedule)||
-           (pck_msg.cat_id == ancs_cat_id_news)) //! did news need to be request data source???
+           /*(pck_msg.cat_id == ancs_cat_id_email)||*/
+           (pck_msg.cat_id == ancs_cat_id_schedule)/*||
+           (pck_msg.cat_id == ancs_cat_id_news)*/) //! did news need to be request data source???
         {
 			if((pck_msg.cat_id == ancs_cat_id_incoming_call)) MemCopy(pck_msg.attr_id_app_id, APP_ID_STRING_COMMING_CALL, sizeof(APP_ID_STRING_COMMING_CALL));
 			if((pck_msg.cat_id == ancs_cat_id_missed_call)) MemCopy(pck_msg.attr_id_app_id, APP_ID_STRING_COMMING_CALL, sizeof(APP_ID_STRING_COMMING_CALL));
 			if((pck_msg.cat_id == ancs_cat_id_email)) MemCopy(pck_msg.attr_id_app_id, APP_ID_STRING_EMAIL, sizeof(APP_ID_STRING_EMAIL));
 			if((pck_msg.cat_id == ancs_cat_id_schedule)) MemCopy(pck_msg.attr_id_app_id, APP_ID_STRING_CALENDAR, sizeof(APP_ID_STRING_CALENDAR));
-			if((pck_msg.cat_id == ancs_cat_id_news)) MemCopy(pck_msg.attr_id_app_id, APP_ID_STRING_NEWS, sizeof(APP_ID_STRING_NEWS));
+			/*if((pck_msg.cat_id == ancs_cat_id_news)) MemCopy(pck_msg.attr_id_app_id, APP_ID_STRING_NEWS, sizeof(APP_ID_STRING_NEWS));*/
             ancs_business_handle(&pck_msg);
         }
         

@@ -204,15 +204,6 @@ void print_date_time(u8 *buf, clock_t *datm)
 }
 #endif
 
-#if 0
-u8 bcd_to_hex(u32 bcd_data)
-{
-    u8 temp;
-    temp=((bcd_data>>8)*100)|((bcd_data>>4)*10)|(bcd_data&0x0f);
-    return temp;
-}
-#endif
-
 u8 bcd_to_hex(u8 bcd_data)
 {
   u8 x = (bcd_data & 0xF0) >> 4;

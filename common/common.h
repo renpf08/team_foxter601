@@ -67,7 +67,7 @@ typedef enum {
     USER_INFO = 21,
     SET_TIME = 22,
     SET_ALARM_CLOCK = 23,
-    SET_DISP_FORMAT = 24,
+    NOTIFY_SWITCH = 24,
     SYNC_DATA = 25,
     RESPONSE_TO_WATCH = 26,
     SEND_NOTIFY = 27,
@@ -174,14 +174,14 @@ typedef enum {
 
 typedef enum {
 	NOTIFY_NONE = 0,
-	NOTIFY_SKYPE = 1,
-	NOTIFY_WHATSAPP = 2,
-	NOTIFY_TWITTER = 3,
-	NOTIFY_EMAIL = 4,
-	NOTIFY_FACEBOOK = 5,
-	NOTIFY_SMS = 6,
-	NOTIFY_LINKIN = 7,
-	NOTIFY_COMMING_CALL = 8,
+	NOTIFY_SKYPE = 1,       // mask bit:8
+	NOTIFY_WHATSAPP = 2,    // mask bit:10
+	NOTIFY_TWITTER = 3,     // mask bit:9
+	NOTIFY_EMAIL = 4,       // mask bit:2
+	NOTIFY_FACEBOOK = 5,    // mask bit:5
+	NOTIFY_SMS = 6,         // mask bit:1
+	NOTIFY_LINKIN = 7,      // mask bit:12
+	NOTIFY_COMMING_CALL = 8,// mask bit:0
 	NOTIFY_DONE,
 	NOTIFY_LINE,
 	NOTIFY_QQ,
@@ -338,13 +338,13 @@ typedef enum {
     CMD_USER_INFO           = 0x01,
     CMD_SET_TIME            = 0x02,
     CMD_SET_ALARM_CLOCK     = 0x03,
-    CMD_SET_DISP_FORMAT     = 0x04,
+    CMD_NOTIFY_SWITCH       = 0x04,
     CMD_SYNC_DATA           = 0x05,
     CMD_RESPONSE_TO_WATCH   = 0x06,
     CMD_RECV_NOTIFY         = 0x07,
-    CMD_SET_POINTERS        = 0x08,
-    CMD_READ_VERSION        = 0x09, //! need to response
-    CMD_SET_CLOCK_POINTER   = 0x0A,
+    CMD_SET_POINTERS        = 0x08, //! set all clock hands
+    CMD_READ_VERSION        = 0x09, //! not use, has moved to DEVICE_INF_SERVICE
+    CMD_SET_CLOCK_POINTER   = 0x0A, //! set single clock hand
     CMD_SET_VIBRATION       = 0x0B,
     CMD_SET_FIND_WATCH      = 0x0C,
     CMD_SET_ANCS_BOND_REQ   = 0x0D,
@@ -369,12 +369,12 @@ typedef struct {
 typedef struct 
 {
     u8 cmd; 
-    u8 target_step[4];
-    u8 target_dist[4];
+    u8 target_steps[4];
+    u8 target_dists[4];
     u8 target_calorie[4];
-    u8 target_floor[2];
+    u8 target_floors[2];
     u8 target_stre_exer[2];
-    u8 sex;
+    u8 gender;
     u8 height;
     u8 weight;
 } cmd_user_info_t;
@@ -411,13 +411,9 @@ typedef struct {
 } cmd_set_alarm_clock_t;
 
 typedef struct { 
-    u8 cmd; 
-    u8 custm_disp;
-    u8 clock_format;
-    u8 main_target;
-    u8 used_hand;
-} cmd_set_disp_format_t;
-
+    u8 cmd;
+    u8 en[4];
+} cmd_notify_switch_t;
 typedef struct { 
     u8 cmd; 
     u8 sync_data; 
@@ -493,7 +489,7 @@ typedef struct {
     cmd_user_info_t user_info;
     cmd_set_time_t set_time;
     cmd_set_alarm_clock_t set_alarm_clock;
-    cmd_set_disp_format_t set_disp;
+    cmd_notify_switch_t notify_switch;
     cmd_sync_data_t sync_data;
     cmd_response_t send_resp;
     cmd_recv_notify_t recv_notif;
