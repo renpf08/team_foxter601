@@ -51,8 +51,8 @@ s16 state_notify(REPORT_E cb, void *args)
 	app_msg_t *ancs_msg = NULL;
     u8 i = 0;
     u8 *en = cmd_get()->notify_switch.en;
-    volatile u32 msg_en = 0;
-    volatile u8 msg = 0;
+    u32 msg_en = 0;
+    u8 msg = 0;
 
     for(i = 0; i < 4; i++) {
         msg_en  <<= 8;
