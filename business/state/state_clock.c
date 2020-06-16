@@ -29,12 +29,8 @@ s16 state_clock(REPORT_E cb, void *args)
 	clk = clock_get();
 	motor_minute_to_position(clk->minute);
 	motor_hour_to_position(clk->hour);
-<<<<<<< HEAD
-    motor_date_to_position(day[clk->day]);
-    cmd_refresh_time(clk);
-=======
     motor_date_to_position(date[clk->day]);
->>>>>>> inint state_time_adjust
+	cmd_refresh_time(clk);
 	#else
 	clk.minute++;
 	if(60 == clk.minute) {
