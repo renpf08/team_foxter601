@@ -133,7 +133,6 @@ static u16 ble_change(void *args)
     app_state state_ble = ble_state_get();
     
     if(state_ble == app_advertising) { // advertising start
-<<<<<<< HEAD
         if(swing_en == TRUE) {
             print((u8*)&"adv swing", 9);
             timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
@@ -147,24 +146,9 @@ static u16 ble_change(void *args)
     } else if(state_ble == app_connected){ // connected
         print((u8*)&"connect", 7);
         if(swing_en == FALSE) swing_en = TRUE;
-=======
-        //print((u8*)&"adv start", 9);
-        timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
-    } else if(state_ble == app_idle){ // advertising stop
-        //print((u8*)&"adv stop", 8);
-        *state_mc = CLOCK;
-        motor_notify_to_position(NOTIFY_NONE);
-    } else if(state_ble == app_connected){ // connected
-        //print((u8*)&"connect", 7);
->>>>>>> inint state_time_adjust
         motor_notify_to_position(NOTIFY_NONE);
     } else { // disconnected
-<<<<<<< HEAD
         print((u8*)&"disconect", 9);
-=======
-        //print((u8*)&"disconect", 9);
-        *state_mc = CLOCK;
->>>>>>> inint state_time_adjust
     }
     *state_mc = CLOCK;
 
