@@ -18,7 +18,7 @@ s16 state_battery_week_status_get(void);
 //void battery_week_test(adapter_callback cb);
 
 s16 state_run_test(REPORT_E cb, void *args);
-//void test_run_test(u16 id);
+void test_run_test(u16 id);
 
 s16 state_time_adjust(REPORT_E cb, void *args);
 void time_adjust_test(u16 id);

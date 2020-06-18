@@ -66,7 +66,7 @@ s16 state_zero_adjust(REPORT_E cb, void *args)
 	return 0;
 }
 
-#if 1
+#if 0
 u8 test[] = {KEY_A_B_LONG_PRESS, KEY_A_SHORT_PRESS, KEY_A_SHORT_PRESS, KEY_A_SHORT_PRESS,
 			 KEY_B_SHORT_PRESS, KEY_B_SHORT_PRESS, KEY_B_SHORT_PRESS, KEY_M_SHORT_PRESS};
 void zero_adjust_test(u16 id)
