@@ -18,7 +18,17 @@ static clock_t clk = {
 	.second = 0,
 };
 #endif
+static void minute_data_handler(clock_t *clock)
+{
+    cmd_group_t *cmd = cmd_get();
 
+    if(cmd->user_info.cmd & 0x80) { // refresh user information
+        cmd->user_info.cmd &= ~0x80;
+        Update_BodyInfo(cmd->user_info.gender, cmd->user_info.height, cmd->user_info.weight);
+    }
+    cmd_refresh_time(clock);
+    One_Minute_Sport_Info_Pro();
+}
 s16 state_clock(REPORT_E cb, void *args)
 {
 	u8 day[] = {DAY_0,
@@ -39,7 +49,7 @@ s16 state_clock(REPORT_E cb, void *args)
 	motor_minute_to_position(clk->minute);
 	motor_hour_to_position(clk->hour);
     motor_date_to_position(day[clk->day]);
-    cmd_refresh_time(clk);
+    minute_data_handler(clk);
 	#else
 	clk.minute++;
 	if(60 == clk.minute) {
@@ -60,7 +70,7 @@ s16 state_clock(REPORT_E cb, void *args)
 	motor_minute_to_position(clk.minute);
 	motor_hour_to_position(clk.hour);
     motor_date_to_position(day[clk.day]);
-    cmd_refresh_time(clk);
+    minute_data_handler(clk);
 	#endif
 
 	return 0;

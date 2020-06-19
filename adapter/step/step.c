@@ -37,6 +37,10 @@
 #define MIDDLE_STEP_COUNT               4        /*¼õÉÙÎó²î£¬Ç°1.8ÃëÄÚÒªÓÐÖÁÉÙ3²½*/
 #define MIDDLE_STEP_SECOND              (2800/SAMPLE_TIME_UNINT)   /*1.8ÃëµÄÊ±ºòÒªÖÁÉÙ3²½µÄÖµ2.8*/
 
+#define DEFAULT_GENDER_VALUE            1       /*1ÄÐ£¬0Å® 173cm¸ß£¬70¹«½ïÖØ*/
+#define DEFAULT_HEIGHT_VALUE            173     /*1ÄÐ£¬0Å® 173cm¸ß£¬70¹«½ïÖØ*/
+#define DEFAULT_WEIGHT_VALUE            70      /*1ÄÐ£¬0Å® 173cm¸ß£¬70¹«½ïÖØ*/
+
 /***************************************************************************************/
 /************************************ÔË¶¯Êý¾Ý³õÊ¼»¯****************************************/
 /***************************************************************************************/
@@ -129,6 +133,7 @@ u8 Z_Acce_Val=0;  /*Ä£Äâµç×ÓÂÞÅÌÓÃ*/
 
 void Acute_Sport_Time_Count_Init(void);
 void Acute_Sport_Time_Count_Pro(void);
+u32 CaculateCalorie(void);
 u16 CaculateAsbSquare(u8 Temp);
 void InitVal(u16 *ValS,u16 Val, u8 Length);
 u16 AverageVal(u16 *Val,u8 Num);
@@ -137,6 +142,30 @@ u16 GetXYZ_Acce_Data(void);
 void Step_Count_data_Init(void);
 void step_count_proce(void);
 s16 step_sample_init(void);
+
+void Update_BodyInfo(uint8 Gender, uint8 Height, uint8 Weight)
+{
+   Body_Info_data.Gender=Gender;/*Ä¬ÈÏÖµÊÇ1,ÄÐ  0,Å®*/
+   Body_Info_data.Height=Height;
+   Body_Info_data.Weight=Weight;
+  /* Body_Info_data.StridedDistance=Body_Info_data.Height*38/100;
+   Body_Info_data.StridedDistance=(Body_Info_data.StridedDistance+3)/10;ÐÞ¸ÄÎª·ÖÃ×µ¥Î»*/
+   Body_Info_data.StridedDistance=(Body_Info_data.Height+13)/25;
+   if(Body_Info_data.Gender)/*ÄÐ*/
+   {
+       Body_Info_data.One_Minu_BMR_Calorie=Body_Info_data.Weight*50/3;/*1000 / 60*/
+       Body_Info_data.One_Minu_Heavy_Sport_Calorie=Body_Info_data.Weight*125/4; /*1000 x 45 /24/60*/
+       Body_Info_data.One_Minu_Medium_Sport_Calorie=Body_Info_data.Weight*250/9; /*1000 x 40 /24/60*/
+       Body_Info_data.One_Minu_Light_Sport_Calorie=Body_Info_data.Weight*875/36;/*1000 x 35 /24/60*/ 
+   }
+   else /*Å®*/
+   {
+       Body_Info_data.One_Minu_BMR_Calorie=Body_Info_data.Weight*95/6;  /*950 / 60*/
+       Body_Info_data.One_Minu_Heavy_Sport_Calorie=Body_Info_data.Weight*250/9;/*1000 x40 /24/60*/
+       Body_Info_data.One_Minu_Medium_Sport_Calorie=Body_Info_data.Weight*875/36;/*1000 x35 /24/60*/
+       Body_Info_data.One_Minu_Light_Sport_Calorie=Body_Info_data.Weight*125/6;/*1000 x 30 /24/60*/
+   }    
+}
 
 void Acute_Sport_Time_Count_Init(void)
 {
@@ -178,6 +207,53 @@ void Acute_Sport_Time_Count_Pro(void)
     {      
        Acute_Sport_Time_Count_Init();
     }
+}
+
+/*¿¨Â·Àï¼ÆËã²¿·Ö  Ã¿·ÖÖÓ²âËãÒ»´Î
+A+B+C-D
+»ù´¡´úÐ»ÈÈÁ¿A£¨Ç§¿¨£©£½ÌåÖØ£¨¹«½ïÊý£©x ÄÐ£¨1£©¡¢Å®£¨0.95£©x 24£¨Ð¡Ê±£©
+ÉíÌå»î¶¯ÈÈÁ¿B£¨Ç§¿¨£©£½ÌåÖØ£¨¹«½ïÊý£©x ÀÍ¶¯Ç¿¶È£¨23-25,30-35,35-40,40-45£©x ÔË¶¯Ð¡Ê±/24Ð¡Ê±
+ÉãÊ³ÉúÈÈÐ§Ó¦£¨·Ç×ÔÖ÷ÐÔ£©C£¨Ç§¿¨£©£½£¨A+B£©x 10/100
+Ë¯ÃßËù¼õÉÙµÄÈÈÁ¿ÐèÒªÁ¿ D£¨Ç§¿¨£©£½A x 10/100 x Ë¯ÃßÐ¡Ê±/24Ð¡Ê±
+*/
+
+u32 CaculateCalorie(void)/*²âËãÂ·ÀïÖµ,ÓÃÐ¡¿¨À´£¬¼õÉÙÐ¡ÊýµãÎó²î*/
+{
+    u32 B_Val=0;
+        if(One_Minute_Sport_Info_data.FloorCounts||One_Minute_Sport_Info_data.StepCounts>200)/*ÅÀÂ¥ÌÝ,ÖØ¶ÈÇ¿¶È,Ôö¼ÓÒ»¸öÇ¿¶ÈÖµ£¬Ò»·ÖÖÓÄÚ×ßÂ·³¬¹ý200²½µÄÒ²ËãÊÇÖØ¶ÈÔË¶¯¡£*/
+        {
+              B_Val=Body_Info_data.One_Minu_Heavy_Sport_Calorie; /*1000 x 45 /24/60*/
+        }
+        else if(One_Minute_Sport_Info_data.AcuteSportTimeCounts)/*ÓÐ¾çÁÒ×ß¶¯µÄ,ÖÐµÈÇ¿¶È*/
+        {
+              B_Val=Body_Info_data.One_Minu_Medium_Sport_Calorie; /*1000 x 40 /24/60*/
+        }
+        else if(One_Minute_Sport_Info_data.StepCounts)/*ÓÐ×ß¶¯µÄ,ÇáµÈÇ¿¶È*/
+        {
+              B_Val=Body_Info_data.One_Minu_Light_Sport_Calorie;/*1000 x 35 /24/60*/ 
+        }
+        else
+              B_Val=0; 
+    return Body_Info_data.One_Minu_BMR_Calorie+B_Val;   
+}
+void One_Minute_Sport_Info_Pro(void)
+{
+    One_Minute_Sport_Info_data.Calorie=CaculateCalorie();
+    Total_Sport_Info_data.Calorie+=One_Minute_Sport_Info_data.Calorie;
+
+    Fifteen_Minutes_Sport_Info_data.StepCounts+=One_Minute_Sport_Info_data.StepCounts;
+    Fifteen_Minutes_Sport_Info_data.Distance+=One_Minute_Sport_Info_data.Distance;
+    Fifteen_Minutes_Sport_Info_data.Calorie+=One_Minute_Sport_Info_data.Calorie;
+    Fifteen_Minutes_Sport_Info_data.FloorCounts+=One_Minute_Sport_Info_data.FloorCounts; 
+    Fifteen_Minutes_Sport_Info_data.AcuteSportTimeCounts+=One_Minute_Sport_Info_data.AcuteSportTimeCounts;
+    
+    One_Minute_Sport_Info_data.StepCounts=0;    
+    One_Minute_Sport_Info_data.Distance=0; 
+    One_Minute_Sport_Info_data.Calorie=0;
+    One_Minute_Sport_Info_data.FloorCounts=0;
+    One_Minute_Sport_Info_data.AcuteSportTimeCounts=0;   
+    
+   /* Write_SP_Data_2_LIS3DH((uint16)Fifteen_Minutes_Sport_Info_data.StepCounts, (uint16) Fifteen_Minutes_Sport_Info_data.Calorie,(uint8) Fifteen_Minutes_Sport_Info_data.FloorCounts,(uint8) Fifteen_Minutes_Sport_Info_data.AcuteSportTimeCounts);¸ü¸ÄÎªÖ¸ÕëÎ»ÖÃ±£´æ*/
 }
 
 /*¼ÆËã´ø·ûºÅµÄ8±ÈÌØÎ»ÊýµÄÆ½·½*/
@@ -319,7 +395,7 @@ static void StepCountProce(void)
         }
         else if(Step_Count_data.Pro_Step==PRO_STEP_RISING)
         {
-            for(i=0;i<32;i++) /*Ô­íÊ?0*/
+            for(i=0;i<32;i++) /*Ô­í?0*/
             {
                 Temp=GetXYZ_Acce_Data();
                 if(Temp<0xFFFE){ 
@@ -576,7 +652,8 @@ static void step_sample_handler(u16 id)
 s16 step_sample_init(void)
 {
 	get_driver()->timer->timer_start(280, step_sample_handler);  
-    Step_Count_data.Pro_Step=PRO_STEP_START;  
+    Step_Count_data.Pro_Step=PRO_STEP_START; 
+    Update_BodyInfo(DEFAULT_GENDER_VALUE,DEFAULT_HEIGHT_VALUE,DEFAULT_WEIGHT_VALUE);/*ÄÐ£¬173cm¸ß£¬70¹«½ïÖØ*/ 
 	return 0;
 }
 

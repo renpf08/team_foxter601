@@ -74,6 +74,7 @@ static s16 cmd_user_info(u8 *buffer, u8 length)
     if(user_info->gender > 1) return 1;
     
     MemCopy(&cmd_group.user_info, buffer, sizeof(cmd_user_info_t));
+    cmd_group.user_info.cmd |= 0x80;
     return 0;
 }
 static s16 cmd_set_time(u8 *buffer, u8 length)
@@ -96,7 +97,6 @@ static s16 cmd_set_time(u8 *buffer, u8 length)
     MemCopy(&cmd_group.set_time, buffer, sizeof(cmd_set_time_t));
     return 0;
 }
-
 static s16 cmd_set_alarm_clock(u8 *buffer, u8 length)
 {
     cmd_set_alarm_clock_t* alarm_clock = (cmd_set_alarm_clock_t*)buffer;
@@ -121,61 +121,51 @@ static s16 cmd_set_alarm_clock(u8 *buffer, u8 length)
     MemCopy(&cmd_group.set_alarm_clock, buffer, sizeof(cmd_set_alarm_clock_t));
     return 0;
 }
-
 static s16 cmd_notify_switch(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.notify_switch, buffer, sizeof(cmd_notify_switch_t));
     return 0;
 }
-
 static s16 cmd_sync_data(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.sync_data, buffer, sizeof(cmd_sync_data_t));
     return 0;
 }
-
 static s16 cmd_response(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.send_resp, buffer, sizeof(cmd_response_t));
     return 0;
 }
-
 static s16 cmd_recv_notify(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.recv_notif, buffer, sizeof(cmd_recv_notify_t));
     return 0;
 }
-
 static s16 cmd_set_pointers(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.set_pointers, buffer, sizeof(cmd_set_pointers_t));
     return 0;
 }
-
 static s16 cmd_read_version(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.read_ver, buffer, sizeof(cmd_read_version_t));
     return 0;
 }
-
 static s16 cmd_set_clock_hand(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.set_clock_hand, buffer, sizeof(cmd_set_clock_hand_t));
     return 0;
 }
-
 static s16 cmd_set_vibration(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.set_vib, buffer, sizeof(cmd_set_vibration_t));
     return 0;
 }
-
 static s16 cmd_find_watch(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.find_watch, buffer, sizeof(cmd_find_watch_t));
     return 0;
 }
-
 static s16 cmd_set_ancs_bond_req(u8 *buffer, u8 length)
 {
     if(buffer[1] == 0xAA) {
@@ -184,13 +174,11 @@ static s16 cmd_set_ancs_bond_req(u8 *buffer, u8 length)
     //MemCopy(&cmd_group.set_ancs_bond, buffer, sizeof(cmd_set_ancs_bond_req_t));  
     return 0;
 }
-
 static s16 cmd_read_time_steps(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.read_time_step, buffer, sizeof(cmd_read_time_steps_t)); 
     return 0;
 }
-
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
 {
     u16 length = 0; 
@@ -259,7 +247,6 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
 
     return length;
 }
-
 void cmd_parse(u8* content, u8 length)
 {
 	u8 i = 0;
@@ -284,18 +271,15 @@ void cmd_parse(u8* content, u8 length)
     
     //get_driver()->uart->uart_write((unsigned char*)content, length);
 }
-
 cmd_group_t *cmd_get(void)
 {
     return &cmd_group;
 }
-
 s16 cmd_refresh_time(clock_t *ck)
 {
     cmd_time = ck;
 	return 0;
 }
-
 s16 cmd_init(adapter_callback cb)
 {
 	cmd_cb = cb;
