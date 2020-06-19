@@ -73,7 +73,7 @@ app_msg_t *ancs_get(void);
 //void ancs_cb_handler(void);
 u8 angle_get(void);
 void Update_BodyInfo(uint8 Gender, uint8 Height, uint8 Weight);
-void One_Minute_Sport_Info_Pro(void);
+void One_Minute_Sport_Info_Pro(clock_t *clock);
 u32 step_get(void);
 
 void ble_switch_on(void);

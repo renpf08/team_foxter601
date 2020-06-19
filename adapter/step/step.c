@@ -53,6 +53,17 @@ typedef struct
     u16   AcuteSportTimeCounts; /*剧烈运动时间 分钟*/
 }SPORT_INFO_T;  /*运动数据结构*/
 
+typedef struct
+{
+    uint8         StoreFlag;
+    uint8         BlockIndex;
+    uint8         BlockTotal;
+	uint8         Index;
+    SPORT_INFO_T  TotalBuffer;
+	uint16        AsleepInfo_Table_Buffer[12];
+}STORE_DATA_T;
+STORE_DATA_T  FifteenMinuteSP;
+
 SPORT_INFO_T Total_Sport_Info_data;
 SPORT_INFO_T One_Minute_Sport_Info_data;      /*一分钟数据统计结束*/
 SPORT_INFO_T Fifteen_Minutes_Sport_Info_data; /*十五分钟数据统计*/
@@ -72,6 +83,7 @@ typedef struct
 }ASLEEP_DATA_INFO_T;  /*睡眠时间点信息数据结构*/
 
 ASLEEP_DATA_INFO_T Asleep_Data_Info;
+static clock_t *step_time;
 
 /***************************************************************************************/
 /************************************剧烈运动运算部分**************************************/
@@ -131,6 +143,9 @@ BODY_INFO_T Body_Info_data;
 
 u8 Z_Acce_Val=0;  /*模拟电子罗盘用*/
 
+void Asleep_Info_Pro(uint32 FiteenMinuteSleepSetps,uint32 FiteenMinuteSetps);
+void Sport_Info_data_Init(uint8 type);
+void Asleep_Info_Init(void);
 void Acute_Sport_Time_Count_Init(void);
 void Acute_Sport_Time_Count_Pro(void);
 u32 CaculateCalorie(void);
@@ -143,6 +158,80 @@ void Step_Count_data_Init(void);
 void step_count_proce(void);
 s16 step_sample_init(void);
 
+void Sport_Info_data_Init(uint8 type)
+{
+    One_Minute_Sport_Info_data.StepCounts=0;    
+    One_Minute_Sport_Info_data.Distance=0; 
+    One_Minute_Sport_Info_data.Calorie=0;
+    One_Minute_Sport_Info_data.FloorCounts=0;
+    One_Minute_Sport_Info_data.AcuteSportTimeCounts=0; 
+    
+    Fifteen_Minutes_Sport_Info_data.StepCounts=0;    
+    Fifteen_Minutes_Sport_Info_data.Distance=0; 
+    Fifteen_Minutes_Sport_Info_data.Calorie=0;
+    Fifteen_Minutes_Sport_Info_data.FloorCounts=0;
+    Fifteen_Minutes_Sport_Info_data.AcuteSportTimeCounts=0;     
+ 
+    if(type==1)
+    {
+    /*获取相应的EEPROM中的总数*/
+    /*Read_SP_Data_From_E2prom(FifteenMinuteSP.BlockIndex,SP_BLOCK_TOTAL_DATA,(uint16*)&Total_Sport_Info_data);*//*获取相应的EEPROM中的数据总量*/
+    Total_Sport_Info_data.StepCounts=0;    
+    Total_Sport_Info_data.Distance=0; 
+    Total_Sport_Info_data.Calorie=0;
+    Total_Sport_Info_data.FloorCounts=0;
+    Total_Sport_Info_data.AcuteSportTimeCounts=0;/* */
+	Asleep_Info_Init();/*初始化睡眠数据为0*/
+    }
+}
+
+/*十五分钟睡眠信息记录*/
+//ASLEEP_DATA_INFO_T Asleep_Data_Info;
+/*修改为处理一天的运动强度信息，每15分钟处理统计一次。
+第一参数为小阀值的运动统计，第二参数为步数统计
+*/
+void Asleep_Info_Init(void)
+{
+uint8 i=0;
+  for(i=0;i<12;i++)
+    Asleep_Data_Info.AsleepInfo_Data_Table[i]=0;
+  Asleep_Data_Info.FifteenMinuteMove=0;
+}
+void Asleep_Info_Pro(uint32 FiteenMinuteSleepSetps,uint32 FiteenMinuteSetps)
+{
+    uint8 temp=0,i=0,j=0;
+	uint16 TempData=0;
+    if(FiteenMinuteSleepSetps==0)  /*静置*/
+    {
+        temp=0;
+    }
+    else if(FiteenMinuteSleepSetps<100)
+    {
+		if(FiteenMinuteSetps<10)
+		  temp=1; /*深度睡眠状态*/
+		else
+		  temp=2; /*浅睡*/
+    }
+    else if(FiteenMinuteSleepSetps<200)
+    {
+		if(FiteenMinuteSetps<20)
+		  temp=2; /*浅度睡眠状态*/
+		else
+		  temp=3; /*醒来*/
+    }
+	else
+	{
+	    temp=3; /*醒来*/
+	}
+    i=(step_time->minute/15)%4;
+	j=step_time->hour/2;
+    i=i+(step_time->hour%2)*4;
+	i=i*2;
+	TempData=temp;
+	TempData<<=i;
+	Asleep_Data_Info.AsleepInfo_Data_Table[j]|=TempData;
+}
+/*十五分钟睡眠信息记录结束*/
 void Update_BodyInfo(uint8 Gender, uint8 Height, uint8 Weight)
 {
    Body_Info_data.Gender=Gender;/*默认值是1,男  0,女*/
@@ -236,7 +325,7 @@ u32 CaculateCalorie(void)/*测算路里值,用小卡来，减少小数点误差*/
               B_Val=0; 
     return Body_Info_data.One_Minu_BMR_Calorie+B_Val;   
 }
-void One_Minute_Sport_Info_Pro(void)
+void One_Minute_Sport_Info_Pro(clock_t *clock)
 {
     One_Minute_Sport_Info_data.Calorie=CaculateCalorie();
     Total_Sport_Info_data.Calorie+=One_Minute_Sport_Info_data.Calorie;
@@ -252,6 +341,8 @@ void One_Minute_Sport_Info_Pro(void)
     One_Minute_Sport_Info_data.Calorie=0;
     One_Minute_Sport_Info_data.FloorCounts=0;
     One_Minute_Sport_Info_data.AcuteSportTimeCounts=0;   
+
+    step_time = clock;
     
    /* Write_SP_Data_2_LIS3DH((uint16)Fifteen_Minutes_Sport_Info_data.StepCounts, (uint16) Fifteen_Minutes_Sport_Info_data.Calorie,(uint8) Fifteen_Minutes_Sport_Info_data.FloorCounts,(uint8) Fifteen_Minutes_Sport_Info_data.AcuteSportTimeCounts);更改为指针位置保存*/
 }

@@ -69,7 +69,7 @@ typedef enum {
     SET_ALARM_CLOCK = 23,
     NOTIFY_SWITCH = 24,
     SYNC_DATA = 25,
-    RESPONSE_TO_WATCH = 26,
+    APP_ACK = 26,
     SEND_NOTIFY = 27,
     SET_POINTERS = 28,
     READ_VERSION = 29,
@@ -340,7 +340,7 @@ typedef enum {
     CMD_SET_ALARM_CLOCK     = 0x03,
     CMD_NOTIFY_SWITCH       = 0x04,
     CMD_SYNC_DATA           = 0x05,
-    CMD_RESPONSE_TO_WATCH   = 0x06,
+    CMD_APP_ACK             = 0x06,
     CMD_RECV_NOTIFY         = 0x07,
     CMD_SET_POINTERS        = 0x08, //! set all clock hands
     CMD_READ_VERSION        = 0x09, //! not use, has moved to DEVICE_INF_SERVICE
@@ -421,9 +421,10 @@ typedef struct {
 
 typedef struct { 
     u8 cmd; 
-    u8 watch_cmd;
-    u8 resp_value;
-} cmd_response_t;
+    u8 ack_cmd;
+    u8 ack_result;
+    u8 state; // not include in protocal
+} cmd_app_ack_t;
 
 //typedef struct { 
 //    u8 cmd; 
@@ -491,7 +492,7 @@ typedef struct {
     cmd_set_alarm_clock_t set_alarm_clock;
     cmd_notify_switch_t notify_switch;
     cmd_sync_data_t sync_data;
-    cmd_response_t send_resp;
+    cmd_app_ack_t app_ack;
     cmd_recv_notify_t recv_notif;
     cmd_set_pointers_t set_pointers;
     cmd_read_version_t read_ver;
@@ -501,6 +502,45 @@ typedef struct {
     cmd_set_ancs_bond_req_t set_ancs_bond;
     cmd_read_time_steps_t read_time_step;
 } cmd_group_t;
+  
+typedef struct {
+    union {
+        u32 ctrl3;
+        struct {
+            u8 ring_buf_head; /* sport data ring buffer head */
+            u8 ring_buf_tail; /* sport data ring buffer tail */
+            u8 read_head;
+            u8 write_tail;
+        }ctrl2;
+    }ctrl1;
+    union {
+        u16 index3;
+        struct {
+            u8 data_index; /* fifteen-minute data index */
+            u8 resv;
+        }index2;
+    }index1;
+}ctrl_t; /* for nvm to store */
+
+typedef struct {
+    union {
+        u32 date3;
+        struct {
+            u8 days; /* how many days with history data  */
+            u8 year;
+            u8 month;
+            u8 day;
+        }date2;
+    }date1;
+    union {
+        u8 sport3[4];
+        struct {
+            u16 step;
+            u8 sleep;
+            u8 count; /* how many times stored history data this day(96 in total)  */
+        }sport2;
+    }sport1;
+}data_t; /* for nvm to store */
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);

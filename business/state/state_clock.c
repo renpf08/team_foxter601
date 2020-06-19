@@ -27,7 +27,7 @@ static void minute_data_handler(clock_t *clock)
         Update_BodyInfo(cmd->user_info.gender, cmd->user_info.height, cmd->user_info.weight);
     }
     cmd_refresh_time(clock);
-    One_Minute_Sport_Info_Pro();
+    One_Minute_Sport_Info_Pro(clock);
 }
 s16 state_clock(REPORT_E cb, void *args)
 {

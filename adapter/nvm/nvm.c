@@ -1,44 +1,5 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include "../adapter.h"
-  
-typedef struct {
-    union {
-        u32 ctrl3;
-        struct {
-            u8 ring_buf_head; /* sport data ring buffer head */
-            u8 ring_buf_tail; /* sport data ring buffer tail */
-            u8 read_head;
-            u8 write_tail;
-        }ctrl2;
-    }ctrl1;
-    union {
-        u16 index3;
-        struct {
-            u8 data_index; /* fifteen-minute data index */
-            u8 resv;
-        }index2;
-    }index1;
-}ctrl_t; /* for nvm to store */
-
-typedef struct {
-    union {
-        u32 date3;
-        struct {
-            u8 days; /* how many days with history data  */
-            u8 year;
-            u8 month;
-            u8 day;
-        }date2;
-    }date1;
-    union {
-        u8 sport3[4];
-        struct {
-            u16 step;
-            u8 sleep;
-            u8 count; /* how many times stored history data this day(96 in total)  */
-        }sport2;
-    }sport1;
-}data_t; /* for nvm to store */
 
 #define USER_STORAGE_START_OFFSET               (0x3F)
 
