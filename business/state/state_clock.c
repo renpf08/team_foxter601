@@ -1,9 +1,12 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
+#include <mem.h>
 
 #include "../../common/common.h"
 #include "../../adapter/adapter.h"
 #include "state.h"
+
+#define HISTORY_STORE_INVERVAL  15 //! minute
 
 //#define TEST_CLOCK
 
@@ -21,13 +24,18 @@ static clock_t clk = {
 static void minute_data_handler(clock_t *clock)
 {
     cmd_group_t *cmd = cmd_get();
+    his_data_t data;
 
     if(cmd->user_info.cmd & 0x80) { // refresh user information
         cmd->user_info.cmd &= ~0x80;
         Update_BodyInfo(cmd->user_info.gender, cmd->user_info.height, cmd->user_info.weight);
     }
-    cmd_refresh_time(clock);
+    cmd_set_data(&data,clock);
     One_Minute_Sport_Info_Pro(clock);
+    if((clock->minute%HISTORY_STORE_INVERVAL) == 0) {
+        MemSet(&data, 0, sizeof(his_data_t));
+        sport_get_data(&data, clock);
+    }
 }
 s16 state_clock(REPORT_E cb, void *args)
 {

@@ -59,12 +59,12 @@ s16 nvm_write_personal_info(u16 *buffer, u8 index);
 s16 nvm_read_history_setting(u16 *buffer, u8 index);
 s16 nvm_write_history_setting(u16 *buffer, u8 index);
 s16 nvm_read_history_data(u16 *buffer, u8 index);
-s16 nvm_write_step_data(u16 *buffer, u8 index);
+s16 nvm_write_sport_data(u16 *buffer, u8 index);
 s16 nvm_write_sleep_data(u16 *buffer, u8 index);
 s16 nvm_erase_history_data(void);
 
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
-s16 cmd_refresh_time(clock_t *ck);
+s16 cmd_set_data(his_data_t *data, clock_t *clock);
 cmd_group_t *cmd_get(void);
 
 app_msg_t *ancs_get(void);
@@ -75,6 +75,7 @@ u8 angle_get(void);
 void Update_BodyInfo(uint8 Gender, uint8 Height, uint8 Weight);
 void One_Minute_Sport_Info_Pro(clock_t *clock);
 u32 step_get(void);
+s16 sport_get_data(his_data_t *data, clock_t *clock);
 
 void ble_switch_on(void);
 void ble_switch_off(void);

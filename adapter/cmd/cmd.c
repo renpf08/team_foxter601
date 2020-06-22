@@ -21,7 +21,8 @@ typedef struct cmdEntry_T {
 
 cmd_group_t cmd_group;
 static adapter_callback cmd_cb = NULL;
-static clock_t *cmd_time;
+static clock_t *cmd_get_time;
+static his_data_t *cmd_get_data;
 
 static s16 cmd_pairing_code(u8 *buffer, u8 length);
 static s16 cmd_user_info(u8 *buffer, u8 length);
@@ -143,7 +144,7 @@ static s16 cmd_sync_data(u8 *buffer, u8 length)
 }
 static s16 cmd_app_ack(u8 *buffer, u8 length)
 {
-    MemCopy(&cmd_group.app_ack, buffer, (sizeof(cmd_app_ack_t)-1));
+    MemCopy(&cmd_group.app_ack, buffer, (sizeof(cmd_app_ack_t)-2));
 
     if(cmd_group.app_ack.ack_cmd == CMD_SYNC_DATA) {
         cmd_group.app_ack.cmd = CMD_SYNC_DATA;
@@ -203,7 +204,6 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
     u8 rsp_buf[20];
     u8 *tmp_buf = rsp_buf;
     BD_ADDR_T addr;
-    u8 test_days = 0; // day of hisdata
 
     CSReadBdaddr(&addr);
     BufWriteUint8((uint8 **)&tmp_buf,0x00);
@@ -234,63 +234,67 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
             tmp_buf = rsp_buf;
             if((result != 0) || (cmd_group.app_ack.state == STATE_INVALID)) return 0;
             if(cmd_group.app_ack.state == STATE_START_SEND_DATA) {
-                test_days = 7; // read hisdata
+                cmd_group.app_ack.his_days = cmd_get_data->date1.date2.days;
                 cmd_group.app_ack.state = STATE_SIZEOF_DATA;
             }
-            if(test_days == 0) { // no hisdata
+            if(cmd_group.app_ack.his_days == 0) { // no hisdata
                 return 0;
             }
             BufWriteUint8((uint8 **)&tmp_buf, 0x01);
             if(cmd_group.app_ack.state == STATE_SIZEOF_DATA) {
                 BufWriteUint8((uint8 **)&tmp_buf, 0x01);
-                BufWriteUint8((uint8 **)&tmp_buf, test_days);  // data size
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_group.app_ack.his_days);  // data size
                 cmd_group.app_ack.state = STATE_SPORT_DATA;
             } else {
                 BufWriteUint8((uint8 **)&tmp_buf, 0x02);
                 BufWriteUint8((uint8 **)&tmp_buf, data[0]);
-                BufWriteUint16((uint8 **)&tmp_buf, cmd_time->year);//SB100_data.AppApplyDateData.Year);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->month);//SB100_data.AppApplyDateData.Month);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->day);//SB100_data.AppApplyDateData.Date);
+                BufWriteUint16((uint8 **)&tmp_buf, cmd_get_data->date1.date2.year);//SB100_data.AppApplyDateData.Year);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_data->date1.date2.month);//SB100_data.AppApplyDateData.Month);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_data->date1.date2.day);//SB100_data.AppApplyDateData.Date);
                 if(cmd_group.app_ack.state == STATE_SPORT_DATA) {
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppApplyData.StepCounts));
-                    BufWriteUint8((uint8 **)&tmp_buf, 0x00);//(SB100_data.AppApplyData.StepCounts>>16));
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppApplyData.Distance));
-                    BufWriteUint8((uint8 **)&tmp_buf, 0x00);//(SB100_data.AppApplyData.Distance>>16));
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppApplyData.Calorie));
-                    BufWriteUint8((uint8 **)&tmp_buf, 0x00);//(SB100_data.AppApplyData.Calorie>>16));
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//SB100_data.AppApplyData.FloorCounts);
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//SB100_data.AppApplyData.AcuteSportTimeCounts);
+                    BufWriteUint16((uint8 **)&tmp_buf, cmd_get_data->step_counts);//(SB100_data.AppApplyData.StepCounts));
+                    BufWriteUint8((uint8 **)&tmp_buf, cmd_get_data->step_counts>>16);//(SB100_data.AppApplyData.StepCounts>>16));
+                    BufWriteUint16((uint8 **)&tmp_buf, cmd_get_data->distance);//(SB100_data.AppApplyData.Distance));
+                    BufWriteUint8((uint8 **)&tmp_buf, cmd_get_data->distance>>16);//(SB100_data.AppApplyData.Distance>>16));
+                    BufWriteUint16((uint8 **)&tmp_buf, cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
+                    BufWriteUint8((uint8 **)&tmp_buf, cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
+                    BufWriteUint16((uint8 **)&tmp_buf, cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
+                    BufWriteUint16((uint8 **)&tmp_buf, cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
                     cmd_group.app_ack.state = STATE_SLEEP_DATA1;
                 } else if(cmd_group.app_ack.state == STATE_SLEEP_DATA1) {
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[0]));    /*AS0*/
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[1]));    /*AS1*/
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[2]));    /*AS2*/
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[3]));    /*AS3*/
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[4]));    /*AS4*/
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[5]));    /*AS5*/ 
+//                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[0]));    /*AS0*/
+//                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[1]));    /*AS1*/
+//                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[2]));    /*AS2*/
+//                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[3]));    /*AS3*/
+//                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[4]));    /*AS4*/
+//                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[5]));    /*AS5*/ 
+                    MemCopy(tmp_buf, cmd_get_data->sleep, 12);
+                    tmp_buf += 12;
                     cmd_group.app_ack.state = STATE_SLEEP_DATA2;
                 } else if(cmd_group.app_ack.state == STATE_SLEEP_DATA2) {
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[0]));    /*AS6*/
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[1]));    /*AS7*/
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[2]));    /*AS8*/
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[3]));    /*AS9*/
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[4]));    /*AS10*/
-                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[5]));    /*AS11*/ 
+//                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[0]));    /*AS6*/
+//                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[1]));    /*AS7*/
+//                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[2]));    /*AS8*/
+//                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[3]));    /*AS9*/
+//                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[4]));    /*AS10*/
+//                    BufWriteUint16((uint8 **)&tmp_buf, 0x0000);//(SB100_data.AppAsleepInfoTable[5]));    /*AS11*/ 
+                    MemCopy(tmp_buf, &cmd_get_data->sleep[12], 12);
+                    tmp_buf += 12;
                     cmd_group.app_ack.state = STATE_SPORT_DATA;
-                    test_days--;
+                    cmd_group.app_ack.his_days--;
                 }
             }
             break;
         case CMD_READ_TIME_STEPS:   // 0x0E
             BufWriteUint8((uint8 **)&tmp_buf,data[0]);
             if(data[0] == 0x00) { // data & time
-                BufWriteUint16((uint8 **)&tmp_buf, cmd_time->year);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->month);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->day);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->hour);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->minute);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->second);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->week);
+                BufWriteUint16((uint8 **)&tmp_buf, cmd_get_time->year);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_time->month);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_time->day);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_time->hour);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_time->minute);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_time->second);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_time->week);
             } else if(data[0] == 0x01) { // target total steps
                 BufWriteUint8((uint8 **)&tmp_buf, cmd_group.user_info.target_steps[3]);
                 BufWriteUint8((uint8 **)&tmp_buf, cmd_group.user_info.target_steps[2]);
@@ -341,9 +345,10 @@ cmd_group_t *cmd_get(void)
 {
     return &cmd_group;
 }
-s16 cmd_refresh_time(clock_t *ck)
+s16 cmd_set_data(his_data_t *data, clock_t *clock)
 {
-    cmd_time = ck;
+    cmd_get_time = clock;
+    cmd_get_data = data;
 	return 0;
 }
 s16 cmd_init(adapter_callback cb)

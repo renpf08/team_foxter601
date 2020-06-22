@@ -424,6 +424,7 @@ typedef struct {
     u8 ack_cmd;
     u8 ack_result;
     u8 state; // not include in protocal
+    u8 his_days; // not include in protocal
 } cmd_app_ack_t;
 
 //typedef struct { 
@@ -503,6 +504,17 @@ typedef struct {
     cmd_read_time_steps_t read_time_step;
 } cmd_group_t;
   
+/*
+typedef struct {
+    u8 sleep_buf[24];
+}sleep_t;
+typedef struct {
+    u32 step_counts;
+    u32 distance;
+    u32 calorie;
+    u16 floor_counts;
+    u16 acute_sport_time;
+}sport_t;*/
 typedef struct {
     union {
         u32 ctrl3;
@@ -520,8 +532,7 @@ typedef struct {
             u8 resv;
         }index2;
     }index1;
-}ctrl_t; /* for nvm to store */
-
+}his_ctrl_t; /* for nvm to store */
 typedef struct {
     union {
         u32 date3;
@@ -540,7 +551,13 @@ typedef struct {
             u8 count; /* how many times stored history data this day(96 in total)  */
         }sport2;
     }sport1;
-}data_t; /* for nvm to store */
+    u32 step_counts;
+    u32 distance;
+    u32 calorie;
+    u16 floor_counts;
+    u16 acute_sport_time;
+    u8 sleep[24];
+}his_data_t; /* for nvm to store */
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);

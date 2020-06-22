@@ -32,11 +32,11 @@
 #define SPORT_SETTING_LENGTH                    (0x08)
 
 #define HISTORY_CONTROL_OFFSET                  (PERSONAL_INFO_OFFSET+PERSONAL_INFO_LENGTH)
-#define HISTORY_CONTROL_LENGTH                  (sizeof(ctrl_t))/* word width */
+#define HISTORY_CONTROL_LENGTH                  (sizeof(his_ctrl_t))/* word width */
 
 #define CONST_TIME_GRANULARITY                  (96)
 #define CONST_RING_BUFFER_LENGTH                (7+1)/* unit: day(1 byte more than acturlly need) */
-#define CONST_DATA_ONEDAY_LENGTH                (sizeof(data_t))
+#define CONST_DATA_ONEDAY_LENGTH                (sizeof(his_data_t))
 #define HISTORY_DATA_OFFSET                     (HISTORY_CONTROL_OFFSET+HISTORY_CONTROL_LENGTH)
 #define HISTORY_DATA_LENGTH                     (CONST_DATA_ONEDAY_LENGTH*CONST_RING_BUFFER_LENGTH)/* store 20 days's history */
 
@@ -172,7 +172,7 @@ s16 nvm_check_storage_init(void)
 
     for(erase_offset = 0; erase_offset < USER_STORAGE_TOTAL_LENGTH; erase_offset++)
     {
-        nvm_write((u16*)&erase_value, 1, USER_STORAGE_START_OFFSET+erase_offset);
+        nvm_write((u16*)&erase_value, 0xFF, USER_STORAGE_START_OFFSET+erase_offset);
     }
 
     //for(erase_offset = 0; erase_offset < USER_STORAGE_TOTAL_LENGTH; erase_offset++)
@@ -216,103 +216,89 @@ s16 nvm_read_pairing_code(u16 *buffer, u8 index)
 
     return 0;
 }
-
 s16 nvm_write_pairing_code(u16 *buffer, u8 index)
 {
     nvm_write(buffer, PAIRING_CODE_LENGTH, PAIRING_CODE_OFFSET);
 
     return 0;
 }
-
 s16 nvm_read_date_time(u16 *buffer, u8 index)
 {
     nvm_read(buffer, SYSTEM_DATE_TIME_LENGTH, SYSTEM_DATE_TIME_OFFSET);
 
     return 0;
 }
-
 s16 nvm_write_date_time(u16 *buffer, u8 index)
 {
     nvm_write(buffer, SYSTEM_DATE_TIME_LENGTH, SYSTEM_DATE_TIME_OFFSET);
 
     return 0;
 }
-
 s16 nvm_read_alarm_clock_single(u16 *buffer, u8 index)
 {
     nvm_read(buffer, ALARM_CLOCK_SINGLE_LENGTH, ALARM_CLOCK_OFFSET+index*ALARM_CLOCK_SINGLE_LENGTH);
 
     return 0; 
 }
-
 s16 nvm_write_alarm_clock_single(u16 *buffer, u8 index)
 {
     nvm_write(buffer, ALARM_CLOCK_SINGLE_LENGTH, ALARM_CLOCK_OFFSET+index*ALARM_CLOCK_SINGLE_LENGTH); 
 
     return 0;
 }
-
 s16 nvm_read_alarm_clock_total(u16 *buffer, u8 index)
 {
     nvm_read(buffer, ALARM_CLOCK_LENGTH, ALARM_CLOCK_OFFSET);
 
     return 0;
 }
-
 s16 nvm_write_alarm_clock_total(u16 *buffer, u8 index)
 {
     nvm_write(buffer, ALARM_CLOCK_LENGTH, ALARM_CLOCK_OFFSET); 
 
     return 0;
 }
-
 s16 nvm_read_display_setting(u16 *buffer, u8 index)
 {
     nvm_read(buffer, DISPLAY_SETTING_LENGTH, DISPLAY_SETTING_OFFSET);
 
     return 0;
 }
-
 s16 nvm_write_display_setting(u16 *buffer, u8 index)
 {
     nvm_write(buffer, DISPLAY_SETTING_LENGTH, DISPLAY_SETTING_OFFSET);  
 
     return 0;
 }
-
 s16 nvm_read_personal_info(u16 *buffer, u8 index)
 {
     nvm_read(buffer, PERSONAL_INFO_LENGTH, PERSONAL_INFO_OFFSET);
 
     return 0;
 }
-
 s16 nvm_write_personal_info(u16 *buffer, u8 index)
 {
     nvm_write(buffer, PERSONAL_INFO_LENGTH, PERSONAL_INFO_OFFSET);
 
     return 0;
 }
-
 s16 nvm_read_history_setting(u16 *buffer, u8 index)
 {
     nvm_read(buffer, SPORT_SETTING_LENGTH, SPORT_SETTING_OFFSET);
 
     return 0;
 }
-
 s16 nvm_write_history_setting(u16 *buffer, u8 index)
 {
     nvm_write(buffer, SPORT_SETTING_LENGTH, SPORT_SETTING_OFFSET);
 
     return 0;
 }
-
 s16 nvm_read_history_data(u16 *buffer, u8 index)
 {
-    ctrl_t ctrl;
+    his_ctrl_t ctrl;
     u16 read_offset = 0;
-    data_t *data = (data_t*)buffer;
+    his_data_t *data = (his_data_t*)buffer;
     u16 ready = 0;
 
     nvm_check_storage_init();
@@ -339,11 +325,11 @@ s16 nvm_read_history_data(u16 *buffer, u8 index)
 
     return ready;
 }
-
+#if 0
 s16 nvm_write_history_data(u16 *buffer, u8 index)
 {
-    ctrl_t ctrl = {.ctrl1.ctrl3=0, .index1.index3=0};
-    data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
+    his_ctrl_t ctrl = {.ctrl1.ctrl3=0, .index1.index3=0};
+    his_data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
     static u8 test_date[3] = {0x20, 0x04, 0x17};
     u16 test_init = 0;
 
@@ -372,8 +358,8 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
         ctrl.ctrl1.ctrl2.ring_buf_tail = (ctrl.ctrl1.ctrl2.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH;
     }
 
-    data.sport1.sport2.step += ((data_t*)buffer)->sport1.sport2.step;
-    data.sport1.sport2.sleep += ((data_t*)buffer)->sport1.sport2.sleep;
+    data.sport1.sport2.step += ((his_data_t*)buffer)->sport1.sport2.step;
+    data.sport1.sport2.sleep += ((his_data_t*)buffer)->sport1.sport2.sleep;
     ctrl.index1.index2.data_index++;
     data.sport1.sport2.count++;
     data.date1.date2.days = (ctrl.ctrl1.ctrl2.ring_buf_tail>ctrl.ctrl1.ctrl2.ring_buf_head)?
@@ -384,31 +370,92 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
 
     return 0;
 }
-
-s16 nvm_write_step_data(u16 *buffer, u8 index)
+s16 nvm_write_sport_data(u16 *buffer, u8 index)
 {
-    data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
+    his_data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
 
     data.sport1.sport2.step = (s16)buffer[0];
     nvm_write_history_data((u16*)&data, 0);
 
     return 0;
 }
-
 s16 nvm_write_sleep_data(u16 *buffer, u8 index)
 {
-    data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
+    his_data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
 
     data.sport1.sport2.sleep = (u8)buffer[0];
     nvm_write_history_data((u16*)&data, 0);
 
     return 0;
 }
+#endif
+s16 nvm_write_history_data(u16 *buffer, u8 index)
+{
+    his_ctrl_t ctrl = {.ctrl1.ctrl3=0, .index1.index3=0};
+    his_data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
+    static u8 test_date[3] = {0x20, 0x04, 0x17};
+    u16 test_init = 0;
 
+    test_init = nvm_check_storage_init();
+    nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
+    nvm_read((u16*)&data, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.ctrl1.ctrl2.write_tail*CONST_DATA_ONEDAY_LENGTH));
+
+    if(ctrl.index1.index2.data_index%CONST_TIME_GRANULARITY == 0)  /* new day */
+    {
+        /** user storage fulled, discard the oldest one */
+        if(ctrl.ctrl1.ctrl2.ring_buf_head == (ctrl.ctrl1.ctrl2.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH)
+        {
+            ctrl.ctrl1.ctrl2.ring_buf_head = (ctrl.ctrl1.ctrl2.ring_buf_head+1)%CONST_RING_BUFFER_LENGTH;
+            ctrl.ctrl1.ctrl2.read_head = ctrl.ctrl1.ctrl2.ring_buf_head;
+        }
+        
+        data.date1.date2.year = test_date[0];
+        data.date1.date2.month = test_date[1];
+        data.date1.date2.day = test_date[2]++;
+        
+        ctrl.index1.index2.data_index = 0;
+        data.sport1.sport2.count = 0;
+        data.sport1.sport2.sleep = 0;
+        data.sport1.sport2.step = 0;
+        ctrl.ctrl1.ctrl2.write_tail = ctrl.ctrl1.ctrl2.ring_buf_tail;
+        ctrl.ctrl1.ctrl2.ring_buf_tail = (ctrl.ctrl1.ctrl2.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH;
+    }
+
+    data.sport1.sport2.step += ((his_data_t*)buffer)->sport1.sport2.step;
+    data.sport1.sport2.sleep += ((his_data_t*)buffer)->sport1.sport2.sleep;
+    ctrl.index1.index2.data_index++;
+    data.sport1.sport2.count++;
+    data.date1.date2.days = (ctrl.ctrl1.ctrl2.ring_buf_tail>ctrl.ctrl1.ctrl2.ring_buf_head)?
+                            (ctrl.ctrl1.ctrl2.ring_buf_tail-ctrl.ctrl1.ctrl2.ring_buf_head):
+                            (CONST_RING_BUFFER_LENGTH-ctrl.ctrl1.ctrl2.ring_buf_head+ctrl.ctrl1.ctrl2.ring_buf_tail);
+    nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
+    nvm_write((u16*)&data, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.ctrl1.ctrl2.write_tail*CONST_DATA_ONEDAY_LENGTH));
+
+    return 0;
+}
+s16 nvm_write_sport_data(u16 *buffer, u8 index)
+{
+    his_data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
+
+    data.sport1.sport2.step = (s16)buffer[0];
+    nvm_write_history_data((u16*)&data, 0);
+
+    return 0;
+}
+s16 nvm_write_sleep_data(u16 *buffer, u8 index)
+{
+    his_data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
+
+    data.sport1.sport2.sleep = (u8)buffer[0];
+    nvm_write_history_data((u16*)&data, 0);
+
+    return 0;
+}
 s16 nvm_erase_history_data(void)
 {
-    ctrl_t ctrl = {.ctrl1.ctrl3=0, .index1.index3=0};
+    his_ctrl_t ctrl = {.ctrl1.ctrl3=0, .index1.index3=0};
     
     nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
     return 0;
 }
+
