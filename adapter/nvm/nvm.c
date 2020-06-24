@@ -1,5 +1,8 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include "../adapter.h"
+#include <buf_utils.h>
+#include <mem.h>
+#include "serial_service.h"
 
 #define USER_STORAGE_START_OFFSET               (0x3F)
 
@@ -297,165 +300,204 @@ s16 nvm_write_history_setting(u16 *buffer, u8 index)
 s16 nvm_read_history_data(u16 *buffer, u8 index)
 {
     his_ctrl_t ctrl;
-    u16 read_offset = 0;
-    his_data_t *data = (his_data_t*)buffer;
     u16 ready = 0;
 
     nvm_check_storage_init();
     nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
 
-    if(ctrl.ctrl1.ctrl2.read_head != ctrl.ctrl1.ctrl2.ring_buf_tail) {
-        read_offset = ctrl.ctrl1.ctrl2.read_head*CONST_DATA_ONEDAY_LENGTH;
-        nvm_read((u16*)data, CONST_DATA_ONEDAY_LENGTH, HISTORY_DATA_OFFSET+read_offset);
-        buffer[7] = data->sport1.sport2.count;
-        buffer[6] = data->sport1.sport2.sleep;
-        buffer[5] = data->sport1.sport2.step&0x00FF;
-        buffer[4] = (data->sport1.sport2.step>>8)&0x00FF;
-        ctrl.ctrl1.ctrl2.read_head = (ctrl.ctrl1.ctrl2.read_head+1)%CONST_RING_BUFFER_LENGTH;
-        ready = 1;
+    if(ctrl.read_tail == ctrl.ring_buf_head) { // ring buffer is empty, reset read pointer
+        ctrl.read_tail = ctrl.ring_buf_tail;
+        nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
+        MemSet(buffer, 0, sizeof(his_data_t));
+        return 1;
     }
-    else /* buffer empty, reset read pointer */
-    {
-        ctrl.ctrl1.ctrl2.read_head = ctrl.ctrl1.ctrl2.ring_buf_head;
-    }
-    if(ctrl.ctrl1.ctrl2.ring_buf_head != ctrl.ctrl1.ctrl2.ring_buf_tail)
-    {
+
+    if(index == READ_HISDATA_LAST) {
+        nvm_read((u16*)buffer, CONST_DATA_ONEDAY_LENGTH, HISTORY_DATA_OFFSET+ctrl.write_head*CONST_DATA_ONEDAY_LENGTH);
+    } else {
+        nvm_read((u16*)buffer, CONST_DATA_ONEDAY_LENGTH, HISTORY_DATA_OFFSET+ctrl.read_tail*CONST_DATA_ONEDAY_LENGTH);
+        ctrl.read_tail = (ctrl.read_tail+1)%CONST_RING_BUFFER_LENGTH;
         nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
     }
 
     return ready;
 }
-#if 0
 s16 nvm_write_history_data(u16 *buffer, u8 index)
 {
-    his_ctrl_t ctrl = {.ctrl1.ctrl3=0, .index1.index3=0};
-    his_data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
-    static u8 test_date[3] = {0x20, 0x04, 0x17};
-    u16 test_init = 0;
+    his_ctrl_t ctrl = {0,0,0,0,0};
+    his_data_t data_read;
+    his_data_t *data_new = (his_data_t*)buffer;
+    #if USE_MANUAL_CALC
+    u8 sleep_data = 0;
+    u8 sleep_tmp = 0;
+    u8 index_tmp = 0;
+    #endif
 
-    test_init = nvm_check_storage_init();
+    nvm_check_storage_init();
+    MemSet(&ctrl, 0, sizeof(his_ctrl_t));
+    MemSet(&data_read, 0, sizeof(his_data_t));
     nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
-    nvm_read((u16*)&data, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.ctrl1.ctrl2.write_tail*CONST_DATA_ONEDAY_LENGTH));
+    nvm_read((u16*)&data_read, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.write_head*CONST_DATA_ONEDAY_LENGTH));
 
-    if(ctrl.index1.index2.data_index%CONST_TIME_GRANULARITY == 0)  /* new day */
+    if((ctrl.data_index%CONST_TIME_GRANULARITY == 0) &&
+       (data_read.day != data_new->day))  /* new day */
     {
         /** user storage fulled, discard the oldest one */
-        if(ctrl.ctrl1.ctrl2.ring_buf_head == (ctrl.ctrl1.ctrl2.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH)
+        if(ctrl.ring_buf_tail == (ctrl.ring_buf_head+1)%CONST_RING_BUFFER_LENGTH)
         {
-            ctrl.ctrl1.ctrl2.ring_buf_head = (ctrl.ctrl1.ctrl2.ring_buf_head+1)%CONST_RING_BUFFER_LENGTH;
-            ctrl.ctrl1.ctrl2.read_head = ctrl.ctrl1.ctrl2.ring_buf_head;
+            ctrl.ring_buf_tail = (ctrl.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH;
+            ctrl.read_tail = ctrl.ring_buf_tail;
         }
+        data_read.step_counts = 0;
+        #if USE_MANUAL_CALC
+        data_read.distance = 0;
+        data_read.calorie = 0;
+        data_read.floor_counts = 0;
+        data_read.acute_sport_time = 0;
+        MemSet(data_read.sleep, 0, sizeof(data_read.sleep));
+        #endif
         
-        data.date1.date2.year = test_date[0];
-        data.date1.date2.month = test_date[1];
-        data.date1.date2.day = test_date[2]++;
-        
-        ctrl.index1.index2.data_index = 0;
-        data.sport1.sport2.count = 0;
-        data.sport1.sport2.sleep = 0;
-        data.sport1.sport2.step = 0;
-        ctrl.ctrl1.ctrl2.write_tail = ctrl.ctrl1.ctrl2.ring_buf_tail;
-        ctrl.ctrl1.ctrl2.ring_buf_tail = (ctrl.ctrl1.ctrl2.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH;
+        ctrl.data_index = 0;
+        ctrl.write_head = ctrl.ring_buf_head;
+        ctrl.ring_buf_head = (ctrl.ring_buf_head+1)%CONST_RING_BUFFER_LENGTH;
     }
-
-    data.sport1.sport2.step += ((his_data_t*)buffer)->sport1.sport2.step;
-    data.sport1.sport2.sleep += ((his_data_t*)buffer)->sport1.sport2.sleep;
-    ctrl.index1.index2.data_index++;
-    data.sport1.sport2.count++;
-    data.date1.date2.days = (ctrl.ctrl1.ctrl2.ring_buf_tail>ctrl.ctrl1.ctrl2.ring_buf_head)?
-                            (ctrl.ctrl1.ctrl2.ring_buf_tail-ctrl.ctrl1.ctrl2.ring_buf_head):
-                            (CONST_RING_BUFFER_LENGTH-ctrl.ctrl1.ctrl2.ring_buf_head+ctrl.ctrl1.ctrl2.ring_buf_tail);
+       
+    data_read.year = data_new->year;
+    data_read.month = data_new->month;
+    data_read.day = data_new->day;
+    data_read.step_counts += data_new->step_counts;
+    #if USE_MANUAL_CALC
+    data_read.distance += data_new->distance;
+    data_read.calorie += data_new->calorie;
+    data_read.floor_counts += data_new->floor_counts;
+    data_read.acute_sport_time += data_new->acute_sport_time;
+    sleep_tmp = data_new->sleep[0];
+    sleep_tmp &= 0x03;
+    index_tmp = ctrl.data_index%4;
+    index_tmp *= 2;
+    sleep_data = data_read.sleep[ctrl.data_index/4]; // get
+    sleep_data &= ~(11<<index_tmp);
+    sleep_data |= (sleep_tmp<<index_tmp);
+    data_read.sleep[ctrl.data_index/4] = sleep_data; // write back
+    #endif
+    data_read.days = (ctrl.ring_buf_head>ctrl.ring_buf_tail)?
+                            (ctrl.ring_buf_head-ctrl.ring_buf_tail):
+                            (CONST_RING_BUFFER_LENGTH-ctrl.ring_buf_tail+ctrl.ring_buf_head);
+    ctrl.data_index++;
     nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
-    nvm_write((u16*)&data, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.ctrl1.ctrl2.write_tail*CONST_DATA_ONEDAY_LENGTH));
+    nvm_write((u16*)&data_read, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.write_head*CONST_DATA_ONEDAY_LENGTH));
 
     return 0;
 }
 s16 nvm_write_sport_data(u16 *buffer, u8 index)
 {
-    his_data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
+    his_data_t data;
+    MemSet(&data, 0, sizeof(his_data_t));
 
-    data.sport1.sport2.step = (s16)buffer[0];
+    data.step_counts = (s16)buffer[0];
     nvm_write_history_data((u16*)&data, 0);
 
     return 0;
 }
+#if USE_MANUAL_CALC
 s16 nvm_write_sleep_data(u16 *buffer, u8 index)
 {
-    his_data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
+    his_data_t data;
+    MemSet(&data, 0, sizeof(his_data_t));
 
-    data.sport1.sport2.sleep = (u8)buffer[0];
+    MemCopy(data.sleep, buffer, sizeof(data.sleep));
     nvm_write_history_data((u16*)&data, 0);
 
     return 0;
 }
 #endif
-s16 nvm_write_history_data(u16 *buffer, u8 index)
-{
-    his_ctrl_t ctrl = {.ctrl1.ctrl3=0, .index1.index3=0};
-    his_data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
-    static u8 test_date[3] = {0x20, 0x04, 0x17};
-    u16 test_init = 0;
-
-    test_init = nvm_check_storage_init();
-    nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
-    nvm_read((u16*)&data, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.ctrl1.ctrl2.write_tail*CONST_DATA_ONEDAY_LENGTH));
-
-    if(ctrl.index1.index2.data_index%CONST_TIME_GRANULARITY == 0)  /* new day */
-    {
-        /** user storage fulled, discard the oldest one */
-        if(ctrl.ctrl1.ctrl2.ring_buf_head == (ctrl.ctrl1.ctrl2.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH)
-        {
-            ctrl.ctrl1.ctrl2.ring_buf_head = (ctrl.ctrl1.ctrl2.ring_buf_head+1)%CONST_RING_BUFFER_LENGTH;
-            ctrl.ctrl1.ctrl2.read_head = ctrl.ctrl1.ctrl2.ring_buf_head;
-        }
-        
-        data.date1.date2.year = test_date[0];
-        data.date1.date2.month = test_date[1];
-        data.date1.date2.day = test_date[2]++;
-        
-        ctrl.index1.index2.data_index = 0;
-        data.sport1.sport2.count = 0;
-        data.sport1.sport2.sleep = 0;
-        data.sport1.sport2.step = 0;
-        ctrl.ctrl1.ctrl2.write_tail = ctrl.ctrl1.ctrl2.ring_buf_tail;
-        ctrl.ctrl1.ctrl2.ring_buf_tail = (ctrl.ctrl1.ctrl2.ring_buf_tail+1)%CONST_RING_BUFFER_LENGTH;
-    }
-
-    data.sport1.sport2.step += ((his_data_t*)buffer)->sport1.sport2.step;
-    data.sport1.sport2.sleep += ((his_data_t*)buffer)->sport1.sport2.sleep;
-    ctrl.index1.index2.data_index++;
-    data.sport1.sport2.count++;
-    data.date1.date2.days = (ctrl.ctrl1.ctrl2.ring_buf_tail>ctrl.ctrl1.ctrl2.ring_buf_head)?
-                            (ctrl.ctrl1.ctrl2.ring_buf_tail-ctrl.ctrl1.ctrl2.ring_buf_head):
-                            (CONST_RING_BUFFER_LENGTH-ctrl.ctrl1.ctrl2.ring_buf_head+ctrl.ctrl1.ctrl2.ring_buf_tail);
-    nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
-    nvm_write((u16*)&data, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.ctrl1.ctrl2.write_tail*CONST_DATA_ONEDAY_LENGTH));
-
-    return 0;
-}
-s16 nvm_write_sport_data(u16 *buffer, u8 index)
-{
-    his_data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
-
-    data.sport1.sport2.step = (s16)buffer[0];
-    nvm_write_history_data((u16*)&data, 0);
-
-    return 0;
-}
-s16 nvm_write_sleep_data(u16 *buffer, u8 index)
-{
-    his_data_t data = {.date1.date3=0, .sport1.sport3={0,0,0,0}};
-
-    data.sport1.sport2.sleep = (u8)buffer[0];
-    nvm_write_history_data((u16*)&data, 0);
-
-    return 0;
-}
 s16 nvm_erase_history_data(void)
 {
-    his_ctrl_t ctrl = {.ctrl1.ctrl3=0, .index1.index3=0};
+    his_ctrl_t ctrl;
+    MemSet(&ctrl, 0, sizeof(his_ctrl_t));
     
     nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
+
     return 0;
 }
+s16 nvm_read_test(void)
+{
+    his_data_t data;
+    u16 buf[100] = {0};
+    volatile u16 ready = 0;
+    u16* ptr = NULL;
+    volatile u8 len = 0;
+
+    while(1)
+    {
+        ptr = buf;
+        ready = nvm_read_history_data((u16*)&data, 0);
+        if(ready != 0) break;
+        BufWriteUint8((uint8 **)&ptr, data.days);
+        BufWriteUint16((uint8 **)&ptr, data.year);
+        BufWriteUint8((uint8 **)&ptr, data.month);
+        BufWriteUint8((uint8 **)&ptr, data.day);
+        BufWriteUint32((uint8 **)&ptr, &data.step_counts);
+        #if USE_MANUAL_CALC
+        BufWriteUint32((uint8 **)&ptr, &data.distance);
+        BufWriteUint32((uint8 **)&ptr, &data.calorie);
+        BufWriteUint16((uint8 **)&ptr, data.floor_counts);
+        BufWriteUint16((uint8 **)&ptr, data.acute_sport_time);
+        MemCopy(ptr, data.sleep, 24);
+        ptr += 24;
+        #endif
+        len = ptr-buf;
+        //data = (his_data_t*)buf;
+        get_driver()->uart->uart_write((u8*)buf, len);
+        //get_driver()->uart->uart_write(buf, CONST_DATA_ONEDAY_LENGTH);
+    }
+    
+
+    return 0;
+}
+s16 nvm_write_test(void)
+{
+    static u8 flag = 0;
+    his_data_t data;
+    his_ctrl_t ctrl;
+    his_data_t data_read;
+    volatile u16 use_size = USER_STORAGE_TOTAL_LENGTH;
+
+    if(use_size == 0) {
+        flag = 1;
+    }
+    if(flag == 0) {
+        flag = 1;
+        data.year = 2018;
+        data.month = 6;
+        data.day = 1;
+    } else {
+        nvm_read((u16*)&data_read, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.write_head*CONST_DATA_ONEDAY_LENGTH));
+        data.year = data_read.year;
+        data.month = data_read.month;
+        data.day = data_read.day;
+    }
+
+    nvm_check_storage_init();
+    MemSet(&ctrl, 0, sizeof(his_ctrl_t));
+    nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
+    if(ctrl.data_index%CONST_TIME_GRANULARITY == 0) {
+        data.day++;
+    }
+
+    data.step_counts = 1;
+    #if USE_MANUAL_CALC
+    static u8 sleep = 1;
+    data.distance = 2;
+    data.calorie = 3;
+    data.floor_counts = 4;
+    data.acute_sport_time = 5;
+    data.sleep[0] = sleep++;
+    #endif
+    //sleep &= 4;
+    nvm_write_history_data((u16*)&data, 0);
+    
+    return 0;
+}
+
 

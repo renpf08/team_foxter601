@@ -743,10 +743,12 @@ s16 sport_get_data(his_data_t *data, clock_t *clock)
     Total_Sport_Info_data.Calorie+=One_Minute_Sport_Info_data.Calorie;
 
     data->step_counts += One_Minute_Sport_Info_data.StepCounts;
+    #if USE_MANUAL_CALC
     data->distance += One_Minute_Sport_Info_data.Distance;
     data->calorie += One_Minute_Sport_Info_data.Calorie;
     data->floor_counts += One_Minute_Sport_Info_data.FloorCounts; 
     data->acute_sport_time += One_Minute_Sport_Info_data.AcuteSportTimeCounts;
+    #endif
     
     return 0;
 }

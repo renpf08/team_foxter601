@@ -2,6 +2,7 @@
 #define COMMON_H
 
 #include "typedef.h"
+#include "user_config.h"
 
 #define PIO_DIR_OUTPUT  TRUE        /* PIO direction configured as output */
 #define PIO_DIR_INPUT   FALSE       /* PIO direction configured as input */
@@ -350,6 +351,7 @@ typedef enum {
     CMD_SET_ANCS_BOND_REQ   = 0x0D,
     CMD_READ_TIME_STEPS     = 0x0E,
     
+    CMD_NVM_TEST            = 0xF0,
     CMD_APP_NONE            = 0xFF
 } cmd_app_send_t;
 
@@ -503,60 +505,35 @@ typedef struct {
     cmd_set_ancs_bond_req_t set_ancs_bond;
     cmd_read_time_steps_t read_time_step;
 } cmd_group_t;
-  
-/*
+
+enum {
+    READ_HISDATA_TOTAL,
+    READ_HISDATA_INDEX,
+    READ_HISDATA_LAST
+};
 typedef struct {
-    u8 sleep_buf[24];
-}sleep_t;
-typedef struct {
-    u32 step_counts;
-    u32 distance;
-    u32 calorie;
-    u16 floor_counts;
-    u16 acute_sport_time;
-}sport_t;*/
-typedef struct {
-    union {
-        u32 ctrl3;
-        struct {
-            u8 ring_buf_head; /* sport data ring buffer head */
-            u8 ring_buf_tail; /* sport data ring buffer tail */
-            u8 read_head;
-            u8 write_tail;
-        }ctrl2;
-    }ctrl1;
-    union {
-        u16 index3;
-        struct {
-            u8 data_index; /* fifteen-minute data index */
-            u8 resv;
-        }index2;
-    }index1;
+    u8 ring_buf_tail; /* sport data ring buffer tail */
+    u8 ring_buf_head; /* sport data ring buffer head */
+    u8 read_tail;
+    u8 write_head;
+    
+    u8 data_index; /* fifteen-minute data index */
 }his_ctrl_t; /* for nvm to store */
 typedef struct {
-    union {
-        u32 date3;
-        struct {
-            u8 days; /* how many days with history data  */
-            u8 year;
-            u8 month;
-            u8 day;
-        }date2;
-    }date1;
-    union {
-        u8 sport3[4];
-        struct {
-            u16 step;
-            u8 sleep;
-            u8 count; /* how many times stored history data this day(96 in total)  */
-        }sport2;
-    }sport1;
+    u8 days; /* how many days with history data  */
+    
+    u16 year;
+    u8 month;
+    u8 day;
+    
     u32 step_counts;
+    #if USE_MANUAL_CALC
     u32 distance;
     u32 calorie;
     u16 floor_counts;
     u16 acute_sport_time;
     u8 sleep[24];
+    #endif
 }his_data_t; /* for nvm to store */
 
 typedef s16 (*event_callback)(EVENT_E ev);

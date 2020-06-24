@@ -60,8 +60,12 @@ s16 nvm_read_history_setting(u16 *buffer, u8 index);
 s16 nvm_write_history_setting(u16 *buffer, u8 index);
 s16 nvm_read_history_data(u16 *buffer, u8 index);
 s16 nvm_write_sport_data(u16 *buffer, u8 index);
+#if USE_MANUAL_CALC
 s16 nvm_write_sleep_data(u16 *buffer, u8 index);
+#endif
 s16 nvm_erase_history_data(void);
+s16 nvm_read_test(void);
+s16 nvm_write_test(void);
 
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
 s16 cmd_set_data(his_data_t *data, clock_t *clock);
