@@ -83,7 +83,6 @@ typedef struct
 }ASLEEP_DATA_INFO_T;  /*睡眠时间点信息数据结构*/
 
 ASLEEP_DATA_INFO_T Asleep_Data_Info;
-static clock_t *step_time;
 
 /***************************************************************************************/
 /************************************剧烈运动运算部分**************************************/
@@ -143,12 +142,8 @@ BODY_INFO_T Body_Info_data;
 
 u8 Z_Acce_Val=0;  /*模拟电子罗盘用*/
 
-void Asleep_Info_Pro(clock_t *clock);
-void Sport_Info_data_Init(uint8 type);
-void Asleep_Info_Init(void);
 void Acute_Sport_Time_Count_Init(void);
 void Acute_Sport_Time_Count_Pro(void);
-u32 CaculateCalorie(void);
 u16 CaculateAsbSquare(u8 Temp);
 void InitVal(u16 *ValS,u16 Val, u8 Length);
 u16 AverageVal(u16 *Val,u8 Num);
@@ -158,102 +153,6 @@ void Step_Count_data_Init(void);
 void step_count_proce(void);
 s16 step_sample_init(void);
 
-void Sport_Info_data_Init(uint8 type)
-{
-    One_Minute_Sport_Info_data.StepCounts=0;    
-    One_Minute_Sport_Info_data.Distance=0; 
-    One_Minute_Sport_Info_data.Calorie=0;
-    One_Minute_Sport_Info_data.FloorCounts=0;
-    One_Minute_Sport_Info_data.AcuteSportTimeCounts=0; 
-    
-    Fifteen_Minutes_Sport_Info_data.StepCounts=0;    
-    Fifteen_Minutes_Sport_Info_data.Distance=0; 
-    Fifteen_Minutes_Sport_Info_data.Calorie=0;
-    Fifteen_Minutes_Sport_Info_data.FloorCounts=0;
-    Fifteen_Minutes_Sport_Info_data.AcuteSportTimeCounts=0;     
- 
-    if(type==1)
-    {
-    /*获取相应的EEPROM中的总数*/
-    /*Read_SP_Data_From_E2prom(FifteenMinuteSP.BlockIndex,SP_BLOCK_TOTAL_DATA,(uint16*)&Total_Sport_Info_data);*//*获取相应的EEPROM中的数据总量*/
-    Total_Sport_Info_data.StepCounts=0;    
-    Total_Sport_Info_data.Distance=0; 
-    Total_Sport_Info_data.Calorie=0;
-    Total_Sport_Info_data.FloorCounts=0;
-    Total_Sport_Info_data.AcuteSportTimeCounts=0;/* */
-	Asleep_Info_Init();/*初始化睡眠数据为0*/
-    }
-}
-/*十五分钟睡眠信息记录*/
-//ASLEEP_DATA_INFO_T Asleep_Data_Info;
-/*修改为处理一天的运动强度信息，每15分钟处理统计一次。
-第一参数为小阀值的运动统计，第二参数为步数统计
-*/
-void Asleep_Info_Init(void)
-{
-uint8 i=0;
-  for(i=0;i<12;i++)
-    Asleep_Data_Info.AsleepInfo_Data_Table[i]=0;
-  Asleep_Data_Info.FifteenMinuteMove=0;
-}
-void Asleep_Info_Pro(clock_t *clock)
-{
-    uint8 temp=0,i=0,j=0;
-	uint16 TempData=0;
-    if(Asleep_Data_Info.FifteenMinuteMove==0)  /*静置*/
-    {
-        temp=0;
-    }
-    else if(Asleep_Data_Info.FifteenMinuteMove<100)
-    {
-		if(Fifteen_Minutes_Sport_Info_data.StepCounts<10)
-		  temp=1; /*深度睡眠状态*/
-		else
-		  temp=2; /*浅睡*/
-    }
-    else if(Asleep_Data_Info.FifteenMinuteMove<200)
-    {
-		if(Fifteen_Minutes_Sport_Info_data.StepCounts<20)
-		  temp=2; /*浅度睡眠状态*/
-		else
-		  temp=3; /*醒来*/
-    }
-	else
-	{
-	    temp=3; /*醒来*/
-	}
-    i=(step_time->minute/15)%4;
-	j=step_time->hour/2;
-    i=i+(step_time->hour%2)*4;
-	i=i*2;
-	TempData=temp;
-	TempData<<=i;
-	Asleep_Data_Info.AsleepInfo_Data_Table[j]|=TempData;
-}
-/*十五分钟睡眠信息记录结束*/
-void Update_BodyInfo(uint8 Gender, uint8 Height, uint8 Weight)
-{
-   Body_Info_data.Gender=Gender;/*默认值是1,男  0,女*/
-   Body_Info_data.Height=Height;
-   Body_Info_data.Weight=Weight;
-  /* Body_Info_data.StridedDistance=Body_Info_data.Height*38/100;
-   Body_Info_data.StridedDistance=(Body_Info_data.StridedDistance+3)/10;修改为分米单位*/
-   Body_Info_data.StridedDistance=(Body_Info_data.Height+13)/25;
-   if(Body_Info_data.Gender)/*男*/
-   {
-       Body_Info_data.One_Minu_BMR_Calorie=Body_Info_data.Weight*50/3;/*1000 / 60*/
-       Body_Info_data.One_Minu_Heavy_Sport_Calorie=Body_Info_data.Weight*125/4; /*1000 x 45 /24/60*/
-       Body_Info_data.One_Minu_Medium_Sport_Calorie=Body_Info_data.Weight*250/9; /*1000 x 40 /24/60*/
-       Body_Info_data.One_Minu_Light_Sport_Calorie=Body_Info_data.Weight*875/36;/*1000 x 35 /24/60*/ 
-   }
-   else /*女*/
-   {
-       Body_Info_data.One_Minu_BMR_Calorie=Body_Info_data.Weight*95/6;  /*950 / 60*/
-       Body_Info_data.One_Minu_Heavy_Sport_Calorie=Body_Info_data.Weight*250/9;/*1000 x40 /24/60*/
-       Body_Info_data.One_Minu_Medium_Sport_Calorie=Body_Info_data.Weight*875/36;/*1000 x35 /24/60*/
-       Body_Info_data.One_Minu_Light_Sport_Calorie=Body_Info_data.Weight*125/6;/*1000 x 30 /24/60*/
-   }    
-}
 void Acute_Sport_Time_Count_Init(void)
 {
     Acute_Sport_Time_Count_data.AcuteSportTimeProState=0;
@@ -295,54 +194,7 @@ void Acute_Sport_Time_Count_Pro(void)
     }
 }
 
-/*卡路里计算部分  每分钟测算一次
-A+B+C-D
-基础代谢热量A（千卡）＝体重（公斤数）x 男（1）、女（0.95）x 24（小时）
-身体活动热量B（千卡）＝体重（公斤数）x 劳动强度（23-25,30-35,35-40,40-45）x 运动小时/24小时
-摄食生热效应（非自主性）C（千卡）＝（A+B）x 10/100
-睡眠所减少的热量需要量 D（千卡）＝A x 10/100 x 睡眠小时/24小时
-*/
-u32 CaculateCalorie(void)/*测算路里值,用小卡来，减少小数点误差*/
-{
-    u32 B_Val=0;
-        if(One_Minute_Sport_Info_data.FloorCounts||One_Minute_Sport_Info_data.StepCounts>200)/*爬楼梯,重度强度,增加一个强度值，一分钟内走路超过200步的也算是重度运动。*/
-        {
-              B_Val=Body_Info_data.One_Minu_Heavy_Sport_Calorie; /*1000 x 45 /24/60*/
-        }
-        else if(One_Minute_Sport_Info_data.AcuteSportTimeCounts)/*有剧烈走动的,中等强度*/
-        {
-              B_Val=Body_Info_data.One_Minu_Medium_Sport_Calorie; /*1000 x 40 /24/60*/
-        }
-        else if(One_Minute_Sport_Info_data.StepCounts)/*有走动的,轻等强度*/
-        {
-              B_Val=Body_Info_data.One_Minu_Light_Sport_Calorie;/*1000 x 35 /24/60*/ 
-        }
-        else
-              B_Val=0; 
-    return Body_Info_data.One_Minu_BMR_Calorie+B_Val;   
-}
-void One_Minute_Sport_Info_Pro(clock_t *clock)
-{
-    One_Minute_Sport_Info_data.Calorie=CaculateCalorie();
-    Total_Sport_Info_data.Calorie+=One_Minute_Sport_Info_data.Calorie;
-
-    Fifteen_Minutes_Sport_Info_data.StepCounts+=One_Minute_Sport_Info_data.StepCounts;
-    Fifteen_Minutes_Sport_Info_data.Distance+=One_Minute_Sport_Info_data.Distance;
-    Fifteen_Minutes_Sport_Info_data.Calorie+=One_Minute_Sport_Info_data.Calorie;
-    Fifteen_Minutes_Sport_Info_data.FloorCounts+=One_Minute_Sport_Info_data.FloorCounts; 
-    Fifteen_Minutes_Sport_Info_data.AcuteSportTimeCounts+=One_Minute_Sport_Info_data.AcuteSportTimeCounts;
-    
-    One_Minute_Sport_Info_data.StepCounts=0;    
-    One_Minute_Sport_Info_data.Distance=0; 
-    One_Minute_Sport_Info_data.Calorie=0;
-    One_Minute_Sport_Info_data.FloorCounts=0;
-    One_Minute_Sport_Info_data.AcuteSportTimeCounts=0;   
-
-    step_time = clock;
-    
-   /* Write_SP_Data_2_LIS3DH((uint16)Fifteen_Minutes_Sport_Info_data.StepCounts, (uint16) Fifteen_Minutes_Sport_Info_data.Calorie,(uint8) Fifteen_Minutes_Sport_Info_data.FloorCounts,(uint8) Fifteen_Minutes_Sport_Info_data.AcuteSportTimeCounts);更改为指针位置保存*/
-}
-/*计算带符号的8比特位数的平方*/
+/*????′?·?o?μ?8±èì???êyμ???·?*/
 u16 CaculateAsbSquare(u8 Temp)
 {
     u16  ReturnVal=0,TempVal=0;
@@ -452,6 +304,8 @@ void Step_Count_data_Init(void)
    Step_Count_data.LastChangeTime=0;   /*解决一些步数突变的问题*/
    Step_Count_data.StepsChangeTimeBuffer=0; /*解决有时前几步变化的问题*/
 }
+
+static void StepCountProce(void);
 static void StepCountProce(void)
 {
     uint8 i=0,StepFlag=0;
@@ -729,27 +583,11 @@ static void step_sample_handler(u16 id)
 s16 step_sample_init(void)
 {
 	get_driver()->timer->timer_start(280, step_sample_handler);  
-    Step_Count_data.Pro_Step=PRO_STEP_START; 
-    Update_BodyInfo(DEFAULT_GENDER_VALUE,DEFAULT_HEIGHT_VALUE,DEFAULT_WEIGHT_VALUE);/*男，173cm高，70公斤重*/ 
+    Step_Count_data.Pro_Step=PRO_STEP_START;  
 	return 0;
 }
+
 u32 step_get(void)
 {
     return Total_Sport_Info_data.StepCounts;
 }
-s16 sport_get_data(his_data_t *data, clock_t *clock)
-{
-    One_Minute_Sport_Info_data.Calorie=CaculateCalorie();
-    Total_Sport_Info_data.Calorie+=One_Minute_Sport_Info_data.Calorie;
-
-    data->step_counts += One_Minute_Sport_Info_data.StepCounts;
-    #if USE_MANUAL_CALC
-    data->distance += One_Minute_Sport_Info_data.Distance;
-    data->calorie += One_Minute_Sport_Info_data.Calorie;
-    data->floor_counts += One_Minute_Sport_Info_data.FloorCounts; 
-    data->acute_sport_time += One_Minute_Sport_Info_data.AcuteSportTimeCounts;
-    #endif
-    
-    return 0;
-}
-

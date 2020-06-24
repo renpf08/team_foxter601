@@ -516,24 +516,12 @@ typedef struct {
     u8 ring_buf_head; /* sport data ring buffer head */
     u8 read_tail;
     u8 write_head;
-    
-    u8 data_index; /* fifteen-minute data index */
 }his_ctrl_t; /* for nvm to store */
 typedef struct {
-    u8 days; /* how many days with history data  */
-    
     u16 year;
     u8 month;
     u8 day;
-    
     u32 step_counts;
-    #if USE_MANUAL_CALC
-    u32 distance;
-    u32 calorie;
-    u16 floor_counts;
-    u16 acute_sport_time;
-    u8 sleep[24];
-    #endif
 }his_data_t; /* for nvm to store */
 
 typedef s16 (*event_callback)(EVENT_E ev);

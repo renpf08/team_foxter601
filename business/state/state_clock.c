@@ -28,14 +28,14 @@ static void minute_data_handler(clock_t *clock)
 
     if(cmd->user_info.cmd & 0x80) { // refresh user information
         cmd->user_info.cmd &= ~0x80;
-        Update_BodyInfo(cmd->user_info.gender, cmd->user_info.height, cmd->user_info.weight);
+        //Update_BodyInfo(cmd->user_info.gender, cmd->user_info.height, cmd->user_info.weight);
     }
     cmd_set_data(&data,clock);
-    One_Minute_Sport_Info_Pro(clock);
-    if((clock->minute%HISTORY_STORE_INVERVAL) == 0) {
-        MemSet(&data, 0, sizeof(his_data_t));
-        sport_get_data(&data, clock);
-    }
+//    One_Minute_Sport_Info_Pro(clock);
+//    if((clock->minute%HISTORY_STORE_INVERVAL) == 0) {
+//        MemSet(&data, 0, sizeof(his_data_t));
+//        sport_get_data(&data, clock);
+//    }
 }
 s16 state_clock(REPORT_E cb, void *args)
 {

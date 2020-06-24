@@ -39,7 +39,9 @@ static s16 cmd_set_vibration(u8 *buffer, u8 length);
 static s16 cmd_find_watch(u8 *buffer, u8 length);
 static s16 cmd_set_ancs_bond_req(u8 *buffer, u8 length);
 static s16 cmd_read_time_steps(u8 *buffer, u8 length);
+#if USE_NVM_TEST
 static s16 cmd_nvm_test(u8 *buffer, u8 length);
+#endif
 void cmd_parse(u8* content, u8 length);
 s16 cmd_init(adapter_callback cb);
 
@@ -61,7 +63,9 @@ static const CMDENTRY cmd_list[] =
     {CMD_SET_ANCS_BOND_REQ, SET_ANCS_BOND_REQ,  cmd_set_ancs_bond_req},
     {CMD_READ_TIME_STEPS,   READ_TIME_STEPS,    cmd_read_time_steps},
 
+    #if USE_NVM_TEST
     {CMD_NVM_TEST,          REPORT_MAX,         cmd_nvm_test},
+    #endif
 	{CMD_APP_NONE,          REPORT_MAX, NULL}
 };
 enum {
@@ -69,8 +73,6 @@ enum {
     STATE_START_SEND_DATA,
     STATE_SIZEOF_DATA,
     STATE_SPORT_DATA,
-    STATE_SLEEP_DATA1,
-    STATE_SLEEP_DATA2,
     STATE_INVALID
 };
 
@@ -151,8 +153,6 @@ static s16 cmd_app_ack(u8 *buffer, u8 length)
     if(cmd_group.app_ack.ack_cmd == CMD_SYNC_DATA) {
         cmd_group.app_ack.cmd = CMD_SYNC_DATA;
         if(cmd_group.app_ack.state == STATE_SPORT_DATA) buffer[1] = 00;
-        else if (cmd_group.app_ack.state == STATE_SLEEP_DATA1) buffer[1] = 0x65;
-        else if (cmd_group.app_ack.state == STATE_SLEEP_DATA2) buffer[1] = 0x66;
     }
     
     return cmd_group.app_ack.ack_result;
@@ -200,7 +200,7 @@ static s16 cmd_read_time_steps(u8 *buffer, u8 length)
     MemCopy(&cmd_group.read_time_step, buffer, sizeof(cmd_read_time_steps_t)); 
     return 0;
 }
-
+#if USE_NVM_TEST
 static s16 cmd_nvm_test(u8 *buffer, u8 length)
 {
     if(buffer[1] == 0) {
@@ -213,6 +213,7 @@ static s16 cmd_nvm_test(u8 *buffer, u8 length)
     
     return 0;
 }
+#endif
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
 {
     u16 length = 0; 
@@ -269,24 +270,6 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
                 if(cmd_group.app_ack.state == STATE_SPORT_DATA) {
                     BufWriteUint16((uint8 **)&tmp_buf, cmd_get_data->step_counts);//(SB100_data.AppApplyData.StepCounts));
                     BufWriteUint8((uint8 **)&tmp_buf, cmd_get_data->step_counts>>16);//(SB100_data.AppApplyData.StepCounts>>16));
-                    #if USE_MANUAL_CALC
-                    BufWriteUint16((uint8 **)&tmp_buf, cmd_get_data->distance);//(SB100_data.AppApplyData.Distance));
-                    BufWriteUint8((uint8 **)&tmp_buf, cmd_get_data->distance>>16);//(SB100_data.AppApplyData.Distance>>16));
-                    BufWriteUint16((uint8 **)&tmp_buf, cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
-                    BufWriteUint8((uint8 **)&tmp_buf, cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
-                    BufWriteUint16((uint8 **)&tmp_buf, cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
-                    BufWriteUint16((uint8 **)&tmp_buf, cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
-                    cmd_group.app_ack.state = STATE_SLEEP_DATA1;
-                } else if(cmd_group.app_ack.state == STATE_SLEEP_DATA1) {
-                    MemCopy(tmp_buf, cmd_get_data->sleep, 12);// AS0~AS5
-                    tmp_buf += 12;
-                    cmd_group.app_ack.state = STATE_SLEEP_DATA2;
-                } else if(cmd_group.app_ack.state == STATE_SLEEP_DATA2) {
-                    MemCopy(tmp_buf, &cmd_get_data->sleep[12], 12);// AS6~AS11
-                    tmp_buf += 12;
-                    #else
-                    MemSet(tmp_buf, 0x00, 10);
-                    #endif // USE_MANUAL_CALC
                     cmd_group.app_ack.state = STATE_SPORT_DATA;
                     cmd_group.app_ack.his_days--;
                 }
