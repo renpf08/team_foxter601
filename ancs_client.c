@@ -1736,16 +1736,26 @@ extern void WriteApplicationAndServiceDataToNVM(void)
  *      Nothing.
  *
  *----------------------------------------------------------------------------*/
-extern void ReportPanic(const char* file, const char* func, unsigned line, app_panic_code panic_code)
+ #if USE_NVM_TEST
+u8 panic_code = 0;
+u8 panic_get(void)
+{
+    return panic_code;
+}
+#endif
+extern void ReportPanic(const char* file, const char* func, unsigned line, app_panic_code code)
 {
     /* If we want any debug prints, we can put them here */
 #ifdef ENABLE_DEBUG_PANIC
-    Panic(panic_code);
+    Panic(code);
 #else
     u8 panic_buf[8] = {"painc=xx"};
-    panic_buf[6] = panic_code/10 + '0';
-    panic_buf[7] = panic_code%10 + '0';
+    panic_buf[6] = code/10 + '0';
+    panic_buf[7] = code%10 + '0';
     print(panic_buf, 8);
+    #if USE_NVM_TEST
+    panic_code = code;
+    #endif
 #endif
 }
 
@@ -2229,6 +2239,7 @@ void AppInit(sleep_state last_sleep_state)
     AncsServiceDataInit();
 
     //ble_switch_off();
+    nvm_write_test();
 }
 
 /*----------------------------------------------------------------------------*

@@ -46,7 +46,7 @@
 // selected.(Default bootloader version is 7)
 // Comment out the following block if SPI Flash used
 &nvm_start_address = 4100          // Default value (in hex) for EEPROM
-&nvm_size = 80                    // Default value(number of words)
+&nvm_size = 100                    // Default value(number of words)
 
 // NVM storage configuration for devices >=512kbit SPI Flash if OTA Update 
 // Bootloader is included and OTA Update Bootloader version 7 or above is 

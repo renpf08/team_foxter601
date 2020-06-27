@@ -64,6 +64,7 @@ s16 nvm_read_history_data(u16 *buffer, u8 index);
 s16 nvm_write_sport_data(u16 *buffer, u8 index);
 s16 nvm_erase_history_data(void);
 #if USE_NVM_TEST
+u8 panic_get(void);
 s16 nvm_read_test(void);
 s16 nvm_write_test(void);
 #endif
