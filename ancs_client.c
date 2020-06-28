@@ -2239,7 +2239,7 @@ void AppInit(sleep_state last_sleep_state)
     AncsServiceDataInit();
 
     //ble_switch_off();
-    nvm_write_test();
+    //nvm_write_test();
 }
 
 /*----------------------------------------------------------------------------*

@@ -36,18 +36,18 @@
 #define SPORT_SETTING_LENGTH                    (0x08)
 
 #define HISTORY_CONTROL_OFFSET                  (SPORT_SETTING_OFFSET+SPORT_SETTING_LENGTH)
-#define HISTORY_CONTROL_LENGTH                  (4)//(sizeof(his_ctrl_t))/* word width */
+#define HISTORY_CONTROL_LENGTH                  (sizeof(his_ctrl_t))//(4)//(sizeof(his_ctrl_t))/* word width */
 #else
 #define HISTORY_CONTROL_OFFSET                  (USER_STORATE_INIT_FLAG_OFFSET+USER_STORATE_INIT_FLAG_LENGTH)
-#define HISTORY_CONTROL_LENGTH                  (4)//(sizeof(his_ctrl_t))/* word width */
+#define HISTORY_CONTROL_LENGTH                  (sizeof(his_ctrl_t))//(4)//(sizeof(his_ctrl_t))/* word width */
 #endif
 
-#define CONST_RING_BUFFER_LENGTH                (7+1)/* unit: day(1 byte more than acturlly need) */
-#define CONST_DATA_ONEDAY_LENGTH                (8)//(sizeof(his_data_t))
+#define CONST_RING_BUFFER_LENGTH                (31+1)/* unit: day(1 byte more than acturlly need) */
+#define CONST_DATA_ONEDAY_LENGTH                (sizeof(his_data_t))//(8)//(sizeof(his_data_t))
 #define HISTORY_DATA_OFFSET                     (HISTORY_CONTROL_OFFSET+HISTORY_CONTROL_LENGTH)
 #define HISTORY_DATA_LENGTH                     (CONST_DATA_ONEDAY_LENGTH*CONST_RING_BUFFER_LENGTH)/* store 20 days's history */
 
-#define USER_STORAGE_TOTAL_LENGTH               82//(HISTORY_DATA_LENGTH+(HISTORY_DATA_OFFSET-USER_STORAGE_START_OFFSET))
+#define USER_STORAGE_TOTAL_LENGTH               (HISTORY_DATA_LENGTH+(HISTORY_DATA_OFFSET-USER_STORAGE_START_OFFSET))
 
 /* sleep/sport history data storage model
  * |----------------------------------------|
@@ -204,12 +204,13 @@ s16 nvm_check_storage_init(void)
         if(panic_check(erase_offset) != 0) return 1;
     }
 
-    for(erase_offset = 0; erase_offset < USER_STORAGE_TOTAL_LENGTH; erase_offset++)
-    {
-        nvm_read(&erase_value, 1, USER_STORAGE_START_OFFSET+erase_offset);
-        if(panic_check(erase_offset) != 0) return 1;
-        get_driver()->uart->uart_write((u8*)&erase_value, 1);
-    }
+    // print the initialized nvm contents
+//    for(erase_offset = 0; erase_offset < USER_STORAGE_TOTAL_LENGTH; erase_offset++)
+//    {
+//        nvm_read(&erase_value, 1, USER_STORAGE_START_OFFSET+erase_offset);
+//        if(panic_check(erase_offset) != 0) return 1;
+//        get_driver()->uart->uart_write((u8*)&erase_value, 1);
+//    }
 
     init_flag = 0xA55A;
     nvm_write((u16*)&init_flag, USER_STORATE_INIT_FLAG_LENGTH, USER_STORATE_INIT_FLAG_OFFSET);/* write user storage init flag */
@@ -380,7 +381,7 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
 //                            (CONST_RING_BUFFER_LENGTH-ctrl.ring_buf_tail+ctrl.ring_buf_head);
     nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
     if(panic_check(0xF6) != 0) return 1;
-    nvm_write((u16*)&data, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.write_head*CONST_DATA_ONEDAY_LENGTH));
+    nvm_write((u16*)data, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.write_head*CONST_DATA_ONEDAY_LENGTH));
     if(panic_check(0xF5) != 0) return 1;
 
     return 0;
@@ -434,6 +435,7 @@ s16 nvm_write_test(void)
     static u8 flag = 0;
     his_data_t data;
     his_ctrl_t ctrl = {0,0,0,0};
+    #if 0
     volatile u16 use_size = USER_STORAGE_TOTAL_LENGTH;
     volatile u16 use_start = USER_STORAGE_START_OFFSET;
     volatile u16 use_end = HISTORY_DATA_OFFSET;
@@ -450,13 +452,16 @@ s16 nvm_write_test(void)
        (size_u8 == 0) && (size_u16 == 0) && (size_u32 == 0)) {
         flag = 1;
     }
+    #endif
     if(flag == 0) {
         flag = 1;
         data.year = 2018;
         data.month = 6;
         data.day = 1;
+        data.step_counts = 0;
         nvm_check_storage_init();
     } else {
+        nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
         nvm_read((u16*)&data, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.write_head*CONST_DATA_ONEDAY_LENGTH));
     }
     data.day++;
