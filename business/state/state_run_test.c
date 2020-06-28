@@ -196,17 +196,17 @@ s16 state_run_test(REPORT_E cb, void *args)
 		timer_event(1, state_run_test_handler);
 	}else {
 		run_test.work = run;
-		run_test.test_status = no_loop;	
+		run_test.test_status = no_loop;
 		timer_event(1100, state_run_test_exit);
 	}
 
 	return 0;
 }
 
-#if 1
+#if 0
 void test_run_test(u16 id)
 {
-	motor_battery_week_to_position(THURSDAY);
+	motor_battery_week_to_position(SUNDAY);
 	//state_run_test(KEY_A_B_M_LONG_PRESS, NULL);
 	//timer_event(10000, test_run_test);
 }

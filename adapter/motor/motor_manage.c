@@ -198,6 +198,13 @@ s16 motor_battery_week_to_position(u8 battery_week)
 		motor_manager.motor_status[battery_week_motor].dst_pos = BAT_PECENT_100;
 		motor_manager.bat_week_dst = battery_week;
 		timer_event(motor_manager.run_interval_ms, motor_battery_week_change);
+	}else if(BAT_PECENT_100 == motor_manager.motor_status[battery_week_motor].cur_pos) {
+		motor_manager.motor_status[battery_week_motor].dst_pos = battery_week;
+		if(motor_manager.motor_status[battery_week_motor].dst_pos > BAT_PECENT_100) {
+			motor_manager.motor_status[battery_week_motor].unit_interval_step = BAT_INTERVAL_STEP;
+		}else {
+			motor_manager.motor_status[battery_week_motor].unit_interval_step = WEEK_INTERVAL_STEP;
+		}
 	}else {
 		motor_manager.motor_status[battery_week_motor].dst_pos = battery_week;
 	}
@@ -256,7 +263,7 @@ static void motor_run_continue_check(void)
 
 		/*motor continue run or not check*/
 		if(motor_manager.motor_status[motor_manager.run_motor_num].cur_pos == \
-			motor_manager.motor_status[motor_manager.run_motor_num].dst_pos) {
+			motor_manager.motor_status[motor_manager.run_motor_num].dst_pos) {			
 			motor_manager.motor_status[motor_manager.run_motor_num].run_flag = 0;
 		}
 	}else {
