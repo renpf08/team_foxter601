@@ -276,6 +276,11 @@ enum {
 	neg = 1,
 };
 
+enum{
+	run,
+	idle,
+};
+
 typedef struct {
 	u8 group;
 	u8 num;

@@ -46,7 +46,7 @@ static state_t state[] = {
 	STATE_FILL(TIME_ADJUST,         KEY_A_SHORT_PRESS,   	TIME_ADJUST,            state_time_adjust),	
 	STATE_FILL(TIME_ADJUST,         KEY_B_SHORT_PRESS,   	TIME_ADJUST,            state_time_adjust),
 	STATE_FILL(TIME_ADJUST,         KEY_M_SHORT_PRESS,   	TIME_ADJUST,            state_time_adjust),
-	STATE_FILL(TIME_ADJUST,         KEY_B_M_LONG_PRESS,   	CLOCK,            		state_clock),
+	STATE_FILL(TIME_ADJUST,         KEY_B_M_LONG_PRESS,   	TIME_ADJUST,            state_time_adjust),
 	/*run test*/
 	STATE_FILL(CLOCK,       		KEY_A_B_M_LONG_PRESS,   RUN_TEST,  				state_run_test),
 	STATE_FILL(RUN_TEST,    		KEY_A_B_M_LONG_PRESS,   RUN_TEST,  				state_run_test),
@@ -60,8 +60,8 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	u16 i = 0;
     s16 res = 0;
 
-	return 0;
-	print((u8 *)&cb, 1);
+	//return 0;
+	//print((u8 *)&cb, 1);
 
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 
@@ -74,10 +74,10 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	return res;
 }
 
-#define TEST_RUN_TEST
+//#define TEST_TIME_ADJUST
 s16 business_init(void)
 {
-	//s16 battery_week_status;
+	s16 battery_week_status;
 
 	adapter_init(adapter_cb_handler);
 	
@@ -105,7 +105,7 @@ s16 business_init(void)
 	timer_event(1000, time_adjust_test);
 	#endif
 	
-	#if 0
+	#if 1
 	battery_week_status = state_battery_week_status_get();
 	if(state_battery == battery_week_status) {
 		state_battery_week_switch(KEY_M_SHORT_PRESS, NULL);

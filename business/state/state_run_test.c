@@ -10,11 +10,6 @@ void state_run_test_increase(void);
 void state_run_test_exit(u16 id);
 
 enum{
-	run,
-	idle,
-};
-
-enum{
 	looping,
 	no_loop,
 };

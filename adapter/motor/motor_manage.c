@@ -46,6 +46,7 @@ typedef struct {
 	u8 run_interval_ms;
 	u8 run_direction;
 	u8 bat_week_dst;
+	u8 time_adjust_mode;
 }motor_manager_t;
 
 static motor_manager_t motor_manager = {
@@ -76,6 +77,7 @@ static motor_manager_t motor_manager = {
 	.run_interval_ms = 100,
 	.run_direction  = pos,
 	.bat_week_dst = BAT_PECENT_0,
+	.time_adjust_mode = false,
 };
 
 u8 hour_list[] = {
@@ -275,6 +277,30 @@ static void motor_run_continue_check(void)
 	}
 }
 
+#if 0
+static void motor_time_adjust_run_continue_check(void)
+{
+	motor_manager.run_step_num++;
+	if(motor_manager.run_step_num == motor_manager.motor_status[motor_manager.run_motor_num].unit_interval_step) {
+		motor_manager.run_step_num = 0;
+		
+		/*motor position update*/
+		if(pos == motor_manager.run_direction) {
+			motor_manager.motor_status[motor_manager.run_motor_num].cur_pos++;
+		}else {
+			motor_manager.motor_status[motor_manager.run_motor_num].cur_pos--;
+		}
+		
+		motor_manager.motor_status[motor_manager.run_motor_num].run_flag = 0;
+	}else {
+		if(pos == motor_manager.run_direction) {
+			motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
+		}else {
+			motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
+		}
+	}
+}
+#endif
 static void motor_run_positive_one_unit(u16 id)
 {
 	switch(motor_manager.motor_status[motor_manager.run_motor_num].run_step_state) {
@@ -427,6 +453,30 @@ void motor_run_one_step(u8 motor_num, u8 direction)
 		motor_manager.drv->timer->timer_start(1, motor_run_neg_one_step);
 	}
 }
+
+#if 0
+void motor_time_adjust_mode_on(void)
+{
+	motor_manager.time_adjust_mode = true;
+}
+
+void motor_time_adjust_mode_off(void)
+{
+	motor_manager.time_adjust_mode = false;
+}
+
+void motor_run_one_unit(u8 motor_num, u8 direction)
+{
+	motor_manager.run_motor = motor_manager.motor_status[motor_num].motor_ptr;
+	motor_manager.run_motor_num = motor_num;
+	motor_manager.run_direction = direction;
+	if(pos == motor_manager.run_direction) {
+		motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
+	}else {
+		motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
+	}
+}
+#endif
 
 /*only for zero adjust mode*/
 
