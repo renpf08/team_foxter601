@@ -493,5 +493,6 @@ s16 nvm_write_test(void)
     nvm_write_history_data((u16*)&data, 0);
     
     return 0;
-}
+}
+
 #endif //! USE_NVM_TEST
