@@ -61,16 +61,18 @@ s16 nvm_read_history_setting(u16 *buffer, u8 index);
 s16 nvm_write_history_setting(u16 *buffer, u8 index);
 #endif
 s16 nvm_read_history_data(u16 *buffer, u8 index);
-s16 nvm_write_sport_data(u16 *buffer, u8 index);
+s16 nvm_write_history_data(u16 *buffer, u8 index);
 s16 nvm_erase_history_data(void);
+u8 nvm_get_days(void);
 #if USE_NVM_TEST
 u8 panic_get(void);
+s16 nvm_read_oneday(u8 index);
 s16 nvm_read_test(void);
 s16 nvm_write_test(void);
 #endif
 
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
-s16 cmd_set_data(his_data_t *data, clock_t *clock);
+s16 cmd_set_data(u8 days, u32 steps, clock_t *clock);
 cmd_group_t *cmd_get(void);
 
 app_msg_t *ancs_get(void);

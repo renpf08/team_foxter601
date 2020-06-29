@@ -21,8 +21,8 @@ typedef struct cmdEntry_T {
 
 cmd_group_t cmd_group;
 static adapter_callback cmd_cb = NULL;
-static clock_t *cmd_get_time;
-static his_data_t *cmd_get_data;
+static clock_t *cmd_time;
+static u32 cmd_steps;
 
 static s16 cmd_pairing_code(u8 *buffer, u8 length);
 static s16 cmd_user_info(u8 *buffer, u8 length);
@@ -208,6 +208,8 @@ static s16 cmd_nvm_test(u8 *buffer, u8 length)
     } else if(buffer[1] == 1) {
         nvm_read_test();
     } else if(buffer[1] == 2) {
+        nvm_read_oneday(buffer[2]);
+    } else if(buffer[1] == 3) {
         nvm_erase_history_data();
     }
     
@@ -264,12 +266,12 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
             } else {
                 BufWriteUint8((uint8 **)&tmp_buf, 0x02);
                 BufWriteUint8((uint8 **)&tmp_buf, data[0]);
-                BufWriteUint16((uint8 **)&tmp_buf, cmd_get_data->year);//SB100_data.AppApplyDateData.Year);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_data->month);//SB100_data.AppApplyDateData.Month);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_data->day);//SB100_data.AppApplyDateData.Date);
+                BufWriteUint16((uint8 **)&tmp_buf, cmd_time->year);//SB100_data.AppApplyDateData.Year);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->month);//SB100_data.AppApplyDateData.Month);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->day);//SB100_data.AppApplyDateData.Date);
                 if(cmd_group.app_ack.state == STATE_SPORT_DATA) {
-                    BufWriteUint16((uint8 **)&tmp_buf, cmd_get_data->step_counts);//(SB100_data.AppApplyData.StepCounts));
-                    BufWriteUint8((uint8 **)&tmp_buf, cmd_get_data->step_counts>>16);//(SB100_data.AppApplyData.StepCounts>>16));
+                    BufWriteUint16((uint8 **)&tmp_buf, cmd_steps);//(SB100_data.AppApplyData.StepCounts));
+                    BufWriteUint8((uint8 **)&tmp_buf, cmd_steps>>16);//(SB100_data.AppApplyData.StepCounts>>16));
                     cmd_group.app_ack.state = STATE_SPORT_DATA;
                     cmd_group.app_ack.his_days--;
                 }
@@ -278,13 +280,13 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
         case CMD_READ_TIME_STEPS:   // 0x0E
             BufWriteUint8((uint8 **)&tmp_buf,data[0]);
             if(data[0] == 0x00) { // data & time
-                BufWriteUint16((uint8 **)&tmp_buf, cmd_get_time->year);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_time->month);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_time->day);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_time->hour);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_time->minute);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_time->second);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_get_time->week);
+                BufWriteUint16((uint8 **)&tmp_buf, cmd_time->year);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->month);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->day);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->hour);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->minute);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->second);
+                BufWriteUint8((uint8 **)&tmp_buf, cmd_time->week);
             } else if(data[0] == 0x01) { // target total steps
                 BufWriteUint8((uint8 **)&tmp_buf, cmd_group.user_info.target_steps[3]);
                 BufWriteUint8((uint8 **)&tmp_buf, cmd_group.user_info.target_steps[2]);
@@ -335,10 +337,11 @@ cmd_group_t *cmd_get(void)
 {
     return &cmd_group;
 }
-s16 cmd_set_data(his_data_t *data, clock_t *clock)
+s16 cmd_set_data(u8 days, u32 steps, clock_t *clock)
 {
-    cmd_get_time = clock;
-    cmd_get_data = data;
+    cmd_time = clock;
+    cmd_steps = steps;
+    cmd_group.app_ack.his_days = days;
 	return 0;
 }
 s16 cmd_init(adapter_callback cb)

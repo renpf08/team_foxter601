@@ -507,9 +507,8 @@ typedef struct {
 } cmd_group_t;
 
 enum {
-    READ_HISDATA_TOTAL,
-    READ_HISDATA_INDEX,
-    READ_HISDATA_LAST
+    READ_HISDATA_TOTAL = 0xFE,
+    READ_HISDATA_LAST = 0xFF
 };
 typedef struct {
     u8 ring_buf_tail; /* sport data ring buffer tail */
@@ -521,7 +520,7 @@ typedef struct {
     u16 year;
     u8 month;
     u8 day;
-    u32 step_counts;
+    u32 steps;
 }his_data_t; /* for nvm to store */
 
 typedef s16 (*event_callback)(EVENT_E ev);

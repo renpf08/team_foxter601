@@ -153,7 +153,6 @@
 
 void nvm_read(u16 *buffer, u16 length, u16 offset);
 void nvm_write(u16 *buffer, u16 length, u16 offset);
-s16 nvm_write_history_data(u16 *buffer, u8 index);
 
 void nvm_read(u16 *buffer, u16 length, u16 offset)
 {
@@ -336,23 +335,28 @@ s16 nvm_read_history_data(u16 *buffer, u8 index)
     nvm_check_storage_init();
     nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
     if(panic_check(0xFB) != 0) return 1;
-
+    
+    MemSet(buffer, 0, CONST_DATA_ONEDAY_LENGTH);
     if(ctrl.read_tail == ctrl.ring_buf_head) { // ring buffer is empty, reset read pointer
         ctrl.read_tail = ctrl.ring_buf_tail;
         nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
         if(panic_check(0xFA) != 0) return 1;
-        MemSet(buffer, 0, sizeof(his_data_t));
         return 1;
     }
 
     if(index == READ_HISDATA_LAST) {
         nvm_read((u16*)buffer, CONST_DATA_ONEDAY_LENGTH, HISTORY_DATA_OFFSET+ctrl.write_head*CONST_DATA_ONEDAY_LENGTH);
         if(panic_check(0xF9) != 0) return 1;
-    } else {
+    } else if(index == READ_HISDATA_TOTAL) {
         nvm_read((u16*)buffer, CONST_DATA_ONEDAY_LENGTH, HISTORY_DATA_OFFSET+ctrl.read_tail*CONST_DATA_ONEDAY_LENGTH);
         ctrl.read_tail = (ctrl.read_tail+1)%CONST_RING_BUFFER_LENGTH;
         nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
         if(panic_check(0xF8) != 0) return 1;
+    } else {
+        index += ctrl.ring_buf_tail;
+        index %= CONST_RING_BUFFER_LENGTH;
+        if(index == ctrl.ring_buf_head) return 1; // read ring buffer reached end
+        nvm_read((u16*)buffer, CONST_DATA_ONEDAY_LENGTH, HISTORY_DATA_OFFSET+index*CONST_DATA_ONEDAY_LENGTH);
     }
 
     return ready;
@@ -363,7 +367,7 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
     his_data_t *data = (his_data_t*)buffer;
 
     nvm_check_storage_init();
-    MemSet(&ctrl, 0, sizeof(his_ctrl_t));
+    MemSet(&ctrl, 0, HISTORY_CONTROL_LENGTH);
     nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
     if(panic_check(0xF7) != 0) return 1;
     
@@ -386,26 +390,47 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
 
     return 0;
 }
-s16 nvm_write_sport_data(u16 *buffer, u8 index)
-{
-    his_data_t data;
-    MemSet(&data, 0, sizeof(his_data_t));
-
-    data.step_counts = (s16)buffer[0];
-    nvm_write_history_data((u16*)&data, 0);
-
-    return 0;
-}
 s16 nvm_erase_history_data(void)
 {
     his_ctrl_t ctrl;
-    MemSet(&ctrl, 0, sizeof(his_ctrl_t));
+    MemSet(&ctrl, 0, HISTORY_CONTROL_LENGTH);
     
     nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
 
     return 0;
 }
+u8 nvm_get_days(void)
+{
+    his_ctrl_t ctrl;
+    nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
+    u8 his_days = (ctrl.ring_buf_head>ctrl.ring_buf_tail)?
+                  (ctrl.ring_buf_head-ctrl.ring_buf_tail):
+                  (CONST_RING_BUFFER_LENGTH-ctrl.ring_buf_tail+ctrl.ring_buf_head);
+
+    return his_days;
+}
 #if USE_NVM_TEST
+s16 nvm_read_oneday(u8 index)
+{
+
+    his_data_t data;
+    u16 buf[64] = {0};
+    volatile u16 ready = 0;
+    u16* ptr = NULL;
+    volatile u8 len = 0;
+
+    ptr = buf;
+    ready = nvm_read_history_data((u16*)&data, index);
+    if(ready != 0) return 1;
+    BufWriteUint16((uint8 **)&ptr, data.year);
+    BufWriteUint8((uint8 **)&ptr, data.month);
+    BufWriteUint8((uint8 **)&ptr, data.day);
+    BufWriteUint32((uint8 **)&ptr, &data.steps);
+    len = ptr-buf;
+    get_driver()->uart->uart_write((u8*)buf, len);
+    
+    return 0;
+}
 s16 nvm_read_test(void)
 {
     his_data_t data;
@@ -417,16 +442,15 @@ s16 nvm_read_test(void)
     while(1)
     {
         ptr = buf;
-        ready = nvm_read_history_data((u16*)&data, 0);
-        if(ready != 0) break;
+        ready = nvm_read_history_data((u16*)&data, READ_HISDATA_TOTAL);
+        if(ready != 0) return 1;
         BufWriteUint16((uint8 **)&ptr, data.year);
         BufWriteUint8((uint8 **)&ptr, data.month);
         BufWriteUint8((uint8 **)&ptr, data.day);
-        BufWriteUint32((uint8 **)&ptr, &data.step_counts);
+        BufWriteUint32((uint8 **)&ptr, &data.steps);
         len = ptr-buf;
         get_driver()->uart->uart_write((u8*)buf, len);
     }
-    
 
     return 0;
 }
@@ -458,18 +482,16 @@ s16 nvm_write_test(void)
         data.year = 2018;
         data.month = 6;
         data.day = 1;
-        data.step_counts = 0;
+        data.steps = 0;
         nvm_check_storage_init();
     } else {
         nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
         nvm_read((u16*)&data, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.write_head*CONST_DATA_ONEDAY_LENGTH));
     }
     data.day++;
-    data.step_counts++;
+    data.steps++;
     nvm_write_history_data((u16*)&data, 0);
     
     return 0;
-}
-#endif
-
-
+}
+#endif //! USE_NVM_TEST

@@ -25,17 +25,25 @@ static void minute_data_handler(clock_t *clock)
 {
     cmd_group_t *cmd = cmd_get();
     his_data_t data;
+    u32 steps = step_get();
 
     if(cmd->user_info.cmd & 0x80) { // refresh user information
         cmd->user_info.cmd &= ~0x80;
         //Update_BodyInfo(cmd->user_info.gender, cmd->user_info.height, cmd->user_info.weight);
     }
-    cmd_set_data(&data,clock);
+    cmd_set_data(nvm_get_days(), steps, clock);
 //    One_Minute_Sport_Info_Pro(clock);
 //    if((clock->minute%HISTORY_STORE_INVERVAL) == 0) {
 //        MemSet(&data, 0, sizeof(his_data_t));
 //        sport_get_data(&data, clock);
 //    }
+    if((clock->hour+clock->minute+clock->second) == 0) { // new day
+        data.year = clock->year;
+        data.month = clock->month;
+        data.day = clock->day;
+        data.steps = steps;
+        nvm_write_history_data((u16*)&data, 0);
+    }
 }
 s16 state_clock(REPORT_E cb, void *args)
 {
