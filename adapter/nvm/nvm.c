@@ -162,7 +162,7 @@ void nvm_write(u16 *buffer, u16 length, u16 offset)
 {
     get_driver()->flash->flash_write(buffer, length, offset);
 }
-
+#if USE_NVM_TEST
 static u8 panic_check(u8 caller)
 {
     u8 hexCharTbl[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
@@ -183,6 +183,7 @@ static u8 panic_check(u8 caller)
     }
     return 0;
 }
+#endif
 s16 nvm_storage_init(void)
 {
     volatile u16 erase_offset = 0;
@@ -190,30 +191,24 @@ s16 nvm_storage_init(void)
     u16 init_flag = 0;
 
     nvm_read((u16*)&init_flag, USER_STORATE_INIT_FLAG_LENGTH, USER_STORATE_INIT_FLAG_OFFSET);
-    if(panic_check(0xFF) != 0) return 1;
-
     if(init_flag == 0xA55A)
     {
         return 1; 
     }
-
     for(erase_offset = 0; erase_offset < USER_STORAGE_TOTAL_LENGTH; erase_offset++)
     {
         nvm_write(&erase_value, 1, USER_STORAGE_START_OFFSET+erase_offset);
-        if(panic_check(erase_offset) != 0) return 1;
     }
 
     // print the initialized nvm contents
 //    for(erase_offset = 0; erase_offset < USER_STORAGE_TOTAL_LENGTH; erase_offset++)
 //    {
 //        nvm_read(&erase_value, 1, USER_STORAGE_START_OFFSET+erase_offset);
-//        if(panic_check(erase_offset) != 0) return 1;
 //        get_driver()->uart->uart_write((u8*)&erase_value, 1);
 //    }
 
     init_flag = 0xA55A;
     nvm_write((u16*)&init_flag, USER_STORATE_INIT_FLAG_LENGTH, USER_STORATE_INIT_FLAG_OFFSET);/* write user storage init flag */
-    if(panic_check(0xFD) != 0) return 1;
 
     return 0;
 }
@@ -332,25 +327,20 @@ s16 nvm_read_history_data(u16 *buffer, u8 index)
     his_ctrl_t ctrl;
     u16 ready = 0;
 
-    nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
-    if(panic_check(0xFB) != 0) return 1;
-    
+    nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);    
     MemSet(buffer, 0, CONST_DATA_ONEDAY_LENGTH);
     if(ctrl.read_tail == ctrl.ring_buf_head) { // ring buffer is empty, reset read pointer
         ctrl.read_tail = ctrl.ring_buf_tail;
         nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
-        if(panic_check(0xFA) != 0) return 1;
         return 1;
     }
 
     if(index == READ_HISDATA_LAST) {
         nvm_read((u16*)buffer, CONST_DATA_ONEDAY_LENGTH, HISTORY_DATA_OFFSET+ctrl.write_head*CONST_DATA_ONEDAY_LENGTH);
-        if(panic_check(0xF9) != 0) return 1;
     } else if(index == READ_HISDATA_TOTAL) {
         nvm_read((u16*)buffer, CONST_DATA_ONEDAY_LENGTH, HISTORY_DATA_OFFSET+ctrl.read_tail*CONST_DATA_ONEDAY_LENGTH);
         ctrl.read_tail = (ctrl.read_tail+1)%CONST_RING_BUFFER_LENGTH;
         nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
-        if(panic_check(0xF8) != 0) return 1;
     } else {
         index += ctrl.ring_buf_tail;
         index %= CONST_RING_BUFFER_LENGTH;
@@ -367,7 +357,6 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
 
     MemSet(&ctrl, 0, HISTORY_CONTROL_LENGTH);
     nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
-    if(panic_check(0xF7) != 0) return 1;
     
     /** user storage fulled, discard the oldest one */
     if(ctrl.ring_buf_tail == (ctrl.ring_buf_head+1)%CONST_RING_BUFFER_LENGTH)
@@ -382,9 +371,7 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
 //                            (ctrl.ring_buf_head-ctrl.ring_buf_tail):
 //                            (CONST_RING_BUFFER_LENGTH-ctrl.ring_buf_tail+ctrl.ring_buf_head);
     nvm_write((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
-    if(panic_check(0xF6) != 0) return 1;
     nvm_write((u16*)data, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.write_head*CONST_DATA_ONEDAY_LENGTH));
-    if(panic_check(0xF5) != 0) return 1;
 
     return 0;
 }

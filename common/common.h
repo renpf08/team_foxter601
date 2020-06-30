@@ -11,7 +11,7 @@
 
 #define VAL_GET(num)        PioGet(num)
 
-#define QUEUE_BUFFER    128
+#define QUEUE_BUFFER    64
 
 typedef struct {
 	u8 x_l;
