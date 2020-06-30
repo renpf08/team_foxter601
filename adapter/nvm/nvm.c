@@ -411,7 +411,7 @@ u8 nvm_get_days(void)
 {
     his_ctrl_t ctrl;
     nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
-    u8 his_days = (ctrl.ring_buf_head>ctrl.ring_buf_tail)?
+    u8 his_days = (ctrl.ring_buf_head>=ctrl.ring_buf_tail)?
                   (ctrl.ring_buf_head-ctrl.ring_buf_tail):
                   (CONST_RING_BUFFER_LENGTH-ctrl.ring_buf_tail+ctrl.ring_buf_head);
 

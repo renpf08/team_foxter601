@@ -11,7 +11,7 @@
 
 #define VAL_GET(num)        PioGet(num)
 
-#define QUEUE_BUFFER    256
+#define QUEUE_BUFFER    128
 
 typedef struct {
 	u8 x_l;
@@ -429,7 +429,6 @@ typedef struct {
     u8 ack_cmd;
     u8 ack_result;
     u8 state; // not include in protocal
-    u8 his_days; // not include in protocal
 } cmd_app_ack_t;
 
 //typedef struct { 

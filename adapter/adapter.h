@@ -74,6 +74,7 @@ s16 nvm_write_test(void);
 #endif
 
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
+s16 cmd_set_days(u8 days);
 s16 cmd_set_clock(clock_t *clock);
 s16 cmd_set_data(his_data_t *data);
 cmd_group_t *cmd_get(void);

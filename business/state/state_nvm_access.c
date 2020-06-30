@@ -19,7 +19,7 @@ s16 state_access_nvm(REPORT_E cb, void *args)
         nvm_read_ctrl(&ctrl);
         ctrl.read_tail = ctrl.ring_buf_tail; // reset read pointer
         nvm_write_ctrl(&ctrl);
-        res = (s16)nvm_get_days(); // use res as history days
+        cmd_set_days(nvm_get_days());
     } else if(cb == READ_HISDATA) {
         res = nvm_read_history_data((u16*)&data, READ_HISDATA_TOTAL);
         cmd_set_data(&data);
