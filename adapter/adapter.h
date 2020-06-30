@@ -39,7 +39,7 @@ s16 motor_activity_to_position(u8 activity);
 s16 battery_init(adapter_callback cb);
 u8 battery_percent_read(void);
 
-s16 nvm_check_storage_init(void);
+s16 nvm_storage_init(void);
 #if USE_PARAM_STORE
 s16 nvm_read_motor_current_position(u16 *buffer, u8 index);
 s16 nvm_write_motor_current_position(u16 *buffer, u8 index);
@@ -63,6 +63,8 @@ s16 nvm_write_history_setting(u16 *buffer, u8 index);
 s16 nvm_read_history_data(u16 *buffer, u8 index);
 s16 nvm_write_history_data(u16 *buffer, u8 index);
 s16 nvm_erase_history_data(void);
+s16 nvm_read_ctrl(his_ctrl_t *ctrl);
+s16 nvm_write_ctrl(his_ctrl_t *ctrl);
 u8 nvm_get_days(void);
 #if USE_NVM_TEST
 u8 panic_get(void);
@@ -72,7 +74,8 @@ s16 nvm_write_test(void);
 #endif
 
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
-s16 cmd_set_data(u8 days, u32 steps, clock_t *clock);
+s16 cmd_set_clock(clock_t *clock);
+s16 cmd_set_data(his_data_t *data);
 cmd_group_t *cmd_get(void);
 
 app_msg_t *ancs_get(void);

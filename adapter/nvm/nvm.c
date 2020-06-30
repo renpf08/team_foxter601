@@ -183,7 +183,7 @@ static u8 panic_check(u8 caller)
     }
     return 0;
 }
-s16 nvm_check_storage_init(void)
+s16 nvm_storage_init(void)
 {
     volatile u16 erase_offset = 0;
     u16 erase_value = 0;
@@ -332,7 +332,6 @@ s16 nvm_read_history_data(u16 *buffer, u8 index)
     his_ctrl_t ctrl;
     u16 ready = 0;
 
-    nvm_check_storage_init();
     nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
     if(panic_check(0xFB) != 0) return 1;
     
@@ -366,7 +365,6 @@ s16 nvm_write_history_data(u16 *buffer, u8 index)
     his_ctrl_t ctrl;
     his_data_t *data = (his_data_t*)buffer;
 
-    nvm_check_storage_init();
     MemSet(&ctrl, 0, HISTORY_CONTROL_LENGTH);
     nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
     if(panic_check(0xF7) != 0) return 1;
@@ -399,6 +397,16 @@ s16 nvm_erase_history_data(void)
 
     return 0;
 }
+s16 nvm_read_ctrl(his_ctrl_t *ctrl)
+{
+    nvm_read((u16*)ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
+    return 0;
+}
+s16 nvm_write_ctrl(his_ctrl_t *ctrl)
+{
+    nvm_write((u16*)ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
+    return 0;
+}
 u8 nvm_get_days(void)
 {
     his_ctrl_t ctrl;
@@ -412,7 +420,6 @@ u8 nvm_get_days(void)
 #if USE_NVM_TEST
 s16 nvm_read_oneday(u8 index)
 {
-
     his_data_t data;
     u16 buf[64] = {0};
     volatile u16 ready = 0;
@@ -483,7 +490,6 @@ s16 nvm_write_test(void)
         data.month = 6;
         data.day = 1;
         data.steps = 0;
-        nvm_check_storage_init();
     } else {
         nvm_read((u16*)&ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
         nvm_read((u16*)&data, CONST_DATA_ONEDAY_LENGTH, (HISTORY_DATA_OFFSET+ctrl.write_head*CONST_DATA_ONEDAY_LENGTH));

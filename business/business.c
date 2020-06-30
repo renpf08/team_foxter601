@@ -49,6 +49,10 @@ static state_t state[] = {
 	/*cmd set time*/
 	STATE_FILL(CLOCK,               SET_TIME,               SET_DATE_TIME,          state_set_date_time),
 	STATE_FILL(BLE_SWITCH,          SET_TIME,               SET_DATE_TIME,          state_set_date_time),
+	/**nvm access*/
+	STATE_FILL(CLOCK,               READ_TIME_STEPS,        NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(CLOCK,               READ_HISDAYS,           NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(CLOCK,               READ_HISDATA,           NVM_ACCESS,             state_access_nvm),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)

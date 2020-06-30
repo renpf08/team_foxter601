@@ -79,6 +79,8 @@ typedef enum {
     SET_FIND_WATCH = 32,
     SET_ANCS_BOND_REQ = 33,
     READ_TIME_STEPS = 34,
+    READ_HISDAYS = 35,
+    READ_HISDATA = 36,
 	REPORT_MAX,
 }REPORT_E;
 
@@ -249,6 +251,7 @@ typedef enum {
 	TIME_ADJUST = 8,
 	RUN_TEST = 9,
 	SET_DATE_TIME = 10,
+	NVM_ACCESS = 11,
 	STATE_MAX,
 }STATE_E;
 
