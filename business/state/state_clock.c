@@ -27,6 +27,7 @@ static void minute_data_handler(clock_t *clock)
     his_data_t data;
 
     //cmd_set_clock(clock);
+    //clear_minutes_info();
     if(cmd->user_info.cmd & 0x80) { // refresh user information
         cmd->user_info.cmd &= ~0x80;
         //Update_BodyInfo(cmd->user_info.gender, cmd->user_info.height, cmd->user_info.weight);
@@ -35,7 +36,7 @@ static void minute_data_handler(clock_t *clock)
         data.year = clock->year;
         data.month = clock->month;
         data.day = clock->day;
-        data.steps = step_get();
+        data.steps = steps_get();
         nvm_write_history_data((u16*)&data, 0);
     }
 }

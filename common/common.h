@@ -81,7 +81,7 @@ typedef enum {
     READ_TIME_STEPS = 34,
     READ_HISDAYS = 35,
     READ_HISDATA = 36,
-    WRITE_STEPS = 37,
+    //UPDATE_MINUTES_INFO = 37,
 	REPORT_MAX,
 }REPORT_E;
 
@@ -375,11 +375,11 @@ typedef struct {
 typedef struct 
 {
     u8 cmd; 
-    u8 target_steps[4];
-    u8 target_dists[4];
-    u8 target_calorie[4];
-    u8 target_floors[2];
-    u8 target_stre_exer[2];
+    u32 target_steps;
+    u32 target_dists;
+    u32 target_calorie;
+    u16 target_floors;
+    u16 target_acute_sport;
     u8 gender;
     u8 height;
     u8 weight;

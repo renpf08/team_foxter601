@@ -53,7 +53,7 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               READ_TIME_STEPS,        NVM_ACCESS,             state_access_nvm),
 	STATE_FILL(CLOCK,               READ_HISDAYS,           NVM_ACCESS,             state_access_nvm),
 	STATE_FILL(CLOCK,               READ_HISDATA,           NVM_ACCESS,             state_access_nvm),
-	STATE_FILL(CLOCK,               WRITE_STEPS,            NVM_ACCESS,             state_access_nvm),
+	//STATE_FILL(CLOCK,               UPDATE_MINUTES_INFO,    NVM_ACCESS,             state_access_nvm),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)

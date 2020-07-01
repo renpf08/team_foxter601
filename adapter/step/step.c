@@ -37,22 +37,20 @@
 #define MIDDLE_STEP_COUNT               4        /*减少误差，前1.8秒内要有至少3步*/
 #define MIDDLE_STEP_SECOND              (2800/SAMPLE_TIME_UNINT)   /*1.8秒的时候要至少3步的值2.8*/
 
-#define DEFAULT_GENDER_VALUE            1       /*1男，0女 173cm高，70公斤重*/
-#define DEFAULT_HEIGHT_VALUE            173     /*1男，0女 173cm高，70公斤重*/
-#define DEFAULT_WEIGHT_VALUE            70      /*1男，0女 173cm高，70公斤重*/
+//#define DEFAULT_GENDER_VALUE            1       /*1男，0女 173cm高，70公斤重*/
+//#define DEFAULT_HEIGHT_VALUE            173     /*1男，0女 173cm高，70公斤重*/
+//#define DEFAULT_WEIGHT_VALUE            70      /*1男，0女 173cm高，70公斤重*/
 
 /***************************************************************************************/
 /************************************运动数据初始化****************************************/
 /***************************************************************************************/
-typedef struct
-{
-    u32   StepCounts;           /*总步数 步*/
-    u32   Distance;             /*总距离 米*/
-    u32   Calorie;              /*总卡路里 千卡*/
-    u16   FloorCounts;          /*爬楼数 层*/
-    u16   AcuteSportTimeCounts; /*剧烈运动时间 分钟*/
+typedef struct {
+    u32 StepCounts;           /*总步数 步*/
+    u32 Distance;             /*总距离 米*/
+    u32 Calorie;              /*总卡路里 千卡*/
+    u16 FloorCounts;          /*爬楼数 层*/
+    u16 AcuteSportTimeCounts; /*剧烈运动时间 分钟*/
 }SPORT_INFO_T;  /*运动数据结构*/
-
 typedef struct
 {
     uint8         StoreFlag;
@@ -565,9 +563,9 @@ static void step_sample_handler(u16 id)
     StepCountProce();
     if(step_count != Total_Sport_Info_data.StepCounts)
     {
-        steps_cb(WRITE_STEPS, NULL);
+        steps_cb(READ_TIME_STEPS, NULL);
     }
-    #if 1
+    #if 0
     u8 val[4] = {0};
     if(step_count != Total_Sport_Info_data.StepCounts)
     {
@@ -588,8 +586,15 @@ s16 step_sample_init(adapter_callback cb)
     steps_cb = cb;
 	return 0;
 }
-
-u32 step_get(void)
+u32 steps_get(void)
 {
     return Total_Sport_Info_data.StepCounts;
 }
+//SPORT_INFO_T* get_minutes_info(void)
+//{
+//    return &One_Minute_Sport_Info_data;
+//}
+//void clear_minutes_info(void)
+//{
+//    MemSet(&One_Minute_Sport_Info_data, 0, sizeof(SPORT_INFO_T));
+//}

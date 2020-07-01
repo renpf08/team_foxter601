@@ -16,7 +16,13 @@ s16 state_access_nvm(REPORT_E cb, void *args)
 	clock = clock_get();
     
     if(cb == READ_TIME_STEPS) {
+        data.year = clock->year;
+        data.month = clock->month;
+        data.day = clock->day;
+        data.steps = steps_get();
+        cmd_set_data(&data);
         cmd_set_clock(clock_get());
+        //cmd_set_steps(steps_get());
     } else if(cb == READ_HISDAYS) {
         nvm_read_ctrl(&ctrl);
         ctrl.read_tail = ctrl.ring_buf_tail; // reset read pointer
@@ -25,9 +31,10 @@ s16 state_access_nvm(REPORT_E cb, void *args)
     } else if(cb == READ_HISDATA) {
         res = nvm_read_history_data((u16*)&data, READ_HISDATA_TOTAL);
         cmd_set_data(&data);
-    } else if(cb == WRITE_STEPS) {
-        cmd_set_steps(step_get());
     }
+//    else if(cb == UPDATE_MINUTES_INFO) {
+//        set_minutes_info(get_minutes_info());
+//    }
     
 	*state = CLOCK;
 	return res;
