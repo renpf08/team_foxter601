@@ -142,6 +142,8 @@ BODY_INFO_T Body_Info_data;
 
 u8 Z_Acce_Val=0;  /*模拟电子罗盘用*/
 
+static adapter_callback steps_cb = NULL;
+
 void Acute_Sport_Time_Count_Init(void);
 void Acute_Sport_Time_Count_Pro(void);
 u16 CaculateAsbSquare(u8 Temp);
@@ -151,7 +153,7 @@ u16 AverageValPro(u16 *Val,u16 New,u8 Num);
 u16 GetXYZ_Acce_Data(void);
 void Step_Count_data_Init(void);
 void step_count_proce(void);
-s16 step_sample_init(void);
+s16 step_sample_init(adapter_callback cb);
 
 void Acute_Sport_Time_Count_Init(void)
 {
@@ -558,32 +560,32 @@ static void StepCountProce(void)
 }
 static void step_sample_handler(u16 id)
 {
-    StepCountProce();
-
-    #if 0
-    u8 buf[16] = {0};
-    u8 val[4] = {0};
-    static u8 cnt = 0;
     static u32 step_count = 0;
+    
+    StepCountProce();
+    if(step_count != Total_Sport_Info_data.StepCounts)
+    {
+        steps_cb(WRITE_STEPS, NULL);
+    }
+    #if 1
+    u8 val[4] = {0};
     if(step_count != Total_Sport_Info_data.StepCounts)
     {
         val[0] = (Total_Sport_Info_data.StepCounts>>24) & 0x000000FF;
         val[1] = (Total_Sport_Info_data.StepCounts>>16) & 0x000000FF;
         val[2] = (Total_Sport_Info_data.StepCounts>>8) & 0x000000FF;
         val[3] = Total_Sport_Info_data.StepCounts & 0x000000FF;
-        sprintf((char*)buf, "%03d: %d%d%d%d\r\n", cnt++, val[0], val[1], val[2], val[3]);
-        send_ble(val, 4);
-        printf("%s", buf);
+        BLE_SEND_LOG(val, 4);
     }
+    #endif    
     step_count = Total_Sport_Info_data.StepCounts;
-    #endif
-    
 	get_driver()->timer->timer_start(280, step_sample_handler);
 }
-s16 step_sample_init(void)
+s16 step_sample_init(adapter_callback cb)
 {
 	get_driver()->timer->timer_start(280, step_sample_handler);  
     Step_Count_data.Pro_Step=PRO_STEP_START;  
+    steps_cb = cb;
 	return 0;
 }
 

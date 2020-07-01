@@ -12,6 +12,8 @@ s16 state_access_nvm(REPORT_E cb, void *args)
     s16 res = 0;
     his_data_t data = {0,0,0,0};
     his_ctrl_t ctrl = {0,0,0,0};
+	clock_t *clock;
+	clock = clock_get();
     
     if(cb == READ_TIME_STEPS) {
         cmd_set_clock(clock_get());
@@ -23,6 +25,8 @@ s16 state_access_nvm(REPORT_E cb, void *args)
     } else if(cb == READ_HISDATA) {
         res = nvm_read_history_data((u16*)&data, READ_HISDATA_TOTAL);
         cmd_set_data(&data);
+    } else if(cb == WRITE_STEPS) {
+        cmd_set_steps(step_get());
     }
     
 	*state = CLOCK;

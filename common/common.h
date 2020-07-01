@@ -81,6 +81,7 @@ typedef enum {
     READ_TIME_STEPS = 34,
     READ_HISDAYS = 35,
     READ_HISDATA = 36,
+    WRITE_STEPS = 37,
 	REPORT_MAX,
 }REPORT_E;
 

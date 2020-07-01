@@ -24,7 +24,8 @@ static adapter_callback cmd_cb = NULL;
 typedef struct {
     clock_t *clock;
     his_data_t *data;
-    u8 days;
+    u32 steps; // current day
+    s16 days;
 } cmd_params_t;
 cmd_params_t cmd_params;
 
@@ -264,6 +265,55 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
             if((result != 0) || (cmd_group.app_ack.state == STATE_INVALID)) {
                 return 0;
             }
+            switch(cmd_group.app_ack.state) {
+                case STATE_HISDATA_START:
+                    cmd_cb(READ_HISDAYS, NULL);
+                    cmd_group.app_ack.state = STATE_HISDATA_DAYS;
+                    //break;
+                case STATE_HISDATA_DAYS:
+                    BufWriteUint8((uint8 **)&tmp_buf, 0x01);
+                    BufWriteUint8((uint8 **)&tmp_buf, 0x01);
+                    BufWriteUint8((uint8 **)&tmp_buf, (cmd_params.days+1));  // data size +1:current day
+                    cmd_group.app_ack.state = STATE_HISDATA_READ;
+                    break;
+                case STATE_HISDATA_READ:
+                    if(cmd_params.days > 0) {
+                        cmd_cb(READ_HISDATA, NULL);
+                    } else if(cmd_params.days == 0) { // current day
+                        cmd_params.data->steps = cmd_params.steps;
+                        cmd_params.data->year = cmd_params.clock->year;
+                        cmd_params.data->month = cmd_params.clock->year;
+                        cmd_params.data->day = cmd_params.clock->day;
+                    } else {
+                        cmd_group.app_ack.state = STATE_INVALID;
+                        return 0;
+                    }
+                    cmd_group.app_ack.state = STATE_HISDATA_SEND;
+                    BufWriteUint8((uint8 **)&tmp_buf, 0x01);
+                    BufWriteUint8((uint8 **)&tmp_buf, 0x02);
+                    BufWriteUint8((uint8 **)&tmp_buf, data[0]);
+                    BufWriteUint16((uint8 **)&tmp_buf, cmd_params.data->year);//SB100_data.AppApplyDateData.Year);
+                    BufWriteUint8((uint8 **)&tmp_buf, cmd_params.data->month);//SB100_data.AppApplyDateData.Month);
+                    BufWriteUint8((uint8 **)&tmp_buf, cmd_params.data->day);//SB100_data.AppApplyDateData.Date);
+                    if(cmd_group.app_ack.state == STATE_HISDATA_SEND) {
+                        BufWriteUint16((uint8 **)&tmp_buf, cmd_params.data->steps);//(SB100_data.AppApplyData.StepCounts));
+                        BufWriteUint8((uint8 **)&tmp_buf, cmd_params.data->steps>>16);//(SB100_data.AppApplyData.StepCounts>>16));
+                        BufWriteUint16((uint8 **)&tmp_buf, 0x1122);//cmd_get_data->distance);//(SB100_data.AppApplyData.Distance));
+                        BufWriteUint8((uint8 **)&tmp_buf, 0x33);//cmd_get_data->distance>>16);//(SB100_data.AppApplyData.Distance>>16));
+                        BufWriteUint16((uint8 **)&tmp_buf, 0x4455);//cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
+                        BufWriteUint8((uint8 **)&tmp_buf, 0x66);//cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
+                        BufWriteUint16((uint8 **)&tmp_buf, 0x7788);//cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
+                        BufWriteUint16((uint8 **)&tmp_buf, 0x99AA);//cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
+                        cmd_group.app_ack.state = STATE_HISDATA_READ;
+                        cmd_params.days--;
+                    } else if(cmd_group.app_ack.state == STATE_SLEEP_SEND) {
+                        //cmd_params.days--;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            #if 0
             if(cmd_group.app_ack.state == STATE_HISDATA_START) {
                 cmd_cb(READ_HISDAYS, NULL);
                 cmd_group.app_ack.state = STATE_HISDATA_DAYS;
@@ -271,13 +321,21 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
             BufWriteUint8((uint8 **)&tmp_buf, 0x01);
             if(cmd_group.app_ack.state == STATE_HISDATA_DAYS) {
                 BufWriteUint8((uint8 **)&tmp_buf, 0x01);
-                BufWriteUint8((uint8 **)&tmp_buf, cmd_params.days);  // data size
+                BufWriteUint8((uint8 **)&tmp_buf, (cmd_params.days+1);  // data size +1:current day
                 cmd_group.app_ack.state = STATE_HISDATA_READ;
-            } else if(cmd_params.days != 0){
-                if(cmd_group.app_ack.state == STATE_HISDATA_READ) {
+            } else if(cmd_group.app_ack.state == STATE_HISDATA_READ) {
+                if(cmd_params.days > 0) {
                     cmd_cb(READ_HISDATA, NULL);
-                    cmd_group.app_ack.state = STATE_HISDATA_SEND;
+                } else if(cmd_params.days == 0) { // current day
+                    cmd_params.data->steps = cmd_params.steps;
+                    cmd_params.data->year = cmd_params.clock->year;
+                    cmd_params.data->month = cmd_params.clock->year;
+                    cmd_params.data->day = cmd_params.clock->day;
+                } else {
+                    cmd_group.app_ack.state = STATE_INVALID;
+                    return 0;
                 }
+                cmd_group.app_ack.state = STATE_HISDATA_SEND;
                 BufWriteUint8((uint8 **)&tmp_buf, 0x02);
                 BufWriteUint8((uint8 **)&tmp_buf, data[0]);
                 BufWriteUint16((uint8 **)&tmp_buf, cmd_params.data->year);//SB100_data.AppApplyDateData.Year);
@@ -297,10 +355,8 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
                 } else if(cmd_group.app_ack.state == STATE_SLEEP_SEND) {
                     //cmd_params.days--;
                 }
-            } else {
-                cmd_group.app_ack.state = STATE_INVALID;
-                return 0;
             }
+            #endif
             break;
         case CMD_READ_TIME_STEPS:   // 0x0E
             BufWriteUint8((uint8 **)&tmp_buf,data[0]);
@@ -375,6 +431,11 @@ s16 cmd_set_clock(clock_t *clock)
 s16 cmd_set_data(his_data_t *data)
 {
     cmd_params.data = data;
+	return 0;
+}
+s16 cmd_set_steps(u32 steps)
+{
+    cmd_params.steps = steps;
 	return 0;
 }
 s16 cmd_init(adapter_callback cb)
