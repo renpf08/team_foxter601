@@ -52,7 +52,6 @@ s16 state_notify(REPORT_E cb, void *args)
     u8 i = 0;
     u8 *en = cmd_get()->notify_switch.en;
     u32 msg_en = 0;
-    u8 msg = 0;
 
     for(i = 0; i < 4; i++) {
         msg_en  <<= 8;
@@ -62,20 +61,20 @@ s16 state_notify(REPORT_E cb, void *args)
         ancs_msg = ancs_get();
     } else if(cb == ANDROID_NOTIFY) {
         ancs_msg = &cmd_get()->recv_notif;
-        ancs_msg->type = (u16)notif_convert_list[ancs_msg->type].disp_msg;
+        if(ancs_msg->type >= NOTIFY_MAX) ancs_msg->type = 0xFF;
+        else ancs_msg->type = (u16)notif_convert_list[ancs_msg->type].disp_msg;
     }
-    msg = ancs_msg->type;
     i = 0;
     while(notif_convert_list[i].disp_msg != 0xFF) {
-        if(notif_convert_list[i].disp_msg == msg) {
+        if(notif_convert_list[i].disp_msg == ancs_msg->type) {
             break;
         }
         i++;
     }
-    if(i == 0xFF) { // notify switch off
-        BLE_SEND_LOG((u8*)&"\xFF\xFF\xFF", 3);
+    if(notif_convert_list[i].disp_msg >= NOTIFY_DONE) { // notify not use or out of range
+        BLE_SEND_LOG((u8*)&"\x00\x00\xFF", 3);
         ancs_msg->sta = NOTIFY_RESERVE;
-    } else if((msg_en & (1UL<<i)) == 0) { // notify out of range
+    } else if((msg_en & (1UL<<i)) == 0) { // notify switch off
         BLE_SEND_LOG((u8*)&"\x00\x00\x00", 3);
         ancs_msg->sta = NOTIFY_RESERVE;
     }
@@ -90,6 +89,7 @@ s16 state_notify(REPORT_E cb, void *args)
 	}else if(NOTIFY_REMOVE == ancs_msg->sta) {
 		motor_notify_to_position(NOTIFY_NONE);
 	}
+    ancs_msg->type = i; // set msg type to protocol specified value
     BLE_SEND_LOG((u8*)ancs_msg, sizeof(app_msg_t));
 
 	*state = CLOCK;

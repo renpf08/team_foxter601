@@ -1,9 +1,12 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
+#include <mem.h>
 
 #include "../../common/common.h"
 #include "../../adapter/adapter.h"
 #include "state.h"
+
+#define HISTORY_STORE_INVERVAL  15 //! minute
 
 //#define TEST_CLOCK
 
@@ -18,7 +21,24 @@ static clock_t clk = {
 	.second = 0,
 };
 #endif
+static void minute_data_handler(clock_t *clock)
+{
+    cmd_group_t *cmd = cmd_get();
+    his_data_t data;
 
+    //cmd_set_clock(clock);
+    if(cmd->user_info.cmd & 0x80) { // refresh user information
+        cmd->user_info.cmd &= ~0x80;
+        //Update_BodyInfo(cmd->user_info.gender, cmd->user_info.height, cmd->user_info.weight);
+    }
+    if((clock->hour+clock->minute+clock->second) == 0) { // new day
+        data.year = clock->year;
+        data.month = clock->month;
+        data.day = clock->day;
+        data.steps = step_get();
+        nvm_write_history_data((u16*)&data, 0);
+    }
+}
 s16 state_clock(REPORT_E cb, void *args)
 {
 	u8 day[] = {DAY_0,
@@ -39,7 +59,7 @@ s16 state_clock(REPORT_E cb, void *args)
 	motor_minute_to_position(clk->minute);
 	motor_hour_to_position(clk->hour);
     motor_date_to_position(day[clk->day]);
-    cmd_refresh_time(clk);
+    minute_data_handler(clk);
 	#else
 	clk.minute++;
 	if(60 == clk.minute) {
@@ -60,7 +80,7 @@ s16 state_clock(REPORT_E cb, void *args)
 	motor_minute_to_position(clk.minute);
 	motor_hour_to_position(clk.hour);
     motor_date_to_position(day[clk.day]);
-    cmd_refresh_time(clk);
+    minute_data_handler(clk);
 	#endif
 
 	return 0;

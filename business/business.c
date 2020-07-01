@@ -49,6 +49,11 @@ static state_t state[] = {
 	/*cmd set time*/
 	STATE_FILL(CLOCK,               SET_TIME,               SET_DATE_TIME,          state_set_date_time),
 	STATE_FILL(BLE_SWITCH,          SET_TIME,               SET_DATE_TIME,          state_set_date_time),
+	/**nvm access*/
+	STATE_FILL(CLOCK,               READ_TIME_STEPS,        NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(CLOCK,               READ_HISDAYS,           NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(CLOCK,               READ_HISDATA,           NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(CLOCK,               WRITE_STEPS,            NVM_ACCESS,             state_access_nvm),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)
@@ -56,7 +61,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	u16 i = 0;
     s16 res = 0;
 
-	print((u8 *)&cb, 1);
+	//print((u8 *)&cb, 1);
 
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 

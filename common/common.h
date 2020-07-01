@@ -2,6 +2,7 @@
 #define COMMON_H
 
 #include "typedef.h"
+#include "user_config.h"
 
 #define PIO_DIR_OUTPUT  TRUE        /* PIO direction configured as output */
 #define PIO_DIR_INPUT   FALSE       /* PIO direction configured as input */
@@ -10,7 +11,7 @@
 
 #define VAL_GET(num)        PioGet(num)
 
-#define QUEUE_BUFFER    40
+#define QUEUE_BUFFER    64
 
 typedef struct {
 	u8 x_l;
@@ -69,7 +70,7 @@ typedef enum {
     SET_ALARM_CLOCK = 23,
     NOTIFY_SWITCH = 24,
     SYNC_DATA = 25,
-    RESPONSE_TO_WATCH = 26,
+    APP_ACK = 26,
     SEND_NOTIFY = 27,
     SET_POINTERS = 28,
     READ_VERSION = 29,
@@ -78,6 +79,9 @@ typedef enum {
     SET_FIND_WATCH = 32,
     SET_ANCS_BOND_REQ = 33,
     READ_TIME_STEPS = 34,
+    READ_HISDAYS = 35,
+    READ_HISDATA = 36,
+    WRITE_STEPS = 37,
 	REPORT_MAX,
 }REPORT_E;
 
@@ -248,6 +252,7 @@ typedef enum {
 	TIME_ADJUST = 8,
 	RUN_TEST = 9,
 	SET_DATE_TIME = 10,
+	NVM_ACCESS = 11,
 	STATE_MAX,
 }STATE_E;
 
@@ -340,7 +345,7 @@ typedef enum {
     CMD_SET_ALARM_CLOCK     = 0x03,
     CMD_NOTIFY_SWITCH       = 0x04,
     CMD_SYNC_DATA           = 0x05,
-    CMD_RESPONSE_TO_WATCH   = 0x06,
+    CMD_APP_ACK             = 0x06,
     CMD_RECV_NOTIFY         = 0x07,
     CMD_SET_POINTERS        = 0x08, //! set all clock hands
     CMD_READ_VERSION        = 0x09, //! not use, has moved to DEVICE_INF_SERVICE
@@ -350,6 +355,7 @@ typedef enum {
     CMD_SET_ANCS_BOND_REQ   = 0x0D,
     CMD_READ_TIME_STEPS     = 0x0E,
     
+    CMD_NVM_TEST            = 0xF0,
     CMD_APP_NONE            = 0xFF
 } cmd_app_send_t;
 
@@ -421,9 +427,10 @@ typedef struct {
 
 typedef struct { 
     u8 cmd; 
-    u8 watch_cmd;
-    u8 resp_value;
-} cmd_response_t;
+    u8 ack_cmd;
+    u8 ack_result;
+    u8 state; // not include in protocal
+} cmd_app_ack_t;
 
 //typedef struct { 
 //    u8 cmd; 
@@ -491,7 +498,7 @@ typedef struct {
     cmd_set_alarm_clock_t set_alarm_clock;
     cmd_notify_switch_t notify_switch;
     cmd_sync_data_t sync_data;
-    cmd_response_t send_resp;
+    cmd_app_ack_t app_ack;
     cmd_recv_notify_t recv_notif;
     cmd_set_pointers_t set_pointers;
     cmd_read_version_t read_ver;
@@ -501,6 +508,23 @@ typedef struct {
     cmd_set_ancs_bond_req_t set_ancs_bond;
     cmd_read_time_steps_t read_time_step;
 } cmd_group_t;
+
+enum {
+    READ_HISDATA_TOTAL = 0xFE,
+    READ_HISDATA_LAST = 0xFF
+};
+typedef struct {
+    u8 ring_buf_tail; /* sport data ring buffer tail */
+    u8 ring_buf_head; /* sport data ring buffer head */
+    u8 read_tail;
+    u8 write_head;
+}his_ctrl_t; /* for nvm to store */
+typedef struct {
+    u16 year;
+    u8 month;
+    u8 day;
+    u32 steps;
+}his_data_t; /* for nvm to store */
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);

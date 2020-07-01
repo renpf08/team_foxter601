@@ -37,6 +37,10 @@
 #define MIDDLE_STEP_COUNT               4        /*¼õÉÙÎó²î£¬Ç°1.8ÃëÄÚÒªÓÐÖÁÉÙ3²½*/
 #define MIDDLE_STEP_SECOND              (2800/SAMPLE_TIME_UNINT)   /*1.8ÃëµÄÊ±ºòÒªÖÁÉÙ3²½µÄÖµ2.8*/
 
+#define DEFAULT_GENDER_VALUE            1       /*1ÄÐ£¬0Å® 173cm¸ß£¬70¹«½ïÖØ*/
+#define DEFAULT_HEIGHT_VALUE            173     /*1ÄÐ£¬0Å® 173cm¸ß£¬70¹«½ïÖØ*/
+#define DEFAULT_WEIGHT_VALUE            70      /*1ÄÐ£¬0Å® 173cm¸ß£¬70¹«½ïÖØ*/
+
 /***************************************************************************************/
 /************************************ÔË¶¯Êý¾Ý³õÊ¼»¯****************************************/
 /***************************************************************************************/
@@ -48,6 +52,17 @@ typedef struct
     u16   FloorCounts;          /*ÅÀÂ¥Êý ²ã*/
     u16   AcuteSportTimeCounts; /*¾çÁÒÔË¶¯Ê±¼ä ·ÖÖÓ*/
 }SPORT_INFO_T;  /*ÔË¶¯Êý¾Ý½á¹¹*/
+
+typedef struct
+{
+    uint8         StoreFlag;
+    uint8         BlockIndex;
+    uint8         BlockTotal;
+	uint8         Index;
+    SPORT_INFO_T  TotalBuffer;
+	uint16        AsleepInfo_Table_Buffer[12];
+}STORE_DATA_T;
+STORE_DATA_T  FifteenMinuteSP;
 
 SPORT_INFO_T Total_Sport_Info_data;
 SPORT_INFO_T One_Minute_Sport_Info_data;      /*Ò»·ÖÖÓÊý¾ÝÍ³¼Æ½áÊø*/
@@ -127,6 +142,8 @@ BODY_INFO_T Body_Info_data;
 
 u8 Z_Acce_Val=0;  /*Ä£Äâµç×ÓÂÞÅÌÓÃ*/
 
+static adapter_callback steps_cb = NULL;
+
 void Acute_Sport_Time_Count_Init(void);
 void Acute_Sport_Time_Count_Pro(void);
 u16 CaculateAsbSquare(u8 Temp);
@@ -136,7 +153,7 @@ u16 AverageValPro(u16 *Val,u16 New,u8 Num);
 u16 GetXYZ_Acce_Data(void);
 void Step_Count_data_Init(void);
 void step_count_proce(void);
-s16 step_sample_init(void);
+s16 step_sample_init(adapter_callback cb);
 
 void Acute_Sport_Time_Count_Init(void)
 {
@@ -145,7 +162,6 @@ void Acute_Sport_Time_Count_Init(void)
     Acute_Sport_Time_Count_data.MinuteTimeCount=0;
     Acute_Sport_Time_Count_data.OverTimeCount=0;
 }
-
 void Acute_Sport_Time_Count_Pro(void)
 {
     if(Acute_Sport_Time_Count_data.OverTimeCount)  Acute_Sport_Time_Count_data.OverTimeCount++;
@@ -180,7 +196,7 @@ void Acute_Sport_Time_Count_Pro(void)
     }
 }
 
-/*¼ÆËã´ø·ûºÅµÄ8±ÈÌØÎ»ÊýµÄÆ½·½*/
+/*????¡ä?¡¤?o?¦Ì?8¡À¨¨¨¬???¨ºy¦Ì???¡¤?*/
 u16 CaculateAsbSquare(u8 Temp)
 {
     u16  ReturnVal=0,TempVal=0;
@@ -195,7 +211,6 @@ u16 CaculateAsbSquare(u8 Temp)
         ReturnVal=TempVal*TempVal;
      return ReturnVal;
 }
-
 /*³õÊ¼»¯Êý¾Ý»º³åÇø*/
 void InitVal(u16 *ValS,u16 Val, u8 Length)
 {
@@ -205,7 +220,6 @@ void InitVal(u16 *ValS,u16 Val, u8 Length)
         ValS[i]=Val;
     }
 }
-
 /*ÇóÄ³Êý×éµÄ¼¸¸öÊýÆ½¾ùÖµ*/
 u16 AverageVal(u16 *Val,u8 Num)
 {
@@ -222,7 +236,6 @@ u16 AverageVal(u16 *Val,u8 Num)
    }
     return ReturnVal;
 }
-
 /*ÇóÇ°4¸ö²ÉÑùÖµµÄÆ½¾ùÖµ£¬°ÑÐÂµÄÊý¾ÝÍÆÈë»º³åÇø*/
 u16 AverageValPro(u16 *Val,u16 New,u8 Num)
 {
@@ -251,7 +264,6 @@ u16 AverageValPro(u16 *Val,u16 New,u8 Num)
   }
     return ReturnVal;
 }
-
 u16 GetXYZ_Acce_Data(void)
 {
     u32  Return=0xFFFF;
@@ -280,7 +292,6 @@ u16 GetXYZ_Acce_Data(void)
     
     return Return;
 }
-
 void Step_Count_data_Init(void)
 {
    Step_Count_data.DataGetCount=0;/*»ñÈ¡0¸öÖµ*/
@@ -319,7 +330,7 @@ static void StepCountProce(void)
         }
         else if(Step_Count_data.Pro_Step==PRO_STEP_RISING)
         {
-            for(i=0;i<32;i++) /*Ô­íÊ?0*/
+            for(i=0;i<32;i++) /*Ô­í?0*/
             {
                 Temp=GetXYZ_Acce_Data();
                 if(Temp<0xFFFE){ 
@@ -547,36 +558,34 @@ static void StepCountProce(void)
         }
     }
 }
-
 static void step_sample_handler(u16 id)
 {
-    StepCountProce();
-
-    #if 0
-    u8 buf[16] = {0};
-    u8 val[4] = {0};
-    static u8 cnt = 0;
     static u32 step_count = 0;
+    
+    StepCountProce();
+    if(step_count != Total_Sport_Info_data.StepCounts)
+    {
+        steps_cb(WRITE_STEPS, NULL);
+    }
+    #if 1
+    u8 val[4] = {0};
     if(step_count != Total_Sport_Info_data.StepCounts)
     {
         val[0] = (Total_Sport_Info_data.StepCounts>>24) & 0x000000FF;
         val[1] = (Total_Sport_Info_data.StepCounts>>16) & 0x000000FF;
         val[2] = (Total_Sport_Info_data.StepCounts>>8) & 0x000000FF;
         val[3] = Total_Sport_Info_data.StepCounts & 0x000000FF;
-        sprintf((char*)buf, "%03d: %d%d%d%d\r\n", cnt++, val[0], val[1], val[2], val[3]);
-        send_ble(val, 4);
-        printf("%s", buf);
+        BLE_SEND_LOG(val, 4);
     }
+    #endif    
     step_count = Total_Sport_Info_data.StepCounts;
-    #endif
-    
 	get_driver()->timer->timer_start(280, step_sample_handler);
 }
-
-s16 step_sample_init(void)
+s16 step_sample_init(adapter_callback cb)
 {
 	get_driver()->timer->timer_start(280, step_sample_handler);  
     Step_Count_data.Pro_Step=PRO_STEP_START;  
+    steps_cb = cb;
 	return 0;
 }
 

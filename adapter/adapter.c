@@ -14,7 +14,7 @@ extern s16 clock_init(adapter_callback cb);
 extern s16 ancs_init(adapter_callback cb);
 extern s16 cmd_init(adapter_callback cb);
 
-extern s16 step_sample_init(void);
+extern s16 step_sample_init(adapter_callback cb);
 extern s16 mag_sample_init(void);
 extern s16 ble_switch_init(adapter_callback cb);
 
@@ -105,9 +105,10 @@ s16 adapter_init(adapter_callback cb)
     cmd_init(cb);
 	motor_manager_init();
 	battery_init(cb);
-    step_sample_init();
+    step_sample_init(cb);
     mag_sample_init();
     ble_switch_init(cb);
+    nvm_storage_init();
 	return 0;
 }
 
