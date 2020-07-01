@@ -286,6 +286,12 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
                 if(cmd_group.app_ack.state == STATE_HISDATA_SEND) {
                     BufWriteUint16((uint8 **)&tmp_buf, cmd_params.data->steps);//(SB100_data.AppApplyData.StepCounts));
                     BufWriteUint8((uint8 **)&tmp_buf, cmd_params.data->steps>>16);//(SB100_data.AppApplyData.StepCounts>>16));
+                    BufWriteUint16((uint8 **)&tmp_buf, 0x1122);//cmd_get_data->distance);//(SB100_data.AppApplyData.Distance));
+                    BufWriteUint8((uint8 **)&tmp_buf, 0x33);//cmd_get_data->distance>>16);//(SB100_data.AppApplyData.Distance>>16));
+                    BufWriteUint16((uint8 **)&tmp_buf, 0x4455);//cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
+                    BufWriteUint8((uint8 **)&tmp_buf, 0x66);//cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
+                    BufWriteUint16((uint8 **)&tmp_buf, 0x7788);//cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
+                    BufWriteUint16((uint8 **)&tmp_buf, 0x99AA);//cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
                     cmd_group.app_ack.state = STATE_HISDATA_READ;
                     cmd_params.days--;
                 } else if(cmd_group.app_ack.state == STATE_SLEEP_SEND) {

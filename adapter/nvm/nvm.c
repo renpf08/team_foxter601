@@ -162,7 +162,7 @@ void nvm_write(u16 *buffer, u16 length, u16 offset)
 {
     get_driver()->flash->flash_write(buffer, length, offset);
 }
-#if USE_NVM_TEST
+#if 0//USE_NVM_TEST
 static u8 panic_check(u8 caller)
 {
     u8 hexCharTbl[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
