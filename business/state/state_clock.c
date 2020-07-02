@@ -38,6 +38,7 @@ static void minute_data_handler(clock_t *clock)
         data.day = clock->day;
         data.steps = steps_get();
         nvm_write_history_data((u16*)&data, 0);
+        steps_clear();
     }
 }
 s16 state_clock(REPORT_E cb, void *args)
