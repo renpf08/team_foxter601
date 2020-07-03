@@ -204,7 +204,7 @@ static s16 cmd_app_ack(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.app_ack, buffer, (sizeof(cmd_app_ack_t)-1));
 
-    if(cmd_group.app_ack.ack_cmd == 0x01) { // resp to send data cmd:0x01
+    if(cmd_group.app_ack.ack_cmd == 0x01) { // resp to send-data cmd:0x01
         if(cmd_group.app_ack.state == STATE_HISDATA_READ) {
             buffer[1] = 0x00; // 0 to indicate it's a sport data
         }
@@ -305,7 +305,11 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
         case CMD_SYNC_DATA:         // 0x05
         case CMD_APP_ACK:           // 0x06
             tmp_buf = rsp_buf;
-            if((result != 0) || (cmd_group.app_ack.state == STATE_INVALID)) {
+            if((data[0]==0xF5) && (data[1]==0xFA)) { // realtime data, just send for one time, no need to ack
+                if(cmd_params.days >= 0) return 1; // means app is syncing data now, no need to send realtime data
+                cmd_cb(READ_TIME_STEPS, NULL);
+                cmd_group.app_ack.state = STATE_REALTIME_DATA;
+            } else if((result != 0) || (cmd_group.app_ack.state == STATE_INVALID)) {
                 return 0;
             }
             switch(cmd_group.app_ack.state) {
@@ -320,21 +324,30 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
                     cmd_group.app_ack.state = STATE_HISDATA_READ;
                     break;
                 case STATE_HISDATA_READ:
-                    if(cmd_params.days > 0) {
-                        cmd_cb(READ_HISDATA, NULL);
-                    } else if(cmd_params.days == 0) { // current day
-                        cmd_cb(READ_TIME_STEPS, NULL);
+                case STATE_REALTIME_DATA:
+                    if(cmd_group.app_ack.state == STATE_HISDATA_READ) {
+                        if(cmd_params.days > 0) {
+                            cmd_cb(READ_HISDATA, NULL);
+                        } else if(cmd_params.days == 0) { // current day
+                            cmd_cb(READ_TIME_STEPS, NULL);
+                        } else {
+                            cmd_group.app_ack.state = STATE_INVALID;
+                            return 0;
+                        }
+                        BufWriteUint8((uint8 **)&tmp_buf, 0x01);
+                        BufWriteUint8((uint8 **)&tmp_buf, 0x02);
+                        BufWriteUint8((uint8 **)&tmp_buf, data[0]);
+                    } else if(cmd_group.app_ack.state == STATE_REALTIME_DATA) {
+                        BufWriteUint8((uint8 **)&tmp_buf, 0x01);
+                        BufWriteUint8((uint8 **)&tmp_buf, 0x00);
+                        BufWriteUint8((uint8 **)&tmp_buf, 0x00);
                     } else {
-                        cmd_group.app_ack.state = STATE_INVALID;
-                        return 0;
+                        return 1;
                     }
-                    cmd_group.app_ack.state = STATE_HISDATA_SEND;
-                    BufWriteUint8((uint8 **)&tmp_buf, 0x01);
-                    BufWriteUint8((uint8 **)&tmp_buf, 0x02);
-                    BufWriteUint8((uint8 **)&tmp_buf, data[0]);
                     BufWriteUint16((uint8 **)&tmp_buf, cmd_params.data->year);//SB100_data.AppApplyDateData.Year);
                     BufWriteUint8((uint8 **)&tmp_buf, cmd_params.data->month);//SB100_data.AppApplyDateData.Month);
                     BufWriteUint8((uint8 **)&tmp_buf, cmd_params.data->day);//SB100_data.AppApplyDateData.Date);
+                    cmd_group.app_ack.state = STATE_HISDATA_SEND;
                     if(cmd_group.app_ack.state == STATE_HISDATA_SEND) {
                         u8 strided_distance = (cmd_group.user_info.height+13)/25; //cm
                         u32 distance = strided_distance*cmd_params.data->steps;
@@ -373,8 +386,12 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
                         BufWriteUint8((uint8 **)&tmp_buf, 0x66);//cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
                         BufWriteUint16((uint8 **)&tmp_buf, 0x7788);//cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
                         BufWriteUint16((uint8 **)&tmp_buf, 0x99AA);//cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
-                        cmd_group.app_ack.state = STATE_HISDATA_READ;
-                        cmd_params.days--;
+                        if(cmd_params.days >= 0) { // continue to send
+                            cmd_group.app_ack.state = STATE_HISDATA_READ;
+                            cmd_params.days--;
+                        } else { // end to send
+                            cmd_group.app_ack.state = STATE_INVALID;
+                        }
                     } else if(cmd_group.app_ack.state == STATE_SLEEP_SEND) {
                         //cmd_params.days--;
                     }
@@ -469,8 +486,8 @@ s16 cmd_init(adapter_callback cb)
 	cmd_cb = cb;
     MemSet(&cmd_params, 0, sizeof(cmd_params_t));
     MemSet(&cmd_group, 0, sizeof(cmd_group_t));
-    cmd_group.app_ack.state = STATE_INVALID;
-    
+    cmd_params.days = -1;
+    cmd_group.app_ack.state = STATE_INVALID;    
     cmd_group.user_info.target_steps = DEFAULT_TARGET_STEPCOUNTS;
     cmd_group.user_info.target_dists = DEFAULT_TARGET_DISTANCE;
     cmd_group.user_info.target_calorie = DEFAULT_TARGET_CALORIE;

@@ -23,15 +23,8 @@ static clock_t clk = {
 #endif
 static void minute_data_handler(clock_t *clock)
 {
-    cmd_group_t *cmd = cmd_get();
     his_data_t data;
 
-    //cmd_set_clock(clock);
-    //clear_minutes_info();
-    if(cmd->user_info.cmd & 0x80) { // refresh user information
-        cmd->user_info.cmd &= ~0x80;
-        //Update_BodyInfo(cmd->user_info.gender, cmd->user_info.height, cmd->user_info.weight);
-    }
     if((clock->hour+clock->minute+clock->second) == 0) { // new day
         data.year = clock->year;
         data.month = clock->month;
@@ -40,6 +33,7 @@ static void minute_data_handler(clock_t *clock)
         nvm_write_history_data((u16*)&data, 0);
         steps_clear();
     }
+    cmd_resp(CMD_SYNC_DATA, 0, (u8*)&"\xF5\xFA"); // send real-time data every minutes
 }
 s16 state_clock(REPORT_E cb, void *args)
 {
