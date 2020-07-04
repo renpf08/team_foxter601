@@ -59,7 +59,7 @@ typedef struct
 STEP_COUNT_T Step_Count_data = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0},{0,0,0,0,0,0,0,0},0,0,0,0,0,0,0,0,0,0,0};  
 
 static adapter_callback steps_cb = NULL;
-static cmd_user_info_t* user_info;
+static cmd_user_info_t* user_info = NULL;
 
 u16 CaculateAsbSquare(u8 Temp);
 void InitVal(u16 *ValS,u16 Val, u8 Length);
@@ -369,7 +369,6 @@ static void step_sample_handler(u16 id)
 s16 step_sample_init(adapter_callback cb)
 {
 	get_driver()->timer->timer_start(280, step_sample_handler);  
-    MemSet(user_info, 0, sizeof(cmd_user_info_t));
     Step_Count_data.Pro_Step=PRO_STEP_START;  
     steps_cb = cb;
 	return 0;
