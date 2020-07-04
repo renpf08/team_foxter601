@@ -42,7 +42,7 @@
 #define HISTORY_CONTROL_LENGTH                  (sizeof(his_ctrl_t))//(4)//(sizeof(his_ctrl_t))/* word width */
 #endif
 
-#define CONST_RING_BUFFER_LENGTH                (31+1)/* unit: day(1 byte more than acturlly need) */
+#define CONST_RING_BUFFER_LENGTH                (7+1)/* unit: day(1 byte more than acturlly need) */
 #define CONST_DATA_ONEDAY_LENGTH                (sizeof(his_data_t))//(8)//(sizeof(his_data_t))
 #define HISTORY_DATA_OFFSET                     (HISTORY_CONTROL_OFFSET+HISTORY_CONTROL_LENGTH)
 #define HISTORY_DATA_LENGTH                     (CONST_DATA_ONEDAY_LENGTH*CONST_RING_BUFFER_LENGTH)/* store 20 days's history */

@@ -381,11 +381,20 @@ s16 step_sample_init(adapter_callback cb)
     steps_cb = cb;
 	return 0;
 }
+void calorie_calc(void)
+{
+
+}
 u32 steps_get(void)
 {
     return Total_Sport_Info_data.StepCounts;
 }
-void steps_clear(void)
+u32 calorie_get(void)
+{
+    return Total_Sport_Info_data.Calorie;
+}
+void sport_clear(void)
 {
     Total_Sport_Info_data.StepCounts = 0;
+    Total_Sport_Info_data.Calorie = 0;
 }

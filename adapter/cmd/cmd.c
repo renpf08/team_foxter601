@@ -140,6 +140,22 @@ static s16 cmd_user_info(u8 *buffer, u8 length)
     cmd_group.user_info.height = tmp_info->height;
     cmd_group.user_info.weight = tmp_info->weight;
     
+    u32 bmr_colorie = 0;
+    u32 heavy_colorie = 0;
+    u32 medium_colorie = 0;
+    u32 light_colorie = 0;
+    if(cmd_group.user_info.weight) {/*ÄÐ*/                       
+       bmr_colorie = cmd_group.user_info.weight*50/3;/*1000 / 60*/
+       heavy_colorie = cmd_group.user_info.weight*125/4; /*1000 x 45 /24/60*/
+       medium_colorie = cmd_group.user_info.weight*250/9; /*1000 x 40 /24/60*/
+       light_colorie = cmd_group.user_info.weight*875/36;/*1000 x 35 /24/60*/ 
+    } else {/*Å®*/
+       bmr_colorie = cmd_group.user_info.weight*95/6;  /*950 / 60*/
+       heavy_colorie = cmd_group.user_info.weight*250/9;/*1000 x40 /24/60*/
+       medium_colorie = cmd_group.user_info.weight*875/36;/*1000 x35 /24/60*/
+       light_colorie = cmd_group.user_info.weight*125/6;/*1000 x 30 /24/60*/
+    }
+    
 //    cmd_user_info_t* user_info = (cmd_user_info_t*)buffer;
 //    MemCopy(&cmd_group.user_info, buffer, sizeof(cmd_user_info_t));
     cmd_group.user_info.cmd |= 0x80;

@@ -525,6 +525,7 @@ typedef struct {
     u8 month;
     u8 day;
     u32 steps;
+    u32 colorie;
 }his_data_t; /* for nvm to store */
 
 typedef s16 (*event_callback)(EVENT_E ev);

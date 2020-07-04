@@ -10,7 +10,7 @@ s16 state_access_nvm(REPORT_E cb, void *args)
 {
     STATE_E *state = (STATE_E *)args;
     s16 res = 0;
-    his_data_t data = {0,0,0,0};
+    his_data_t data = {0,0,0,0,0};
     his_ctrl_t ctrl = {0,0,0,0};
 	clock_t *clock;
 	clock = clock_get();

@@ -30,8 +30,9 @@ static void minute_data_handler(clock_t *clock)
         data.month = clock->month;
         data.day = clock->day;
         data.steps = steps_get();
+        data.colorie = calorie_get();
         nvm_write_history_data((u16*)&data, 0);
-        steps_clear();
+        sport_clear();
     }
     cmd_resp(CMD_SYNC_DATA, 0, (u8*)&"\xF5\xFA"); // send real-time data every minutes
 }
