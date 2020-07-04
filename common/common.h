@@ -65,7 +65,7 @@ typedef enum {
 	ANDROID_NOTIFY = 18,
 	BLE_CHANGE = 19,
     BLE_PAIR = 20,
-    USER_INFO = 21,
+    SET_USER_INFO = 21,
     SET_TIME = 22,
     SET_ALARM_CLOCK = 23,
     NOTIFY_SWITCH = 24,
@@ -78,11 +78,11 @@ typedef enum {
     SET_VIBRATION = 31,
     SET_FIND_WATCH = 32,
     SET_ANCS_BOND_REQ = 33,
-    READ_TIME_STEPS = 34,
+    READ_STEPS_TARGET = 34,
     READ_STEPS = 35,
     READ_HISDAYS = 36,
     READ_HISDATA = 37,
-    //UPDATE_MINUTES_INFO = 37,
+    READ_REALTIME_SPORT = 38,
 	REPORT_MAX,
 }REPORT_E;
 
@@ -354,7 +354,7 @@ typedef enum {
     CMD_SET_VIBRATION       = 0x0B,
     CMD_SET_FIND_WATCH      = 0x0C,
     CMD_SET_ANCS_BOND_REQ   = 0x0D,
-    CMD_READ_TIME_STEPS     = 0x0E,
+    CMD_READ_STEPS_TARGET   = 0x0E,
     
     CMD_NVM_TEST            = 0xF0,
     CMD_APP_NONE            = 0xFF
@@ -490,7 +490,7 @@ typedef struct {
 typedef struct { 
     u8 cmd; 
     u8 type; 
-} cmd_read_time_steps_t;
+} cmd_READ_STEPS_TARGET_t;
 
 typedef struct {
     cmd_pairing_code_t pair_code;
@@ -507,7 +507,7 @@ typedef struct {
     cmd_set_vibration_t set_vib;
     cmd_find_watch_t find_watch;
     cmd_set_ancs_bond_req_t set_ancs_bond;
-    cmd_read_time_steps_t read_time_step;
+    cmd_READ_STEPS_TARGET_t read_time_step;
 } cmd_group_t;
 
 enum {
@@ -526,7 +526,16 @@ typedef struct {
     u8 day;
     u32 steps;
     u32 colorie;
+    u16 acute;
 }his_data_t; /* for nvm to store */
+typedef struct {
+    u32 StepCounts;           /*总步数 步*/
+    u32 Distance;             /*总距离 米*/
+    u32 Calorie;              /*总卡路里 千卡*/
+    u16 FloorCounts;          /*爬楼数 层*/
+    u16 AcuteSportTimeCounts; /*剧烈运动时间 分钟*/
+}SPORT_INFO_T;  /*运动数据结构*/
+SPORT_INFO_T Total_Sport_Info_data;
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);

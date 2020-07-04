@@ -61,7 +61,7 @@ static s16 cmd_set_clock_hand(u8 *buffer, u8 length);
 static s16 cmd_set_vibration(u8 *buffer, u8 length);
 static s16 cmd_find_watch(u8 *buffer, u8 length);
 static s16 cmd_set_ancs_bond_req(u8 *buffer, u8 length);
-static s16 cmd_read_time_steps(u8 *buffer, u8 length);
+static s16 cmd_READ_STEPS_TARGET(u8 *buffer, u8 length);
 #if USE_NVM_TEST
 static s16 cmd_nvm_test(u8 *buffer, u8 length);
 #endif
@@ -71,7 +71,7 @@ s16 cmd_init(adapter_callback cb);
 static const CMDENTRY cmd_list[] =
 {
     {CMD_PAIRING_CODE,      BLE_PAIR,           cmd_pairing_code},
-    {CMD_USER_INFO,         USER_INFO,          cmd_user_info},
+    {CMD_USER_INFO,         SET_USER_INFO,      cmd_user_info},
     {CMD_SET_TIME,          SET_TIME,           cmd_set_time},
     {CMD_SET_ALARM_CLOCK,   SET_ALARM_CLOCK,    cmd_set_alarm_clock},
     {CMD_NOTIFY_SWITCH,     NOTIFY_SWITCH,      cmd_notify_switch},
@@ -84,7 +84,7 @@ static const CMDENTRY cmd_list[] =
     {CMD_SET_VIBRATION,     SET_VIBRATION,      cmd_set_vibration},
     {CMD_SET_FIND_WATCH,    SET_FIND_WATCH,     cmd_find_watch},
     {CMD_SET_ANCS_BOND_REQ, SET_ANCS_BOND_REQ,  cmd_set_ancs_bond_req},
-    {CMD_READ_TIME_STEPS,   READ_TIME_STEPS,    cmd_read_time_steps},
+    {CMD_READ_STEPS_TARGET, READ_STEPS_TARGET,  cmd_READ_STEPS_TARGET},
 
     #if USE_NVM_TEST
     {CMD_NVM_TEST,          REPORT_MAX,         cmd_nvm_test},
@@ -139,22 +139,6 @@ static s16 cmd_user_info(u8 *buffer, u8 length)
     cmd_group.user_info.gender = tmp_info->gender;
     cmd_group.user_info.height = tmp_info->height;
     cmd_group.user_info.weight = tmp_info->weight;
-    
-    u32 bmr_colorie = 0;
-    u32 heavy_colorie = 0;
-    u32 medium_colorie = 0;
-    u32 light_colorie = 0;
-    if(cmd_group.user_info.weight) {/*男*/                       
-       bmr_colorie = cmd_group.user_info.weight*50/3;/*1000 / 60*/
-       heavy_colorie = cmd_group.user_info.weight*125/4; /*1000 x 45 /24/60*/
-       medium_colorie = cmd_group.user_info.weight*250/9; /*1000 x 40 /24/60*/
-       light_colorie = cmd_group.user_info.weight*875/36;/*1000 x 35 /24/60*/ 
-    } else {/*女*/
-       bmr_colorie = cmd_group.user_info.weight*95/6;  /*950 / 60*/
-       heavy_colorie = cmd_group.user_info.weight*250/9;/*1000 x40 /24/60*/
-       medium_colorie = cmd_group.user_info.weight*875/36;/*1000 x35 /24/60*/
-       light_colorie = cmd_group.user_info.weight*125/6;/*1000 x 30 /24/60*/
-    }
     
 //    cmd_user_info_t* user_info = (cmd_user_info_t*)buffer;
 //    MemCopy(&cmd_group.user_info, buffer, sizeof(cmd_user_info_t));
@@ -266,9 +250,9 @@ static s16 cmd_set_ancs_bond_req(u8 *buffer, u8 length)
     //MemCopy(&cmd_group.set_ancs_bond, buffer, sizeof(cmd_set_ancs_bond_req_t));  
     return 0;
 }
-static s16 cmd_read_time_steps(u8 *buffer, u8 length)
+static s16 cmd_READ_STEPS_TARGET(u8 *buffer, u8 length)
 {
-    MemCopy(&cmd_group.read_time_step, buffer, sizeof(cmd_read_time_steps_t)); 
+    MemCopy(&cmd_group.read_time_step, buffer, sizeof(cmd_READ_STEPS_TARGET_t)); 
     return 0;
 }
 #if USE_NVM_TEST
@@ -323,7 +307,7 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
             tmp_buf = rsp_buf;
             if((data[0]==0xF5) && (data[1]==0xFA)) { // realtime data, just send for one time, no need to ack
                 if(cmd_params.days >= 0) return 1; // means app is syncing data now, no need to send realtime data
-                cmd_cb(READ_TIME_STEPS, NULL);
+                cmd_cb(READ_REALTIME_SPORT, NULL);
                 cmd_group.app_ack.state = STATE_REALTIME_DATA;
             } else if((result != 0) || (cmd_group.app_ack.state == STATE_INVALID)) {
                 return 0;
@@ -345,7 +329,7 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
                         if(cmd_params.days > 0) {
                             cmd_cb(READ_HISDATA, NULL);
                         } else if(cmd_params.days == 0) { // current day
-                            cmd_cb(READ_TIME_STEPS, NULL);
+                            cmd_cb(READ_STEPS_TARGET, NULL);
                         } else {
                             cmd_group.app_ack.state = STATE_INVALID;
                             return 0;
@@ -367,41 +351,14 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
                     if(cmd_group.app_ack.state == STATE_HISDATA_SEND) {
                         u8 strided_distance = (cmd_group.user_info.height+13)/25; //cm
                         u32 distance = strided_distance*cmd_params.data->steps;
-//                        u32 calorie = 0;
-//                        u16 floors = 0;
-//                        u16 acute_sport_times = 0;
-//                        u32 bmr_colorie = 0;
-//                        u32 heavy_colorie = 0;
-//                        u32 medium_colorie = 0;
-//                        u32 light_colorie = 0;
-//                        if(Body_Info_data.Gender) {/*男*/                       
-//                           bmr_colorie = cmd_group.user_info.weight*50/3;/*1000 / 60*/
-//                           heavy_colorie = cmd_group.user_info.weight*125/4; /*1000 x 45 /24/60*/
-//                           medium_colorie = cmd_group.user_info.weight*250/9; /*1000 x 40 /24/60*/
-//                           light_colorie = cmd_group.user_info.weight*875/36;/*1000 x 35 /24/60*/ 
-//                        } else {/*女*/
-//                           bmr_colorie = cmd_group.user_info.weight*95/6;  /*950 / 60*/
-//                           heavy_colorie = cmd_group.user_info.weight*250/9;/*1000 x40 /24/60*/
-//                           medium_colorie = cmd_group.user_info.weight*875/36;/*1000 x35 /24/60*/
-//                           light_colorie = cmd_group.user_info.weight*125/6;/*1000 x 30 /24/60*/
-//                        }
-//                        if(minute_sport != NULL) {
-//                            if(minute_sport->FloorCounts || minute_sport->StepCounts>200) {/*爬楼梯,重度强度,增加一个强度值，一分钟内走路超过200步的也算是重度运动。*/
-//                                calorie = bmr_colorie+heavy_colorie; /*1000 x 45 /24/60*/
-//                            } else if(minute_sport->AcuteSportTimeCounts) {/*有剧烈走动的,中等强度*/
-//                                calorie = bmr_colorie+medium_colorie; /*1000 x 40 /24/60*/
-//                            } else if(minute_sport->StepCounts) {/*有走动的,轻等强度*/
-//                                calorie = bmr_colorie+light_colorie; /*1000 x 35 /24/60*/ 
-//                            }
-//                        }
                         BufWriteUint16((uint8 **)&tmp_buf, cmd_params.data->steps);//(SB100_data.AppApplyData.StepCounts));
                         BufWriteUint8((uint8 **)&tmp_buf, cmd_params.data->steps>>16);//(SB100_data.AppApplyData.StepCounts>>16));
                         BufWriteUint16((uint8 **)&tmp_buf, distance);//cmd_get_data->distance);//(SB100_data.AppApplyData.Distance));
                         BufWriteUint8((uint8 **)&tmp_buf, distance>>16);//cmd_get_data->distance>>16);//(SB100_data.AppApplyData.Distance>>16));
-                        BufWriteUint16((uint8 **)&tmp_buf, 0x4455);//cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
-                        BufWriteUint8((uint8 **)&tmp_buf, 0x66);//cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
+                        BufWriteUint16((uint8 **)&tmp_buf, cmd_params.data->colorie);//cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
+                        BufWriteUint8((uint8 **)&tmp_buf, cmd_params.data->colorie>>16);//cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
                         BufWriteUint16((uint8 **)&tmp_buf, 0x7788);//cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
-                        BufWriteUint16((uint8 **)&tmp_buf, 0x99AA);//cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
+                        BufWriteUint16((uint8 **)&tmp_buf, cmd_params.data->acute);//cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
                         if(cmd_params.days >= 0) { // continue to send
                             cmd_group.app_ack.state = STATE_HISDATA_READ;
                             cmd_params.days--;
@@ -416,7 +373,7 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
                     break;
             }
             break;
-        case CMD_READ_TIME_STEPS:   // 0x0E
+        case CMD_READ_STEPS_TARGET:   // 0x0E
             BufWriteUint8((uint8 **)&tmp_buf,data[0]);
             if(data[0] == 0x00) { // data & time
                 BufWriteUint16((uint8 **)&tmp_buf, cmd_params.clock->year);

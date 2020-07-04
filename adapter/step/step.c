@@ -37,15 +37,6 @@
 #define MIDDLE_STEP_COUNT               4        /*减少误差，前1.8秒内要有至少3步*/
 #define MIDDLE_STEP_SECOND              (2800/SAMPLE_TIME_UNINT)   /*1.8秒的时候要至少3步的值2.8*/
 
-typedef struct {
-    u32 StepCounts;           /*总步数 步*/
-    u32 Distance;             /*总距离 米*/
-    u32 Calorie;              /*总卡路里 千卡*/
-    u16 FloorCounts;          /*爬楼数 层*/
-    u16 AcuteSportTimeCounts; /*剧烈运动时间 分钟*/
-}SPORT_INFO_T;  /*运动数据结构*/
-SPORT_INFO_T Total_Sport_Info_data;
-
 typedef struct
 {
      u16  FiFo_DataString_Val[ALL_DATA_NUM];           /*三轴加速度连续16组共模值*/
@@ -68,6 +59,7 @@ typedef struct
 STEP_COUNT_T Step_Count_data = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0},{0,0,0,0,0,0,0,0},0,0,0,0,0,0,0,0,0,0,0};  
 
 static adapter_callback steps_cb = NULL;
+static cmd_user_info_t* user_info;
 
 u16 CaculateAsbSquare(u8 Temp);
 void InitVal(u16 *ValS,u16 Val, u8 Length);
@@ -353,15 +345,16 @@ static void StepCountProce(void)
 }
 static void step_sample_handler(u16 id)
 {
-    static u32 step_count = 0;
-    
     StepCountProce();
-    if(step_count != Total_Sport_Info_data.StepCounts)
-    {
-        steps_cb(READ_TIME_STEPS, NULL);
-    }
+	get_driver()->timer->timer_start(280, step_sample_handler);
     #if 0
     u8 val[4] = {0};
+    static u32 step_count = 0;
+    
+//    if(step_count != Total_Sport_Info_data.StepCounts)
+//    {
+//        steps_cb(READ_STEPS_TARGET, NULL);
+//    }
     if(step_count != Total_Sport_Info_data.StepCounts)
     {
         val[0] = (Total_Sport_Info_data.StepCounts>>24) & 0x000000FF;
@@ -370,31 +363,59 @@ static void step_sample_handler(u16 id)
         val[3] = Total_Sport_Info_data.StepCounts & 0x000000FF;
         BLE_SEND_LOG(val, 4);
     }
-    #endif    
     step_count = Total_Sport_Info_data.StepCounts;
-	get_driver()->timer->timer_start(280, step_sample_handler);
+    #endif    
 }
 s16 step_sample_init(adapter_callback cb)
 {
 	get_driver()->timer->timer_start(280, step_sample_handler);  
+    MemSet(user_info, 0, sizeof(cmd_user_info_t));
     Step_Count_data.Pro_Step=PRO_STEP_START;  
     steps_cb = cb;
 	return 0;
 }
-void calorie_calc(void)
+void sport_minute_calc(void)
 {
-
+    u32 bmr_colorie = 0;
+    u32 calorie = 0;
+    static u32 last_steps = 0;
+    static u32 steps = 0;
+    
+    if(Total_Sport_Info_data.StepCounts == 0) {
+        last_steps = 0;
+    }
+    steps = (Total_Sport_Info_data.StepCounts - last_steps);
+    
+    if(user_info->gender == 1) {/*男*/                       
+       bmr_colorie = user_info->weight*50/3;/*1000 / 60*/
+       if(steps > 200) calorie = user_info->weight*125/4; /*1000 x 45 /24/60*/ // heavy_colorie
+       else if(steps > 100) calorie = user_info->weight*250/9; /*1000 x 40 /24/60*/ // medium_colorie
+       else if(steps > 0) calorie = user_info->weight*875/36;/*1000 x 35 /24/60*/  // light_colorie
+       else calorie = 0;
+    } else {/*女*/
+       bmr_colorie = user_info->weight*95/6;  /*950 / 60*/
+       if(steps > 200) calorie = user_info->weight*250/9;/*1000 x40 /24/60*/ // heavy_colorie
+       else if(steps > 100) calorie = user_info->weight*875/36;/*1000 x35 /24/60*/ // medium_colorie
+       else if(steps > 0) calorie = user_info->weight*125/6;/*1000 x 30 /24/60*/  // light_colorie
+       else calorie = 0;
+    }
+    if(steps >100) {
+        Total_Sport_Info_data.AcuteSportTimeCounts++;
+    }
+    
+    bmr_colorie += calorie;
+    Total_Sport_Info_data.Calorie += bmr_colorie;    
+    last_steps = Total_Sport_Info_data.StepCounts;
 }
-u32 steps_get(void)
+SPORT_INFO_T* sport_get(void)
 {
-    return Total_Sport_Info_data.StepCounts;
+    return &Total_Sport_Info_data;
 }
-u32 calorie_get(void)
+void sport_set(cmd_user_info_t *user)
 {
-    return Total_Sport_Info_data.Calorie;
+    user_info = user;
 }
 void sport_clear(void)
 {
-    Total_Sport_Info_data.StepCounts = 0;
-    Total_Sport_Info_data.Calorie = 0;
+    MemSet(&Total_Sport_Info_data, 0, sizeof(SPORT_INFO_T));
 }

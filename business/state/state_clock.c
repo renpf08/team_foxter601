@@ -23,18 +23,23 @@ static clock_t clk = {
 #endif
 static void minute_data_handler(clock_t *clock)
 {
-    his_data_t data;
+    his_data_t data = {0,0,0,0,0,0};
+    SPORT_INFO_T* sport_info = NULL;
 
     if((clock->hour+clock->minute+clock->second) == 0) { // new day
+        sport_info = sport_get();
         data.year = clock->year;
         data.month = clock->month;
         data.day = clock->day;
-        data.steps = steps_get();
-        data.colorie = calorie_get();
-        nvm_write_history_data((u16*)&data, 0);
+        data.steps = sport_info->StepCounts;
+        data.colorie = sport_info->Calorie;
+        data.acute = sport_info->AcuteSportTimeCounts;
+        nvm_write_data(&data);
         sport_clear();
+    } else {
+        sport_minute_calc();
+        cmd_resp(CMD_SYNC_DATA, 0, (u8*)&"\xF5\xFA"); // send real-time data every minutes
     }
-    cmd_resp(CMD_SYNC_DATA, 0, (u8*)&"\xF5\xFA"); // send real-time data every minutes
 }
 s16 state_clock(REPORT_E cb, void *args)
 {

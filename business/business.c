@@ -50,10 +50,11 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               SET_TIME,               SET_DATE_TIME,          state_set_date_time),
 	STATE_FILL(BLE_SWITCH,          SET_TIME,               SET_DATE_TIME,          state_set_date_time),
 	/**nvm access*/
-	STATE_FILL(CLOCK,               READ_TIME_STEPS,        NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(CLOCK,               READ_STEPS_TARGET,      NVM_ACCESS,             state_access_nvm),
 	STATE_FILL(CLOCK,               READ_HISDAYS,           NVM_ACCESS,             state_access_nvm),
 	STATE_FILL(CLOCK,               READ_HISDATA,           NVM_ACCESS,             state_access_nvm),
-	//STATE_FILL(CLOCK,               UPDATE_MINUTES_INFO,    NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(CLOCK,               SET_USER_INFO,          NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(CLOCK,               READ_REALTIME_SPORT,    NVM_ACCESS,             state_access_nvm),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)

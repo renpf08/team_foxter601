@@ -394,6 +394,14 @@ s16 nvm_write_ctrl(his_ctrl_t *ctrl)
     nvm_write((u16*)ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
     return 0;
 }
+s16 nvm_read_data(his_data_t *data)
+{
+    return nvm_read_history_data((u16*)&data, READ_HISDATA_TOTAL);
+}
+s16 nvm_write_data(his_data_t *data)
+{
+    return nvm_write_history_data((u16*)&data, 0);
+}
 u8 nvm_get_days(void)
 {
     his_ctrl_t ctrl;
