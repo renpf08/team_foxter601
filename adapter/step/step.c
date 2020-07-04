@@ -369,6 +369,7 @@ static void step_sample_handler(u16 id)
 s16 step_sample_init(adapter_callback cb)
 {
 	get_driver()->timer->timer_start(280, step_sample_handler);  
+    MemSet(&Total_Sport_Info_data, 0, sizeof(SPORT_INFO_T));
     Step_Count_data.Pro_Step=PRO_STEP_START;  
     steps_cb = cb;
 	return 0;
@@ -386,16 +387,16 @@ void sport_minute_calc(void)
     steps = (Total_Sport_Info_data.StepCounts - last_steps);
     
     if(user_info->gender == 1) {/*ÄÐ*/                       
-       bmr_colorie = user_info->weight*50/3;/*1000 / 60*/
-       if(steps > 200) calorie = user_info->weight*125/4; /*1000 x 45 /24/60*/ // heavy_colorie
-       else if(steps > 100) calorie = user_info->weight*250/9; /*1000 x 40 /24/60*/ // medium_colorie
-       else if(steps > 0) calorie = user_info->weight*875/36;/*1000 x 35 /24/60*/  // light_colorie
+       bmr_colorie = user_info->weight*50/3;                    // 16.7*70  =1169  /*1000 / 60*/
+       if(steps > 200) calorie = user_info->weight*125/4;       // 31.25*70 =2187.5  /*1000 x 45 /24/60*/ // heavy_colorie
+       else if(steps > 100) calorie = user_info->weight*250/9;  // 27.8*70  =1946  /*1000 x 40 /24/60*/ // medium_colorie
+       else if(steps > 0) calorie = user_info->weight*875/36;   // 24.3*70  =1701  /*1000 x 35 /24/60*/  // light_colorie
        else calorie = 0;
     } else {/*Å®*/
-       bmr_colorie = user_info->weight*95/6;  /*950 / 60*/
-       if(steps > 200) calorie = user_info->weight*250/9;/*1000 x40 /24/60*/ // heavy_colorie
-       else if(steps > 100) calorie = user_info->weight*875/36;/*1000 x35 /24/60*/ // medium_colorie
-       else if(steps > 0) calorie = user_info->weight*125/6;/*1000 x 30 /24/60*/  // light_colorie
+       bmr_colorie = user_info->weight*95/6;                    // 15.8*70  =1106  /*950 / 60*/
+       if(steps > 200) calorie = user_info->weight*250/9;       // 27.78*70 =1944.6  /*1000 x40 /24/60*/ // heavy_colorie
+       else if(steps > 100) calorie = user_info->weight*875/36; // 24.3*70  =1701 /*1000 x35 /24/60*/ // medium_colorie
+       else if(steps > 0) calorie = user_info->weight*125/6;    // 20.8*70  =1456   /*1000 x 30 /24/60*/  // light_colorie
        else calorie = 0;
     }
     if(steps >100) {

@@ -25,8 +25,12 @@ static void minute_data_handler(clock_t *clock)
 {
     his_data_t data = {0,0,0,0,0,0};
     SPORT_INFO_T* sport_info = NULL;
-
-    if((clock->hour+clock->minute+clock->second) == 0) { // new day
+    static u8 sys_init = 0;
+    
+    if(sys_init == 0) {
+        sys_init = 1;
+        sport_set(&cmd_get()->user_info);
+    } else if((clock->hour == 59)&&(clock->minute == 59)&&(clock->second == 59)) { // new day
         sport_info = sport_get();
         data.year = clock->year;
         data.month = clock->month;
