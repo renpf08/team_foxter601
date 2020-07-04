@@ -329,7 +329,7 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
                         if(cmd_params.days > 0) {
                             cmd_cb(READ_HISDATA, NULL);
                         } else if(cmd_params.days == 0) { // current day
-                            cmd_cb(READ_STEPS_TARGET, NULL);
+                            cmd_cb(READ_REALTIME_SPORT, NULL);
                         } else {
                             cmd_group.app_ack.state = STATE_INVALID;
                             return 0;
