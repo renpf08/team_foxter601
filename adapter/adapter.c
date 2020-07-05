@@ -122,6 +122,7 @@ s16 adapter_init(adapter_callback cb)
 
 void print(u8 *buf, u16 num)
 {
+	return;
 	u8 rn[2] = {0x0d, 0x0a};
 	if(NULL != adapter.drv) {
 		adapter.drv->uart->uart_write(buf, num);

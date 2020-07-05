@@ -125,6 +125,7 @@ s16 button_cb_handler(void *args)
     static button_t button = {.combo_event_flag=0, .press_down_flag=0};
     EVENT_E trig_evt = (EVENT_E)args;
 
+	print((u8 *)&"button handler", 14);
     while(button_single_event[i].trigger_event != 0xFF)
     {
         if(button_single_event[i].trigger_event == trig_evt)
@@ -167,6 +168,7 @@ s16 button_cb_handler(void *args)
 
     if((release == 1) && (button.press_down_flag == 0))
     {
+		print((u8 *)&"button release", 14);
         combo_event_report_value = button_combo_event_handler(button.combo_event_flag);
         button.combo_event_flag = 0;
     }

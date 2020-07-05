@@ -80,7 +80,8 @@ s16 business_init(void)
 	s16 battery_week_status;
 
 	adapter_init(adapter_cb_handler);
-	
+
+	print((u8 *)&"system start", 12);
 	#ifdef TEST_ZERO_ADJUST
 	timer_event(1000, zero_adjust_test);
 	#endif
