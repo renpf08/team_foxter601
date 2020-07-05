@@ -61,7 +61,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
     s16 res = 0;
 
 	//return 0;
-	//print((u8 *)&cb, 1);
+	print((u8 *)&cb, 1);
 
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 
@@ -105,7 +105,6 @@ s16 business_init(void)
 	timer_event(1000, time_adjust_test);
 	#endif
 	
-	#if 1
 	battery_week_status = state_battery_week_status_get();
 	if(state_battery == battery_week_status) {
 		state_battery_week_switch(KEY_M_SHORT_PRESS, NULL);
@@ -113,6 +112,5 @@ s16 business_init(void)
 	
 	business.state_now = CLOCK;
 	state_clock(CLOCK_1_MINUTE, NULL);
-	#endif
 	return 0;
 }

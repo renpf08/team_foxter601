@@ -259,7 +259,7 @@ typedef enum app_state_tag
     app_pairing,
     app_pairing_ok,
     app_advertising,
-
+	
     /* Idle state */
     app_idle,
 

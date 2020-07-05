@@ -21,8 +21,7 @@ static clock_t clk = {
 
 s16 state_clock(REPORT_E cb, void *args)
 {
-	//u8 string_hour[4] = {'h', 'o', 'u', 'r'};
-	//print((u8 *)&"clock", 5);
+	print((u8 *)&"clock", 5);
 
 	#ifndef TEST_CLOCK
 	clock_t *clk;

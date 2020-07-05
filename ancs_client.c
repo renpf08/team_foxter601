@@ -2227,7 +2227,6 @@ void AppInit(sleep_state last_sleep_state)
     
     /** add by mlw at 20200318 15:05(seems not necessary.) */
     AncsServiceDataInit();
-
     //ble_switch_off();
 }
 

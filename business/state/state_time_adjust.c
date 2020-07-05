@@ -96,7 +96,8 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 s16 state_time_adjust(REPORT_E cb, void *args)
 {
 	STATE_E *state = (STATE_E *)args;
-	
+
+	print((u8 *)&"time_adjust", 11);
 	if(KEY_A_B_LONG_PRESS == cb) {
 		if(run == state_time_adj.status) {
 			state_time_adj.status = idle;

@@ -160,10 +160,14 @@ static u16 ble_switch(void *args)
     app_state cur_state = ble_state_get();
     if(swing_en == FALSE) { // first KEY_M_LONG_PRESS
         swing_en = TRUE;
+		timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
+		return 0;
+		#if 0
         if(cur_state == app_advertising) {
             ble_change(NULL);
             return 0;
         }
+		#endif
     }
     if((cur_state == app_advertising) || 
         (cur_state == app_connected) || 
@@ -184,10 +188,10 @@ s16 state_ble_switch(REPORT_E cb, void *args)
     s16 res = 0;
     
     if(cb == KEY_M_LONG_PRESS) {
-        //print((u8*)&"key press", 9);
+        print((u8*)&"key press", 9);
         res = ble_switch(args);
     } else if(cb == BLE_CHANGE) {
-        //print((u8*)&"ble change", 10);
+        print((u8*)&"ble change", 10);
         res = ble_change(args);
     } else if(cb == BLE_PAIR) {
         //print((u8*)&"cmd pair", 8);

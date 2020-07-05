@@ -2,7 +2,7 @@
 #include "adapter/adapter.h"
 #include <macros.h>
 
-static app_state ble_last_state = app_init;
+static app_state ble_last_state = app_advertising;
 static adapter_callback ble_switch_cb = NULL;
 
 s16 ble_switch_init(adapter_callback cb);
@@ -44,7 +44,9 @@ void ble_state_set(app_state cur_state)
         //print((u8*)&"ble no change", 13);
         return;
     }
-    ble_last_state = cur_state;
+    ble_last_state = cur_state;	
+	print((u8*)&"ble_status", 10);
+	print((u8*)&cur_state, 1);
     ble_switch_cb(BLE_CHANGE, NULL);
 }
 
