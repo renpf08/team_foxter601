@@ -16,6 +16,7 @@ void ble_switch_on(void)
     } else {
     }
 }
+
 void ble_switch_off(void)
 {
     if(g_app_data.state == app_connected) {
@@ -26,6 +27,7 @@ void ble_switch_off(void)
         AppSetState(app_idle);
     }
 }
+
 void ble_state_set(app_state cur_state)
 {
     if(cur_state == app_pairing) {

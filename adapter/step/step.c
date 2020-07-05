@@ -319,7 +319,7 @@ static void StepCountProce(void)
         }
         else if(Step_Count_data.Pro_Step==PRO_STEP_RISING)
         {
-            for(i=0;i<32;i++) /*Ô­íÊ?0*/
+            for(i=0;i<32;i++) /*Ô­í?0*/
             {
                 Temp=GetXYZ_Acce_Data();
                 if(Temp<0xFFFE){ 
@@ -575,7 +575,7 @@ static void step_sample_handler(u16 id)
 
 s16 step_sample_init(void)
 {
-	get_driver()->timer->timer_start(280, step_sample_handler);  
+	get_driver()->timer->timer_start(280, step_sample_handler); 
     Step_Count_data.Pro_Step=PRO_STEP_START;  
 	return 0;
 }

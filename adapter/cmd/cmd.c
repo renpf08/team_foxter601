@@ -281,8 +281,6 @@ void cmd_parse(u8* content, u8 length)
         res = cmd_cb(cmd_list[i].report, NULL);
         cmd_resp(cmd_list[i].cmd, res, &content[1]);
     }
-    
-    //get_driver()->uart->uart_write((unsigned char*)content, length);
 }
 
 cmd_group_t *cmd_get(void)
