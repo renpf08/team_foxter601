@@ -38,9 +38,6 @@ static void csr_keya_event_recheck(u16 id)
 s16 csr_keya_event_handler(u32 key_num, u32 key_status)
 {
 	if(key_num & (0x01UL << csr_keya_cfg.pin.num)) {
-		if(0 == flag) {
-
-		}
 		if(key_status & (0x01UL << csr_keya_cfg.pin.num)) {
 			csr_keya_cfg.now_state = KEY_A_UP;
 			timer_create(10*MILLISECOND, csr_keya_event_recheck);

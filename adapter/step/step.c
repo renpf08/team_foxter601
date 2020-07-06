@@ -299,6 +299,7 @@ void Step_Count_data_Init(void)
 static void StepCountProce(void);
 static void StepCountProce(void)
 {
+	return;
     uint8 i=0,StepFlag=0;
     uint16 Temp=0xFFFF;    
     //if(tid==LIS3DH_Sampling_Timer)
