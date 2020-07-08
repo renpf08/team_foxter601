@@ -62,9 +62,11 @@ static s16 driver_init(void)
 	adapter.drv->keyb->key_init(&args, csr_event_callback);	
 	adapter.drv->flash->flash_init(NULL, NULL);
 
+    #if USE_UART_PRINT
 	//uart init and test
 	adapter.drv->uart->uart_init(&args, NULL);
 	//adapter.drv->uart->uart_write(test, 23);
+	#endif
 
 	//vibrator init
 	adapter.drv->vibrator->vibrator_init(&args, NULL);
@@ -112,6 +114,7 @@ s16 adapter_init(adapter_callback cb)
 	return 0;
 }
 
+#if USE_UART_PRINT
 void print(u8 *buf, u16 num)
 {
 	u8 rn[2] = {0x0d, 0x0a};
@@ -120,6 +123,7 @@ void print(u8 *buf, u16 num)
 		adapter.drv->uart->uart_write(rn, 2);
 	}
 }
+#endif
 
 #if 0
 void print_str_hex(u8 *buf, u16 hex_num)
@@ -203,7 +207,6 @@ void print_date_time(u8 *buf, clock_t *datm)
 
     print(sbuf, i);
 }
-#endif
 
 u8 bcd_to_hex(u8 bcd_data)
 {
@@ -216,6 +219,7 @@ u8 bcd_to_hex(u8 bcd_data)
         return (x << 3) + (x << 1) + (bcd_data & 0x0F);
     }
 }
+#endif
 
 u32 hex_to_bcd(u8 hex_data)
 {

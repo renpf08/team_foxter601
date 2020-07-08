@@ -81,6 +81,9 @@ s16 business_init(void)
 	s16 battery_week_status;
 
 	adapter_init(adapter_cb_handler);
+    #if USE_UART_PRINT
+    print((u8*)&"system started.", 15);
+    #endif
 	
 	#ifdef TEST_ZERO_ADJUST
 	timer_event(1000, zero_adjust_test);

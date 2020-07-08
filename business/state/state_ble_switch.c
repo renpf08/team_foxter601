@@ -59,6 +59,7 @@ static void notify_swing_cb_handler(u16 id)
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
 }
 
+#if 1
 void pair_code_generate(void)
 {
     u16 old_pair_code = 0;
@@ -101,6 +102,40 @@ void pair_code_generate(void)
 	motor_hour_to_position(pair.hour);
 	motor_minute_to_position(pair.minute);
 }
+#else
+void pair_code_generate(void)
+{
+    u16 old_pair_code = 0;
+    u8 hour;
+    u8 minute;
+    
+    while(1) {
+        old_pair_code = pair_code.pair_code;
+        pair_code.pair_code = Random16();
+        while((pair_code.pair_code == 0) || (pair_code.pair_code == 0xFFFF)) {
+            pair_code.pair_code = Random16();
+        }
+        hour = (pair_code.pair_code>>8)&0x00FF;
+        minute = pair_code.pair_code&0x00FF;
+        while(hour >= 12) {
+            hour %= 12;
+        }
+        while(minute >= 12) {
+            minute %= 12;
+        }
+        minute *= 5;
+        pair_code.pair_code = (hour<<8)|minute;
+        if(pair_code.pair_code != old_pair_code) {
+            break;
+        }
+    }
+    hour = (hour<<8)|minute;
+    BLE_SEND_LOG((u8*)&hour, 2);
+	
+	motor_hour_to_position(hour);
+	motor_minute_to_position(minute);
+}
+#endif
 
 static s16 ble_pair(void *args)
 {
@@ -143,21 +178,31 @@ static u16 ble_change(void *args)
     
     if(state_ble == app_advertising) { // advertising start
         if(swing_en == TRUE) {
+            #if USE_UART_PRINT
             print((u8*)&"adv swing", 9);
+            #endif
             timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
             return 0;
         } else {
+            #if USE_UART_PRINT
             print((u8*)&"adv start", 9);
+            #endif
         }
     } else if(state_ble == app_idle){ // advertising stop
+        #if USE_UART_PRINT
         print((u8*)&"adv stop", 8);
+        #endif
         motor_notify_to_position(NOTIFY_NONE);
     } else if(state_ble == app_connected){ // connected
+        #if USE_UART_PRINT
         print((u8*)&"connect", 7);
+        #endif
         if(swing_en == FALSE) swing_en = TRUE;
         motor_notify_to_position(NOTIFY_NONE);
     } else { // disconnected
+        #if USE_UART_PRINT
         print((u8*)&"disconect", 9);
+        #endif
     }
     *state_mc = CLOCK;
 
@@ -178,10 +223,14 @@ static u16 ble_switch(void *args)
         (cur_state == app_connected) || 
         (cur_state == app_pairing) || 
         (cur_state == app_pairing_ok)) {
+        #if USE_UART_PRINT
         print((u8*)&"switch off", 10);
+        #endif
         ble_switch_off();
     } else {
+        #if USE_UART_PRINT
         print((u8*)&"switch on", 9);
+        #endif
         ble_switch_on();
     }
 

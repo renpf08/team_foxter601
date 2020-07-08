@@ -429,7 +429,9 @@ s16 nvm_read_oneday(u8 index)
     BufWriteUint8((uint8 **)&ptr, data.day);
     BufWriteUint32((uint8 **)&ptr, &data.steps);
     len = ptr-buf;
-    get_driver()->uart->uart_write((u8*)buf, len);
+    #if USE_UART_PRINT
+    print((u8*)buf, len);
+    #endif
     
     return 0;
 }
@@ -451,7 +453,9 @@ s16 nvm_read_test(void)
         BufWriteUint8((uint8 **)&ptr, data.day);
         BufWriteUint32((uint8 **)&ptr, &data.steps);
         len = ptr-buf;
-        get_driver()->uart->uart_write((u8*)buf, len);
+        #if USE_UART_PRINT
+        print((u8*)buf, len);
+        #endif
     }
 
     return 0;

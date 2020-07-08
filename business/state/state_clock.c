@@ -56,8 +56,10 @@ s16 state_clock(REPORT_E cb, void *args)
 		DAY_26, DAY_27, DAY_28, DAY_29, DAY_30,
 		DAY_31};
 
+    #if USE_UART_PRINT
 	//u8 string_hour[4] = {'h', 'o', 'u', 'r'};
 	print((u8 *)&"clock", 5);
+    #endif
 
 	#ifndef TEST_CLOCK
 	clock_t *clk;

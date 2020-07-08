@@ -395,9 +395,17 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
     }
     length = tmp_buf - rsp_buf;
     BLE_SEND_DATA(rsp_buf, length);
+    #if USE_UART_PRINT
+    print((u8*)&"\xF2\xF2\xF2", 3);
+    print(rsp_buf, length);
+    #endif
     if((cmd_type == CMD_PAIRING_CODE) && (data[0] == 0xFF) && (data[1] == 0xFF)) {
         rsp_buf[2] = 0xFF;
         BLE_SEND_DATA(rsp_buf, length);
+        #if USE_UART_PRINT
+        print((u8*)&"\xF3\xF3\xF3", 3);
+        print(rsp_buf, length);
+        #endif
     }
 
     return length;
@@ -418,13 +426,15 @@ void cmd_parse(u8* content, u8 length)
         }
         i++;
     }
+    #if USE_UART_PRINT
+    print((u8*)&"\xF1\xF1\xF1", 3);
+    print((unsigned char*)content, length);
+    #endif
 
     if((cmd_list[i].cmd != CMD_APP_NONE) && (res == 0)) {
         res = cmd_cb(cmd_list[i].report, NULL);
         cmd_resp(cmd_list[i].cmd, res, &content[1]);
     }
-    
-    //get_driver()->uart->uart_write((unsigned char*)content, length);
 }
 cmd_group_t *cmd_get(void)
 {

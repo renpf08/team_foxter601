@@ -1749,13 +1749,15 @@ extern void ReportPanic(const char* file, const char* func, unsigned line, app_p
 #ifdef ENABLE_DEBUG_PANIC
     Panic(code);
 #else
+    #if USE_UART_PRINT
     u8 panic_buf[8] = {"painc=xx"};
     panic_buf[6] = code/10 + '0';
     panic_buf[7] = code%10 + '0';
     print(panic_buf, 8);
     #if USE_NVM_TEST
     panic_code = code;
-    #endif
+    #endif //USE_NVM_TEST
+    #endif //USE_UART_PRINT
 #endif
 }
 
@@ -2207,7 +2209,9 @@ void AppInit(sleep_state last_sleep_state)
       * add by mlw at 20200314 01:37
       */
     m_devname_init(devName);
+    #if USE_UART_PRINT
     print(devName, StrLen((char*)devName));
+    #endif
 
     /* Tell Security Manager module about the value it needs to initialise it's
      * diversifier to.
