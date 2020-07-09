@@ -222,8 +222,6 @@ static void handleNotificationData(GATT_CHAR_VAL_IND_T *p_event_data);
 /* This function configures the discovered GATT service changed characteristic*/
 static sys_status ConfigureGattIndications(void);
 
-void APP_Move_Bonded(uint8 caller);
-
 /*============================================================================*
  *  Private Function Implementations
  *============================================================================*/

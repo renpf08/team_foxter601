@@ -14,6 +14,7 @@
     <file path="business/state/state_time_adjust.c" />
     <file path="business/state/state_cmd_set_time.c" />
     <file path="business/state/state_nvm_access.c" />
+    <file path="business/state/state_reboot.c" />
    </folder>
    <file path="business/business.c" />
    <file path="business/business.h" />
@@ -192,7 +193,7 @@
    <property key="csr101x_a05_keyr" >ancs_csr101x_A05.keyr</property>
    <property key="debugtransport" ></property>
    <property key="defines" >RELEASE_MODE,EXTRA_DELAY=1</property>
-   <property key="erase_nvm" >1</property>
+   <property key="erase_nvm" >0</property>
    <property key="flash_clock" ></property>
    <property key="flash_miso" ></property>
    <property key="hw_version" >1</property>

@@ -15,6 +15,7 @@ extern bool ble_send_log(uint8 *data, uint16 size);
 #define BLE_SEND_LOG(data, size)
 #endif
 
+void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num);
