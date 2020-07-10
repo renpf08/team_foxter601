@@ -49,11 +49,17 @@ static state_t state[] = {
 	/*cmd set time*/
 	STATE_FILL(CLOCK,               SET_TIME,               SET_DATE_TIME,          state_set_date_time),
 	STATE_FILL(BLE_SWITCH,          SET_TIME,               SET_DATE_TIME,          state_set_date_time),
-	/**nvm access*/
-	STATE_FILL(CLOCK,               READ_TIME_STEPS,        NVM_ACCESS,             state_access_nvm),
+	/*nvm access*/
+	STATE_FILL(CLOCK,               READ_STEPS_TARGET,      NVM_ACCESS,             state_access_nvm),
 	STATE_FILL(CLOCK,               READ_HISDAYS,           NVM_ACCESS,             state_access_nvm),
 	STATE_FILL(CLOCK,               READ_HISDATA,           NVM_ACCESS,             state_access_nvm),
-	STATE_FILL(CLOCK,               WRITE_STEPS,            NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(CLOCK,               SET_USER_INFO,          NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(CLOCK,               READ_REALTIME_SPORT,    NVM_ACCESS,             state_access_nvm),
+	/*system reboot*/
+	STATE_FILL(CLOCK,               KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
+	STATE_FILL(ZERO_ADJUST,         KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
+	STATE_FILL(BLE_SWITCH,          KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
+	STATE_FILL(RUN_TEST,            KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)
@@ -80,6 +86,9 @@ s16 business_init(void)
 	s16 battery_week_status;
 
 	adapter_init(adapter_cb_handler);
+    #if USE_UART_PRINT
+    print((u8*)&"system started.", 15);
+    #endif
 	
 	#ifdef TEST_ZERO_ADJUST
 	timer_event(1000, zero_adjust_test);

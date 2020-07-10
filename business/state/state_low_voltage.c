@@ -7,9 +7,11 @@
 s16 state_low_voltage(REPORT_E cb, void *args)
 {
 	STATE_E *state = (STATE_E *)args;
-
+    
+    #if USE_UART_PRINT
 	u8 string[13] = {'s', 't', 'a', 't', 'e', '_', 'l', 'o', 'w', '_', 'b', 'a', 't'};
 	print(string, 13);
+    #endif
 
 	*state = CLOCK;
 	return 0;

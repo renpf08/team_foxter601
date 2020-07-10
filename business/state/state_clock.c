@@ -23,42 +23,50 @@ static clock_t clk = {
 #endif
 static void minute_data_handler(clock_t *clock)
 {
-    cmd_group_t *cmd = cmd_get();
-    his_data_t data;
-
-    //cmd_set_clock(clock);
-    if(cmd->user_info.cmd & 0x80) { // refresh user information
-        cmd->user_info.cmd &= ~0x80;
-        //Update_BodyInfo(cmd->user_info.gender, cmd->user_info.height, cmd->user_info.weight);
-    }
-    if((clock->hour+clock->minute+clock->second) == 0) { // new day
+    his_data_t data = {0,0,0,0,0,0};
+    SPORT_INFO_T* sport_info = NULL;
+    static u8 sys_init = 0;
+    
+    if(sys_init == 0) {
+        sys_init = 1;
+        sport_set(&cmd_get()->user_info);
+    } else if((clock->hour == 59)&&(clock->minute == 59)&&(clock->second == 59)) { // new day
+        sport_info = sport_get();
         data.year = clock->year;
         data.month = clock->month;
         data.day = clock->day;
-        data.steps = step_get();
-        nvm_write_history_data((u16*)&data, 0);
+        data.steps = sport_info->StepCounts;
+        data.colorie = sport_info->Calorie;
+        data.acute = sport_info->AcuteSportTimeCounts;
+        nvm_write_data(&data);
+        sport_clear();
+    } else {
+        sport_minute_calc();
+        cmd_resp(CMD_SYNC_DATA, 0, (u8*)&"\xF5\xFA"); // send real-time data every minutes
     }
 }
 s16 state_clock(REPORT_E cb, void *args)
 {
-	u8 day[] = {DAY_0,
-		DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
-		DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
-		DAY_11, DAY_12, DAY_13, DAY_14, DAY_15,
-		DAY_16, DAY_17, DAY_18, DAY_19, DAY_20,
-		DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
-		DAY_26, DAY_27, DAY_28, DAY_29, DAY_30,
-		DAY_31};
+//	u8 day[] = {DAY_0,
+//		DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
+//		DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
+//		DAY_11, DAY_12, DAY_13, DAY_14, DAY_15,
+//		DAY_16, DAY_17, DAY_18, DAY_19, DAY_20,
+//		DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
+//		DAY_26, DAY_27, DAY_28, DAY_29, DAY_30,
+//		DAY_31};
 
+    #if USE_UART_PRINT
 	//u8 string_hour[4] = {'h', 'o', 'u', 'r'};
 	print((u8 *)&"clock", 5);
+    #endif
 
 	#ifndef TEST_CLOCK
 	clock_t *clk;
 	clk = clock_get();
 	motor_minute_to_position(clk->minute);
 	motor_hour_to_position(clk->hour);
-    motor_date_to_position(day[clk->day]);
+    motor_date_to_position(day_table[clk->day]);
     minute_data_handler(clk);
 	#else
 	clk.minute++;
@@ -79,7 +87,7 @@ s16 state_clock(REPORT_E cb, void *args)
     //print((u8*)&"system clock", 12);
 	motor_minute_to_position(clk.minute);
 	motor_hour_to_position(clk.hour);
-    motor_date_to_position(day[clk.day]);
+    motor_date_to_position(day_table[clk.day]);
     minute_data_handler(clk);
 	#endif
 

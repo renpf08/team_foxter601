@@ -58,30 +58,32 @@ typedef enum {
 	KEY_B_M_SHORT_PRESS = 11,
 	KEY_A_B_M_LONG_PRESS = 12,
 	KEY_A_B_M_SHORT_PRESS = 13,
-	BATTERY_LOW = 14,
-	BATTERY_NORMAL = 15,
-	CLOCK_1_MINUTE = 16,
-	ANCS_NOTIFY_INCOMING = 17,
-	ANDROID_NOTIFY = 18,
-	BLE_CHANGE = 19,
-    BLE_PAIR = 20,
-    USER_INFO = 21,
-    SET_TIME = 22,
-    SET_ALARM_CLOCK = 23,
-    NOTIFY_SWITCH = 24,
-    SYNC_DATA = 25,
-    APP_ACK = 26,
-    SEND_NOTIFY = 27,
-    SET_POINTERS = 28,
-    READ_VERSION = 29,
-    SET_CLOCK_POINTER = 30,
-    SET_VIBRATION = 31,
-    SET_FIND_WATCH = 32,
-    SET_ANCS_BOND_REQ = 33,
-    READ_TIME_STEPS = 34,
-    READ_HISDAYS = 35,
-    READ_HISDATA = 36,
-    WRITE_STEPS = 37,
+	KEY_M_ULTRA_LONG_PRESS = 14,
+	BATTERY_LOW = 15,
+	BATTERY_NORMAL = 16,
+	CLOCK_1_MINUTE = 17,
+	ANCS_NOTIFY_INCOMING = 18,
+	ANDROID_NOTIFY = 19,
+	BLE_CHANGE = 20,
+    BLE_PAIR = 21,
+    SET_USER_INFO = 22,
+    SET_TIME = 23,
+    SET_ALARM_CLOCK = 24,
+    NOTIFY_SWITCH = 25,
+    SYNC_DATA = 26,
+    APP_ACK = 27,
+    SEND_NOTIFY = 28,
+    SET_POINTERS = 29,
+    READ_VERSION = 30,
+    SET_CLOCK_POINTER = 31,
+    SET_VIBRATION = 32,
+    SET_FIND_WATCH = 33,
+    SET_ANCS_BOND_REQ = 34,
+    READ_STEPS_TARGET = 35,
+    READ_STEPS = 36,
+    READ_HISDAYS = 37,
+    READ_HISDATA = 38,
+    READ_REALTIME_SPORT = 39,
 	REPORT_MAX,
 }REPORT_E;
 
@@ -253,6 +255,7 @@ typedef enum {
 	RUN_TEST = 9,
 	SET_DATE_TIME = 10,
 	NVM_ACCESS = 11,
+	SYSTEM_REBOOT = 12,
 	STATE_MAX,
 }STATE_E;
 
@@ -353,7 +356,7 @@ typedef enum {
     CMD_SET_VIBRATION       = 0x0B,
     CMD_SET_FIND_WATCH      = 0x0C,
     CMD_SET_ANCS_BOND_REQ   = 0x0D,
-    CMD_READ_TIME_STEPS     = 0x0E,
+    CMD_READ_STEPS_TARGET   = 0x0E,
     
     CMD_NVM_TEST            = 0xF0,
     CMD_APP_NONE            = 0xFF
@@ -375,11 +378,11 @@ typedef struct {
 typedef struct 
 {
     u8 cmd; 
-    u8 target_steps[4];
-    u8 target_dists[4];
-    u8 target_calorie[4];
-    u8 target_floors[2];
-    u8 target_stre_exer[2];
+    u32 target_steps;
+    u32 target_dists;
+    u32 target_calorie;
+    u16 target_floors;
+    u16 target_acute_sport;
     u8 gender;
     u8 height;
     u8 weight;
@@ -489,7 +492,7 @@ typedef struct {
 typedef struct { 
     u8 cmd; 
     u8 type; 
-} cmd_read_time_steps_t;
+} cmd_READ_STEPS_TARGET_t;
 
 typedef struct {
     cmd_pairing_code_t pair_code;
@@ -506,7 +509,7 @@ typedef struct {
     cmd_set_vibration_t set_vib;
     cmd_find_watch_t find_watch;
     cmd_set_ancs_bond_req_t set_ancs_bond;
-    cmd_read_time_steps_t read_time_step;
+    cmd_READ_STEPS_TARGET_t read_time_step;
 } cmd_group_t;
 
 enum {
@@ -524,7 +527,17 @@ typedef struct {
     u8 month;
     u8 day;
     u32 steps;
+    u32 colorie;
+    u16 acute;
 }his_data_t; /* for nvm to store */
+typedef struct {
+    u32 StepCounts;           /*总步数 步*/
+    u32 Distance;             /*总距离 米*/
+    u32 Calorie;              /*总卡路里 千卡*/
+    u16 FloorCounts;          /*爬楼数 层*/
+    u16 AcuteSportTimeCounts; /*剧烈运动时间 分钟*/
+}SPORT_INFO_T;  /*运动数据结构*/
+SPORT_INFO_T Total_Sport_Info_data;
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);

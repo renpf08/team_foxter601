@@ -31,6 +31,15 @@ static adapter_t adapter = {
 	.cb = NULL,
 };
 
+u8 day_table[] = {DAY_0,
+DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
+DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
+DAY_11, DAY_12, DAY_13, DAY_14, DAY_15,
+DAY_16, DAY_17, DAY_18, DAY_19, DAY_20,
+DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
+DAY_26, DAY_27, DAY_28, DAY_29, DAY_30,
+DAY_31};
+
 s16 csr_event_callback(EVENT_E ev)
 {
 	if(ev >= EVENT_MAX) {
@@ -62,9 +71,11 @@ static s16 driver_init(void)
 	adapter.drv->keyb->key_init(&args, csr_event_callback);	
 	adapter.drv->flash->flash_init(NULL, NULL);
 
+    #if USE_UART_PRINT
 	//uart init and test
 	adapter.drv->uart->uart_init(&args, NULL);
 	//adapter.drv->uart->uart_write(test, 23);
+	#endif
 
 	//vibrator init
 	adapter.drv->vibrator->vibrator_init(&args, NULL);
@@ -112,6 +123,7 @@ s16 adapter_init(adapter_callback cb)
 	return 0;
 }
 
+#if USE_UART_PRINT
 void print(u8 *buf, u16 num)
 {
 	u8 rn[2] = {0x0d, 0x0a};
@@ -120,6 +132,7 @@ void print(u8 *buf, u16 num)
 		adapter.drv->uart->uart_write(rn, 2);
 	}
 }
+#endif
 
 #if 0
 void print_str_hex(u8 *buf, u16 hex_num)
@@ -203,7 +216,6 @@ void print_date_time(u8 *buf, clock_t *datm)
 
     print(sbuf, i);
 }
-#endif
 
 u8 bcd_to_hex(u8 bcd_data)
 {
@@ -216,6 +228,7 @@ u8 bcd_to_hex(u8 bcd_data)
         return (x << 3) + (x << 1) + (bcd_data & 0x0F);
     }
 }
+#endif
 
 u32 hex_to_bcd(u8 hex_data)
 {

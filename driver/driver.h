@@ -59,7 +59,9 @@ typedef struct {
 }motor_t;
 
 typedef struct {
+    #if USE_UART_PRINT
 	uart_t 		*uart;
+    #endif
 	timer_t 	*timer;
 	battery_t 	*battery;
 	key_t     	*keya;

@@ -42,7 +42,7 @@
 #define HISTORY_CONTROL_LENGTH                  (sizeof(his_ctrl_t))//(4)//(sizeof(his_ctrl_t))/* word width */
 #endif
 
-#define CONST_RING_BUFFER_LENGTH                (31+1)/* unit: day(1 byte more than acturlly need) */
+#define CONST_RING_BUFFER_LENGTH                (7+1)/* unit: day(1 byte more than acturlly need) */
 #define CONST_DATA_ONEDAY_LENGTH                (sizeof(his_data_t))//(8)//(sizeof(his_data_t))
 #define HISTORY_DATA_OFFSET                     (HISTORY_CONTROL_OFFSET+HISTORY_CONTROL_LENGTH)
 #define HISTORY_DATA_LENGTH                     (CONST_DATA_ONEDAY_LENGTH*CONST_RING_BUFFER_LENGTH)/* store 20 days's history */
@@ -394,6 +394,14 @@ s16 nvm_write_ctrl(his_ctrl_t *ctrl)
     nvm_write((u16*)ctrl, HISTORY_CONTROL_LENGTH, HISTORY_CONTROL_OFFSET);
     return 0;
 }
+s16 nvm_read_data(his_data_t *data)
+{
+    return nvm_read_history_data((u16*)&data, READ_HISDATA_TOTAL);
+}
+s16 nvm_write_data(his_data_t *data)
+{
+    return nvm_write_history_data((u16*)&data, 0);
+}
 u8 nvm_get_days(void)
 {
     his_ctrl_t ctrl;
@@ -421,7 +429,9 @@ s16 nvm_read_oneday(u8 index)
     BufWriteUint8((uint8 **)&ptr, data.day);
     BufWriteUint32((uint8 **)&ptr, &data.steps);
     len = ptr-buf;
-    get_driver()->uart->uart_write((u8*)buf, len);
+    #if USE_UART_PRINT
+    print((u8*)buf, len);
+    #endif
     
     return 0;
 }
@@ -443,7 +453,9 @@ s16 nvm_read_test(void)
         BufWriteUint8((uint8 **)&ptr, data.day);
         BufWriteUint32((uint8 **)&ptr, &data.steps);
         len = ptr-buf;
-        get_driver()->uart->uart_write((u8*)buf, len);
+        #if USE_UART_PRINT
+        print((u8*)buf, len);
+        #endif
     }
 
     return 0;
