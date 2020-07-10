@@ -153,7 +153,12 @@ static s16 ble_pair(void *args)
         pair_code.pair_bgn = 1;
         pair_code_generate();
         ble_state_set(app_pairing);
+    #if USE_PAIR_CODE_0000
+    } else if((pairing_code == pair_code.pair_code) || 
+              (pairing_code == 0x0000)) {
+    #else
     } else if(pairing_code == pair_code.pair_code) {
+    #endif
         BLE_SEND_LOG((u8*)&"pair matched", 12);
         pair_code.pair_bgn = 0;
         ble_state_set(app_pairing_ok);
