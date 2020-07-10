@@ -26,6 +26,7 @@
 #include "ancs_client_gatt.h"
 #include "app_gatt.h"
 #include "battery_service.h"
+#include "user_config.h"
 
 /*============================================================================*
  * Public Function Implementations
@@ -90,11 +91,13 @@ extern void Nvm_Read(uint16* buffer, uint16 length, uint16 offset)
     /* Disable NVM after reading/writing */
     Nvm_Disable();
 
+    #if USE_PANIC_PRINT
     /* If NvmRead fails, report panic */
     if(sys_status_success != result)
     {
         ReportPanic(__FILE__, __func__, __LINE__, app_panic_nvm_read);
     }
+    #endif
 }
 
 /*----------------------------------------------------------------------------*
@@ -161,7 +164,9 @@ extern void Nvm_Write(uint16* buffer, uint16 length, uint16 offset)
     else
     {
         /* Irrecoverable error. Reset the chip. */
+        #if USE_PANIC_PRINT
         ReportPanic(__FILE__, __func__, __LINE__, app_panic_nvm_write);
+        #endif
     }
 }
 
@@ -188,10 +193,12 @@ extern void Nvm_Erase(void)
     /* Disable NVM after erasing */
     Nvm_Disable();
 
+    #if USE_PANIC_PRINT
     /* If NvmErase fails, report panic */
     if(sys_status_success != result)
     {
         ReportPanic(__FILE__, __func__, __LINE__, app_panic_nvm_erase);
     }
+    #endif
 }
 #endif /* NVM_TYPE_FLASH */

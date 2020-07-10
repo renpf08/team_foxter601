@@ -33,6 +33,7 @@
 #include "gatt_service.h"
 #include "csr_ota_service.h"
 #include "serial_service.h"
+#include "user_config.h"
 
 /*============================================================================*
  *  Private Definitions
@@ -104,7 +105,9 @@ static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len)
         if (LsStoreAdvScanData(device_name_adtype_len , p_device_name, 
                       ad_src_advertise) != ls_err_none)
         {
+            #if USE_PANIC_PRINT
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_advert_data);
+            #endif
         }
     }
     /* Check if Complete Device Name can fit in Scan response message */
@@ -114,7 +117,9 @@ static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len)
         if (LsStoreAdvScanData(device_name_adtype_len , p_device_name, 
                       ad_src_scan_rsp) != ls_err_none)
         {
+            #if USE_PANIC_PRINT
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_scan_rsp_data);
+            #endif
         }
     }
     /* Check if Shortened Device Name can fit in remaining advertisement 
@@ -132,7 +137,9 @@ static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len)
        if (LsStoreAdvScanData((SHORTENED_DEV_NAME_LEN + 1), p_device_name, 
                       ad_src_advertise) != ls_err_none)
         {
+            #if USE_PANIC_PRINT
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_advert_data);
+            #endif
         }
     }
     else /* Add device name to remaining Scan response data space */
@@ -144,7 +151,9 @@ static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len)
                                     p_device_name, 
                                     ad_src_scan_rsp) != ls_err_none)
         {
+            #if USE_PANIC_PRINT
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_scan_rsp_data);
+            #endif
         }
     }
 }
@@ -199,20 +208,26 @@ static void gattSetAdvertParams(bool fast_connection)
        (GapSetAdvInterval(adv_interval_min, adv_interval_max) 
                         != ls_err_none))
     {
+        #if USE_PANIC_PRINT
         ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_advert_params);
+        #endif
     }
 
 
     /* Reset existing advertising data */
     if(LsStoreAdvScanData(0, NULL, ad_src_advertise) != ls_err_none)
     {
+        #if USE_PANIC_PRINT
         ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_advert_data);
+        #endif
     }
 
     /* Reset existing scan response data */
     if(LsStoreAdvScanData(0, NULL, ad_src_scan_rsp) != ls_err_none)
     {
+        #if USE_PANIC_PRINT
         ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_scan_rsp_data);
+        #endif
     }
 
     /* Setup ADVERTISEMENT DATA */
@@ -220,8 +235,10 @@ static void gattSetAdvertParams(bool fast_connection)
     /* Read tx power of the chip */
     if(LsReadTransmitPowerLevel(&tx_power_level) != ls_err_none)
     {
+        #if USE_PANIC_PRINT
         /* Reading tx power failed */
         ReportPanic(__FILE__, __func__, __LINE__, app_panic_read_tx_pwr_level);
+        #endif
     }
 
     /* Add the read tx power level to device_tx_power 
@@ -238,7 +255,9 @@ static void gattSetAdvertParams(bool fast_connection)
     if (LsStoreAdvScanData(TX_POWER_VALUE_LENGTH, device_tx_power, 
                           ad_src_advertise) != ls_err_none)
     {
+        #if USE_PANIC_PRINT
         ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_advert_data);
+        #endif
     }
 
     /* Add device name into advertisement data */

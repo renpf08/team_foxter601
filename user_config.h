@@ -35,6 +35,7 @@ FO601
 #define USE_PARAM_STORE 0
 #define USE_NVM_TEST    0
 #define USE_UART_PRINT  0
+#define USE_PANIC_PRINT 0
 
 /* Timer value for starting the Discovery Procedure once the connection is
  * established. 
