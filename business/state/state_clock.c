@@ -47,14 +47,14 @@ static void minute_data_handler(clock_t *clock)
 }
 s16 state_clock(REPORT_E cb, void *args)
 {
-	u8 day[] = {DAY_0,
-		DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
-		DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
-		DAY_11, DAY_12, DAY_13, DAY_14, DAY_15,
-		DAY_16, DAY_17, DAY_18, DAY_19, DAY_20,
-		DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
-		DAY_26, DAY_27, DAY_28, DAY_29, DAY_30,
-		DAY_31};
+//	u8 day[] = {DAY_0,
+//		DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
+//		DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
+//		DAY_11, DAY_12, DAY_13, DAY_14, DAY_15,
+//		DAY_16, DAY_17, DAY_18, DAY_19, DAY_20,
+//		DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
+//		DAY_26, DAY_27, DAY_28, DAY_29, DAY_30,
+//		DAY_31};
 
     #if USE_UART_PRINT
 	//u8 string_hour[4] = {'h', 'o', 'u', 'r'};
@@ -66,7 +66,7 @@ s16 state_clock(REPORT_E cb, void *args)
 	clk = clock_get();
 	motor_minute_to_position(clk->minute);
 	motor_hour_to_position(clk->hour);
-    motor_date_to_position(day[clk->day]);
+    motor_date_to_position(day_table[clk->day]);
     minute_data_handler(clk);
 	#else
 	clk.minute++;
