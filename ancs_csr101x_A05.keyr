@@ -2,7 +2,7 @@
 
 // (0001) - Bluetooth device address
 //&BDADDR = b911 5b00 0002
-&BDADDR = b915 5b00 0002
+&BDADDR = b911 5b00 0002
 //&BDADDR = b913 5b00 0002
 
 // (0002) - Crystal frequency trim

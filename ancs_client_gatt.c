@@ -34,6 +34,10 @@
 #include "csr_ota_service.h"
 #include "serial_service.h"
 #include "user_config.h"
+#if USE_ADV_DATA
+#include "appearance.h"
+#include "csr_ota_uuids.h"
+#endif
 
 /*============================================================================*
  *  Private Definitions
@@ -171,6 +175,28 @@ static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len)
  *----------------------------------------------------------------------------*/
 static void gattSetAdvertParams(bool fast_connection)
 {
+    #if USE_ADV_DATA
+    /* Add 128-bit UUID for supported main service  */
+    uint8 advert_data[MAX_ADV_DATA_LEN] = {
+                                            AD_TYPE_SERVICE_UUID_128BIT_LIST,
+                                            UUID_SERIAL_SERVICE_16,
+                                            UUID_SERIAL_SERVICE_15,
+                                            UUID_SERIAL_SERVICE_14,
+                                            UUID_SERIAL_SERVICE_13,
+                                            UUID_SERIAL_SERVICE_12,
+                                            UUID_SERIAL_SERVICE_11,
+                                            UUID_SERIAL_SERVICE_10,
+                                            UUID_SERIAL_SERVICE_9,
+                                            UUID_SERIAL_SERVICE_8,
+                                            UUID_SERIAL_SERVICE_7,
+                                            UUID_SERIAL_SERVICE_6,
+                                            UUID_SERIAL_SERVICE_5,
+                                            UUID_SERIAL_SERVICE_4,
+                                            UUID_SERIAL_SERVICE_3,
+                                            UUID_SERIAL_SERVICE_2,
+                                            UUID_SERIAL_SERVICE_1};
+    uint16 length = 17;
+    #endif
     uint32 adv_interval_min = RP_ADVERTISING_INTERVAL_MIN;
     uint32 adv_interval_max = RP_ADVERTISING_INTERVAL_MAX;
 
@@ -180,6 +206,14 @@ static void gattSetAdvertParams(bool fast_connection)
     uint8 device_tx_power[TX_POWER_VALUE_LENGTH] = {
                 AD_TYPE_TX_POWER
                 };
+
+    #if USE_ADV_DATA
+    uint8 device_appearance[ATTR_LEN_DEVICE_APPEARANCE + 1] = {
+                AD_TYPE_APPEARANCE,
+                LE8_L(APPEARANCE_RSC_SENSOR_VALUE),
+                LE8_H(APPEARANCE_RSC_SENSOR_VALUE)
+                };   /*jim add*/
+    #endif
     
     /* A variable to keep track of the data added to AdvData. The limit is 
      * MAX_ADV_DATA_LEN. GAP layer will add AD Flags to AdvData which 
@@ -222,6 +256,34 @@ static void gattSetAdvertParams(bool fast_connection)
         #endif
     }
 
+    #if USE_ADV_DATA
+    /* One added for Length field, which will be added to Adv Data by GAP 
+     * layer 
+     */
+    length_added_to_adv += (length + 1);
+
+    if (LsStoreAdvScanData(length, advert_data, 
+                        ad_src_advertise) != ls_err_none)
+    {
+        #if USE_PANIC_PRINT
+        ReportPanic(app_panic_set_advert_data);
+        #endif
+    }
+
+    /* One added for Length field, which will be added to Adv Data by GAP 
+     * layer 
+     */
+    length_added_to_adv += (sizeof(device_appearance) + 1);
+
+    /* Add device appearance to the advertisements */
+    if (LsStoreAdvScanData(ATTR_LEN_DEVICE_APPEARANCE + 1, 
+        device_appearance, ad_src_advertise) != ls_err_none)
+    {
+        #if USE_PANIC_PRINT
+        ReportPanic(_FILE__, __func__, __LINE__, app_panic_set_advert_data);
+        #endif
+    }
+    #else
     /* Reset existing scan response data */
     if(LsStoreAdvScanData(0, NULL, ad_src_scan_rsp) != ls_err_none)
     {
@@ -229,6 +291,7 @@ static void gattSetAdvertParams(bool fast_connection)
         ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_scan_rsp_data);
         #endif
     }
+    #endif
 
     /* Setup ADVERTISEMENT DATA */
    
@@ -472,7 +535,7 @@ void GattStartAdverts(bool fast_connection)
      * to "process scan and connection requests only from devices in the
      * White List"
      */
-    #if UEE_WHITELIST_ADV
+    #if USE_WHITELIST_ADV
     if(g_app_data.bonded == TRUE && 
         (!GattIsAddressResolvableRandom(&g_app_data.bonded_bd_addr)))
     {
