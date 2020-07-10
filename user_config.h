@@ -31,11 +31,12 @@ FO601
 #define HARDWARE_REVISION       "v1.0.0"
 #define FIRMWARE_REVISION       "v1.2.0"
 
-#define USE_BLE_LOG     1
-#define USE_PARAM_STORE 0
-#define USE_NVM_TEST    0
-#define USE_UART_PRINT  0
-#define USE_PANIC_PRINT 0
+#define USE_BLE_LOG         1
+#define USE_PARAM_STORE     0
+#define USE_NVM_TEST        0
+#define USE_UART_PRINT      0
+#define USE_PANIC_PRINT     0
+#define UEE_WHITELIST_ADV   0
 
 /* Timer value for starting the Discovery Procedure once the connection is
  * established. 

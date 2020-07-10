@@ -472,6 +472,7 @@ void GattStartAdverts(bool fast_connection)
      * to "process scan and connection requests only from devices in the
      * White List"
      */
+    #if UEE_WHITELIST_ADV
     if(g_app_data.bonded == TRUE && 
         (!GattIsAddressResolvableRandom(&g_app_data.bonded_bd_addr)))
     {
@@ -479,6 +480,7 @@ void GattStartAdverts(bool fast_connection)
                        L2CAP_OWN_ADDR_TYPE_PUBLIC | 
                        L2CAP_PEER_ADDR_TYPE_PUBLIC;
     }
+    #endif
 
     /* Start GATT connection in Slave role */
     GattConnectReq(NULL, connect_flags);
