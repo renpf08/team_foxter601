@@ -21,6 +21,20 @@ static clock_t clk = {
 	.second = 0,
 };
 #endif
+static void alarm_clock_check(clock_t *clock)
+{
+    cmd_set_alarm_clock_t *alarm_clock = (cmd_set_alarm_clock_t*)&cmd_get()->set_alarm_clock;
+    u8 i = 0;
+
+    for(i = 0; i < 4; i++) {
+        if((alarm_clock->aclk[i].en == 1) && 
+          ((alarm_clock->aclk[i].week&0x80) || (alarm_clock->aclk[i].week&(1<<clock->week))) &&
+          ((alarm_clock->aclk[i].hour==clock->hour)&&(alarm_clock->aclk[i].minute==clock->minute)&&(clock->minute==0))) {
+            BLE_SEND_LOG((u8*)&i, 1);
+            break;
+        }
+    }
+}
 static void minute_data_handler(clock_t *clock)
 {
     his_data_t data = {0,0,0,0,0,0};
@@ -44,6 +58,7 @@ static void minute_data_handler(clock_t *clock)
         sport_minute_calc();
         cmd_resp(CMD_SYNC_DATA, 0, (u8*)&"\xF5\xFA"); // send real-time data every minutes
     }
+    alarm_clock_check(clock);
 }
 s16 state_clock(REPORT_E cb, void *args)
 {

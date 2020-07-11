@@ -369,12 +369,10 @@ typedef enum {
     
     CMD_WATCH_NONE          = 0xFF
 } cmd_watch_send_t;
-
 typedef struct {
     u8 cmd; 
     u8 code[2];
 } cmd_pairing_code_t;
-
 typedef struct 
 {
     u8 cmd; 
@@ -387,7 +385,6 @@ typedef struct
     u8 height;
     u8 weight;
 } cmd_user_info_t;
-
 typedef struct {
     u8 cmd; 
     u8 year[2];
@@ -398,27 +395,16 @@ typedef struct {
     u8 second;
     u8 week;
 } cmd_set_time_t;
-
+typedef struct {
+    u8 en;
+    u8 week;
+    u8 hour;
+    u8 minute;
+} alarm_clock_t;
 typedef struct {
     u8 cmd;
-    u8 clock1_alarm_switch;
-    u8 clock1_repeat;
-    u8 clock1_hour;
-    u8 clock1_minute;
-    u8 clock2_alarm_switch;
-    u8 clock2_repeat;
-    u8 clock2_hour;
-    u8 clock2_minute;
-    u8 clock3_alarm_switch;
-    u8 clock3_repeat;
-    u8 clock3_hour;
-    u8 clock3_minute;
-    u8 clock4_alarm_switch;
-    u8 clock4_repeat;
-    u8 clock4_hour;
-    u8 clock4_minute;
+    alarm_clock_t aclk[4];
 } cmd_set_alarm_clock_t;
-
 typedef struct { 
     u8 cmd;
     u8 en[4];
