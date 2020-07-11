@@ -168,23 +168,13 @@ static s16 cmd_set_time(u8 *buffer, u8 length)
 static s16 cmd_set_alarm_clock(u8 *buffer, u8 length)
 {
     cmd_set_alarm_clock_t* alarm_clock = (cmd_set_alarm_clock_t*)buffer;
+    u8 i = 0;
 
-    if(alarm_clock->clock1_alarm_switch > 1) return 1;
-    //if(alarm_clock->clock1_week.week > 7) return 1;
-    if(alarm_clock->clock1_hour > 23) return 1;
-    if(alarm_clock->clock1_minute > 59) return 1;
-    if(alarm_clock->clock2_alarm_switch > 1) return 1;
-    //if(alarm_clock->clock2_week.week > 7) return 1;
-    if(alarm_clock->clock2_hour > 23) return 1;
-    if(alarm_clock->clock2_minute > 59) return 1;
-    if(alarm_clock->clock3_alarm_switch > 1) return 1;
-    //if(alarm_clock->clock3_week.week > 7) return 1;
-    if(alarm_clock->clock3_hour > 23) return 1;
-    if(alarm_clock->clock3_minute > 59) return 1;
-    if(alarm_clock->clock4_alarm_switch > 1) return 1;
-    //if(alarm_clock->clock4_week.week > 7) return 1;
-    if(alarm_clock->clock4_hour > 23) return 1;
-    if(alarm_clock->clock4_minute > 59) return 1;
+    for(i = 0; i < 4; i++) {
+        if(alarm_clock->aclk[i].en > 1) return 1;
+        if(alarm_clock->aclk[i].hour > 23) return 1;
+        if(alarm_clock->aclk[i].minute > 59) return 1;
+    }
     
     MemCopy(&cmd_group.set_alarm_clock, buffer, sizeof(cmd_set_alarm_clock_t));
     return 0;
