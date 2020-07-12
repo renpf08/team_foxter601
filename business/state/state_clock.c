@@ -25,10 +25,10 @@ static void sport_activity_calc(void)
 {
     u32 target_steps = cmd_get()->user_info.target_steps;
     u32 current_steps = sport_get()->StepCounts;
-    u8 activity = 50;
+    u8 activity = 40; // total 40 grids
 
     if(current_steps < target_steps) {
-        activity = (current_steps*100)/target_steps/2;
+        activity = (current_steps*40)/target_steps;
     } else if(target_steps == 0) {
         activity = 0;
     }
