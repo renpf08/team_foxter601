@@ -44,7 +44,7 @@ s16 motor_activity_to_position(u8 activity);
 s16 battery_init(adapter_callback cb);
 u8 battery_percent_read(void);
 
-s16 nvm_storage_init(void);
+s16 nvm_storage_init(adapter_callback cb);
 #if USE_PARAM_STORE
 s16 nvm_read_motor_current_position(u16 *buffer, u8 index);
 s16 nvm_write_motor_current_position(u16 *buffer, u8 index);
@@ -56,8 +56,8 @@ s16 nvm_read_date_time(u16 *buffer, u8 index);
 s16 nvm_write_date_time(u16 *buffer, u8 index);
 s16 nvm_read_alarm_clock_single(u16 *buffer, u8 index);
 s16 nvm_write_alarm_clock_single(u16 *buffer, u8 index);
-s16 nvm_read_alarm_clock_total(u16 *buffer, u8 index);
-s16 nvm_write_alarm_clock_total(u16 *buffer, u8 index);
+s16 nvm_read_alarm_clock(u16 *buffer, u8 index);
+s16 nvm_write_alarm_clock(u16 *buffer, u8 index);
 s16 nvm_read_display_setting(u16 *buffer, u8 index);
 s16 nvm_write_display_setting(u16 *buffer, u8 index);
 s16 nvm_read_personal_info(u16 *buffer, u8 index);
@@ -86,6 +86,7 @@ s16 cmd_set_clock(clock_t *clock);
 s16 cmd_set_data(his_data_t *data);
 s16 cmd_set_steps(u32 steps);
 cmd_group_t *cmd_get(void);
+void cmd_set(cmd_group_t *value);
 
 app_msg_t *ancs_get(void);
 

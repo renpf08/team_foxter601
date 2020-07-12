@@ -55,6 +55,12 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               READ_HISDATA,           NVM_ACCESS,             state_access_nvm),
 	STATE_FILL(CLOCK,               SET_USER_INFO,          NVM_ACCESS,             state_access_nvm),
 	STATE_FILL(CLOCK,               READ_REALTIME_SPORT,    NVM_ACCESS,             state_access_nvm),
+	#if USE_PARAM_STORE
+	STATE_FILL(CLOCK,               READ_ALARM_CLOCK,       NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(CLOCK,               WRITE_ALARM_CLOCK,      NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(CLOCK,               READ_PAIRING_CODE,      NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(CLOCK,               WRITE_PAIRING_CODE,     NVM_ACCESS,             state_access_nvm),
+	#endif
 	/*system reboot*/
 	STATE_FILL(CLOCK,               KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
 	STATE_FILL(ZERO_ADJUST,         KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),

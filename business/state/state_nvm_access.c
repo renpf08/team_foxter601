@@ -6,13 +6,8 @@
 #include "../../adapter/adapter.h"
 #include "state.h"
 
-static u8 re_in = 0;
 s16 state_access_nvm(REPORT_E cb, void *args)
 {
-    if(re_in == 1) {
-        return 1;
-    }
-    re_in = 1;
     STATE_E *state = (STATE_E *)args;
     s16 res = 0;
     his_data_t data = {0,0,0,0,0,0};
@@ -20,6 +15,9 @@ s16 state_access_nvm(REPORT_E cb, void *args)
 	clock_t *clock = NULL;
     SPORT_INFO_T* sport_info = NULL;
 	clock = clock_get();
+    #if USE_PARAM_STORE
+    cmd_group_t *value = cmd_get();
+    #endif
     
     if(cb == READ_STEPS_TARGET) {
         cmd_set_clock(clock);
@@ -42,10 +40,22 @@ s16 state_access_nvm(REPORT_E cb, void *args)
         data.colorie = sport_info->Calorie;
         data.acute = sport_info->AcuteSportTimeCounts;
         cmd_set_data(&data);
+    } 
+    #if USE_PARAM_STORE
+    else if(cb == READ_ALARM_CLOCK) {
+        nvm_read_alarm_clock((u16*)&value->set_alarm_clock, 0);
+        cmd_set(value);
+    } else if(cb == WRITE_ALARM_CLOCK) {
+        nvm_write_alarm_clock((u16*)&value->set_alarm_clock, 0);
+    } else if(cb == READ_PAIRING_CODE) {
+        nvm_read_pairing_code((u16*)&value->pair_code, 0);
+        cmd_set(value);
+    } else if(cb == WRITE_PAIRING_CODE) {
+        nvm_write_pairing_code((u16*)&value->pair_code, 0);
     }
+    #endif
     
 	*state = CLOCK;
-    re_in = 0;
 	return res;
 }
 

@@ -266,7 +266,7 @@ static void gattSetAdvertParams(bool fast_connection)
                         ad_src_advertise) != ls_err_none)
     {
         #if USE_PANIC_PRINT
-        ReportPanic(app_panic_set_advert_data);
+        ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_advert_data);
         #endif
     }
 
@@ -280,7 +280,7 @@ static void gattSetAdvertParams(bool fast_connection)
         device_appearance, ad_src_advertise) != ls_err_none)
     {
         #if USE_PANIC_PRINT
-        ReportPanic(_FILE__, __func__, __LINE__, app_panic_set_advert_data);
+        ReportPanic(__FILE__, __func__, __LINE__, app_panic_set_advert_data);
         #endif
     }
     #else

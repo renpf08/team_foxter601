@@ -119,7 +119,7 @@ s16 adapter_init(adapter_callback cb)
     step_sample_init(cb);
     mag_sample_init();
     ble_switch_init(cb);
-    nvm_storage_init();
+    nvm_storage_init(cb);
 	return 0;
 }
 

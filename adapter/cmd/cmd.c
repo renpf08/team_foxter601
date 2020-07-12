@@ -177,6 +177,9 @@ static s16 cmd_set_alarm_clock(u8 *buffer, u8 length)
     }
     
     MemCopy(&cmd_group.set_alarm_clock, buffer, sizeof(cmd_set_alarm_clock_t));
+    #if USE_PARAM_STORE
+    cmd_cb(WRITE_ALARM_CLOCK, NULL);
+    #endif
     return 0;
 }
 static s16 cmd_notify_switch(u8 *buffer, u8 length)
@@ -425,10 +428,20 @@ void cmd_parse(u8* content, u8 length)
         res = cmd_cb(cmd_list[i].report, NULL);
         cmd_resp(cmd_list[i].cmd, res, &content[1]);
     }
+
+    #if USE_PARAM_STORE
+    if((cmd_list[i].cmd == CMD_PAIRING_CODE) && (res == 0)) {
+        cmd_cb(WRITE_PAIRING_CODE, NULL);
+    }
+    #endif
 }
 cmd_group_t *cmd_get(void)
 {
     return &cmd_group;
+}
+void cmd_set(cmd_group_t *value)
+{
+    MemCopy(&cmd_group, value, sizeof(cmd_group_t));
 }
 s16 cmd_set_days(u8 days)
 {

@@ -139,7 +139,7 @@ void pair_code_generate(void)
 
 static s16 ble_pair(void *args)
 {
-    s16 res = 0;
+    s16 res = 1;
     STATE_E *state = (STATE_E *)args;
     u8* code = cmd_get()->pair_code.code;
     u16 pairing_code = (code[0]<<8)|code[1];
@@ -162,12 +162,12 @@ static s16 ble_pair(void *args)
         BLE_SEND_LOG((u8*)&"pair matched", 12);
         pair_code.pair_bgn = 0;
         ble_state_set(app_pairing_ok);
+        res = 0;
         *state = CLOCK;
     } else if(pair_code.pair_bgn == 1) {
         BLE_SEND_LOG((u8*)&"pair mis-match", 14);
         pair_code_generate();
         ble_state_set(app_pairing);
-        res = 1;
     } else {
         //print((u8*)&"not pair mode", 13);
         *state = CLOCK;

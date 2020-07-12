@@ -23,8 +23,9 @@
 #define SYSTEM_DATE_TIME_LENGTH                 (0x07)/*save system date time every 15 ninutes*/
 
 #define ALARM_CLOCK_OFFSET                      (SYSTEM_DATE_TIME_OFFSET+SYSTEM_DATE_TIME_LENGTH)
-#define ALARM_CLOCK_LENGTH                      (20)/*tatal 5 alarm clocks*/
 #define ALARM_CLOCK_SINGLE_LENGTH               (0x04)
+#define ALARM_CLOCK_NUMS                        (0x04)
+#define ALARM_CLOCK_LENGTH                      (ALARM_CLOCK_SINGLE_LENGTH*ALARM_CLOCK_NUMS+1) //+1 as cmd value,just for easy handler
 
 #define DISPLAY_SETTING_OFFSET                  (ALARM_CLOCK_OFFSET+ALARM_CLOCK_LENGTH)
 #define DISPLAY_SETTING_LENGTH                  (0x4)
@@ -151,6 +152,8 @@
  * |/---------------\|
 */
 
+static adapter_callback nvm_cb = NULL;
+
 void nvm_read(u16 *buffer, u16 length, u16 offset);
 void nvm_write(u16 *buffer, u16 length, u16 offset);
 
@@ -184,7 +187,7 @@ static u8 panic_check(u8 caller)
     return 0;
 }
 #endif
-s16 nvm_storage_init(void)
+s16 nvm_storage_init(adapter_callback cb)
 {
     volatile u16 erase_offset = 0;
     u16 erase_value = 0;
@@ -210,6 +213,11 @@ s16 nvm_storage_init(void)
     init_flag = 0xA55A;
     nvm_write((u16*)&init_flag, USER_STORATE_INIT_FLAG_LENGTH, USER_STORATE_INIT_FLAG_OFFSET);/* write user storage init flag */
 
+    #if USE_PARAM_STORE
+    nvm_cb = cb;
+    nvm_cb(READ_ALARM_CLOCK, NULL);
+    nvm_cb(READ_PAIRING_CODE, NULL);
+    #endif
     return 0;
 }
 #if USE_PARAM_STORE
@@ -273,13 +281,13 @@ s16 nvm_write_alarm_clock_single(u16 *buffer, u8 index)
 
     return 0;
 }
-s16 nvm_read_alarm_clock_total(u16 *buffer, u8 index)
+s16 nvm_read_alarm_clock(u16 *buffer, u8 index)
 {
     nvm_read(buffer, ALARM_CLOCK_LENGTH, ALARM_CLOCK_OFFSET);
 
     return 0;
 }
-s16 nvm_write_alarm_clock_total(u16 *buffer, u8 index)
+s16 nvm_write_alarm_clock(u16 *buffer, u8 index)
 {
     nvm_write(buffer, ALARM_CLOCK_LENGTH, ALARM_CLOCK_OFFSET); 
 
