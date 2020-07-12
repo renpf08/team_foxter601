@@ -228,8 +228,6 @@ u8 bcd_to_hex(u8 bcd_data)
         return (x << 3) + (x << 1) + (bcd_data & 0x0F);
     }
 }
-#endif
-
 u32 hex_to_bcd(u8 hex_data)
 {
     u32 bcd_data;
@@ -240,6 +238,8 @@ u32 hex_to_bcd(u8 hex_data)
     bcd_data=bcd_data|temp%10;
     return bcd_data;
 }
+#endif
+
 
 void timer_event(u16 ms, timer_cb cb)
 {

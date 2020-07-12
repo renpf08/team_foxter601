@@ -152,7 +152,9 @@
  * |/---------------\|
 */
 
+#if USE_PARAM_STORE
 static adapter_callback nvm_cb = NULL;
+#endif
 
 void nvm_read(u16 *buffer, u16 length, u16 offset);
 void nvm_write(u16 *buffer, u16 length, u16 offset);

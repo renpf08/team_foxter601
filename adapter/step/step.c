@@ -56,6 +56,7 @@ typedef struct
      u8   StepsChangeCount;          /*步数前几步变化计算*/
      u8   StepsChangePreCount;       /*步数改变前的临时步数暂存*/
 }STEP_COUNT_T;
+SPORT_INFO_T Total_Sport_Info_data;
 STEP_COUNT_T Step_Count_data = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0},{0,0,0,0,0,0,0,0},0,0,0,0,0,0,0,0,0,0,0};  
 
 static adapter_callback steps_cb = NULL;

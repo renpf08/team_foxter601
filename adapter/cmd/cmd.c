@@ -32,13 +32,6 @@ typedef struct cmdEntry_T {
 cmd_group_t cmd_group;
 static adapter_callback cmd_cb = NULL;
 
-typedef struct {
-    clock_t *clock;
-    his_data_t *data;
-    u32 steps; // current day
-    u32 min_steps;
-    s16 days;
-} cmd_params_t;
 cmd_params_t cmd_params;
 //SPORT_INFO_T* minute_sport = NULL;
 
@@ -443,30 +436,14 @@ void cmd_set(cmd_group_t *value)
 {
     MemCopy(&cmd_group, value, sizeof(cmd_group_t));
 }
-s16 cmd_set_days(u8 days)
+cmd_params_t* cmd_get_params(void)
 {
-    cmd_params.days = days;
-	return 0;
+    return &cmd_params;
 }
-s16 cmd_set_clock(clock_t *clock)
+void cmd_set_params(cmd_params_t* params)
 {
-    cmd_params.clock = clock;
-	return 0;
+    MemCopy(&cmd_params, params, sizeof(cmd_params_t));
 }
-s16 cmd_set_data(his_data_t *data)
-{
-    cmd_params.data = data;
-	return 0;
-}
-s16 cmd_set_steps(u32 steps)
-{
-    cmd_params.steps = steps;
-	return 0;
-}
-//void set_minutes_info(SPORT_INFO_T *info)
-//{
-//    minute_sport = info;
-//}
 s16 cmd_init(adapter_callback cb)
 {
 	cmd_cb = cb;

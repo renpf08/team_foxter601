@@ -529,7 +529,13 @@ typedef struct {
     u16 FloorCounts;          /*爬楼数 层*/
     u16 AcuteSportTimeCounts; /*剧烈运动时间 分钟*/
 }SPORT_INFO_T;  /*运动数据结构*/
-SPORT_INFO_T Total_Sport_Info_data;
+typedef struct {
+    clock_t *clock;
+    his_data_t *data;
+    u32 steps; // current day
+    u32 min_steps;
+    s16 days;
+} cmd_params_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);

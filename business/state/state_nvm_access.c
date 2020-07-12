@@ -15,20 +15,21 @@ s16 state_access_nvm(REPORT_E cb, void *args)
 	clock_t *clock = NULL;
     SPORT_INFO_T* sport_info = NULL;
 	clock = clock_get();
+    cmd_params_t* params = cmd_get_params();
     #if USE_PARAM_STORE
     cmd_group_t *value = cmd_get();
     #endif
     
     if(cb == READ_STEPS_TARGET) {
-        cmd_set_clock(clock);
+        params->clock = clock;
     } else if(cb == READ_HISDAYS) {
         nvm_read_ctrl(&ctrl);
         ctrl.read_tail = ctrl.ring_buf_tail; // reset read pointer
         nvm_write_ctrl(&ctrl);
-        cmd_set_days(nvm_get_days());
+        params->days = nvm_get_days();
     } else if(cb == READ_HISDATA) {
         res = nvm_read_history_data((u16*)&data, READ_HISDATA_TOTAL);//res = nvm_read_data(&data);//
-        cmd_set_data(&data);
+        params->data = &data;
     } else if(cb == SET_USER_INFO) {
         sport_set(&cmd_get()->user_info);
     } else if(cb == READ_REALTIME_SPORT) {
@@ -39,7 +40,7 @@ s16 state_access_nvm(REPORT_E cb, void *args)
         data.steps = sport_info->StepCounts;
         data.colorie = sport_info->Calorie;
         data.acute = sport_info->AcuteSportTimeCounts;
-        cmd_set_data(&data);
+        params->data = &data;
     } 
     #if USE_PARAM_STORE
     else if(cb == READ_ALARM_CLOCK) {
@@ -55,6 +56,7 @@ s16 state_access_nvm(REPORT_E cb, void *args)
     }
     #endif
     
+    cmd_set_params(params);
 	*state = CLOCK;
 	return res;
 }
