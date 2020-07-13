@@ -101,41 +101,42 @@ static s16 cmd_pairing_code(u8 *buffer, u8 length)
 }
 static s16 cmd_user_info(u8 *buffer, u8 length)
 {
-    typedef struct {
-        u8 cmd; 
-        u8 steps[4];
-        u8 dists[4];
-        u8 calorie[4];
-        u8 floors[2];
-        u8 acute[2];
-        u8 gender;
-        u8 height;
-        u8 weight;
-    } tmp_info_t;
-    tmp_info_t* tmp_info = (tmp_info_t*)buffer;
+//    typedef struct {
+//        u8 cmd; 
+//        u8 steps[4];
+//        u8 dists[4];
+//        u8 calorie[4];
+//        u8 floors[2];
+//        u8 acute[2];
+//        u8 gender;
+//        u8 height;
+//        u8 weight;
+//    } tmp_info_t;
+//    tmp_info_t* tmp_info = (tmp_info_t*)buffer;
+    u8* tmp_buf = (u8*)&cmd_group.user_info.target_steps;
 
-    if(tmp_info->gender > 1) return 1;
-    cmd_group.user_info.target_steps = tmp_info->steps[0];cmd_group.user_info.target_steps <<= 8;
-    cmd_group.user_info.target_steps |= tmp_info->steps[1];cmd_group.user_info.target_steps <<= 8;
-    cmd_group.user_info.target_steps |= tmp_info->steps[2];cmd_group.user_info.target_steps <<= 8;
-    cmd_group.user_info.target_steps |= tmp_info->steps[3];
-    cmd_group.user_info.target_dists = tmp_info->steps[0];cmd_group.user_info.target_dists <<= 8;
-    cmd_group.user_info.target_dists |= tmp_info->dists[1];cmd_group.user_info.target_dists <<= 8;
-    cmd_group.user_info.target_dists |= tmp_info->dists[2];cmd_group.user_info.target_dists <<= 8;
-    cmd_group.user_info.target_dists |= tmp_info->dists[3];
-    cmd_group.user_info.target_calorie = tmp_info->calorie[0];cmd_group.user_info.target_calorie <<= 8;
-    cmd_group.user_info.target_calorie |= tmp_info->calorie[1];cmd_group.user_info.target_calorie <<= 8;
-    cmd_group.user_info.target_calorie |= tmp_info->calorie[2];cmd_group.user_info.target_calorie <<= 8;
-    cmd_group.user_info.target_calorie |= tmp_info->calorie[3];
-    cmd_group.user_info.target_floors = (tmp_info->floors[0]<<8 | tmp_info->floors[1]);
-    cmd_group.user_info.target_acute_sport = (tmp_info->acute[0]<<8 | tmp_info->acute[1]);
-    cmd_group.user_info.gender = tmp_info->gender;
-    cmd_group.user_info.height = tmp_info->height;
-    cmd_group.user_info.weight = tmp_info->weight;
+    BufWriteUint32((uint8 **)&tmp_buf, (u32*)&buffer[1]);
+
     
-//    cmd_user_info_t* user_info = (cmd_user_info_t*)buffer;
-//    MemCopy(&cmd_group.user_info, buffer, sizeof(cmd_user_info_t));
-    cmd_group.user_info.cmd |= 0x80;
+//    if(tmp_info->gender > 1) return 1;
+//    cmd_group.user_info.target_steps = tmp_info->steps[0];cmd_group.user_info.target_steps <<= 8;
+//    cmd_group.user_info.target_steps |= tmp_info->steps[1];cmd_group.user_info.target_steps <<= 8;
+//    cmd_group.user_info.target_steps |= tmp_info->steps[2];cmd_group.user_info.target_steps <<= 8;
+//    cmd_group.user_info.target_steps |= tmp_info->steps[3];
+//    cmd_group.user_info.target_dists = tmp_info->steps[0];cmd_group.user_info.target_dists <<= 8;
+//    cmd_group.user_info.target_dists |= tmp_info->dists[1];cmd_group.user_info.target_dists <<= 8;
+//    cmd_group.user_info.target_dists |= tmp_info->dists[2];cmd_group.user_info.target_dists <<= 8;
+//    cmd_group.user_info.target_dists |= tmp_info->dists[3];
+//    cmd_group.user_info.target_calorie = tmp_info->calorie[0];cmd_group.user_info.target_calorie <<= 8;
+//    cmd_group.user_info.target_calorie |= tmp_info->calorie[1];cmd_group.user_info.target_calorie <<= 8;
+//    cmd_group.user_info.target_calorie |= tmp_info->calorie[2];cmd_group.user_info.target_calorie <<= 8;
+//    cmd_group.user_info.target_calorie |= tmp_info->calorie[3];
+//    cmd_group.user_info.target_floors = (tmp_info->floors[0]<<8 | tmp_info->floors[1]);
+//    cmd_group.user_info.target_acute_sport = (tmp_info->acute[0]<<8 | tmp_info->acute[1]);
+//    cmd_group.user_info.gender = tmp_info->gender;
+//    cmd_group.user_info.height = tmp_info->height;
+//    cmd_group.user_info.weight = tmp_info->weight;
+    
     return 0;
 }
 static s16 cmd_set_time(u8 *buffer, u8 length)
