@@ -133,7 +133,8 @@ static s16 cmd_user_info(u8 *buffer, u8 length)
 //    cmd_group.user_info.height = tmp_info->height;
 //    cmd_group.user_info.weight = tmp_info->weight;
 
-    cmd_group.user_info.target_steps = ((u32)buffer[1]<<24)|((u32)buffer[2]<<16)|((u32)buffer[3]<<8)|((u32)buffer[4]);    
+    //cmd_group.user_info.target_steps = ((u32)buffer[1]<<24)|((u32)buffer[2]<<16)|((u32)buffer[3]<<8)|((u32)buffer[4]);
+    cmd_group.user_info.target_steps = ((u32)buffer[4]<<24)|((u32)buffer[3]<<16)|((u32)buffer[2]<<8)|((u32)buffer[1]);
     return 0;
 }
 static s16 cmd_set_time(u8 *buffer, u8 length)

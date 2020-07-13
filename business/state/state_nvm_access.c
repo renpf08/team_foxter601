@@ -43,21 +43,18 @@ s16 state_access_nvm(REPORT_E cb, void *args)
     #if USE_PARAM_STORE
     else if(cb == READ_ALARM_CLOCK) {
         nvm_read_alarm_clock((u16*)&value->set_alarm_clock, 0);
-        cmd_set(value);
     } else if(cb == WRITE_ALARM_CLOCK) {
         nvm_write_alarm_clock((u16*)&value->set_alarm_clock, 0);
     } else if(cb == READ_PAIRING_CODE) {
         nvm_read_pairing_code((u16*)&value->pair_code, 0);
-        cmd_set(value);
     } else if(cb == WRITE_USER_INFO) {
         sport_set(&value->user_info);
         nvm_write_personal_info((u16*)&value->user_info, 0);
     } else if(cb == REAE_USER_INFO) {
         nvm_read_personal_info((u16*)&value->user_info, 0);
-        cmd_set(value);
     }
+    cmd_set(value);
     #endif
-    
     cmd_set_params(params);
 	*state = CLOCK;
 	return res;

@@ -167,7 +167,7 @@ static s16 ble_pair(void *args)
         ble_state_set(app_pairing_ok);
         #if USE_PARAM_STORE
         if(pairing_code != 0x0000) 
-            nvm_read_pairing_code((u16*)&pair_code.pair_code, 0);// 0x0000 is test pair code, no need to store in nvm
+            nvm_write_pairing_code((u16*)&pair_code.pair_code, 0);// 0x0000 is test pair code, no need to store in nvm
         #endif
         *state = CLOCK;
     } else if(pair_code.pair_bgn == 1) {

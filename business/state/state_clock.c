@@ -57,6 +57,7 @@ static void minute_data_handler(clock_t *clock)
     if(sys_init == 0) {
         sys_init = 1;
         sport_set(&cmd_get()->user_info);
+        return;
     } else if((clock->hour == 59)&&(clock->minute == 59)&&(clock->second == 59)) { // new day
         sport_info = sport_get();
         data.year = clock->year;
