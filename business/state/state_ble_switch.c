@@ -129,8 +129,11 @@ void pair_code_generate(void)
             break;
         }
     }
-    //BLE_SEND_LOG((u8*)&hour, 1);
-    //BLE_SEND_LOG((u8*)&minute, 1);
+
+    u8 test_buf[3] = {0xAA, 0, 0};
+    test_buf[1] = hour;
+    test_buf[2] = minute;
+    BLE_SEND_LOG((u8*)&test_buf, 3);
 	
 	motor_hour_to_position(hour);
 	motor_minute_to_position(minute);
@@ -139,7 +142,7 @@ void pair_code_generate(void)
 
 static s16 ble_pair(void *args)
 {
-    s16 res = 1;
+    s16 res = 0;
     STATE_E *state = (STATE_E *)args;
     u8* code = cmd_get()->pair_code.code;
     u16 pairing_code = (code[0]<<8)|code[1];
@@ -153,21 +156,25 @@ static s16 ble_pair(void *args)
         pair_code.pair_bgn = 1;
         pair_code_generate();
         ble_state_set(app_pairing);
-    #if USE_PAIR_CODE_0101
+    #if USE_PAIR_CODE_0000
     } else if((pairing_code == pair_code.pair_code) || 
-              (pairing_code == 0x0101)) {
+              (pairing_code == 0x0000)) {
     #else
     } else if(pairing_code == pair_code.pair_code) {
     #endif
         BLE_SEND_LOG((u8*)&"pair matched", 12);
         pair_code.pair_bgn = 0;
         ble_state_set(app_pairing_ok);
-        if(pairing_code != 0x0101) res = 0; // 0x0101 is test pair code, no need to store in nvm
+        #if USE_PARAM_STORE
+        if(pairing_code != 0x0000) 
+            nvm_read_pairing_code((u16*)&pair_code.pair_code, 0);// 0x0000 is test pair code, no need to store in nvm
+        #endif
         *state = CLOCK;
     } else if(pair_code.pair_bgn == 1) {
         BLE_SEND_LOG((u8*)&"pair mis-match", 14);
         pair_code_generate();
         ble_state_set(app_pairing);
+        res = 1;
     } else {
         //print((u8*)&"not pair mode", 13);
         *state = CLOCK;
@@ -175,6 +182,7 @@ static s16 ble_pair(void *args)
 
 	return res;
 }
+
 
 static u16 ble_change(void *args)
 {

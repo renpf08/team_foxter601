@@ -31,7 +31,7 @@
 #define DISPLAY_SETTING_LENGTH                  (0x4)
 
 #define PERSONAL_INFO_OFFSET                    (DISPLAY_SETTING_OFFSET+DISPLAY_SETTING_LENGTH)
-#define PERSONAL_INFO_LENGTH                    (12)
+#define PERSONAL_INFO_LENGTH                    (sizeof(cmd_user_info_t))
 
 #define SPORT_SETTING_OFFSET                    (PERSONAL_INFO_OFFSET+PERSONAL_INFO_LENGTH)
 #define SPORT_SETTING_LENGTH                    (0x08)
@@ -198,6 +198,12 @@ s16 nvm_storage_init(adapter_callback cb)
     nvm_read((u16*)&init_flag, USER_STORATE_INIT_FLAG_LENGTH, USER_STORATE_INIT_FLAG_OFFSET);
     if(init_flag == 0xA55A)
     {
+        #if USE_PARAM_STORE
+        nvm_cb = cb;
+        nvm_cb(READ_ALARM_CLOCK, NULL);
+        nvm_cb(READ_PAIRING_CODE, NULL);
+        nvm_cb(REAE_USER_INFO, NULL);
+        #endif
         return 1; 
     }
     for(erase_offset = 0; erase_offset < USER_STORAGE_TOTAL_LENGTH; erase_offset++)
@@ -215,11 +221,6 @@ s16 nvm_storage_init(adapter_callback cb)
     init_flag = 0xA55A;
     nvm_write((u16*)&init_flag, USER_STORATE_INIT_FLAG_LENGTH, USER_STORATE_INIT_FLAG_OFFSET);/* write user storage init flag */
 
-    #if USE_PARAM_STORE
-    nvm_cb = cb;
-    nvm_cb(READ_ALARM_CLOCK, NULL);
-    nvm_cb(READ_PAIRING_CODE, NULL);
-    #endif
     return 0;
 }
 #if USE_PARAM_STORE

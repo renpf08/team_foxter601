@@ -64,9 +64,9 @@ s16 cmd_init(adapter_callback cb);
 static const CMDENTRY cmd_list[] =
 {
     {CMD_PAIRING_CODE,      BLE_PAIR,           cmd_pairing_code},
-    {CMD_USER_INFO,         SET_USER_INFO,      cmd_user_info},
+    {CMD_USER_INFO,         WRITE_USER_INFO,    cmd_user_info},
     {CMD_SET_TIME,          SET_TIME,           cmd_set_time},
-    {CMD_SET_ALARM_CLOCK,   SET_ALARM_CLOCK,    cmd_set_alarm_clock},
+    {CMD_SET_ALARM_CLOCK,   WRITE_ALARM_CLOCK,  cmd_set_alarm_clock},
     {CMD_NOTIFY_SWITCH,     NOTIFY_SWITCH,      cmd_notify_switch},
     {CMD_SYNC_DATA,         SYNC_DATA,          cmd_sync_data},
     {CMD_APP_ACK,           APP_ACK,            cmd_app_ack},
@@ -132,12 +132,8 @@ static s16 cmd_user_info(u8 *buffer, u8 length)
 //    cmd_group.user_info.gender = tmp_info->gender;
 //    cmd_group.user_info.height = tmp_info->height;
 //    cmd_group.user_info.weight = tmp_info->weight;
-    
-    cmd_group.user_info.target_steps = buffer[1];cmd_group.user_info.target_steps <<= 8;
-    cmd_group.user_info.target_steps |= buffer[2];cmd_group.user_info.target_steps <<= 8;
-    cmd_group.user_info.target_steps |= buffer[3];cmd_group.user_info.target_steps <<= 8;
-    cmd_group.user_info.target_steps |= buffer[4];
-    
+
+    cmd_group.user_info.target_steps = ((u32)buffer[1]<<24)|((u32)buffer[2]<<16)|((u32)buffer[3]<<8)|((u32)buffer[4]);    
     return 0;
 }
 static s16 cmd_set_time(u8 *buffer, u8 length)
@@ -423,12 +419,6 @@ void cmd_parse(u8* content, u8 length)
         res = cmd_cb(cmd_list[i].report, NULL);
         cmd_resp(cmd_list[i].cmd, res, &content[1]);
     }
-
-    #if USE_PARAM_STORE
-    if((cmd_list[i].cmd == CMD_PAIRING_CODE) && (res == 0)) {
-        cmd_cb(WRITE_PAIRING_CODE, NULL);
-    }
-    #endif
 }
 cmd_group_t *cmd_get(void)
 {
