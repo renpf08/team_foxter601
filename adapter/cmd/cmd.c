@@ -113,11 +113,7 @@ static s16 cmd_user_info(u8 *buffer, u8 length)
 //        u8 weight;
 //    } tmp_info_t;
 //    tmp_info_t* tmp_info = (tmp_info_t*)buffer;
-    u8* tmp_buf = (u8*)&cmd_group.user_info.target_steps;
-
-    BufWriteUint32((uint8 **)&tmp_buf, (u32*)&buffer[1]);
-
-    
+//    
 //    if(tmp_info->gender > 1) return 1;
 //    cmd_group.user_info.target_steps = tmp_info->steps[0];cmd_group.user_info.target_steps <<= 8;
 //    cmd_group.user_info.target_steps |= tmp_info->steps[1];cmd_group.user_info.target_steps <<= 8;
@@ -136,6 +132,11 @@ static s16 cmd_user_info(u8 *buffer, u8 length)
 //    cmd_group.user_info.gender = tmp_info->gender;
 //    cmd_group.user_info.height = tmp_info->height;
 //    cmd_group.user_info.weight = tmp_info->weight;
+    
+    cmd_group.user_info.target_steps = buffer[1];cmd_group.user_info.target_steps <<= 8;
+    cmd_group.user_info.target_steps |= buffer[2];cmd_group.user_info.target_steps <<= 8;
+    cmd_group.user_info.target_steps |= buffer[3];cmd_group.user_info.target_steps <<= 8;
+    cmd_group.user_info.target_steps |= buffer[4];
     
     return 0;
 }
