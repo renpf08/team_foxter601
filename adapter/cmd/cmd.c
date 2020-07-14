@@ -55,6 +55,9 @@ static s16 cmd_set_vibration(u8 *buffer, u8 length);
 static s16 cmd_find_watch(u8 *buffer, u8 length);
 static s16 cmd_set_ancs_bond_req(u8 *buffer, u8 length);
 static s16 cmd_READ_STEPS_TARGET(u8 *buffer, u8 length);
+#if USE_CMD_ZERO_ADJUST
+static s16 cmd_zero_adjust(u8 *buffer, u8 length);
+#endif
 #if USE_NVM_TEST
 static s16 cmd_nvm_test(u8 *buffer, u8 length);
 #endif
@@ -78,7 +81,9 @@ static const CMDENTRY cmd_list[] =
     {CMD_SET_FIND_WATCH,    SET_FIND_WATCH,     cmd_find_watch},
     {CMD_SET_ANCS_BOND_REQ, SET_ANCS_BOND_REQ,  cmd_set_ancs_bond_req},
     {CMD_READ_STEPS_TARGET, READ_STEPS_TARGET,  cmd_READ_STEPS_TARGET},
-
+    #if USE_CMD_ZERO_ADJUST
+    {CMD_ZERO_ADJUST,       REPORT_MAX,         cmd_zero_adjust},
+    #endif
     #if USE_NVM_TEST
     {CMD_NVM_TEST,          REPORT_MAX,         cmd_nvm_test},
     #endif
@@ -240,6 +245,22 @@ static s16 cmd_READ_STEPS_TARGET(u8 *buffer, u8 length)
     MemCopy(&cmd_group.read_time_step, buffer, sizeof(cmd_READ_STEPS_TARGET_t)); 
     return 0;
 }
+#if USE_CMD_ZERO_ADJUST
+static s16 cmd_zero_adjust(u8 *buffer, u8 length)
+{
+    if(buffer[1] == 0) {
+        cmd_cb(KEY_A_B_LONG_PRESS, NULL);
+    } else if(buffer[1] == 1) {
+        cmd_cb(KEY_M_SHORT_PRESS, NULL);
+    } else if(buffer[1] == 2) {
+        cmd_cb(KEY_A_SHORT_PRESS, NULL);
+    } else if(buffer[1] == 2) {
+        cmd_cb(KEY_B_SHORT_PRESS, NULL);
+    }
+    
+    return 0;
+}
+#endif
 #if USE_NVM_TEST
 static s16 cmd_nvm_test(u8 *buffer, u8 length)
 {

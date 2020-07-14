@@ -39,6 +39,7 @@ FO601
 #define USE_WHITELIST_ADV   0
 #define USE_ADV_DATA        1  
 #define USE_PAIR_CODE_0000  1 // test mode, use pair code of 0x0000 as a bypass code 
+#define USE_CMD_ZERO_ADJUST 1
 
 /* Timer value for starting the Discovery Procedure once the connection is
  * established. 
