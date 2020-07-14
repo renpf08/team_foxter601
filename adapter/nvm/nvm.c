@@ -195,14 +195,14 @@ s16 nvm_storage_init(adapter_callback cb)
     u16 erase_value = 0;
     u16 init_flag = 0;
 
+    #if USE_PARAM_STORE
+    nvm_cb = cb;
+    #endif
     nvm_read((u16*)&init_flag, USER_STORATE_INIT_FLAG_LENGTH, USER_STORATE_INIT_FLAG_OFFSET);
     if(init_flag == 0xA55A)
     {
         #if USE_PARAM_STORE
-        nvm_cb = cb;
-        nvm_cb(READ_ALARM_CLOCK, NULL);
-        nvm_cb(READ_PAIRING_CODE, NULL);
-        nvm_cb(REAE_USER_INFO, NULL);
+        nvm_cb(READ_SYS_PARAMS, NULL);
         #endif
         return 1; 
     }
@@ -220,6 +220,10 @@ s16 nvm_storage_init(adapter_callback cb)
 
     init_flag = 0xA55A;
     nvm_write((u16*)&init_flag, USER_STORATE_INIT_FLAG_LENGTH, USER_STORATE_INIT_FLAG_OFFSET);/* write user storage init flag */
+    
+    #if USE_PARAM_STORE
+    nvm_cb(WRITE_USER_INFO, NULL);
+    #endif
 
     return 0;
 }

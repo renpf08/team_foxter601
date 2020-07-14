@@ -56,9 +56,8 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               WRITE_USER_INFO,        NVM_ACCESS,             state_access_nvm),
 	STATE_FILL(CLOCK,               READ_REALTIME_SPORT,    NVM_ACCESS,             state_access_nvm),
 	#if USE_PARAM_STORE
-	STATE_FILL(INIT,                READ_ALARM_CLOCK,       NVM_ACCESS,             state_access_nvm),
-	STATE_FILL(INIT,                READ_PAIRING_CODE,      NVM_ACCESS,             state_access_nvm),
-	STATE_FILL(INIT,                REAE_USER_INFO,         NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(INIT,                READ_SYS_PARAMS,        NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(INIT,                WRITE_USER_INFO,        NVM_ACCESS,             state_access_nvm),
 	STATE_FILL(CLOCK,               WRITE_ALARM_CLOCK,      NVM_ACCESS,             state_access_nvm),
 	STATE_FILL(CLOCK,               WRITE_USER_INFO,        NVM_ACCESS,             state_access_nvm),
 	#endif

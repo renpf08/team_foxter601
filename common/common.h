@@ -85,9 +85,7 @@ typedef enum {
     READ_HISDATA = 38,
     READ_REALTIME_SPORT = 39,
     #if USE_PARAM_STORE
-    READ_ALARM_CLOCK = 40,
-    READ_PAIRING_CODE = 41,
-    REAE_USER_INFO = 42,
+    READ_SYS_PARAMS = 43,
     #endif
 	REPORT_MAX,
 }REPORT_E;
