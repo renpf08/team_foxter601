@@ -254,7 +254,7 @@ static s16 cmd_zero_adjust(u8 *buffer, u8 length)
         cmd_cb(KEY_M_SHORT_PRESS, NULL);
     } else if(buffer[1] == 2) {
         cmd_cb(KEY_A_SHORT_PRESS, NULL);
-    } else if(buffer[1] == 2) {
+    } else if(buffer[1] == 3) {
         cmd_cb(KEY_B_SHORT_PRESS, NULL);
     }
     
