@@ -2239,6 +2239,7 @@ void AppInit(sleep_state last_sleep_state)
       * add by mlw at 20200314 01:37
       */
     m_devname_init(devName);
+	
     #if USE_UART_PRINT
     print(devName, StrLen((char*)devName));
     #endif
@@ -2271,7 +2272,6 @@ void AppInit(sleep_state last_sleep_state)
     
     /** add by mlw at 20200318 15:05(seems not necessary.) */
     AncsServiceDataInit();
-
     //ble_switch_off();
     //nvm_write_test();
 }

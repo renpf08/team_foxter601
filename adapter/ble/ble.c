@@ -2,7 +2,7 @@
 #include "adapter/adapter.h"
 #include <macros.h>
 
-static app_state ble_last_state = app_init;
+static app_state ble_last_state = app_advertising;
 static adapter_callback ble_switch_cb = NULL;
 
 s16 ble_switch_init(adapter_callback cb);
@@ -16,6 +16,7 @@ void ble_switch_on(void)
     } else {
     }
 }
+
 void ble_switch_off(void)
 {
     if(g_app_data.state == app_connected) {
@@ -26,6 +27,7 @@ void ble_switch_off(void)
         AppSetState(app_idle);
     }
 }
+
 void ble_state_set(app_state cur_state)
 {
     if(cur_state == app_pairing) {
@@ -43,6 +45,10 @@ void ble_state_set(app_state cur_state)
         return;
     }
     ble_last_state = cur_state;
+    #if USE_UART_PRINT
+	print((u8*)&"ble_status", 10);
+	print((u8*)&cur_state, 1);
+    #endif
     ble_switch_cb(BLE_CHANGE, NULL);
 }
 

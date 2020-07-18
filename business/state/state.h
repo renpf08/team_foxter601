@@ -5,13 +5,13 @@ s16 state_clock(REPORT_E cb, void *args);
 s16 state_low_voltage(REPORT_E cb, void *args);
 
 s16 state_zero_adjust(REPORT_E cb, void *args);
-//void zero_adjust_test(u16 id);
+void zero_adjust_test(u16 id);
 
 s16 state_ble_switch(REPORT_E cb, void *args);
 //void ble_switch_test(u16 id);
 
 s16 state_notify(REPORT_E cb, void *args);
-//void notify_test(u16 id);
+void notify_test(void);
 
 s16 state_battery_week_switch(REPORT_E cb, void *args);
 s16 state_battery_week_status_get(void);
@@ -21,6 +21,8 @@ s16 state_run_test(REPORT_E cb, void *args);
 //void test_run_test(u16 id);
 
 s16 state_time_adjust(REPORT_E cb, void *args);
+void time_adjust_test(u16 id);
+
 s16 state_set_date_time(REPORT_E cb, void *args);
 s16 state_access_nvm(REPORT_E cb, void *args);
 s16 state_reboot(REPORT_E cb, void *args);

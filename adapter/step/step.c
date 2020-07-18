@@ -369,8 +369,8 @@ static void step_sample_handler(u16 id)
 }
 s16 step_sample_init(adapter_callback cb)
 {
-	get_driver()->timer->timer_start(280, step_sample_handler);  
-    MemSet(&Total_Sport_Info_data, 0, sizeof(SPORT_INFO_T));
+	get_driver()->timer->timer_start(280, step_sample_handler); 
+
     Step_Count_data.Pro_Step=PRO_STEP_START;  
     steps_cb = cb;
 	return 0;

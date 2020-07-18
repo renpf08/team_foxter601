@@ -287,6 +287,11 @@ enum {
 	neg = 1,
 };
 
+enum{
+	run,
+	idle,
+};
+
 typedef struct {
 	u8 group;
 	u8 num;
@@ -586,6 +591,7 @@ typedef struct {
 
 typedef struct {
 	pin_t pin;
+	u8 flag;
 	event_callback key_cb;
 	EVENT_E last_state;
 	EVENT_E now_state;

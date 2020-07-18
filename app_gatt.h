@@ -233,8 +233,10 @@ typedef enum
     app_panic_unknown,
     
     /* Failure while erasing NVM */
-    app_panic_nvm_erase
+    app_panic_nvm_erase,
 
+	/* Timer create fail*/
+	app_timer_create_fail,
 }app_panic_code;
 
 
@@ -259,7 +261,7 @@ typedef enum app_state_tag
     app_pairing,
     app_pairing_ok,
     app_advertising,
-
+	
     /* Idle state */
     app_idle,
 
@@ -294,11 +296,6 @@ typedef enum
  *============================================================================*/
 /* This function checks if application is bonded to any device or not */
 extern bool AppIsDeviceBonded(void);
-
-#if USE_PANIC_PRINT
-/* This is used to report panic which results in chip reset */
-extern void ReportPanic(const char* file, const char* func, unsigned line, app_panic_code code);
-#endif
 
 /* Returns the connection ID of the application */
 extern uint16 GetConnectionID(void);

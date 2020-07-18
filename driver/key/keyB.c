@@ -9,12 +9,15 @@ static csr_key_cfg_t csr_keyb_cfg = {
 				.group = 0,
 				.num = 0,
            },
+	.flag = 0,
 	.key_cb = NULL,
 	.last_state = KEY_B_UP,
 };
 
 static void csr_keyb_event_recheck(u16 id)
 {
+	csr_keyb_cfg.flag = 0;
+
 	if((true == VAL_GET(csr_keyb_cfg.pin.num)) &&
 		(KEY_B_UP == csr_keyb_cfg.now_state)) {
 		csr_keyb_cfg.now_state = KEY_B_UP;
@@ -39,11 +42,17 @@ s16 csr_keyb_event_handler(u32 key_num, u32 key_status)
 {
 	if(key_num & (0x01UL << csr_keyb_cfg.pin.num)) {
 		if(key_status & (0x01UL << csr_keyb_cfg.pin.num)) {
-			csr_keyb_cfg.now_state = KEY_B_UP;
-			timer_create(10*MILLISECOND, csr_keyb_event_recheck);
+			if(0 == csr_keyb_cfg.flag) {
+				csr_keyb_cfg.flag = 1;
+				csr_keyb_cfg.now_state = KEY_B_UP;
+				timer_create(10*MILLISECOND, csr_keyb_event_recheck);
+			}
 		} else {
-			csr_keyb_cfg.now_state = KEY_B_DOWN;
-			timer_create(10*MILLISECOND, csr_keyb_event_recheck);
+			if(0 == csr_keyb_cfg.flag) {
+				csr_keyb_cfg.flag = 1;
+				csr_keyb_cfg.now_state = KEY_B_DOWN;
+				timer_create(10*MILLISECOND, csr_keyb_event_recheck);
+			}
 		}
 	}
 	return 0;

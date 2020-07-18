@@ -43,6 +43,10 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               KEY_M_SHORT_PRESS,   	BATTERY_WEEK_SWITCH,    state_battery_week_switch),
 	/*time adjust*/
 	STATE_FILL(CLOCK,               KEY_B_M_LONG_PRESS,   	TIME_ADJUST,            state_time_adjust),
+	STATE_FILL(TIME_ADJUST,         KEY_A_SHORT_PRESS,   	TIME_ADJUST,            state_time_adjust),	
+	STATE_FILL(TIME_ADJUST,         KEY_B_SHORT_PRESS,   	TIME_ADJUST,            state_time_adjust),
+	STATE_FILL(TIME_ADJUST,         KEY_M_SHORT_PRESS,   	TIME_ADJUST,            state_time_adjust),
+	STATE_FILL(TIME_ADJUST,         KEY_B_M_LONG_PRESS,   	TIME_ADJUST,            state_time_adjust),
 	/*run test*/
 	STATE_FILL(CLOCK,       		KEY_A_B_M_LONG_PRESS,   RUN_TEST,  				state_run_test),
 	STATE_FILL(RUN_TEST,    		KEY_A_B_M_LONG_PRESS,   RUN_TEST,  				state_run_test),
@@ -73,8 +77,11 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	u16 i = 0;
     s16 res = 0;
 
-	//print((u8 *)&cb, 1);
-
+	//return 0;
+    #if USE_UART_PRINT
+	print((u8 *)&cb, 1);
+    #endif
+    
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 
 			(state[i].ev == cb)) {
@@ -86,12 +93,13 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	return res;
 }
 
-//#define TEST_BATTERY_WEEK
+//#define TEST_TIME_ADJUST
 s16 business_init(void)
 {
 	s16 battery_week_status;
 
 	adapter_init(adapter_cb_handler);
+
     #if USE_UART_PRINT
     print((u8*)&"system started.", 15);
     #endif
@@ -101,7 +109,7 @@ s16 business_init(void)
 	#endif
 
 	#ifdef TEST_NOTIFY
-	timer_event(1000, notify_test);
+	notify_test();
 	#endif
 
 	#ifdef TEST_BLE_SWITCH
@@ -116,6 +124,10 @@ s16 business_init(void)
 	battery_week_test(adapter_cb_handler);
 	#endif
 
+	#ifdef TEST_TIME_ADJUST
+	timer_event(1000, time_adjust_test);
+	#endif
+	
 	battery_week_status = state_battery_week_status_get();
 	if(state_battery == battery_week_status) {
 		state_battery_week_switch(KEY_M_SHORT_PRESS, NULL);

@@ -41,9 +41,7 @@ static s16 state_zero_adjust_motor_back_zero(u8 motor_num)
 }
 
 s16 state_zero_adjust(REPORT_E cb, void *args)
-{
-	//print((u8 *)&"zero_adjust", 11);
-	
+{	
 	if(KEY_A_B_LONG_PRESS == cb) {
 		/*hour back to zero position*/
 		state_zero.motor_num = minute_motor;
@@ -68,8 +66,7 @@ s16 state_zero_adjust(REPORT_E cb, void *args)
 
 #if 0
 u8 test[] = {KEY_A_B_LONG_PRESS, KEY_A_SHORT_PRESS, KEY_A_SHORT_PRESS, KEY_A_SHORT_PRESS,
-			KEY_B_SHORT_PRESS, KEY_B_SHORT_PRESS, KEY_B_SHORT_PRESS, KEY_M_SHORT_PRESS};
-
+			 KEY_B_SHORT_PRESS, KEY_B_SHORT_PRESS, KEY_B_SHORT_PRESS, KEY_M_SHORT_PRESS};
 void zero_adjust_test(u16 id)
 {
 	static u8 cnt = 0;

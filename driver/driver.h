@@ -6,6 +6,7 @@
 #include <pio.h>            /* Programmable I/O configuration and control */
 #include <panic.h>          /* Support for applications to panic */
 #include <debug.h>          /* Simple host interface to the UART driver */
+#include "../ancs_client.h"
 
 typedef struct {
 	init 			uart_init;

@@ -107,7 +107,7 @@ static s16 csr_motor_hour_init(cfg_t *args, event_callback cb)
 	
 	PioSetDir(csr_motor_hour_cfg.pos.num, PIO_DIR_INPUT);
 	PioSetDir(csr_motor_hour_cfg.com.num, PIO_DIR_OUTPUT);
-	PioSetDir(csr_motor_hour_cfg.neg.num, PIO_DIR_INPUT);
+	PioSetDir(csr_motor_hour_cfg.neg.num, PIO_DIR_INPUT);	
 	
 	PioSetPullModes(BIT_MASK(csr_motor_hour_cfg.pos.num)| \
 					BIT_MASK(csr_motor_hour_cfg.com.num)| \

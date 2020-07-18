@@ -84,6 +84,9 @@ s16 state_notify(REPORT_E cb, void *args)
     }
 	if(NOTIFY_ADD == ancs_msg->sta) {
 		if(ancs_msg->type < NOTIFY_DONE) {
+            #if USE_UART_PRINT
+			print((u8 *)&ancs_msg->type, 1);
+            #endif
 			motor_notify_to_position(ancs_msg->type);
 		}
 	}else if(NOTIFY_REMOVE == ancs_msg->sta) {
@@ -97,9 +100,26 @@ s16 state_notify(REPORT_E cb, void *args)
 }
 
 #if 0
-void notify_test(u16 id)
+void notify_test_timeout(u16 id);
+void notify_test_timeout(u16 id)
 {
-	state_notify(ANCS_NOTIFY_INCOMING, NULL);
-	timer_event(1000, notify_test);
+	motor_notify_to_position(NOTIFY_SMS);
+}
+
+void notify_test(void)
+{
+#if 0
+	NOTIFY_NONE = 0,
+	NOTIFY_SKYPE = 1,
+	NOTIFY_WHATSAPP = 2,
+	NOTIFY_TWITTER = 3,
+	NOTIFY_EMAIL = 4,
+	NOTIFY_FACEBOOK = 5,
+	NOTIFY_SMS = 6,
+	NOTIFY_LINKIN = 7,
+	NOTIFY_COMMING_CALL = 8,
+#endif
+	motor_notify_to_position(NOTIFY_LINKIN);
+	timer_event(2000, notify_test_timeout);
 }
 #endif
