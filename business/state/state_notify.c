@@ -84,7 +84,9 @@ s16 state_notify(REPORT_E cb, void *args)
     }
 	if(NOTIFY_ADD == ancs_msg->sta) {
 		if(ancs_msg->type < NOTIFY_DONE) {
+            #if USE_UART_PRINT
 			print((u8 *)&ancs_msg->type, 1);
+            #endif
 			motor_notify_to_position(ancs_msg->type);
 		}
 	}else if(NOTIFY_REMOVE == ancs_msg->sta) {

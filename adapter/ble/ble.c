@@ -44,9 +44,11 @@ void ble_state_set(app_state cur_state)
         //print((u8*)&"ble no change", 13);
         return;
     }
-    ble_last_state = cur_state;	
+    ble_last_state = cur_state;
+    #if USE_UART_PRINT
 	print((u8*)&"ble_status", 10);
 	print((u8*)&cur_state, 1);
+    #endif
     ble_switch_cb(BLE_CHANGE, NULL);
 }
 

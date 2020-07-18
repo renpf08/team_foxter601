@@ -96,8 +96,11 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 s16 state_time_adjust(REPORT_E cb, void *args)
 {
 	STATE_E *state = (STATE_E *)args;
-
+    
+    #if USE_UART_PRINT
 	print((u8 *)&"time_adjust", 11);
+    #endif
+    
 	if(KEY_A_B_LONG_PRESS == cb) {
 		if(run == state_time_adj.status) {
 			state_time_adj.status = idle;
@@ -120,7 +123,8 @@ s16 state_time_adjust(REPORT_E cb, void *args)
 		/*motor run positive one unit*/
 		state_time_adjust_motor_run(time_adj_motor[state_time_adj.motor_num], pos);
 	}else if(KEY_B_SHORT_PRESS == cb){
-		/*motor run negtive one unit*/
+		/*motor run negtive one unit*/
+
 		state_time_adjust_motor_run(time_adj_motor[state_time_adj.motor_num], neg);
 	}
 	

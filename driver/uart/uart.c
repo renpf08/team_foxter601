@@ -207,10 +207,12 @@ static timer_id csr_uart_timer_create(uint32 timeout, timer_callback_arg handler
     
     /* If a timer could not be created, panic to restart the app */
     if (tId == TIMER_INVALID) {
+        #if USE_PANIC_PRINT
         //DebugWriteString("\r\nFailed to start timer");
         /* Panic with panic code 0xfe */
         //Panic(0xfe);        
 		ReportPanic(__FILE__, __func__, __LINE__, app_timer_create_fail);
+        #endif
     }
 	return tId;
 }

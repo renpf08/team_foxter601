@@ -78,8 +78,10 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
     s16 res = 0;
 
 	//return 0;
+    #if USE_UART_PRINT
 	print((u8 *)&cb, 1);
-
+    #endif
+    
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 
 			(state[i].ev == cb)) {

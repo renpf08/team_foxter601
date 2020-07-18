@@ -251,10 +251,14 @@ s16 state_ble_switch(REPORT_E cb, void *args)
     s16 res = 0;
     
     if(cb == KEY_M_LONG_PRESS) {
+        #if USE_UART_PRINT
         print((u8*)&"key press", 9);
+        #endif
         res = ble_switch(args);
     } else if(cb == BLE_CHANGE) {
+        #if USE_UART_PRINT
         print((u8*)&"ble change", 10);
+        #endif
         res = ble_change(args);
     } else if(cb == BLE_PAIR) {
         //print((u8*)&"cmd pair", 8);
