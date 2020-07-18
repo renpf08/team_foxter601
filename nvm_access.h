@@ -19,6 +19,7 @@
 #include <types.h>
 #include <status.h>
 #include <panic.h>
+#include "ancs_client.h"
 
 /*============================================================================*
  *  Public Function Prototypes

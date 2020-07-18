@@ -1,5 +1,5 @@
-#include"../common/common.h"
-#include"driver.h"
+#include "../common/common.h"
+#include "driver.h"
 
 extern timer_t csr_timer;
 extern uart_t csr_uart;
@@ -46,11 +46,13 @@ void timer_create(uint32 timeout, timer_callback_arg handler)
 {
     const timer_id tId = TimerCreate(timeout, TRUE, handler);
     
+	ReportPanic(__FILE__, __func__, __LINE__, app_timer_create_fail + tId);
     /* If a timer could not be created, panic to restart the app */
     if (tId == TIMER_INVALID)
-    {
-        DebugWriteString("\r\nFailed to start timer");
+    {    
+		ReportPanic(__FILE__, __func__, __LINE__, app_timer_create_fail);
+        //DebugWriteString("\r\nFailed to start timer");
         /* Panic with panic code 0xfe */
-        Panic(0xfe);
+        //Panic(0xfe);
     }
 }

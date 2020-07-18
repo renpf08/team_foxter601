@@ -178,4 +178,6 @@ extern void DiscoverServices(void);
 /* This function gets called on expiry of OTA wait timer. */
 extern void OtaTimerHandler(timer_id tid);
 
+extern void ReportPanic(const char* file, const char* func, unsigned line, app_panic_code panic_code);
+
 #endif /* __ANCS_CLIENT_H__ */

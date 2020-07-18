@@ -1742,10 +1742,14 @@ extern void ReportPanic(const char* file, const char* func, unsigned line, app_p
 #ifdef ENABLE_DEBUG_PANIC
     Panic(panic_code);
 #else
+	#if 1
     u8 panic_buf[8] = {"painc=xx"};
     panic_buf[6] = panic_code/10 + '0';
     panic_buf[7] = panic_code%10 + '0';
-    print(panic_buf, 8);
+    BLE_SEND_LOG(panic_buf, 8);
+	#else
+	BLE_SEND_LOG((u8 *)&panic_code, 1);
+	#endif
 #endif
 }
 
