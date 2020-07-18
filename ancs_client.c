@@ -222,8 +222,6 @@ static void handleNotificationData(GATT_CHAR_VAL_IND_T *p_event_data);
 /* This function configures the discovered GATT service changed characteristic*/
 static sys_status ConfigureGattIndications(void);
 
-void APP_Move_Bonded(uint8 caller);
-
 /*============================================================================*
  *  Private Function Implementations
  *============================================================================*/
@@ -512,7 +510,9 @@ static void requestConnParamUpdate(void)
         /* Connection parameter update request should not have failed.
          * Report panic 
          */
+        #if USE_PANIC_PRINT
         ReportPanic(__FILE__, __func__, __LINE__, app_panic_con_param_update);
+        #endif
     }
 }
 
@@ -703,7 +703,9 @@ static void handleSignalGattCancelConnectCfm(GATT_CANCEL_CONNECT_CFM_T
             default:
             {
                 /* Control should never come here */
+                #if USE_PANIC_PRINT
                 ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
+                #endif
             }
             break;
         }
@@ -763,7 +765,9 @@ static void handleSignalLmDisconnectComplete(
             default:
             {
                 /* Control should never come here */
+                #if USE_PANIC_PRINT
                 ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
+                #endif
             }
             break;
         }
@@ -866,7 +870,9 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
         default:
         {
             /* Control should never come here */
+            #if USE_PANIC_PRINT
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
+            #endif
         }
         break;
     }
@@ -916,7 +922,9 @@ static void handleSignalLsConnUpdateSignalCfm(
         default:
         {
             /* Control should never come here */
+            #if USE_PANIC_PRINT
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
+            #endif
         }
         break;
     }
@@ -952,7 +960,9 @@ static void handleSignalLmConnectionUpdate(
             /* Connection parameter update indication received in unexpected
              * application state.
              */
+            #if USE_PANIC_PRINT
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
+            #endif
         break;
     }
 }
@@ -1061,7 +1071,9 @@ static void handleSignalGattAccessInd(GATT_ACCESS_IND_T *p_event_data)
 
         default:
             /* Control should never come here */
+            #if USE_PANIC_PRINT
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
+            #endif
         break;
     }
 }
@@ -1113,7 +1125,9 @@ static void handleSignalSmPairingAuthInd(SM_PAIRING_AUTH_IND_T *p_event_data)
         break;
 
         default:
+            #if USE_PANIC_PRINT
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
+            #endif
         break;
     }
 }
@@ -1168,7 +1182,9 @@ static void handleSignalSmSimplePairingCompleteInd(
                     if(LsAddWhiteListDevice(&g_app_data.bonded_bd_addr) != 
                                         ls_err_none)
                     {
+                        #if USE_PANIC_PRINT
                         ReportPanic(__FILE__, __func__, __LINE__, app_panic_add_whitelist);
+                        #endif
                     }
                 }
 
@@ -1291,7 +1307,9 @@ static void handleSignalSmDivApproveInd(SM_DIV_APPROVE_IND_T *p_event_data)
         default:
         {
             /* Control should never come here */
+            #if USE_PANIC_PRINT
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
+            #endif
         }
         break;
 
@@ -1328,7 +1346,9 @@ static void handleSignalGattDbCfm(GATT_ADD_DB_CFM_T *p_event_data)
             else
             {
                 /* Don't expect this to happen */
+                #if USE_PANIC_PRINT
                 ReportPanic(__FILE__, __func__, __LINE__, app_panic_db_registration);
+                #endif
             }
         }
         break;
@@ -1336,7 +1356,9 @@ static void handleSignalGattDbCfm(GATT_ADD_DB_CFM_T *p_event_data)
        default:
         {
             /* Control should never come here */
+            #if USE_PANIC_PRINT
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
+            #endif
         }
        break;
     }
@@ -1398,7 +1420,9 @@ static void handleSignalSmKeysInd(SM_KEYS_IND_T *p_event_data)
         default:
         {
             /* Control should never come here */
+            #if USE_PANIC_PRINT
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
+            #endif
         }
         break;
     }
@@ -1450,7 +1474,9 @@ static void handleSignalLMEncryptionChange(
         default:
         {
             /* Control should never come here */
+            #if USE_PANIC_PRINT
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_invalid_state);
+            #endif
         }
         break;
     }
@@ -1626,7 +1652,9 @@ static void appInitExit(void)
         if(LsAddWhiteListDevice(&g_app_data.bonded_bd_addr) != 
                                         ls_err_none)
         {
+            #if USE_PANIC_PRINT
             ReportPanic(__FILE__, __func__, __LINE__, app_panic_add_whitelist);
+            #endif
         }
     }
 }
@@ -1725,6 +1753,7 @@ extern void WriteApplicationAndServiceDataToNVM(void)
 }
 #endif /* NVM_TYPE_FLASH */
 
+#if USE_PANIC_PRINT
 /*----------------------------------------------------------------------------*
  *  NAME
  *      ReportPanic
@@ -1736,22 +1765,31 @@ extern void WriteApplicationAndServiceDataToNVM(void)
  *      Nothing.
  *
  *----------------------------------------------------------------------------*/
-extern void ReportPanic(const char* file, const char* func, unsigned line, app_panic_code panic_code)
+ #if USE_NVM_TEST
+u8 panic_code = 0;
+u8 panic_get(void)
+{
+    return panic_code;
+}
+#endif //  #if USE_NVM_TEST
+extern void ReportPanic(const char* file, const char* func, unsigned line, app_panic_code code)
 {
     /* If we want any debug prints, we can put them here */
 #ifdef ENABLE_DEBUG_PANIC
-    Panic(panic_code);
+    Panic(code);
 #else
-	#if 1
+    #if USE_UART_PRINT
     u8 panic_buf[8] = {"painc=xx"};
-    panic_buf[6] = panic_code/10 + '0';
-    panic_buf[7] = panic_code%10 + '0';
-    BLE_SEND_LOG(panic_buf, 8);
-	#else
-	BLE_SEND_LOG((u8 *)&panic_code, 1);
-	#endif
+    panic_buf[6] = code/10 + '0';
+    panic_buf[7] = code%10 + '0';
+    print(panic_buf, 8);
+    #if USE_NVM_TEST
+    panic_code = code;
+    #endif //USE_NVM_TEST
+    #endif //USE_UART_PRINT
 #endif
 }
+#endif //#if USE_PANIC_PRINT
 
 /*----------------------------------------------------------------------------*
  *  NAME
@@ -2201,7 +2239,10 @@ void AppInit(sleep_state last_sleep_state)
       * add by mlw at 20200314 01:37
       */
     m_devname_init(devName);
-    //print(devName, StrLen((char*)devName));
+	
+    #if USE_UART_PRINT
+    print(devName, StrLen((char*)devName));
+    #endif
 
     /* Tell Security Manager module about the value it needs to initialise it's
      * diversifier to.
@@ -2232,6 +2273,7 @@ void AppInit(sleep_state last_sleep_state)
     /** add by mlw at 20200318 15:05(seems not necessary.) */
     AncsServiceDataInit();
     //ble_switch_off();
+    //nvm_write_test();
 }
 
 /*----------------------------------------------------------------------------*

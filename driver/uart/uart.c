@@ -1,3 +1,5 @@
+#include "user_config.h"
+#if USE_UART_PRINT
 #include <gatt.h>
 #include <timer.h>
 #include <panic.h>
@@ -260,3 +262,4 @@ uart_t csr_uart = {
 	.uart_read = csr_uart_read,
 	.uart_write = csr_uart_write,
 };
+#endif //USE_UART_PRINT

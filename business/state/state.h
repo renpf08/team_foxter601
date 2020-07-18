@@ -24,5 +24,7 @@ s16 state_time_adjust(REPORT_E cb, void *args);
 void time_adjust_test(u16 id);
 
 s16 state_set_date_time(REPORT_E cb, void *args);
+s16 state_access_nvm(REPORT_E cb, void *args);
+s16 state_reboot(REPORT_E cb, void *args);
 
 #endif

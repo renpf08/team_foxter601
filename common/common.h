@@ -2,6 +2,7 @@
 #define COMMON_H
 
 #include "typedef.h"
+#include "user_config.h"
 
 #define PIO_DIR_OUTPUT  TRUE        /* PIO direction configured as output */
 #define PIO_DIR_INPUT   FALSE       /* PIO direction configured as input */
@@ -10,7 +11,7 @@
 
 #define VAL_GET(num)        PioGet(num)
 
-#define QUEUE_BUFFER    40
+#define QUEUE_BUFFER    64
 
 typedef struct {
 	u8 x_l;
@@ -57,27 +58,35 @@ typedef enum {
 	KEY_B_M_SHORT_PRESS = 11,
 	KEY_A_B_M_LONG_PRESS = 12,
 	KEY_A_B_M_SHORT_PRESS = 13,
-	BATTERY_LOW = 14,
-	BATTERY_NORMAL = 15,
-	CLOCK_1_MINUTE = 16,
-	ANCS_NOTIFY_INCOMING = 17,
-	ANDROID_NOTIFY = 18,
-	BLE_CHANGE = 19,
-    BLE_PAIR = 20,
-    USER_INFO = 21,
-    SET_TIME = 22,
-    SET_ALARM_CLOCK = 23,
-    NOTIFY_SWITCH = 24,
-    SYNC_DATA = 25,
-    RESPONSE_TO_WATCH = 26,
-    SEND_NOTIFY = 27,
-    SET_POINTERS = 28,
-    READ_VERSION = 29,
-    SET_CLOCK_POINTER = 30,
-    SET_VIBRATION = 31,
-    SET_FIND_WATCH = 32,
-    SET_ANCS_BOND_REQ = 33,
-    READ_TIME_STEPS = 34,
+	KEY_M_ULTRA_LONG_PRESS = 14,
+	BATTERY_LOW = 15,
+	BATTERY_NORMAL = 16,
+	CLOCK_1_MINUTE = 17,
+	ANCS_NOTIFY_INCOMING = 18,
+	ANDROID_NOTIFY = 19,
+	BLE_CHANGE = 20,
+    BLE_PAIR = 21,
+    WRITE_USER_INFO = 22,
+    SET_TIME = 23,
+    WRITE_ALARM_CLOCK = 24,
+    NOTIFY_SWITCH = 25,
+    SYNC_DATA = 26,
+    APP_ACK = 27,
+    SEND_NOTIFY = 28,
+    SET_POINTERS = 29,
+    READ_VERSION = 30,
+    SET_CLOCK_POINTER = 31,
+    SET_VIBRATION = 32,
+    SET_FIND_WATCH = 33,
+    SET_ANCS_BOND_REQ = 34,
+    READ_STEPS_TARGET = 35,
+    READ_STEPS = 36,
+    READ_HISDAYS = 37,
+    READ_HISDATA = 38,
+    READ_REALTIME_SPORT = 39,
+    #if USE_PARAM_STORE
+    READ_SYS_PARAMS = 43,
+    #endif
 	REPORT_MAX,
 }REPORT_E;
 
@@ -248,6 +257,8 @@ typedef enum {
 	TIME_ADJUST = 8,
 	RUN_TEST = 9,
 	SET_DATE_TIME = 10,
+	NVM_ACCESS = 11,
+	SYSTEM_REBOOT = 12,
 	STATE_MAX,
 }STATE_E;
 
@@ -345,7 +356,7 @@ typedef enum {
     CMD_SET_ALARM_CLOCK     = 0x03,
     CMD_NOTIFY_SWITCH       = 0x04,
     CMD_SYNC_DATA           = 0x05,
-    CMD_RESPONSE_TO_WATCH   = 0x06,
+    CMD_APP_ACK             = 0x06,
     CMD_RECV_NOTIFY         = 0x07,
     CMD_SET_POINTERS        = 0x08, //! set all clock hands
     CMD_READ_VERSION        = 0x09, //! not use, has moved to DEVICE_INF_SERVICE
@@ -353,8 +364,10 @@ typedef enum {
     CMD_SET_VIBRATION       = 0x0B,
     CMD_SET_FIND_WATCH      = 0x0C,
     CMD_SET_ANCS_BOND_REQ   = 0x0D,
-    CMD_READ_TIME_STEPS     = 0x0E,
-    
+    CMD_READ_STEPS_TARGET   = 0x0E,
+
+    CMD_ZERO_ADJUST         = 0xE0,
+    CMD_NVM_TEST            = 0xF0,
     CMD_APP_NONE            = 0xFF
 } cmd_app_send_t;
 
@@ -365,25 +378,22 @@ typedef enum {
     
     CMD_WATCH_NONE          = 0xFF
 } cmd_watch_send_t;
-
 typedef struct {
     u8 cmd; 
     u8 code[2];
 } cmd_pairing_code_t;
-
 typedef struct 
 {
     u8 cmd; 
-    u8 target_steps[4];
-    u8 target_dists[4];
-    u8 target_calorie[4];
-    u8 target_floors[2];
-    u8 target_stre_exer[2];
+    u32 target_steps;
+    u32 target_dists;
+    u32 target_calorie;
+    u16 target_floors;
+    u16 target_acute_sport;
     u8 gender;
     u8 height;
     u8 weight;
 } cmd_user_info_t;
-
 typedef struct {
     u8 cmd; 
     u8 year[2];
@@ -394,27 +404,16 @@ typedef struct {
     u8 second;
     u8 week;
 } cmd_set_time_t;
-
+typedef struct {
+    u8 en;
+    u8 week;
+    u8 hour;
+    u8 minute;
+} alarm_clock_t;
 typedef struct {
     u8 cmd;
-    u8 clock1_alarm_switch;
-    u8 clock1_repeat;
-    u8 clock1_hour;
-    u8 clock1_minute;
-    u8 clock2_alarm_switch;
-    u8 clock2_repeat;
-    u8 clock2_hour;
-    u8 clock2_minute;
-    u8 clock3_alarm_switch;
-    u8 clock3_repeat;
-    u8 clock3_hour;
-    u8 clock3_minute;
-    u8 clock4_alarm_switch;
-    u8 clock4_repeat;
-    u8 clock4_hour;
-    u8 clock4_minute;
+    alarm_clock_t aclk[4];
 } cmd_set_alarm_clock_t;
-
 typedef struct { 
     u8 cmd;
     u8 en[4];
@@ -426,9 +425,10 @@ typedef struct {
 
 typedef struct { 
     u8 cmd; 
-    u8 watch_cmd;
-    u8 resp_value;
-} cmd_response_t;
+    u8 ack_cmd;
+    u8 ack_result;
+    u8 state; // not include in protocal
+} cmd_app_ack_t;
 
 //typedef struct { 
 //    u8 cmd; 
@@ -487,7 +487,7 @@ typedef struct {
 typedef struct { 
     u8 cmd; 
     u8 type; 
-} cmd_read_time_steps_t;
+} cmd_READ_STEPS_TARGET_t;
 
 typedef struct {
     cmd_pairing_code_t pair_code;
@@ -496,7 +496,7 @@ typedef struct {
     cmd_set_alarm_clock_t set_alarm_clock;
     cmd_notify_switch_t notify_switch;
     cmd_sync_data_t sync_data;
-    cmd_response_t send_resp;
+    cmd_app_ack_t app_ack;
     cmd_recv_notify_t recv_notif;
     cmd_set_pointers_t set_pointers;
     cmd_read_version_t read_ver;
@@ -504,8 +504,41 @@ typedef struct {
     cmd_set_vibration_t set_vib;
     cmd_find_watch_t find_watch;
     cmd_set_ancs_bond_req_t set_ancs_bond;
-    cmd_read_time_steps_t read_time_step;
+    cmd_READ_STEPS_TARGET_t read_time_step;
 } cmd_group_t;
+
+enum {
+    READ_HISDATA_TOTAL = 0xFE,
+    READ_HISDATA_LAST = 0xFF
+};
+typedef struct {
+    u8 ring_buf_tail; /* sport data ring buffer tail */
+    u8 ring_buf_head; /* sport data ring buffer head */
+    u8 read_tail;
+    u8 write_head;
+}his_ctrl_t; /* for nvm to store */
+typedef struct {
+    u16 year;
+    u8 month;
+    u8 day;
+    u32 steps;
+    u32 colorie;
+    u16 acute;
+}his_data_t; /* for nvm to store */
+typedef struct {
+    u32 StepCounts;           /*总步数 步*/
+    u32 Distance;             /*总距离 米*/
+    u32 Calorie;              /*总卡路里 千卡*/
+    u16 FloorCounts;          /*爬楼数 层*/
+    u16 AcuteSportTimeCounts; /*剧烈运动时间 分钟*/
+}SPORT_INFO_T;  /*运动数据结构*/
+typedef struct {
+    clock_t *clock;
+    his_data_t *data;
+    u32 steps; // current day
+    u32 min_steps;
+    s16 days;
+} cmd_params_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);

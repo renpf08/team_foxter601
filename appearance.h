@@ -20,6 +20,7 @@
  *  Public Definitions
  *============================================================================*/
 
+#if 0
 /**
 *   the follow MACRO of BLE_APPEARANCE_xxx was added by mlw, 20200324 15:52
 */
@@ -76,7 +77,7 @@
 #define BLE_APPEARANCE_OUTDOOR_SPORTS_ACT_LOC_POD          5187 /**< Location Pod (Outdoor Sports Activity subtype). */
 #define BLE_APPEARANCE_OUTDOOR_SPORTS_ACT_LOC_AND_NAV_POD  5188 /**< Location and Navigation Pod (Outdoor Sports Activity subtype). */
 /** @} */
-
+#endif
 
 /* Brackets should not be used around the value of a macro. The parser which 
  * creates .c and .h files from .db file doesn't understand brackets and will 
@@ -84,6 +85,11 @@
  */
 
 /* Unknown appearance value */
-#define APPEARANCE_ANCS_TAG_VALUE        BLE_APPEARANCE_GENERIC_WATCH//0x0000
+#define APPEARANCE_ANCS_TAG_VALUE        0x0000
+
+#if USE_ADV_DATA
+/* Generic RSC Sensor appearance value */  /*jim add*/
+#define APPEARANCE_RSC_SENSOR_VALUE             0x0440
+#endif
 
 #endif /* __APPERARANCE_H__ */

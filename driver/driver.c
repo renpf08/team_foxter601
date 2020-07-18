@@ -20,7 +20,9 @@ extern motor_t csr_motor_notify;
 
 static driver_t csr_driver = {
 	.timer = &csr_timer,
+    #if USE_UART_PRINT
 	.uart = &csr_uart,
+	#endif
 	.battery = &csr_battery,
 	.keya = &csr_keya,
 	.keyb = &csr_keyb,
