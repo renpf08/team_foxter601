@@ -66,9 +66,9 @@ typedef enum {
 	ANDROID_NOTIFY = 19,
 	BLE_CHANGE = 20,
     BLE_PAIR = 21,
-    SET_USER_INFO = 22,
+    WRITE_USER_INFO = 22,
     SET_TIME = 23,
-    SET_ALARM_CLOCK = 24,
+    WRITE_ALARM_CLOCK = 24,
     NOTIFY_SWITCH = 25,
     SYNC_DATA = 26,
     APP_ACK = 27,
@@ -84,6 +84,9 @@ typedef enum {
     READ_HISDAYS = 37,
     READ_HISDATA = 38,
     READ_REALTIME_SPORT = 39,
+    #if USE_PARAM_STORE
+    READ_SYS_PARAMS = 43,
+    #endif
 	REPORT_MAX,
 }REPORT_E;
 
@@ -357,7 +360,8 @@ typedef enum {
     CMD_SET_FIND_WATCH      = 0x0C,
     CMD_SET_ANCS_BOND_REQ   = 0x0D,
     CMD_READ_STEPS_TARGET   = 0x0E,
-    
+
+    CMD_ZERO_ADJUST         = 0xE0,
     CMD_NVM_TEST            = 0xF0,
     CMD_APP_NONE            = 0xFF
 } cmd_app_send_t;
@@ -369,12 +373,10 @@ typedef enum {
     
     CMD_WATCH_NONE          = 0xFF
 } cmd_watch_send_t;
-
 typedef struct {
     u8 cmd; 
     u8 code[2];
 } cmd_pairing_code_t;
-
 typedef struct 
 {
     u8 cmd; 
@@ -387,7 +389,6 @@ typedef struct
     u8 height;
     u8 weight;
 } cmd_user_info_t;
-
 typedef struct {
     u8 cmd; 
     u8 year[2];
@@ -398,27 +399,16 @@ typedef struct {
     u8 second;
     u8 week;
 } cmd_set_time_t;
-
+typedef struct {
+    u8 en;
+    u8 week;
+    u8 hour;
+    u8 minute;
+} alarm_clock_t;
 typedef struct {
     u8 cmd;
-    u8 clock1_alarm_switch;
-    u8 clock1_repeat;
-    u8 clock1_hour;
-    u8 clock1_minute;
-    u8 clock2_alarm_switch;
-    u8 clock2_repeat;
-    u8 clock2_hour;
-    u8 clock2_minute;
-    u8 clock3_alarm_switch;
-    u8 clock3_repeat;
-    u8 clock3_hour;
-    u8 clock3_minute;
-    u8 clock4_alarm_switch;
-    u8 clock4_repeat;
-    u8 clock4_hour;
-    u8 clock4_minute;
+    alarm_clock_t aclk[4];
 } cmd_set_alarm_clock_t;
-
 typedef struct { 
     u8 cmd;
     u8 en[4];
@@ -537,7 +527,13 @@ typedef struct {
     u16 FloorCounts;          /*爬楼数 层*/
     u16 AcuteSportTimeCounts; /*剧烈运动时间 分钟*/
 }SPORT_INFO_T;  /*运动数据结构*/
-SPORT_INFO_T Total_Sport_Info_data;
+typedef struct {
+    clock_t *clock;
+    his_data_t *data;
+    u32 steps; // current day
+    u32 min_steps;
+    s16 days;
+} cmd_params_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);

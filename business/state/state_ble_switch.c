@@ -59,7 +59,7 @@ static void notify_swing_cb_handler(u16 id)
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
 }
 
-#if 1
+#if 0
 void pair_code_generate(void)
 {
     u16 old_pair_code = 0;
@@ -129,8 +129,11 @@ void pair_code_generate(void)
             break;
         }
     }
-    hour = (hour<<8)|minute;
-    BLE_SEND_LOG((u8*)&hour, 2);
+
+    u8 test_buf[3] = {0xAA, 0, 0};
+    test_buf[1] = hour;
+    test_buf[2] = minute;
+    BLE_SEND_LOG((u8*)&test_buf, 3);
 	
 	motor_hour_to_position(hour);
 	motor_minute_to_position(minute);
@@ -162,6 +165,10 @@ static s16 ble_pair(void *args)
         BLE_SEND_LOG((u8*)&"pair matched", 12);
         pair_code.pair_bgn = 0;
         ble_state_set(app_pairing_ok);
+        #if USE_PARAM_STORE
+        if(pairing_code != 0x0000) 
+            nvm_write_pairing_code((u16*)&pair_code.pair_code, 0);// 0x0000 is test pair code, no need to store in nvm
+        #endif
         *state = CLOCK;
     } else if(pair_code.pair_bgn == 1) {
         BLE_SEND_LOG((u8*)&"pair mis-match", 14);
@@ -175,6 +182,7 @@ static s16 ble_pair(void *args)
 
 	return res;
 }
+
 
 static u16 ble_change(void *args)
 {

@@ -32,13 +32,6 @@ typedef struct cmdEntry_T {
 cmd_group_t cmd_group;
 static adapter_callback cmd_cb = NULL;
 
-typedef struct {
-    clock_t *clock;
-    his_data_t *data;
-    u32 steps; // current day
-    u32 min_steps;
-    s16 days;
-} cmd_params_t;
 cmd_params_t cmd_params;
 //SPORT_INFO_T* minute_sport = NULL;
 
@@ -62,6 +55,9 @@ static s16 cmd_set_vibration(u8 *buffer, u8 length);
 static s16 cmd_find_watch(u8 *buffer, u8 length);
 static s16 cmd_set_ancs_bond_req(u8 *buffer, u8 length);
 static s16 cmd_READ_STEPS_TARGET(u8 *buffer, u8 length);
+#if USE_CMD_ZERO_ADJUST
+static s16 cmd_zero_adjust(u8 *buffer, u8 length);
+#endif
 #if USE_NVM_TEST
 static s16 cmd_nvm_test(u8 *buffer, u8 length);
 #endif
@@ -71,9 +67,9 @@ s16 cmd_init(adapter_callback cb);
 static const CMDENTRY cmd_list[] =
 {
     {CMD_PAIRING_CODE,      BLE_PAIR,           cmd_pairing_code},
-    {CMD_USER_INFO,         SET_USER_INFO,      cmd_user_info},
+    {CMD_USER_INFO,         WRITE_USER_INFO,    cmd_user_info},
     {CMD_SET_TIME,          SET_TIME,           cmd_set_time},
-    {CMD_SET_ALARM_CLOCK,   SET_ALARM_CLOCK,    cmd_set_alarm_clock},
+    {CMD_SET_ALARM_CLOCK,   WRITE_ALARM_CLOCK,  cmd_set_alarm_clock},
     {CMD_NOTIFY_SWITCH,     NOTIFY_SWITCH,      cmd_notify_switch},
     {CMD_SYNC_DATA,         SYNC_DATA,          cmd_sync_data},
     {CMD_APP_ACK,           APP_ACK,            cmd_app_ack},
@@ -85,7 +81,9 @@ static const CMDENTRY cmd_list[] =
     {CMD_SET_FIND_WATCH,    SET_FIND_WATCH,     cmd_find_watch},
     {CMD_SET_ANCS_BOND_REQ, SET_ANCS_BOND_REQ,  cmd_set_ancs_bond_req},
     {CMD_READ_STEPS_TARGET, READ_STEPS_TARGET,  cmd_READ_STEPS_TARGET},
-
+    #if USE_CMD_ZERO_ADJUST
+    {CMD_ZERO_ADJUST,       REPORT_MAX,         cmd_zero_adjust},
+    #endif
     #if USE_NVM_TEST
     {CMD_NVM_TEST,          REPORT_MAX,         cmd_nvm_test},
     #endif
@@ -108,41 +106,40 @@ static s16 cmd_pairing_code(u8 *buffer, u8 length)
 }
 static s16 cmd_user_info(u8 *buffer, u8 length)
 {
-    typedef struct {
-        u8 cmd; 
-        u8 steps[4];
-        u8 dists[4];
-        u8 calorie[4];
-        u8 floors[2];
-        u8 acute[2];
-        u8 gender;
-        u8 height;
-        u8 weight;
-    } tmp_info_t;
-    tmp_info_t* tmp_info = (tmp_info_t*)buffer;
+//    typedef struct {
+//        u8 cmd; 
+//        u8 steps[4];
+//        u8 dists[4];
+//        u8 calorie[4];
+//        u8 floors[2];
+//        u8 acute[2];
+//        u8 gender;
+//        u8 height;
+//        u8 weight;
+//    } tmp_info_t;
+//    tmp_info_t* tmp_info = (tmp_info_t*)buffer;
+//    
+//    if(tmp_info->gender > 1) return 1;
+//    cmd_group.user_info.target_steps = tmp_info->steps[0];cmd_group.user_info.target_steps <<= 8;
+//    cmd_group.user_info.target_steps |= tmp_info->steps[1];cmd_group.user_info.target_steps <<= 8;
+//    cmd_group.user_info.target_steps |= tmp_info->steps[2];cmd_group.user_info.target_steps <<= 8;
+//    cmd_group.user_info.target_steps |= tmp_info->steps[3];
+//    cmd_group.user_info.target_dists = tmp_info->steps[0];cmd_group.user_info.target_dists <<= 8;
+//    cmd_group.user_info.target_dists |= tmp_info->dists[1];cmd_group.user_info.target_dists <<= 8;
+//    cmd_group.user_info.target_dists |= tmp_info->dists[2];cmd_group.user_info.target_dists <<= 8;
+//    cmd_group.user_info.target_dists |= tmp_info->dists[3];
+//    cmd_group.user_info.target_calorie = tmp_info->calorie[0];cmd_group.user_info.target_calorie <<= 8;
+//    cmd_group.user_info.target_calorie |= tmp_info->calorie[1];cmd_group.user_info.target_calorie <<= 8;
+//    cmd_group.user_info.target_calorie |= tmp_info->calorie[2];cmd_group.user_info.target_calorie <<= 8;
+//    cmd_group.user_info.target_calorie |= tmp_info->calorie[3];
+//    cmd_group.user_info.target_floors = (tmp_info->floors[0]<<8 | tmp_info->floors[1]);
+//    cmd_group.user_info.target_acute_sport = (tmp_info->acute[0]<<8 | tmp_info->acute[1]);
+//    cmd_group.user_info.gender = tmp_info->gender;
+//    cmd_group.user_info.height = tmp_info->height;
+//    cmd_group.user_info.weight = tmp_info->weight;
 
-    if(tmp_info->gender > 1) return 1;
-    cmd_group.user_info.target_steps = tmp_info->steps[0];cmd_group.user_info.target_steps <<= 8;
-    cmd_group.user_info.target_steps |= tmp_info->steps[1];cmd_group.user_info.target_steps <<= 8;
-    cmd_group.user_info.target_steps |= tmp_info->steps[2];cmd_group.user_info.target_steps <<= 8;
-    cmd_group.user_info.target_steps |= tmp_info->steps[3];
-    cmd_group.user_info.target_dists = tmp_info->steps[0];cmd_group.user_info.target_dists <<= 8;
-    cmd_group.user_info.target_dists |= tmp_info->dists[1];cmd_group.user_info.target_dists <<= 8;
-    cmd_group.user_info.target_dists |= tmp_info->dists[2];cmd_group.user_info.target_dists <<= 8;
-    cmd_group.user_info.target_dists |= tmp_info->dists[3];
-    cmd_group.user_info.target_calorie = tmp_info->calorie[0];cmd_group.user_info.target_calorie <<= 8;
-    cmd_group.user_info.target_calorie |= tmp_info->calorie[1];cmd_group.user_info.target_calorie <<= 8;
-    cmd_group.user_info.target_calorie |= tmp_info->calorie[2];cmd_group.user_info.target_calorie <<= 8;
-    cmd_group.user_info.target_calorie |= tmp_info->calorie[3];
-    cmd_group.user_info.target_floors = (tmp_info->floors[0]<<8 | tmp_info->floors[1]);
-    cmd_group.user_info.target_acute_sport = (tmp_info->acute[0]<<8 | tmp_info->acute[1]);
-    cmd_group.user_info.gender = tmp_info->gender;
-    cmd_group.user_info.height = tmp_info->height;
-    cmd_group.user_info.weight = tmp_info->weight;
-    
-//    cmd_user_info_t* user_info = (cmd_user_info_t*)buffer;
-//    MemCopy(&cmd_group.user_info, buffer, sizeof(cmd_user_info_t));
-    cmd_group.user_info.cmd |= 0x80;
+    //cmd_group.user_info.target_steps = ((u32)buffer[1]<<24)|((u32)buffer[2]<<16)|((u32)buffer[3]<<8)|((u32)buffer[4]);
+    cmd_group.user_info.target_steps = ((u32)buffer[4]<<24)|((u32)buffer[3]<<16)|((u32)buffer[2]<<8)|((u32)buffer[1]);
     return 0;
 }
 static s16 cmd_set_time(u8 *buffer, u8 length)
@@ -168,25 +165,18 @@ static s16 cmd_set_time(u8 *buffer, u8 length)
 static s16 cmd_set_alarm_clock(u8 *buffer, u8 length)
 {
     cmd_set_alarm_clock_t* alarm_clock = (cmd_set_alarm_clock_t*)buffer;
+    u8 i = 0;
 
-    if(alarm_clock->clock1_alarm_switch > 1) return 1;
-    //if(alarm_clock->clock1_week.week > 7) return 1;
-    if(alarm_clock->clock1_hour > 23) return 1;
-    if(alarm_clock->clock1_minute > 59) return 1;
-    if(alarm_clock->clock2_alarm_switch > 1) return 1;
-    //if(alarm_clock->clock2_week.week > 7) return 1;
-    if(alarm_clock->clock2_hour > 23) return 1;
-    if(alarm_clock->clock2_minute > 59) return 1;
-    if(alarm_clock->clock3_alarm_switch > 1) return 1;
-    //if(alarm_clock->clock3_week.week > 7) return 1;
-    if(alarm_clock->clock3_hour > 23) return 1;
-    if(alarm_clock->clock3_minute > 59) return 1;
-    if(alarm_clock->clock4_alarm_switch > 1) return 1;
-    //if(alarm_clock->clock4_week.week > 7) return 1;
-    if(alarm_clock->clock4_hour > 23) return 1;
-    if(alarm_clock->clock4_minute > 59) return 1;
+    for(i = 0; i < 4; i++) {
+        if(alarm_clock->aclk[i].en > 1) return 1;
+        if(alarm_clock->aclk[i].hour > 23) return 1;
+        if(alarm_clock->aclk[i].minute > 59) return 1;
+    }
     
     MemCopy(&cmd_group.set_alarm_clock, buffer, sizeof(cmd_set_alarm_clock_t));
+    #if USE_PARAM_STORE
+    cmd_cb(WRITE_ALARM_CLOCK, NULL);
+    #endif
     return 0;
 }
 static s16 cmd_notify_switch(u8 *buffer, u8 length)
@@ -255,6 +245,22 @@ static s16 cmd_READ_STEPS_TARGET(u8 *buffer, u8 length)
     MemCopy(&cmd_group.read_time_step, buffer, sizeof(cmd_READ_STEPS_TARGET_t)); 
     return 0;
 }
+#if USE_CMD_ZERO_ADJUST
+static s16 cmd_zero_adjust(u8 *buffer, u8 length)
+{
+    if(buffer[1] == 0) {
+        cmd_cb(KEY_A_B_LONG_PRESS, NULL);
+    } else if(buffer[1] == 1) {
+        cmd_cb(KEY_M_SHORT_PRESS, NULL);
+    } else if(buffer[1] == 2) {
+        cmd_cb(KEY_A_SHORT_PRESS, NULL);
+    } else if(buffer[1] == 3) {
+        cmd_cb(KEY_B_SHORT_PRESS, NULL);
+    }
+    
+    return 0;
+}
+#endif
 #if USE_NVM_TEST
 static s16 cmd_nvm_test(u8 *buffer, u8 length)
 {
@@ -440,30 +446,18 @@ cmd_group_t *cmd_get(void)
 {
     return &cmd_group;
 }
-s16 cmd_set_days(u8 days)
+void cmd_set(cmd_group_t *value)
 {
-    cmd_params.days = days;
-	return 0;
+    MemCopy(&cmd_group, value, sizeof(cmd_group_t));
 }
-s16 cmd_set_clock(clock_t *clock)
+cmd_params_t* cmd_get_params(void)
 {
-    cmd_params.clock = clock;
-	return 0;
+    return &cmd_params;
 }
-s16 cmd_set_data(his_data_t *data)
+void cmd_set_params(cmd_params_t* params)
 {
-    cmd_params.data = data;
-	return 0;
+    MemCopy(&cmd_params, params, sizeof(cmd_params_t));
 }
-s16 cmd_set_steps(u32 steps)
-{
-    cmd_params.steps = steps;
-	return 0;
-}
-//void set_minutes_info(SPORT_INFO_T *info)
-//{
-//    minute_sport = info;
-//}
 s16 cmd_init(adapter_callback cb)
 {
 	cmd_cb = cb;
