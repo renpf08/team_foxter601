@@ -6,8 +6,6 @@
 #include "../common/common.h"
 #include "../driver/driver.h"
 
-extern u8 day_table[];
-
 extern bool ble_send_data(uint8 *data, uint16 size);
 #define BLE_SEND_DATA(data, size)   ble_send_data(data, size)
 #if USE_BLE_LOG

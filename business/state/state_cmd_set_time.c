@@ -28,7 +28,7 @@ s16 state_set_date_time(REPORT_E cb, void *args)
     BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
 	motor_minute_to_position(clock.minute);
 	motor_hour_to_position(clock.hour);
-    motor_date_to_position(day_table[clock.day]);
+    motor_date_to_position(date[clock.day]);
     clock_set(&clock);
 
 	return 0;
