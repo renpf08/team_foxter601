@@ -437,6 +437,7 @@ void m_devname_init(uint8* devName)
         addrBuf[5] = (uint8)(bdaddr.nap >> 8);
     }
     
+    #if USE_NEW_DAV_NAME
     char hexCharTbl[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
     uint8 len = 0;
     
@@ -450,4 +451,8 @@ void m_devname_init(uint8* devName)
     g_device_name[len++] = hexCharTbl[addrBuf[0]&0x000F];
     g_device_name[len] = 0;
     MemCopy(devName, &g_device_name[1], (len-1));
+    #else
+    g_device_name[0] = AD_TYPE_LOCAL_NAME_COMPLETE;
+    MemCopy(&g_device_name[1], BLE_ADVERTISING_NAME, sizeof(BLE_ADVERTISING_NAME));
+    #endif
 }
