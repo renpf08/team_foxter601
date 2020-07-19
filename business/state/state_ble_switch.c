@@ -116,7 +116,7 @@ void pair_code_generate(void)
             minute %= 12;
         }
         minute *= 5;
-        pair_code.pair_code = (hour<<8)|minute;
+        pair_code.pair_code = (hour*100+minute);
         if(pair_code.pair_code != old_pair_code) {
             break;
         }
@@ -137,7 +137,7 @@ static s16 ble_pair(void *args)
     s16 res = 0;
     STATE_E *state = (STATE_E *)args;
     u8* code = cmd_get()->pair_code.code;
-    u16 pairing_code = (code[0]<<8)|code[1];
+    u16 pairing_code = (code[1]<<8)|code[0];
     //print_str_hex((u8*)&"recv code=0x", pairing_code);
 
 	//print((u8 *)&"recv_code:", 10);
