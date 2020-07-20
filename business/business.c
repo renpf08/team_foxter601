@@ -64,6 +64,7 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               WRITE_USER_INFO,        NVM_ACCESS,             state_nvm_access),
 	#endif
 	/*system reboot*/
+	STATE_FILL(INIT,                KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
 	STATE_FILL(CLOCK,               KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
 	STATE_FILL(ZERO_ADJUST,         KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
 	STATE_FILL(BLE_SWITCH,          KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
@@ -71,12 +72,15 @@ static state_t state[] = {
 	/*read steps*/
 	STATE_FILL(CLOCK,               READ_STEPS_CURRENT,     STEPS_COUNT,            state_step_get),
 	STATE_FILL(CLOCK,               READ_STEPS_TARGET,      STEPS_COUNT,            state_step_get),
+	STATE_FILL(CLOCK,               REFRESH_STEPS,          STEPS_COUNT,            state_step_get),
+	//STATE_FILL(BLE_SWITCH,          REFRESH_STEPS,          STEPS_COUNT,            state_step_get),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
     s16 res = 0;
+    u8 st_cb[4] = {0x5A, business.state_now, cb, 0};
 
 	//return 0;
     #if USE_UART_PRINT
@@ -91,6 +95,8 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
             break;
 		}
 	}
+    st_cb[3] = business.state_now;
+    BLE_SEND_LOG(st_cb, 4);
 	return res;
 }
 

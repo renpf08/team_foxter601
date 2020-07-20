@@ -352,9 +352,9 @@ static void step_sample_handler(u16 id)
 	get_driver()->timer->timer_start(280, step_sample_handler);
     if(step_count != Total_Sport_Info_data.StepCounts)
     {
-        steps_cb(READ_STEPS_CURRENT, NULL);
+        step_count = Total_Sport_Info_data.StepCounts;
+        steps_cb(REFRESH_STEPS, NULL);
     }
-    step_count = Total_Sport_Info_data.StepCounts;
     #if 0
     u8 val[4] = {0};
     if(step_count != Total_Sport_Info_data.StepCounts)

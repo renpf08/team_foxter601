@@ -30,19 +30,26 @@ s16 state_step_get(REPORT_E cb, void *args)
     his_data_t data;
     
     MemSet(&data, 0, sizeof(his_data_t));
-    if(cb == READ_STEPS_TARGET) {
+    switch(cb)
+    {
+    case READ_STEPS_TARGET:
         params->clock = clock;
-    } else if(cb == READ_STEPS_CURRENT) {
+        break;
+    case READ_STEPS_CURRENT:
+    case REFRESH_STEPS:
         sport_info = sport_get();
         data.year = clock->year;
         data.month = clock->month;
         data.day = clock->day;
         data.steps = sport_info->StepCounts;
-    #if USE_DEV_CALORIE
+        #if USE_DEV_CALORIE
         data.colorie = sport_info->Calorie;
         data.acute = sport_info->AcuteSportTimeCounts;
-    #endif
+        #endif
         params->data = &data;
+        break;
+    default:
+        break;
     }
     cmd_set_params(params);
     sport_activity_calc();
