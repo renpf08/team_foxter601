@@ -361,10 +361,17 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
                         BufWriteUint8((uint8 **)&tmp_buf, cmd_params.data->steps>>16);//(SB100_data.AppApplyData.StepCounts>>16));
                         BufWriteUint16((uint8 **)&tmp_buf, distance);//cmd_get_data->distance);//(SB100_data.AppApplyData.Distance));
                         BufWriteUint8((uint8 **)&tmp_buf, distance>>16);//cmd_get_data->distance>>16);//(SB100_data.AppApplyData.Distance>>16));
+                        #if USE_DEV_CALORIE
                         BufWriteUint16((uint8 **)&tmp_buf, cmd_params.data->colorie);//cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
                         BufWriteUint8((uint8 **)&tmp_buf, cmd_params.data->colorie>>16);//cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
                         BufWriteUint16((uint8 **)&tmp_buf, 0x7788);//cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
                         BufWriteUint16((uint8 **)&tmp_buf, cmd_params.data->acute);//cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
+                        #else
+                        BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
+                        BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
+                        BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
+                        BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
+                        #endif
                         if(cmd_params.days >= 0) { // continue to send
                             cmd_group.app_ack.state = STATE_HISDATA_READ;
                             cmd_params.days--;

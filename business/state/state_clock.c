@@ -50,10 +50,11 @@ static void alarm_clock_check(clock_t *clock)
 }
 static void minute_data_handler(clock_t *clock)
 {
-    his_data_t data = {0,0,0,0,0,0};
+    his_data_t data;
     SPORT_INFO_T* sport_info = NULL;
     static u8 sys_init = 0;
     
+    MemSet(&data, 0, sizeof(his_data_t));
     if(sys_init == 0) {
         sys_init = 1;
         sport_set(&cmd_get()->user_info);
@@ -64,8 +65,10 @@ static void minute_data_handler(clock_t *clock)
         data.month = clock->month;
         data.day = clock->day;
         data.steps = sport_info->StepCounts;
+        #if USE_DEV_CALORIE
         data.colorie = sport_info->Calorie;
         data.acute = sport_info->AcuteSportTimeCounts;
+        #endif
         nvm_write_data(&data);
         sport_clear();
     } else {

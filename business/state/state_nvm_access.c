@@ -10,8 +10,8 @@ s16 state_access_nvm(REPORT_E cb, void *args)
 {
     STATE_E *state = (STATE_E *)args;
     s16 res = 0;
-    his_data_t data = {0,0,0,0,0,0};
-    his_ctrl_t ctrl = {0,0,0,0};
+    his_data_t data;
+    his_ctrl_t ctrl;
 	clock_t *clock = NULL;
     SPORT_INFO_T* sport_info = NULL;
 	clock = clock_get();
@@ -19,7 +19,9 @@ s16 state_access_nvm(REPORT_E cb, void *args)
     #if USE_PARAM_STORE
     cmd_group_t *value = cmd_get();
     #endif
-    
+
+    MemSet(&data, 0, sizeof(his_data_t));
+    MemSet(&ctrl, 0, sizeof(his_ctrl_t));
     if(cb == READ_STEPS_TARGET) {
         params->clock = clock;
     } else if(cb == READ_HISDAYS) {
@@ -36,8 +38,10 @@ s16 state_access_nvm(REPORT_E cb, void *args)
         data.month = clock->month;
         data.day = clock->day;
         data.steps = sport_info->StepCounts;
+        #if USE_DEV_CALORIE
         data.colorie = sport_info->Calorie;
         data.acute = sport_info->AcuteSportTimeCounts;
+        #endif
         params->data = &data;
     } 
     #if USE_PARAM_STORE

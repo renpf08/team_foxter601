@@ -522,21 +522,18 @@ typedef struct {
     u8 month;
     u8 day;
     u32 steps;
+    #if USE_DEV_CALORIE
     u32 colorie;
     u16 acute;
+    #endif
 }his_data_t; /* for nvm to store */
 typedef struct {
     u32 StepCounts;           /*总步数 步*/
-    u32 Distance;             /*总距离 米*/
-    u32 Calorie;              /*总卡路里 千卡*/
-    u16 FloorCounts;          /*爬楼数 层*/
-    u16 AcuteSportTimeCounts; /*剧烈运动时间 分钟*/
 }SPORT_INFO_T;  /*运动数据结构*/
 typedef struct {
     clock_t *clock;
     his_data_t *data;
     u32 steps; // current day
-    u32 min_steps;
     s16 days;
 } cmd_params_t;
 
