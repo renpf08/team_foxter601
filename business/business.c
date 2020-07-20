@@ -54,22 +54,23 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               SET_TIME,               SET_DATE_TIME,          state_set_date_time),
 	STATE_FILL(BLE_SWITCH,          SET_TIME,               SET_DATE_TIME,          state_set_date_time),
 	/*nvm access*/
-	STATE_FILL(CLOCK,               READ_STEPS_TARGET,      NVM_ACCESS,             state_access_nvm),
-	STATE_FILL(CLOCK,               READ_HISDAYS,           NVM_ACCESS,             state_access_nvm),
-	STATE_FILL(CLOCK,               READ_HISDATA,           NVM_ACCESS,             state_access_nvm),
-	STATE_FILL(CLOCK,               WRITE_USER_INFO,        NVM_ACCESS,             state_access_nvm),
-	STATE_FILL(CLOCK,               READ_REALTIME_SPORT,    NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(CLOCK,               READ_HISDAYS,           NVM_ACCESS,             state_nvm_access),
+	STATE_FILL(CLOCK,               READ_HISDATA,           NVM_ACCESS,             state_nvm_access),
+	STATE_FILL(CLOCK,               WRITE_USER_INFO,        NVM_ACCESS,             state_nvm_access),
 	#if USE_PARAM_STORE
-	STATE_FILL(INIT,                READ_SYS_PARAMS,        NVM_ACCESS,             state_access_nvm),
-	STATE_FILL(INIT,                WRITE_USER_INFO,        NVM_ACCESS,             state_access_nvm),
-	STATE_FILL(CLOCK,               WRITE_ALARM_CLOCK,      NVM_ACCESS,             state_access_nvm),
-	STATE_FILL(CLOCK,               WRITE_USER_INFO,        NVM_ACCESS,             state_access_nvm),
+	STATE_FILL(INIT,                READ_SYS_PARAMS,        NVM_ACCESS,             state_nvm_access),
+	STATE_FILL(INIT,                WRITE_USER_INFO,        NVM_ACCESS,             state_nvm_access),
+	STATE_FILL(CLOCK,               WRITE_ALARM_CLOCK,      NVM_ACCESS,             state_nvm_access),
+	STATE_FILL(CLOCK,               WRITE_USER_INFO,        NVM_ACCESS,             state_nvm_access),
 	#endif
 	/*system reboot*/
 	STATE_FILL(CLOCK,               KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
 	STATE_FILL(ZERO_ADJUST,         KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
 	STATE_FILL(BLE_SWITCH,          KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
 	STATE_FILL(RUN_TEST,            KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
+	/*read steps*/
+	STATE_FILL(CLOCK,               READ_STEPS_CURRENT,     STEPS_COUNT,            state_step_get),
+	STATE_FILL(CLOCK,               READ_STEPS_TARGET,      STEPS_COUNT,            state_step_get),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)

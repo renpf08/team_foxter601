@@ -80,12 +80,11 @@ typedef enum {
     SET_FIND_WATCH = 33,
     SET_ANCS_BOND_REQ = 34,
     READ_STEPS_TARGET = 35,
-    READ_STEPS = 36,
+    READ_STEPS_CURRENT = 36,
     READ_HISDAYS = 37,
     READ_HISDATA = 38,
-    READ_REALTIME_SPORT = 39,
     #if USE_PARAM_STORE
-    READ_SYS_PARAMS = 43,
+    READ_SYS_PARAMS = 39,
     #endif
 	REPORT_MAX,
 }REPORT_E;
@@ -259,6 +258,7 @@ typedef enum {
 	SET_DATE_TIME = 10,
 	NVM_ACCESS = 11,
 	SYSTEM_REBOOT = 12,
+	STEPS_COUNT = 13,
 	STATE_MAX,
 }STATE_E;
 
@@ -529,11 +529,18 @@ typedef struct {
 }his_data_t; /* for nvm to store */
 typedef struct {
     u32 StepCounts;           /*总步数 步*/
+    #if USE_DEV_CALORIE
+    u32 Distance;             /*总距离 米*/
+    u32 Calorie;              /*总卡路里 千卡*/
+    u16 FloorCounts;          /*爬楼数 层*/
+    u16 AcuteSportTimeCounts; /*剧烈运动时间 分钟*/
+    #endif
 }SPORT_INFO_T;  /*运动数据结构*/
 typedef struct {
     clock_t *clock;
     his_data_t *data;
-    u32 steps; // current day
+    //u32 steps; // current day
+    //u32 min_steps;
     s16 days;
 } cmd_params_t;
 

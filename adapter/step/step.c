@@ -347,15 +347,16 @@ static void StepCountProce(void)
 static void step_sample_handler(u16 id)
 {
     StepCountProce();
-	get_driver()->timer->timer_start(280, step_sample_handler);
-    #if 0
-    u8 val[4] = {0};
     static u32 step_count = 0;
     
-//    if(step_count != Total_Sport_Info_data.StepCounts)
-//    {
-//        steps_cb(READ_STEPS_TARGET, NULL);
-//    }
+	get_driver()->timer->timer_start(280, step_sample_handler);
+    if(step_count != Total_Sport_Info_data.StepCounts)
+    {
+        steps_cb(READ_STEPS_CURRENT, NULL);
+    }
+    step_count = Total_Sport_Info_data.StepCounts;
+    #if 0
+    u8 val[4] = {0};
     if(step_count != Total_Sport_Info_data.StepCounts)
     {
         val[0] = (Total_Sport_Info_data.StepCounts>>24) & 0x000000FF;
@@ -364,7 +365,6 @@ static void step_sample_handler(u16 id)
         val[3] = Total_Sport_Info_data.StepCounts & 0x000000FF;
         BLE_SEND_LOG(val, 4);
     }
-    step_count = Total_Sport_Info_data.StepCounts;
     #endif    
 }
 s16 step_sample_init(adapter_callback cb)
