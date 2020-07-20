@@ -375,6 +375,7 @@ s16 step_sample_init(adapter_callback cb)
     steps_cb = cb;
 	return 0;
 }
+#if USE_DEV_CALORIE
 void sport_minute_calc(void)
 {
     u32 bmr_colorie = 0;
@@ -408,6 +409,7 @@ void sport_minute_calc(void)
     Total_Sport_Info_data.Calorie += bmr_colorie;    
     last_steps = Total_Sport_Info_data.StepCounts;
 }
+#endif
 SPORT_INFO_T* sport_get(void)
 {
     return &Total_Sport_Info_data;

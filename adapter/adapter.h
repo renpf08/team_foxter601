@@ -97,7 +97,9 @@ app_msg_t *ancs_get(void);
 u8 angle_get(void);
 void Update_BodyInfo(uint8 Gender, uint8 Height, uint8 Weight);
 void One_Minute_Sport_Info_Pro(clock_t *clock);
+#if USE_DEV_CALORIE
 void sport_minute_calc(void);
+#endif
 SPORT_INFO_T* sport_get(void);
 void sport_set(cmd_user_info_t *user_info);
 void sport_clear(void);

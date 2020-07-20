@@ -69,7 +69,9 @@ static void minute_data_handler(clock_t *clock)
         nvm_write_data(&data);
         sport_clear();
     } else {
+        #if USE_DEV_CALORIE
         sport_minute_calc();
+        #endif
         cmd_resp(CMD_SYNC_DATA, 0, (u8*)&"\xF5\xFA"); // send real-time data every minutes
     }
     alarm_clock_check(clock);
