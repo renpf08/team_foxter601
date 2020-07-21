@@ -439,10 +439,6 @@ cmd_params_t* cmd_get_params(void)
 {
     return &cmd_params;
 }
-void cmd_set_params(cmd_params_t* params)
-{
-    MemCopy(&cmd_params, params, sizeof(cmd_params_t));
-}
 s16 cmd_init(adapter_callback cb)
 {
 	cmd_cb = cb;

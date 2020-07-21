@@ -343,6 +343,7 @@ s16 step_sample_init(adapter_callback cb)
 	get_driver()->timer->timer_start(280, step_sample_handler); 
 
     Step_Count_data.Pro_Step=PRO_STEP_START;  
+    acc_steps = 0;
     steps_cb = cb;
 	return 0;
 }

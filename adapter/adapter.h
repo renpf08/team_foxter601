@@ -18,6 +18,8 @@ extern bool ble_send_log(uint8 *data, uint16 size);
 void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
 void system_reboot(u8 reboot_type);
+void refresh_step(void);
+void sync_time(void);
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num);
 #endif
@@ -86,7 +88,6 @@ s16 nvm_write_test(void);
 
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
 cmd_params_t* cmd_get_params(void);
-void cmd_set_params(cmd_params_t* params);
 cmd_group_t *cmd_get(void);
 void cmd_set(cmd_group_t *value);
 

@@ -1,7 +1,6 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
 #include <mem.h>
-#include <buf_utils.h>
 
 #include "../../common/common.h"
 #include "../../adapter/adapter.h"
@@ -23,66 +22,6 @@ static clock_t clk = {
 };
 #endif
 
-static void clock_activity_handler(u16 id)
-{
-    u32 target_steps = cmd_get()->user_info.target_steps;
-    u32 current_steps = step_get();
-    u8 activity = 40; // total 40 grids
-
-    if(current_steps < target_steps) {
-        activity = (current_steps*40)/target_steps;
-    } else if(target_steps == 0) {
-        activity = 0;
-    }
-    motor_activity_to_position(activity);
-    
-    u16 length = 0; 
-    u8 rsp_buf[20];
-    u8 *tmp_buf = rsp_buf;
-    cmd_params_t* params = cmd_get_params();
-    BufWriteUint8((uint8 **)&tmp_buf, 0x01);
-    BufWriteUint8((uint8 **)&tmp_buf, 0x00);
-    BufWriteUint8((uint8 **)&tmp_buf, 0x00);
-    BufWriteUint16((uint8 **)&tmp_buf, params->data->year);//SB100_data.AppApplyDateData.Year);
-    BufWriteUint8((uint8 **)&tmp_buf, params->data->month);//SB100_data.AppApplyDateData.Month);
-    BufWriteUint8((uint8 **)&tmp_buf, params->data->day);//SB100_data.AppApplyDateData.Date);
-    BufWriteUint16((uint8 **)&tmp_buf, params->data->steps);//(SB100_data.AppApplyData.StepCounts));
-    BufWriteUint8((uint8 **)&tmp_buf, params->data->steps>>16);//(SB100_data.AppApplyData.StepCounts>>16));
-    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->distance);//(SB100_data.AppApplyData.Distance));
-    BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->distance>>16);//(SB100_data.AppApplyData.Distance>>16));
-    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
-    BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
-    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
-    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
-    length = tmp_buf - rsp_buf;
-    BLE_SEND_DATA(rsp_buf, length);
-}
-static void clock_refresh_step(void)
-{
-    clock_t *clock = clock_get();
-    cmd_params_t* params = cmd_get_params();
-    params->steps = step_get();
-    params->clock = clock;
-    timer_event(10, clock_activity_handler);
-}
-static void clock_set_time(void)
-{
-	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
-    clock_t* clock = clock_get();
-
-    clock->year = time->year[1]<<8 | time->year[0];
-    clock->month = time->month;
-    clock->day = time->day;
-    clock->week = time->week;
-    clock->hour = time->hour;
-    clock->minute = time->minute;
-    clock->second = time->second;
-
-    BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
-	motor_minute_to_position(clock->minute);
-	motor_hour_to_position(clock->hour);
-    motor_date_to_position(date[clock->day]);
-}
 static void alarm_clock_check(clock_t *clock)
 {
     cmd_set_alarm_clock_t *alarm_clock = (cmd_set_alarm_clock_t*)&cmd_get()->set_alarm_clock;
@@ -152,9 +91,7 @@ static void nvm_access(REPORT_E cb)
         nvm_read_pairing_code((u16*)&value->pair_code, 0);
         nvm_read_personal_info((u16*)&value->user_info, 0);
     }
-    cmd_set(value);
     #endif
-    cmd_set_params(params);
 }
 static u8 state_check(REPORT_E cb)
 {
@@ -179,10 +116,10 @@ static u8 state_check(REPORT_E cb)
         nvm_access(cb);
         break;
     case REFRESH_STEPS:
-        clock_refresh_step();
+        refresh_step();
         break;
     case SET_TIME:
-        clock_set_time();
+        sync_time();
         break;
     default:
         return 0;
