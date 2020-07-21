@@ -1,6 +1,7 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
 #include <mem.h>
+#include <buf_utils.h>
 
 #include "../../common/common.h"
 #include "../../adapter/adapter.h"
@@ -34,7 +35,53 @@ static void clock_activity_handler(u16 id)
         activity = 0;
     }
     motor_activity_to_position(activity);
-    cmd_resp(CMD_SYNC_DATA, 0, (u8*)&"\xF5\xFA");
+    
+    u16 length = 0; 
+    u8 rsp_buf[20];
+    u8 *tmp_buf = rsp_buf;
+    cmd_params_t* params = cmd_get_params();
+    BufWriteUint8((uint8 **)&tmp_buf, 0x01);
+    BufWriteUint8((uint8 **)&tmp_buf, 0x00);
+    BufWriteUint8((uint8 **)&tmp_buf, 0x00);
+    BufWriteUint16((uint8 **)&tmp_buf, params->data->year);//SB100_data.AppApplyDateData.Year);
+    BufWriteUint8((uint8 **)&tmp_buf, params->data->month);//SB100_data.AppApplyDateData.Month);
+    BufWriteUint8((uint8 **)&tmp_buf, params->data->day);//SB100_data.AppApplyDateData.Date);
+    BufWriteUint16((uint8 **)&tmp_buf, params->data->steps);//(SB100_data.AppApplyData.StepCounts));
+    BufWriteUint8((uint8 **)&tmp_buf, params->data->steps>>16);//(SB100_data.AppApplyData.StepCounts>>16));
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->distance);//(SB100_data.AppApplyData.Distance));
+    BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->distance>>16);//(SB100_data.AppApplyData.Distance>>16));
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
+    BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
+    length = tmp_buf - rsp_buf;
+    BLE_SEND_DATA(rsp_buf, length);
+}
+static void clock_refresh_step(void)
+{
+    clock_t *clock = clock_get();
+    cmd_params_t* params = cmd_get_params();
+    params->steps = step_get();
+    params->clock = clock;
+    timer_event(10, clock_activity_handler);
+}
+static void clock_set_time(void)
+{
+	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
+    clock_t* clock = clock_get();
+
+    clock->year = time->year[1]<<8 | time->year[0];
+    clock->month = time->month;
+    clock->day = time->day;
+    clock->week = time->week;
+    clock->hour = time->hour;
+    clock->minute = time->minute;
+    clock->second = time->second;
+
+    BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
+	motor_minute_to_position(clock->minute);
+	motor_hour_to_position(clock->hour);
+    motor_date_to_position(date[clock->day]);
 }
 static void alarm_clock_check(clock_t *clock)
 {
@@ -67,9 +114,13 @@ static void minutely_check(REPORT_E cb)
     params->steps = step_get();
     params->clock = clock;
     alarm_clock_check(clock);
-    if(cb == READ_STEPS) {
-        timer_event(10, clock_activity_handler);
-    }
+}
+static void read_current_step(void)
+{
+    cmd_params_t* params = cmd_get_params();
+
+    params->clock = clock_get();
+    params->steps = step_get();
 }
 static void nvm_access(REPORT_E cb)
 {
@@ -105,24 +156,6 @@ static void nvm_access(REPORT_E cb)
     #endif
     cmd_set_params(params);
 }
-static void clock_set_time(void)
-{
-	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
-    clock_t* clock = clock_get();
-
-    clock->year = time->year[1]<<8 | time->year[0];
-    clock->month = time->month;
-    clock->day = time->day;
-    clock->week = time->week;
-    clock->hour = time->hour;
-    clock->minute = time->minute;
-    clock->second = time->second;
-
-    BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
-	motor_minute_to_position(clock->minute);
-	motor_hour_to_position(clock->hour);
-    motor_date_to_position(date[clock->day]);
-}
 static u8 state_check(REPORT_E cb)
 {
     #if USE_PARAM_STORE
@@ -133,8 +166,8 @@ static u8 state_check(REPORT_E cb)
     }
     #endif
     switch(cb) {
-    case READ_STEPS:
-        minutely_check(cb);
+    case READ_CURDATA:
+        read_current_step();
         break;
     case READ_HISDAYS:
     case READ_HISDATA:
@@ -144,6 +177,9 @@ static u8 state_check(REPORT_E cb)
     case WRITE_USER_INFO:
     case WRITE_ALARM_CLOCK:
         nvm_access(cb);
+        break;
+    case REFRESH_STEPS:
+        clock_refresh_step();
         break;
     case SET_TIME:
         clock_set_time();

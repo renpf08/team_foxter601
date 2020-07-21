@@ -335,7 +335,7 @@ static void step_sample_handler(u16 id)
     if(step_count != acc_steps)
     {
         step_count = acc_steps;
-        steps_cb(READ_STEPS, NULL);
+        steps_cb(REFRESH_STEPS, NULL);
     }    
 }
 s16 step_sample_init(adapter_callback cb)

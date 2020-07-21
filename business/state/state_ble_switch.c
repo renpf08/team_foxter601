@@ -2,6 +2,7 @@
 #include <pio.h>            /* Programmable I/O configuration and control */
 #include <macros.h>
 #include <random.h>
+#include <buf_utils.h>
 
 #include "../../common/common.h"
 #include "../../adapter/adapter.h"
@@ -206,7 +207,35 @@ static void ble_activity_handler(u16 id)
         activity = 0;
     }
     motor_activity_to_position(activity);
-    cmd_resp(CMD_SYNC_DATA, 0, (u8*)&"\xF5\xFA");
+    
+    u16 length = 0; 
+    u8 rsp_buf[20];
+    u8 *tmp_buf = rsp_buf;
+    cmd_params_t* params = cmd_get_params();
+    BufWriteUint8((uint8 **)&tmp_buf, 0x01);
+    BufWriteUint8((uint8 **)&tmp_buf, 0x00);
+    BufWriteUint8((uint8 **)&tmp_buf, 0x00);
+    BufWriteUint16((uint8 **)&tmp_buf, params->data->year);//SB100_data.AppApplyDateData.Year);
+    BufWriteUint8((uint8 **)&tmp_buf, params->data->month);//SB100_data.AppApplyDateData.Month);
+    BufWriteUint8((uint8 **)&tmp_buf, params->data->day);//SB100_data.AppApplyDateData.Date);
+    BufWriteUint16((uint8 **)&tmp_buf, params->data->steps);//(SB100_data.AppApplyData.StepCounts));
+    BufWriteUint8((uint8 **)&tmp_buf, params->data->steps>>16);//(SB100_data.AppApplyData.StepCounts>>16));
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->distance);//(SB100_data.AppApplyData.Distance));
+    BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->distance>>16);//(SB100_data.AppApplyData.Distance>>16));
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
+    BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
+    length = tmp_buf - rsp_buf;
+    BLE_SEND_DATA(rsp_buf, length);
+}
+static void ble_refresh_step(void)
+{
+    clock_t *clock = clock_get();
+    cmd_params_t* params = cmd_get_params();
+    params->steps = step_get();
+    params->clock = clock;
+    timer_event(10, ble_activity_handler);
 }
 static void ble_set_time(void)
 {
@@ -243,12 +272,8 @@ s16 state_ble_switch(REPORT_E cb, void *args)
     } else if(cb == BLE_PAIR) {
         //print((u8*)&"cmd pair", 8);
         res = ble_pair(args);
-    } else if(cb == READ_STEPS) {
-        clock_t *clock = clock_get();
-        cmd_params_t* params = cmd_get_params();
-        params->steps = step_get();
-        params->clock = clock;
-        timer_event(10, ble_activity_handler);
+    } else if(cb == REFRESH_STEPS) {
+        ble_refresh_step();
     } else if(cb == SET_TIME) {
         ble_set_time();
     }
