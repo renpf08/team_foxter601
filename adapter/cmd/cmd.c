@@ -11,15 +11,7 @@
 #include "serial_service.h"
 #include "adapter/adapter.h"
 
-#define   DEFAULT_GENDER_VALUE              1       /*1男，0女 173cm高，70公斤重*/
-#define   DEFAULT_HEIGHT_VALUE              173     /*1男，0女 173cm高，70公斤重*/
-#define   DEFAULT_WEIGHT_VALUE              70      /*1男，0女 173cm高，70公斤重*/
-
 #define   DEFAULT_TARGET_STEPCOUNTS         10000     /*默认目标步数*/
-#define   DEFAULT_TARGET_DISTANCE           70000    /*默认目标距离，分米*/
-#define   DEFAULT_TARGET_CALORIE            3000000   /*默认目标卡路里小卡*/
-#define   DEFAULT_TARGET_FLOORCOUNTS        20        /*默认目标楼高数*/
-#define   DEFAULT_TARGET_ACUTESPTIMECOUNTS  60       /*默认目标剧烈运动分钟数*/
 
 enum {
     STATE_REALTIME_DATA,
@@ -462,13 +454,6 @@ s16 cmd_init(adapter_callback cb)
     cmd_params.days = -1;
     cmd_group.app_ack.state = STATE_INVALID;    
     cmd_group.user_info.target_steps = DEFAULT_TARGET_STEPCOUNTS;
-    cmd_group.user_info.target_dists = DEFAULT_TARGET_DISTANCE;
-    cmd_group.user_info.target_calorie = DEFAULT_TARGET_CALORIE;
-    cmd_group.user_info.target_floors = DEFAULT_TARGET_FLOORCOUNTS;
-    cmd_group.user_info.target_acute_sport = DEFAULT_TARGET_ACUTESPTIMECOUNTS;
-    cmd_group.user_info.gender = DEFAULT_GENDER_VALUE;
-    cmd_group.user_info.height = DEFAULT_HEIGHT_VALUE;
-    cmd_group.user_info.weight = DEFAULT_WEIGHT_VALUE;
     
 	return 0;
 }
