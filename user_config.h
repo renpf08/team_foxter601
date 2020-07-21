@@ -30,7 +30,7 @@ FO601
 #define FIRMWARE_REVISION       "v1.2.0"
 
 #define USE_BLE_LOG         1
-#define USE_PARAM_STORE     0
+#define USE_PARAM_STORE     1
 #define USE_UART_PRINT      0
 #define USE_PANIC_PRINT     0
 #define USE_WHITELIST_ADV   0
@@ -38,9 +38,9 @@ FO601
 #define USE_NEW_DAV_NAME    0
 #define USE_PAIR_CODE_0000  1 // test mode, use pair code of 0x0000 as a bypass code 
 
-#define USE_CMD_TEST        0
+#define USE_CMD_TEST        1
 #if USE_CMD_TEST
-#define USE_CMD_TEST_NVM_ACCESS     0
+#define USE_CMD_TEST_NVM_ACCESS     1
 #define USE_CMD_TEST_STEP_COUNT     1
 #define USE_CMD_TEST_ZERO_ADJUST    1
 #else

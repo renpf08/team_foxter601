@@ -91,6 +91,20 @@ static const CMDENTRY cmd_list[] =
 };
 
 #if USE_CMD_TEST
+/**
+*   CMD_TEST_NVM_ACCESS:
+*   AF 00 00 // nvm write one day data
+*   AF 00 01 // nvm read all history data
+*   AF 00 02 // nvm read one day data
+*   AF 00 03 // nvm erase history data
+*   CMD_TEST_ZERO_ADJUST
+*   AF 01 00 // KEY_A_B_LONG_PRESS
+*   AF 01 01 // KEY_M_SHORT_PRESS
+*   AF 01 02 // KEY_A_SHORT_PRESS
+*   AF 01 03 // KEY_B_SHORT_PRESS
+*   CMD_TEST_STEP_COUNT
+*   AF 02 xx // simulate step counting, xx means how many steps now
+*/
 static s16 cmd_test(u8 *buffer, u8 length)
 {
     typedef struct{

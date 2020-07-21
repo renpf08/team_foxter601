@@ -433,6 +433,7 @@ s16 nvm_read_oneday(u8 index)
     #if USE_UART_PRINT
     print((u8*)buf, len);
     #endif
+    BLE_SEND_LOG((u8*)buf, len);
     
     return 0;
 }
@@ -457,6 +458,7 @@ s16 nvm_read_test(void)
         #if USE_UART_PRINT
         print((u8*)buf, len);
         #endif
+        BLE_SEND_LOG((u8*)buf, len);
     }
 
     return 0;

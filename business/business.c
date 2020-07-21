@@ -66,7 +66,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
     s16 res = 0;
-    u8 st_cb[4] = {0x5A, business.state_now, cb, 0};
+    u8 st_cb[4] = {0x5F, business.state_now, cb, 0};
 
 	//return 0;
     #if USE_UART_PRINT
@@ -75,6 +75,8 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 
     if(cb == KEY_M_ULTRA_LONG_PRESS) {
         system_reboot(0);
+    } else if(cb == REPORT_MAX) {
+        return 0;
     }
     
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
