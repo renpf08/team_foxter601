@@ -21,7 +21,7 @@ static business_t business = {
 static state_t state[] = {
 	STATE_FILL(CLOCK,               CLOCK_1_MINUTE,     	CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               READ_STEPS,             CLOCK,                  state_clock),
-	/*nvm access*/
+	STATE_FILL(CLOCK,               SET_TIME,               CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               READ_HISDAYS,           CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               READ_HISDATA,           CLOCK,                  state_clock),
 	#if USE_PARAM_STORE
@@ -45,6 +45,7 @@ static state_t state[] = {
 	STATE_FILL(BLE_SWITCH,          BLE_CHANGE,   	        BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(BLE_SWITCH,          BLE_PAIR,               BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(BLE_SWITCH,          READ_STEPS,             BLE_SWITCH,             state_ble_switch),
+	STATE_FILL(BLE_SWITCH,          SET_TIME,               BLE_SWITCH,             state_ble_switch),
 	/*notify*/
 	STATE_FILL(CLOCK,               ANCS_NOTIFY_INCOMING,   NOTIFY_COMING,          state_notify),
 	STATE_FILL(CLOCK,               ANDROID_NOTIFY,         NOTIFY_COMING,          state_notify),
@@ -59,9 +60,6 @@ static state_t state[] = {
 	/*run test*/
 	STATE_FILL(CLOCK,       		KEY_A_B_M_LONG_PRESS,   RUN_TEST,  				state_run_test),
 	STATE_FILL(RUN_TEST,    		KEY_A_B_M_LONG_PRESS,   RUN_TEST,  				state_run_test),
-	/*cmd set time*/
-	STATE_FILL(CLOCK,               SET_TIME,               SET_DATE_TIME,          state_set_date_time),
-	STATE_FILL(BLE_SWITCH,          SET_TIME,               SET_DATE_TIME,          state_set_date_time),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)

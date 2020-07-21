@@ -24,7 +24,6 @@ void print(u8 *buf, u16 num);
 void timer_event(u16 ms, timer_cb cb);
 
 clock_t *clock_get(void);
-s16 clock_set(clock_t *ck);
 
 s16 motor_manager_init(void);
 void motor_run_one_step(u8 motor_num, u8 direction);

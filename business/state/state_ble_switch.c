@@ -208,6 +208,24 @@ static void ble_activity_handler(u16 id)
     motor_activity_to_position(activity);
     cmd_resp(CMD_SYNC_DATA, 0, (u8*)&"\xF5\xFA");
 }
+static void ble_set_time(void)
+{
+	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
+    clock_t* clock = clock_get();
+
+    clock->year = time->year[1]<<8 | time->year[0];
+    clock->month = time->month;
+    clock->day = time->day;
+    clock->week = time->week;
+    clock->hour = time->hour;
+    clock->minute = time->minute;
+    clock->second = time->second;
+
+    BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
+	motor_minute_to_position(clock->minute);
+	motor_hour_to_position(clock->hour);
+    motor_date_to_position(date[clock->day]);
+}
 s16 state_ble_switch(REPORT_E cb, void *args)
 {
     s16 res = 0;
@@ -231,6 +249,8 @@ s16 state_ble_switch(REPORT_E cb, void *args)
         params->steps = step_get();
         params->clock = clock;
         timer_event(10, ble_activity_handler);
+    } else if(cb == SET_TIME) {
+        ble_set_time();
     }
 
 	return res;

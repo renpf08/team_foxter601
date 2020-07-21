@@ -50,9 +50,10 @@ static void alarm_clock_check(clock_t *clock)
         }
     }
 }
-static void minutely_check(REPORT_E cb, clock_t *clock)
+static void minutely_check(REPORT_E cb)
 {
     his_data_t data;
+    clock_t* clock = clock_get();
     cmd_params_t* params = cmd_get_params();
 
     if((clock->hour == 59)&&(clock->minute == 59)&&(clock->second == 59)) { // new day
@@ -70,7 +71,7 @@ static void minutely_check(REPORT_E cb, clock_t *clock)
         timer_event(10, clock_activity_handler);
     }
 }
-static void nvm_check(REPORT_E cb)
+static void nvm_access(REPORT_E cb)
 {
     his_data_t data;
     his_ctrl_t ctrl;
@@ -104,6 +105,24 @@ static void nvm_check(REPORT_E cb)
     #endif
     cmd_set_params(params);
 }
+static void clock_set_time(void)
+{
+	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
+    clock_t* clock = clock_get();
+
+    clock->year = time->year[1]<<8 | time->year[0];
+    clock->month = time->month;
+    clock->day = time->day;
+    clock->week = time->week;
+    clock->hour = time->hour;
+    clock->minute = time->minute;
+    clock->second = time->second;
+
+    BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
+	motor_minute_to_position(clock->minute);
+	motor_hour_to_position(clock->hour);
+    motor_date_to_position(date[clock->day]);
+}
 static u8 state_check(REPORT_E cb)
 {
     #if USE_PARAM_STORE
@@ -115,7 +134,7 @@ static u8 state_check(REPORT_E cb)
     #endif
     switch(cb) {
     case READ_STEPS:
-        minutely_check(cb, clock_get());
+        minutely_check(cb);
         break;
     case READ_HISDAYS:
     case READ_HISDATA:
@@ -124,7 +143,10 @@ static u8 state_check(REPORT_E cb)
     #endif
     case WRITE_USER_INFO:
     case WRITE_ALARM_CLOCK:
-        nvm_check(cb);
+        nvm_access(cb);
+        break;
+    case SET_TIME:
+        clock_set_time();
         break;
     default:
         return 0;
@@ -155,7 +177,7 @@ s16 state_clock(REPORT_E cb, void *args)
 	motor_minute_to_position(clk->minute);
 	motor_hour_to_position(clk->hour);
     motor_date_to_position(date[clk->day]);
-    minutely_check(cb, clk);
+    minutely_check(cb);
 	#else
 	clk.minute++;
 	if(60 == clk.minute) {
@@ -176,7 +198,7 @@ s16 state_clock(REPORT_E cb, void *args)
 	motor_minute_to_position(clk.minute);
 	motor_hour_to_position(clk.hour);
     motor_date_to_position(date[clk.day]);
-    minutely_check(cb, clk);
+    //minutely_check(cb);
 	#endif
 
 	return 0;
