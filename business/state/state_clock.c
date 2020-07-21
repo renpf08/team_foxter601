@@ -22,7 +22,7 @@ static clock_t clk = {
 };
 #endif
 
-static void minutely_activity_handler(u16 id)
+static void clock_activity_handler(u16 id)
 {
     u32 target_steps = cmd_get()->user_info.target_steps;
     u32 current_steps = step_get();
@@ -67,7 +67,7 @@ static void minutely_check(REPORT_E cb, clock_t *clock)
     params->clock = clock;
     alarm_clock_check(clock);
     if(cb == READ_STEPS) {
-        timer_event(10, minutely_activity_handler);
+        timer_event(10, clock_activity_handler);
     }
 }
 s16 state_clock(REPORT_E cb, void *args)
