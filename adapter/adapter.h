@@ -17,6 +17,7 @@ extern bool ble_send_log(uint8 *data, uint16 size);
 
 void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
+void system_reboot(u8 reboot_type);
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num);
 #endif
@@ -116,7 +117,7 @@ app_state ble_state_get(void);
 //void print_str_dec(u8 *buf, u16 dec_num);
 //void print_date_time(u8 *buf, clock_t *datm);
 //u8 bcd_to_hex(u8 bcd_data);
-u32 hex_to_bcd(u8 hex_data);
+//u32 hex_to_bcd(u8 hex_data);
 
 extern const u8 date[];
 

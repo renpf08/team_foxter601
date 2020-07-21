@@ -4,6 +4,7 @@
 #include <mem.h>
 #include "config.h"
 #include "adapter.h"
+#include <panic.h>
 
 const u8 date[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
@@ -240,6 +241,13 @@ u32 hex_to_bcd(u8 hex_data)
 }
 #endif
 
+void system_reboot(u8 reboot_type)
+{
+    if(reboot_type == 0) {
+        APP_Move_Bonded(4);
+    }
+    Panic(0x5AFF);
+}
 
 void timer_event(u16 ms, timer_cb cb)
 {

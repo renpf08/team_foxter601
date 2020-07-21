@@ -37,7 +37,7 @@ static state_t state[] = {
 	STATE_FILL(BLE_SWITCH,          KEY_M_LONG_PRESS,   	BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(BLE_SWITCH,          BLE_CHANGE,   	        BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(BLE_SWITCH,          BLE_PAIR,               BLE_SWITCH,             state_ble_switch),
-	STATE_FILL(BLE_SWITCH,          READ_STEPS,             BLE_SWITCH,             state_ble_switch),
+	STATE_FILL(BLE_SWITCH,          READ_STEPS,             STEPS_COUNT,            state_ble_switch),
 	/*notify*/
 	STATE_FILL(CLOCK,               ANCS_NOTIFY_INCOMING,   NOTIFY_COMING,          state_notify),
 	STATE_FILL(CLOCK,               ANDROID_NOTIFY,         NOTIFY_COMING,          state_notify),
@@ -65,13 +65,6 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               WRITE_ALARM_CLOCK,      NVM_ACCESS,             state_nvm_access),
 	STATE_FILL(CLOCK,               WRITE_USER_INFO,        NVM_ACCESS,             state_nvm_access),
 	#endif
-	/*system reboot*/
-	STATE_FILL(INIT,                KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
-	STATE_FILL(CLOCK,               KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
-	STATE_FILL(ZERO_ADJUST,         KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
-	STATE_FILL(BLE_SWITCH,          KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
-	STATE_FILL(RUN_TEST,            KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
-	/*read steps*/
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)
@@ -84,6 +77,10 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
     #if USE_UART_PRINT
 	print((u8 *)&cb, 1);
     #endif
+
+    if(cb == KEY_M_ULTRA_LONG_PRESS) {
+        system_reboot(0);
+    }
     
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 

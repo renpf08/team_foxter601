@@ -78,6 +78,7 @@ s16 state_clock(REPORT_E cb, void *args)
 
     if(cb != CLOCK) {
         minutely_check(cb, clock_get());
+        *(STATE_E *)args = CLOCK;
         return 0;
     }
 
