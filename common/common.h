@@ -367,8 +367,7 @@ typedef enum {
     CMD_SET_ANCS_BOND_REQ   = 0x0D,
     CMD_READ_STEPS_TARGET   = 0x0E,
 
-    CMD_ZERO_ADJUST         = 0xE0,
-    CMD_NVM_TEST            = 0xF0,
+    CMD_TEST                = 0x5A,
     CMD_APP_NONE            = 0xFF
 } cmd_app_send_t;
 

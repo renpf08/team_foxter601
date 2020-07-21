@@ -77,7 +77,7 @@ s16 nvm_write_ctrl(his_ctrl_t *ctrl);
 s16 nvm_read_data(his_data_t *data);
 s16 nvm_write_data(his_data_t *data);
 u8 nvm_get_days(void);
-#if USE_NVM_TEST
+#if USE_CMD_TEST_NVM_ACCESS
 u8 panic_get(void);
 s16 nvm_read_oneday(u8 index);
 s16 nvm_read_test(void);

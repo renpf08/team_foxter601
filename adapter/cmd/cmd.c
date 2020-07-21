@@ -21,6 +21,23 @@
 #define   DEFAULT_TARGET_FLOORCOUNTS        20        /*默认目标楼高数*/
 #define   DEFAULT_TARGET_ACUTESPTIMECOUNTS  60       /*默认目标剧烈运动分钟数*/
 
+enum {
+    STATE_REALTIME_DATA,
+    STATE_HISDATA_START,
+    STATE_HISDATA_DAYS,
+    STATE_HISDATA_READ,
+    STATE_HISDATA_SEND,
+    STATE_SLEEP_SEND,
+    STATE_INVALID
+};
+#if USE_CMD_TEST
+enum{
+    CMD_TEST_NVM_ACCESS,
+    CMD_TEST_ZERO_ADJUST,
+    CMD_TEST_STEP_COUNT,
+};
+#endif
+
 typedef s16 (* LFPCMDHANDLER)(u8 *buffer, u8 length);
 
 typedef struct cmdEntry_T {
@@ -55,12 +72,10 @@ static s16 cmd_set_vibration(u8 *buffer, u8 length);
 static s16 cmd_find_watch(u8 *buffer, u8 length);
 static s16 cmd_set_ancs_bond_req(u8 *buffer, u8 length);
 static s16 cmd_READ_STEPS_TARGET(u8 *buffer, u8 length);
-#if USE_CMD_ZERO_ADJUST
-static s16 cmd_zero_adjust(u8 *buffer, u8 length);
+#if USE_CMD_TEST
+static s16 cmd_test(u8 *buffer, u8 length);
 #endif
-#if USE_NVM_TEST
-static s16 cmd_nvm_test(u8 *buffer, u8 length);
-#endif
+
 void cmd_parse(u8* content, u8 length);
 s16 cmd_init(adapter_callback cb);
 
@@ -81,24 +96,70 @@ static const CMDENTRY cmd_list[] =
     {CMD_SET_FIND_WATCH,    SET_FIND_WATCH,     cmd_find_watch},
     {CMD_SET_ANCS_BOND_REQ, SET_ANCS_BOND_REQ,  cmd_set_ancs_bond_req},
     {CMD_READ_STEPS_TARGET, READ_STEPS_TARGET,  cmd_READ_STEPS_TARGET},
-    #if USE_CMD_ZERO_ADJUST
-    {CMD_ZERO_ADJUST,       REPORT_MAX,         cmd_zero_adjust},
+        
+    #if USE_CMD_TEST
+    {CMD_TEST,              REPORT_MAX,         cmd_test},
     #endif
-    #if USE_NVM_TEST
-    {CMD_NVM_TEST,          REPORT_MAX,         cmd_nvm_test},
-    #endif
+    
 	{CMD_APP_NONE,          REPORT_MAX, NULL}
 };
-enum {
-    STATE_REALTIME_DATA,
-    STATE_HISDATA_START,
-    STATE_HISDATA_DAYS,
-    STATE_HISDATA_READ,
-    STATE_HISDATA_SEND,
-    STATE_SLEEP_SEND,
-    STATE_INVALID
-};
 
+#if USE_CMD_TEST
+static s16 cmd_test(u8 *buffer, u8 length)
+{
+    typedef struct{
+        u8 head;
+        u8 cmd;
+        u8 act;
+        u8* payload;
+    }cmd_test_t;
+    cmd_test_t* test = (cmd_test_t*)buffer;
+
+    switch(test->cmd) {
+    case CMD_TEST_NVM_ACCESS:
+        switch(test->act) {
+        case 0:
+            nvm_write_test();
+            break;
+        case 1:
+            nvm_read_test();
+            break;
+        case 2:
+            nvm_read_oneday(test->payload[0]);
+            break;
+        case 3:
+            nvm_erase_history_data();
+            break;
+        default:
+            break;
+        }
+        break;
+    case CMD_TEST_ZERO_ADJUST:
+        switch(test->act) {
+        case 0:
+            cmd_cb(KEY_A_B_LONG_PRESS, NULL);
+            break;
+        case 1:
+            cmd_cb(KEY_M_SHORT_PRESS, NULL);
+            break;
+        case 2:
+            cmd_cb(KEY_A_SHORT_PRESS, NULL);
+            break;
+        case 3:
+            cmd_cb(KEY_B_SHORT_PRESS, NULL);
+            break;
+        default:
+            break;
+        }
+        break;
+    case CMD_TEST_STEP_COUNT:
+        break;
+    default:
+        break;
+    }
+    return 0;
+}
+#endif
 static s16 cmd_pairing_code(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.pair_code, buffer, sizeof(cmd_pairing_code_t));
@@ -106,39 +167,6 @@ static s16 cmd_pairing_code(u8 *buffer, u8 length)
 }
 static s16 cmd_user_info(u8 *buffer, u8 length)
 {
-//    typedef struct {
-//        u8 cmd; 
-//        u8 steps[4];
-//        u8 dists[4];
-//        u8 calorie[4];
-//        u8 floors[2];
-//        u8 acute[2];
-//        u8 gender;
-//        u8 height;
-//        u8 weight;
-//    } tmp_info_t;
-//    tmp_info_t* tmp_info = (tmp_info_t*)buffer;
-//    
-//    if(tmp_info->gender > 1) return 1;
-//    cmd_group.user_info.target_steps = tmp_info->steps[0];cmd_group.user_info.target_steps <<= 8;
-//    cmd_group.user_info.target_steps |= tmp_info->steps[1];cmd_group.user_info.target_steps <<= 8;
-//    cmd_group.user_info.target_steps |= tmp_info->steps[2];cmd_group.user_info.target_steps <<= 8;
-//    cmd_group.user_info.target_steps |= tmp_info->steps[3];
-//    cmd_group.user_info.target_dists = tmp_info->steps[0];cmd_group.user_info.target_dists <<= 8;
-//    cmd_group.user_info.target_dists |= tmp_info->dists[1];cmd_group.user_info.target_dists <<= 8;
-//    cmd_group.user_info.target_dists |= tmp_info->dists[2];cmd_group.user_info.target_dists <<= 8;
-//    cmd_group.user_info.target_dists |= tmp_info->dists[3];
-//    cmd_group.user_info.target_calorie = tmp_info->calorie[0];cmd_group.user_info.target_calorie <<= 8;
-//    cmd_group.user_info.target_calorie |= tmp_info->calorie[1];cmd_group.user_info.target_calorie <<= 8;
-//    cmd_group.user_info.target_calorie |= tmp_info->calorie[2];cmd_group.user_info.target_calorie <<= 8;
-//    cmd_group.user_info.target_calorie |= tmp_info->calorie[3];
-//    cmd_group.user_info.target_floors = (tmp_info->floors[0]<<8 | tmp_info->floors[1]);
-//    cmd_group.user_info.target_acute_sport = (tmp_info->acute[0]<<8 | tmp_info->acute[1]);
-//    cmd_group.user_info.gender = tmp_info->gender;
-//    cmd_group.user_info.height = tmp_info->height;
-//    cmd_group.user_info.weight = tmp_info->weight;
-
-    //cmd_group.user_info.target_steps = ((u32)buffer[1]<<24)|((u32)buffer[2]<<16)|((u32)buffer[3]<<8)|((u32)buffer[4]);
     cmd_group.user_info.target_steps = ((u32)buffer[4]<<24)|((u32)buffer[3]<<16)|((u32)buffer[2]<<8)|((u32)buffer[1]);
     return 0;
 }
@@ -245,38 +273,6 @@ static s16 cmd_READ_STEPS_TARGET(u8 *buffer, u8 length)
     MemCopy(&cmd_group.read_time_step, buffer, sizeof(cmd_READ_STEPS_TARGET_t)); 
     return 0;
 }
-#if USE_CMD_ZERO_ADJUST
-static s16 cmd_zero_adjust(u8 *buffer, u8 length)
-{
-    if(buffer[1] == 0) {
-        cmd_cb(KEY_A_B_LONG_PRESS, NULL);
-    } else if(buffer[1] == 1) {
-        cmd_cb(KEY_M_SHORT_PRESS, NULL);
-    } else if(buffer[1] == 2) {
-        cmd_cb(KEY_A_SHORT_PRESS, NULL);
-    } else if(buffer[1] == 3) {
-        cmd_cb(KEY_B_SHORT_PRESS, NULL);
-    }
-    
-    return 0;
-}
-#endif
-#if USE_NVM_TEST
-static s16 cmd_nvm_test(u8 *buffer, u8 length)
-{
-    if(buffer[1] == 0) {
-        nvm_write_test();
-    } else if(buffer[1] == 1) {
-        nvm_read_test();
-    } else if(buffer[1] == 2) {
-        nvm_read_oneday(buffer[2]);
-    } else if(buffer[1] == 3) {
-        nvm_erase_history_data();
-    }
-    
-    return 0;
-}
-#endif
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
 {
     u16 length = 0; 
