@@ -70,15 +70,82 @@ static void minutely_check(REPORT_E cb, clock_t *clock)
         timer_event(10, clock_activity_handler);
     }
 }
+static void nvm_check(REPORT_E cb)
+{
+    his_data_t data;
+    his_ctrl_t ctrl;
+    cmd_params_t* params = cmd_get_params();
+    #if USE_PARAM_STORE
+    cmd_group_t *value = cmd_get();
+    #endif
+
+    MemSet(&data, 0, sizeof(his_data_t));
+    MemSet(&ctrl, 0, sizeof(his_ctrl_t));
+    if(cb == READ_HISDAYS) {
+        nvm_read_ctrl(&ctrl);
+        ctrl.read_tail = ctrl.ring_buf_tail; // reset read pointer
+        nvm_write_ctrl(&ctrl);
+        params->days = nvm_get_days();
+    } else if(cb == READ_HISDATA) {
+        nvm_read_history_data((u16*)&data, READ_HISDATA_TOTAL);//res = nvm_read_data(&data);//
+        params->data = &data;
+    }
+    #if USE_PARAM_STORE
+    else if(cb == WRITE_ALARM_CLOCK) {
+        nvm_write_alarm_clock((u16*)&value->set_alarm_clock, 0);
+    } else if(cb == WRITE_USER_INFO) {
+        nvm_write_personal_info((u16*)&value->user_info, 0);
+    } else if(cb == READ_SYS_PARAMS) {
+        nvm_read_alarm_clock((u16*)&value->set_alarm_clock, 0);
+        nvm_read_pairing_code((u16*)&value->pair_code, 0);
+        nvm_read_personal_info((u16*)&value->user_info, 0);
+    }
+    cmd_set(value);
+    #endif
+    cmd_set_params(params);
+}
+static u8 state_check(REPORT_E cb)
+{
+    #if USE_PARAM_STORE
+    static u8 flag = 0;
+
+    if(flag == 0) {
+        cb = READ_SYS_PARAMS;
+    }
+    #endif
+    switch(cb) {
+    case READ_STEPS:
+        minutely_check(cb, clock_get());
+        break;
+    case READ_HISDAYS:
+    case READ_HISDATA:
+    #if USE_PARAM_STORE
+    case READ_SYS_PARAMS:
+    #endif
+    case WRITE_USER_INFO:
+    case WRITE_ALARM_CLOCK:
+        nvm_check(cb);
+        break;
+    default:
+        return 0;
+        break;
+    }
+
+    #if USE_PARAM_STORE
+    if(flag == 0) {
+        flag = 1;
+        return 0;
+    }
+    #endif
+    return 1;
+}
 s16 state_clock(REPORT_E cb, void *args)
 {
     #if USE_UART_PRINT
 	print((u8 *)&"clock", 5);
     #endif
 
-    if(cb != CLOCK) {
-        minutely_check(cb, clock_get());
-        *(STATE_E *)args = CLOCK;
+    if(state_check(cb) != 0) {
         return 0;
     }
 

@@ -258,7 +258,6 @@ typedef enum {
 	SET_DATE_TIME = 10,
 	NVM_ACCESS = 11,
 	SYSTEM_REBOOT = 12,
-	STEPS_COUNT = 13,
 	STATE_MAX,
 }STATE_E;
 

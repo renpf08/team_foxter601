@@ -20,7 +20,14 @@ static business_t business = {
 
 static state_t state[] = {
 	STATE_FILL(CLOCK,               CLOCK_1_MINUTE,     	CLOCK,                  state_clock),
-	STATE_FILL(CLOCK,               READ_STEPS,             STEPS_COUNT,            state_clock),
+	STATE_FILL(CLOCK,               READ_STEPS,             CLOCK,                  state_clock),
+	/*nvm access*/
+	STATE_FILL(CLOCK,               READ_HISDAYS,           CLOCK,                  state_clock),
+	STATE_FILL(CLOCK,               READ_HISDATA,           CLOCK,                  state_clock),
+	#if USE_PARAM_STORE
+	STATE_FILL(CLOCK,               WRITE_USER_INFO,        CLOCK,                  state_clock),
+	STATE_FILL(CLOCK,               WRITE_ALARM_CLOCK,      CLOCK,                  state_clock),
+	#endif
 	/*battery mode*/
 	//STATE_FILL(CLOCK,       BATTERY_LOW,        	LOW_VOLTAGE, 	state_low_voltage),
 	//STATE_FILL(LOW_VOLTAGE, BATTERY_NORMAL,     	CLOCK,       	state_clock),
@@ -37,7 +44,7 @@ static state_t state[] = {
 	STATE_FILL(BLE_SWITCH,          KEY_M_LONG_PRESS,   	BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(BLE_SWITCH,          BLE_CHANGE,   	        BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(BLE_SWITCH,          BLE_PAIR,               BLE_SWITCH,             state_ble_switch),
-	STATE_FILL(BLE_SWITCH,          READ_STEPS,             STEPS_COUNT,            state_ble_switch),
+	STATE_FILL(BLE_SWITCH,          READ_STEPS,             BLE_SWITCH,             state_ble_switch),
 	/*notify*/
 	STATE_FILL(CLOCK,               ANCS_NOTIFY_INCOMING,   NOTIFY_COMING,          state_notify),
 	STATE_FILL(CLOCK,               ANDROID_NOTIFY,         NOTIFY_COMING,          state_notify),
@@ -55,16 +62,6 @@ static state_t state[] = {
 	/*cmd set time*/
 	STATE_FILL(CLOCK,               SET_TIME,               SET_DATE_TIME,          state_set_date_time),
 	STATE_FILL(BLE_SWITCH,          SET_TIME,               SET_DATE_TIME,          state_set_date_time),
-	/*nvm access*/
-	STATE_FILL(CLOCK,               READ_HISDAYS,           NVM_ACCESS,             state_nvm_access),
-	STATE_FILL(CLOCK,               READ_HISDATA,           NVM_ACCESS,             state_nvm_access),
-	STATE_FILL(CLOCK,               WRITE_USER_INFO,        NVM_ACCESS,             state_nvm_access),
-	#if USE_PARAM_STORE
-	STATE_FILL(INIT,                READ_SYS_PARAMS,        NVM_ACCESS,             state_nvm_access),
-	STATE_FILL(INIT,                WRITE_USER_INFO,        NVM_ACCESS,             state_nvm_access),
-	STATE_FILL(CLOCK,               WRITE_ALARM_CLOCK,      NVM_ACCESS,             state_nvm_access),
-	STATE_FILL(CLOCK,               WRITE_USER_INFO,        NVM_ACCESS,             state_nvm_access),
-	#endif
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)

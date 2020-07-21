@@ -437,6 +437,9 @@ cmd_group_t *cmd_get(void)
 }
 void cmd_set(cmd_group_t *value)
 {
+    if(value->user_info.target_steps == 0) {
+        value->user_info.target_steps = DEFAULT_TARGET_STEPCOUNTS;
+    }
     MemCopy(&cmd_group, value, sizeof(cmd_group_t));
 }
 cmd_params_t* cmd_get_params(void)
@@ -454,7 +457,6 @@ s16 cmd_init(adapter_callback cb)
     MemSet(&cmd_group, 0, sizeof(cmd_group_t));
     cmd_params.days = -1;
     cmd_group.app_ack.state = STATE_INVALID;    
-    cmd_group.user_info.target_steps = DEFAULT_TARGET_STEPCOUNTS;
     
 	return 0;
 }

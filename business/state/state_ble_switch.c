@@ -226,7 +226,6 @@ s16 state_ble_switch(REPORT_E cb, void *args)
         //print((u8*)&"cmd pair", 8);
         res = ble_pair(args);
     } else if(cb == READ_STEPS) {
-        *(STATE_E *)args = BLE_SWITCH;
         clock_t *clock = clock_get();
         cmd_params_t* params = cmd_get_params();
         params->steps = step_get();
