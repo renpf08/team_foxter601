@@ -375,41 +375,6 @@ s16 step_sample_init(adapter_callback cb)
     steps_cb = cb;
 	return 0;
 }
-#if USE_DEV_CALORIE
-void sport_minute_calc(void)
-{
-    u32 bmr_colorie = 0;
-    u32 calorie = 0;
-    static u32 last_steps = 0;
-    static u32 steps = 0;
-    
-    if(Total_Sport_Info_data.StepCounts == 0) {
-        last_steps = 0;
-    }
-    steps = (Total_Sport_Info_data.StepCounts - last_steps);
-    
-    if(user_info->gender == 1) {/*ÄÐ*/                       
-       bmr_colorie = user_info->weight*50/3;                    // 16.7*70  =1169  /*1000 / 60*/
-       if(steps > 200) calorie = user_info->weight*125/4;       // 31.25*70 =2187.5  /*1000 x 45 /24/60*/ // heavy_colorie
-       else if(steps > 100) calorie = user_info->weight*250/9;  // 27.8*70  =1946  /*1000 x 40 /24/60*/ // medium_colorie
-       else if(steps > 0) calorie = user_info->weight*875/36;   // 24.3*70  =1701  /*1000 x 35 /24/60*/  // light_colorie
-       else calorie = 0;
-    } else {/*Å®*/
-       bmr_colorie = user_info->weight*95/6;                    // 15.8*70  =1106  /*950 / 60*/
-       if(steps > 200) calorie = user_info->weight*250/9;       // 27.78*70 =1944.6  /*1000 x40 /24/60*/ // heavy_colorie
-       else if(steps > 100) calorie = user_info->weight*875/36; // 24.3*70  =1701 /*1000 x35 /24/60*/ // medium_colorie
-       else if(steps > 0) calorie = user_info->weight*125/6;    // 20.8*70  =1456   /*1000 x 30 /24/60*/  // light_colorie
-       else calorie = 0;
-    }
-    if(steps >100) {
-        Total_Sport_Info_data.AcuteSportTimeCounts++;
-    }
-    
-    bmr_colorie += calorie;
-    Total_Sport_Info_data.Calorie += bmr_colorie;    
-    last_steps = Total_Sport_Info_data.StepCounts;
-}
-#endif
 SPORT_INFO_T* sport_get(void)
 {
     return &Total_Sport_Info_data;

@@ -42,10 +42,6 @@ s16 state_step_get(REPORT_E cb, void *args)
         data.month = clock->month;
         data.day = clock->day;
         data.steps = sport_info->StepCounts;
-        #if USE_DEV_CALORIE
-        data.colorie = sport_info->Calorie;
-        data.acute = sport_info->AcuteSportTimeCounts;
-        #endif
         params->data = &data;
         break;
     default:

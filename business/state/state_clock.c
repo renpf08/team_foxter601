@@ -21,19 +21,6 @@ static clock_t clk = {
 	.second = 0,
 };
 #endif
-//static void sport_activity_calc(void)
-//{
-//    u32 target_steps = cmd_get()->user_info.target_steps;
-//    u32 current_steps = sport_get()->StepCounts;
-//    u8 activity = 40; // total 40 grids
-//
-//    if(current_steps < target_steps) {
-//        activity = (current_steps*40)/target_steps;
-//    } else if(target_steps == 0) {
-//        activity = 0;
-//    }
-//    motor_activity_to_position(activity);
-//}
 static void alarm_clock_check(clock_t *clock)
 {
     cmd_set_alarm_clock_t *alarm_clock = (cmd_set_alarm_clock_t*)&cmd_get()->set_alarm_clock;
@@ -65,16 +52,9 @@ static void minute_data_handler(clock_t *clock)
         data.month = clock->month;
         data.day = clock->day;
         data.steps = sport_info->StepCounts;
-        #if USE_DEV_CALORIE
-        data.colorie = sport_info->Calorie;
-        data.acute = sport_info->AcuteSportTimeCounts;
-        #endif
         nvm_write_data(&data);
         sport_clear();
     } else {
-        #if USE_DEV_CALORIE
-        sport_minute_calc();
-        #endif
         //cmd_resp(CMD_SYNC_DATA, 0, (u8*)&"\xF5\xFA"); // send real-time data every minutes
     }
     alarm_clock_check(clock);
