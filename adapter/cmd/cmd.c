@@ -43,10 +43,6 @@ static adapter_callback cmd_cb = NULL;
 
 cmd_params_t cmd_params;
 
-//static clock_t *cmd_time;
-//static u32 cmd_steps;
-//static u8 cmd_days;
-
 static s16 cmd_pairing_code(u8 *buffer, u8 length);
 static s16 cmd_user_info(u8 *buffer, u8 length);
 static s16 cmd_set_time(u8 *buffer, u8 length);
@@ -106,6 +102,7 @@ static s16 cmd_test(u8 *buffer, u8 length)
     cmd_test_t* test = (cmd_test_t*)buffer;
 
     switch(test->cmd) {
+    #if USE_CMD_TEST_NVM_ACCESS
     case CMD_TEST_NVM_ACCESS:
         switch(test->act) {
         case 0:
@@ -124,6 +121,8 @@ static s16 cmd_test(u8 *buffer, u8 length)
             break;
         }
         break;
+    #endif
+    #if USE_CMD_TEST_ZERO_ADJUST
     case CMD_TEST_ZERO_ADJUST:
         switch(test->act) {
         case 0:
@@ -142,8 +141,12 @@ static s16 cmd_test(u8 *buffer, u8 length)
             break;
         }
         break;
+    #endif
+    #if USE_CMD_TEST_STEP_COUNT
     case CMD_TEST_STEP_COUNT:
+        sport_set(test->act);
         break;
+    #endif
     default:
         break;
     }

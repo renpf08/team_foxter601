@@ -357,6 +357,6 @@ void sport_clear(void)
 #if USE_CMD_TEST_STEP_COUNT
 void sport_set(u32 steps)
 {
-    acc_steps = (acc_steps>steps)?acc_steps:steps;
+    acc_steps += steps;
 }
 #endif

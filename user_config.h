@@ -42,9 +42,11 @@ FO601
 #if USE_CMD_TEST
 #define USE_CMD_TEST_NVM_ACCESS     0
 #define USE_CMD_TEST_STEP_COUNT     1
+#define USE_CMD_TEST_ZERO_ADJUST    1
 #else
 #define USE_CMD_TEST_NVM_ACCESS     0
 #define USE_CMD_TEST_STEP_COUNT     0
+#define USE_CMD_TEST_ZERO_ADJUST    0
 #endif
 
 /* Timer value for starting the Discovery Procedure once the connection is
