@@ -9,7 +9,7 @@
 static void sport_activity_calc(void)
 {
     u32 target_steps = cmd_get()->user_info.target_steps;
-    u32 current_steps = sport_get()->StepCounts;
+    u32 current_steps = sport_get();
     u8 activity = 40; // total 40 grids
 
     if(current_steps < target_steps) {
@@ -26,7 +26,6 @@ s16 state_step_get(REPORT_E cb, void *args)
     s16 res = 0;
 	clock_t *clock = clock_get();
     cmd_params_t* params = cmd_get_params();
-    SPORT_INFO_T* sport_info = NULL;
     his_data_t data;
     
     MemSet(&data, 0, sizeof(his_data_t));
@@ -37,11 +36,10 @@ s16 state_step_get(REPORT_E cb, void *args)
         break;
     case READ_STEPS_CURRENT:
     case REFRESH_STEPS:
-        sport_info = sport_get();
         data.year = clock->year;
         data.month = clock->month;
         data.day = clock->day;
-        data.steps = sport_info->StepCounts;
+        data.steps = sport_get();
         params->data = &data;
         break;
     default:

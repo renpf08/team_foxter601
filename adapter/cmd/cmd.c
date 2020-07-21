@@ -42,8 +42,6 @@ cmd_group_t cmd_group;
 static adapter_callback cmd_cb = NULL;
 
 cmd_params_t cmd_params;
-//SPORT_INFO_T* minute_sport = NULL;
-
 
 //static clock_t *cmd_time;
 //static u32 cmd_steps;

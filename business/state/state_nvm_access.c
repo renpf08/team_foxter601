@@ -32,7 +32,6 @@ s16 state_nvm_access(REPORT_E cb, void *args)
     else if(cb == WRITE_ALARM_CLOCK) {
         nvm_write_alarm_clock((u16*)&value->set_alarm_clock, 0);
     } else if(cb == WRITE_USER_INFO) {
-        sport_set(&value->user_info);
         nvm_write_personal_info((u16*)&value->user_info, 0);
     } else if(cb == READ_SYS_PARAMS) {
         nvm_read_alarm_clock((u16*)&value->set_alarm_clock, 0);

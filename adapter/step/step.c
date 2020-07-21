@@ -56,19 +56,16 @@ typedef struct
      u8   StepsChangeCount;          /*步数前几步变化计算*/
      u8   StepsChangePreCount;       /*步数改变前的临时步数暂存*/
 }STEP_COUNT_T;
-SPORT_INFO_T Total_Sport_Info_data;
 STEP_COUNT_T Step_Count_data = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0},{0,0,0,0,0,0,0,0},0,0,0,0,0,0,0,0,0,0,0};  
 
 static adapter_callback steps_cb = NULL;
-static cmd_user_info_t* user_info = NULL;
+static u32 acc_steps;
 
 u16 CaculateAsbSquare(u8 Temp);
 void InitVal(u16 *ValS,u16 Val, u8 Length);
 u16 AverageVal(u16 *Val,u8 Num);
 u16 AverageValPro(u16 *Val,u16 New,u8 Num);
 u16 GetXYZ_Acce_Data(void);
-void Step_Count_data_Init(void);
-void step_count_proce(void);
 s16 step_sample_init(adapter_callback cb);
 
 /*????′?·?o?μ?8±èì???êyμ???·?*/
@@ -161,21 +158,6 @@ u16 GetXYZ_Acce_Data(void)
     
     return Return;
 }
-void Step_Count_data_Init(void)
-{
-   Step_Count_data.DataGetCount=0;/*获取0个值*/
-   Step_Count_data.FallingFlag=0;
-   Step_Count_data.RisingTime=0;
-   Step_Count_data.StepsChangePreCount=0;
-   Step_Count_data.ChangeTime=0;
-   Step_Count_data.StepsChangeCount=0;        
-   Step_Count_data.Pro_Step=PRO_STEP_IDLE;   
-   /*按键处理部分*/
-   Step_Count_data.LastChangeTime=0;   /*解决一些步数突变的问题*/
-   Step_Count_data.StepsChangeTimeBuffer=0; /*解决有时前几步变化的问题*/
-}
-
-static void StepCountProce(void);
 static void StepCountProce(void)
 {
     uint8 i=0,StepFlag=0;
@@ -185,7 +167,7 @@ static void StepCountProce(void)
         Temp=GetXYZ_Acce_Data();
         if(Temp<0xFFFE)/*取得数据*/
         {
-            Step_Count_data_Init();
+            MemSet(&Step_Count_data, 0, sizeof(STEP_COUNT_T));
             Step_Count_data.Pro_Step=PRO_STEP_RISING;/**/
             InitVal(Step_Count_data.FiFo_DataString_Val,Temp,ALL_DATA_NUM);/*存储每组4个平均值的数据，目前存16组*/
             InitVal(Step_Count_data.FiFo_Filter_Val,Temp,FILTER_NUM);      /*数据做平滑处理*/
@@ -319,7 +301,7 @@ static void StepCountProce(void)
                         {
                             if(Step_Count_data.StepsChangeCount>=HOW_MANY_STEP_BUFFER)/*前3秒内需要至少6步*/
                             {
-                                Total_Sport_Info_data.StepCounts+=Step_Count_data.StepsChangeCount;
+                                acc_steps+=Step_Count_data.StepsChangeCount;
                                 Step_Count_data.StepsChangeTimeBuffer=0xFF;
                             }
                             else /*认为是无作用的动作*/
@@ -333,7 +315,7 @@ static void StepCountProce(void)
                         }
                         else 
                         {
-                            Total_Sport_Info_data.StepCounts++;
+                            acc_steps++;
                             Step_Count_data.StepsChangeCount=HOW_MANY_STEP_BUFFER+1;
                         }
                         Step_Count_data.ChangeTime=1;
@@ -350,22 +332,11 @@ static void step_sample_handler(u16 id)
     static u32 step_count = 0;
     
 	get_driver()->timer->timer_start(280, step_sample_handler);
-    if(step_count != Total_Sport_Info_data.StepCounts)
+    if(step_count != acc_steps)
     {
-        step_count = Total_Sport_Info_data.StepCounts;
+        step_count = acc_steps;
         steps_cb(REFRESH_STEPS, NULL);
-    }
-    #if 0
-    u8 val[4] = {0};
-    if(step_count != Total_Sport_Info_data.StepCounts)
-    {
-        val[0] = (Total_Sport_Info_data.StepCounts>>24) & 0x000000FF;
-        val[1] = (Total_Sport_Info_data.StepCounts>>16) & 0x000000FF;
-        val[2] = (Total_Sport_Info_data.StepCounts>>8) & 0x000000FF;
-        val[3] = Total_Sport_Info_data.StepCounts & 0x000000FF;
-        BLE_SEND_LOG(val, 4);
-    }
-    #endif    
+    }    
 }
 s16 step_sample_init(adapter_callback cb)
 {
@@ -375,15 +346,17 @@ s16 step_sample_init(adapter_callback cb)
     steps_cb = cb;
 	return 0;
 }
-SPORT_INFO_T* sport_get(void)
+u32 sport_get(void)
 {
-    return &Total_Sport_Info_data;
-}
-void sport_set(cmd_user_info_t *user)
-{
-    user_info = user;
+    return acc_steps;
 }
 void sport_clear(void)
 {
-    MemSet(&Total_Sport_Info_data, 0, sizeof(SPORT_INFO_T));
+    acc_steps = 0;
 }
+#if USE_CMD_TEST_STEP_COUNT
+void sport_set(u32 steps)
+{
+    acc_steps = (acc_steps>steps)?acc_steps:steps;
+}
+#endif

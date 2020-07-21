@@ -517,9 +517,6 @@ typedef struct {
     u32 steps;
 }his_data_t; /* for nvm to store */
 typedef struct {
-    u32 StepCounts;
-}SPORT_INFO_T;  /*运动数据结构*/
-typedef struct {
     clock_t *clock;
     his_data_t *data;
     s16 days;

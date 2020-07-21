@@ -38,24 +38,15 @@ static void alarm_clock_check(clock_t *clock)
 static void minute_data_handler(clock_t *clock)
 {
     his_data_t data;
-    SPORT_INFO_T* sport_info = NULL;
-    static u8 sys_init = 0;
     
     MemSet(&data, 0, sizeof(his_data_t));
-    if(sys_init == 0) {
-        sys_init = 1;
-        sport_set(&cmd_get()->user_info);
-        return;
-    } else if((clock->hour == 59)&&(clock->minute == 59)&&(clock->second == 59)) { // new day
-        sport_info = sport_get();
+    if((clock->hour == 59)&&(clock->minute == 59)&&(clock->second == 59)) { // new day
         data.year = clock->year;
         data.month = clock->month;
         data.day = clock->day;
-        data.steps = sport_info->StepCounts;
+        data.steps = sport_get();;
         nvm_write_data(&data);
         sport_clear();
-    } else {
-        //cmd_resp(CMD_SYNC_DATA, 0, (u8*)&"\xF5\xFA"); // send real-time data every minutes
     }
     alarm_clock_check(clock);
 //    sport_activity_calc();
