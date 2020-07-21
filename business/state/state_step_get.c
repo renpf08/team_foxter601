@@ -9,7 +9,7 @@
 static void sport_activity_calc(void)
 {
     u32 target_steps = cmd_get()->user_info.target_steps;
-    u32 current_steps = sport_get();
+    u32 current_steps = step_get();
     u8 activity = 40; // total 40 grids
 
     if(current_steps < target_steps) {
@@ -23,33 +23,24 @@ static void sport_activity_calc(void)
 s16 state_step_get(REPORT_E cb, void *args)
 {
     STATE_E *state = (STATE_E *)args;
-    s16 res = 0;
 	clock_t *clock = clock_get();
-    cmd_params_t* params = cmd_get_params();
-    his_data_t data;
+    cmd_params_t params;
     
-    MemSet(&data, 0, sizeof(his_data_t));
-    switch(cb)
-    {
-    case READ_STEPS_TARGET:
-        params->clock = clock;
-        break;
-    case READ_STEPS_CURRENT:
-    case REFRESH_STEPS:
-        data.year = clock->year;
-        data.month = clock->month;
-        data.day = clock->day;
-        data.steps = sport_get();
-        params->data = &data;
-        break;
-    default:
-        break;
-    }
-    cmd_set_params(params);
+    params.clock->year = clock->year;
+    params.clock->month = clock->month;
+    params.clock->day = clock->day;
+    params.clock->hour = clock->hour;
+    params.clock->minute = clock->minute;
+    params.clock->second = clock->second;
+    params.clock->week = clock->week;
+    params.days = 0;
+    params.steps = step_get();
+        
+    cmd_set_params(&params);
     sport_activity_calc();
 
 	*state = CLOCK;
-	return res;
+	return 0;
 }
 
 

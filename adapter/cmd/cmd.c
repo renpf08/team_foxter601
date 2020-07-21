@@ -57,7 +57,7 @@ static s16 cmd_set_clock_hand(u8 *buffer, u8 length);
 static s16 cmd_set_vibration(u8 *buffer, u8 length);
 static s16 cmd_find_watch(u8 *buffer, u8 length);
 static s16 cmd_set_ancs_bond_req(u8 *buffer, u8 length);
-static s16 cmd_READ_STEPS_TARGET(u8 *buffer, u8 length);
+static s16 cmd_read_steps_target(u8 *buffer, u8 length);
 #if USE_CMD_TEST
 static s16 cmd_test(u8 *buffer, u8 length);
 #endif
@@ -81,7 +81,7 @@ static const CMDENTRY cmd_list[] =
     {CMD_SET_VIBRATION,     SET_VIBRATION,      cmd_set_vibration},
     {CMD_SET_FIND_WATCH,    SET_FIND_WATCH,     cmd_find_watch},
     {CMD_SET_ANCS_BOND_REQ, SET_ANCS_BOND_REQ,  cmd_set_ancs_bond_req},
-    {CMD_READ_STEPS_TARGET, READ_STEPS_TARGET,  cmd_READ_STEPS_TARGET},
+    {CMD_READ_STEPS_TARGET, READ_STEPS_TARGET,  cmd_read_steps_target},
         
     #if USE_CMD_TEST
     {CMD_TEST,              REPORT_MAX,         cmd_test},
@@ -144,7 +144,7 @@ static s16 cmd_test(u8 *buffer, u8 length)
     #endif
     #if USE_CMD_TEST_STEP_COUNT
     case CMD_TEST_STEP_COUNT:
-        sport_set(test->act);
+        step_test(test->act);
         break;
     #endif
     default:
@@ -261,9 +261,9 @@ static s16 cmd_set_ancs_bond_req(u8 *buffer, u8 length)
     //MemCopy(&cmd_group.set_ancs_bond, buffer, sizeof(cmd_set_ancs_bond_req_t));  
     return 0;
 }
-static s16 cmd_READ_STEPS_TARGET(u8 *buffer, u8 length)
+static s16 cmd_read_steps_target(u8 *buffer, u8 length)
 {
-    MemCopy(&cmd_group.read_time_step, buffer, sizeof(cmd_READ_STEPS_TARGET_t)); 
+    MemCopy(&cmd_group.read_time_step, buffer, sizeof(cmd_read_steps_target_t)); 
     return 0;
 }
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
@@ -302,7 +302,7 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
             tmp_buf = rsp_buf;
             if((data[0]==0xF5) && (data[1]==0xFA)) { // realtime data, just send for one time, no need to ack
                 if(cmd_params.days >= 0) return 1; // means app is syncing data now, no need to send realtime data
-                cmd_cb(READ_STEPS_CURRENT, NULL);
+                cmd_cb(READ_STEPS, NULL);
                 cmd_group.app_ack.state = STATE_REALTIME_DATA;
             } else if((result != 0) || (cmd_group.app_ack.state == STATE_INVALID)) {
                 return 0;
@@ -324,7 +324,7 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
                         if(cmd_params.days > 0) {
                             cmd_cb(READ_HISDATA, NULL);
                         } else if(cmd_params.days == 0) { // current day
-                            cmd_cb(READ_STEPS_CURRENT, NULL);
+                            cmd_cb(READ_STEPS, NULL);
                         } else {
                             cmd_group.app_ack.state = STATE_INVALID;
                             return 0;

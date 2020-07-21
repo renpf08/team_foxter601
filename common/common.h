@@ -79,13 +79,12 @@ typedef enum {
     SET_VIBRATION = 32,
     SET_FIND_WATCH = 33,
     SET_ANCS_BOND_REQ = 34,
-    REFRESH_STEPS = 35,
-    READ_STEPS_TARGET = 36,
-    READ_STEPS_CURRENT = 37,
-    READ_HISDAYS = 38,
-    READ_HISDATA = 39,
+    READ_STEPS_TARGET = 35,
+    READ_STEPS = 36,
+    READ_HISDAYS = 37,
+    READ_HISDATA = 38,
     #if USE_PARAM_STORE
-    READ_SYS_PARAMS = 40,
+    READ_SYS_PARAMS = 39,
     #endif
 	REPORT_MAX,
 }REPORT_E;
@@ -480,7 +479,7 @@ typedef struct {
 typedef struct { 
     u8 cmd; 
     u8 type; 
-} cmd_READ_STEPS_TARGET_t;
+} cmd_read_steps_target_t;
 
 typedef struct {
     cmd_pairing_code_t pair_code;
@@ -497,7 +496,7 @@ typedef struct {
     cmd_set_vibration_t set_vib;
     cmd_find_watch_t find_watch;
     cmd_set_ancs_bond_req_t set_ancs_bond;
-    cmd_READ_STEPS_TARGET_t read_time_step;
+    cmd_read_steps_target_t read_time_step;
 } cmd_group_t;
 
 enum {
@@ -519,6 +518,7 @@ typedef struct {
 typedef struct {
     clock_t *clock;
     his_data_t *data;
+    u32 steps;
     s16 days;
 } cmd_params_t;
 

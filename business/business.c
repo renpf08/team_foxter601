@@ -20,6 +20,7 @@ static business_t business = {
 
 static state_t state[] = {
 	STATE_FILL(CLOCK,               CLOCK_1_MINUTE,     	CLOCK,                  state_clock),
+	STATE_FILL(CLOCK,               READ_STEPS,             STEPS_COUNT,            state_clock),
 	/*battery mode*/
 	//STATE_FILL(CLOCK,       BATTERY_LOW,        	LOW_VOLTAGE, 	state_low_voltage),
 	//STATE_FILL(LOW_VOLTAGE, BATTERY_NORMAL,     	CLOCK,       	state_clock),
@@ -70,10 +71,6 @@ static state_t state[] = {
 	STATE_FILL(BLE_SWITCH,          KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
 	STATE_FILL(RUN_TEST,            KEY_M_ULTRA_LONG_PRESS, SYSTEM_REBOOT,          state_reboot),
 	/*read steps*/
-	STATE_FILL(CLOCK,               READ_STEPS_CURRENT,     STEPS_COUNT,            state_step_get),
-	STATE_FILL(CLOCK,               READ_STEPS_TARGET,      STEPS_COUNT,            state_step_get),
-	STATE_FILL(CLOCK,               REFRESH_STEPS,          STEPS_COUNT,            state_step_get),
-	//STATE_FILL(BLE_SWITCH,          REFRESH_STEPS,          STEPS_COUNT,            state_step_get),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)

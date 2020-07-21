@@ -97,11 +97,11 @@ app_msg_t *ancs_get(void);
 u8 angle_get(void);
 void Update_BodyInfo(uint8 Gender, uint8 Height, uint8 Weight);
 void One_Minute_Sport_Info_Pro(clock_t *clock);
-u32 sport_get(void);
+u32 step_get(void);
 #if USE_CMD_TEST_STEP_COUNT
-void sport_set(u32 steps);
+void step_test(u32 steps);
 #endif
-void sport_clear(void);
+void step_clear(void);
 //void clear_minutes_info(void);
 s16 sport_get_data(his_data_t *data, clock_t *clock);
 

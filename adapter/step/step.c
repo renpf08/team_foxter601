@@ -335,7 +335,7 @@ static void step_sample_handler(u16 id)
     if(step_count != acc_steps)
     {
         step_count = acc_steps;
-        steps_cb(REFRESH_STEPS, NULL);
+        steps_cb(READ_STEPS, NULL);
     }    
 }
 s16 step_sample_init(adapter_callback cb)
@@ -346,16 +346,16 @@ s16 step_sample_init(adapter_callback cb)
     steps_cb = cb;
 	return 0;
 }
-u32 sport_get(void)
+u32 step_get(void)
 {
     return acc_steps;
 }
-void sport_clear(void)
+void step_clear(void)
 {
     acc_steps = 0;
 }
 #if USE_CMD_TEST_STEP_COUNT
-void sport_set(u32 steps)
+void step_test(u32 steps)
 {
     acc_steps += steps;
 }

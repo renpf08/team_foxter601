@@ -9,7 +9,6 @@
 #include "state.h"
 
 #define NOTIFY_SWING_INTERVAL   1000
-#define CLOCK_REFRESH_INTERVAL  1000
 
 typedef struct {
     u16 pair_code;
