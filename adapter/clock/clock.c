@@ -73,7 +73,7 @@ static void clock_timer_increase(void)
 
 static void clock_cb_handler(u16 id)
 {
-	clock_cfg.drv->timer->timer_start(1000, clock_cb_handler);
+	clock_cfg.drv->timer->timer_start(1000, clock_cb_handler, 0x2B);
 	clock_cfg.clock.second++;
 	clock_timer_increase();
 }
@@ -82,7 +82,7 @@ s16 clock_init(adapter_callback cb)
 {
 	clock_cfg.cb = cb;
 	clock_cfg.drv = get_driver();
-	clock_cfg.drv->timer->timer_start(1000, clock_cb_handler);
+	clock_cfg.drv->timer->timer_start(1000, clock_cb_handler, 0x2C);
 	return 0;
 }
 

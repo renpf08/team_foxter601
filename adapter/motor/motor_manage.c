@@ -184,7 +184,7 @@ static void motor_battery_week_change(u16 id)
 		
 		motor_manager.motor_status[battery_week_motor].run_flag = 1;
 	}else {
-		timer_event(100, motor_battery_week_change);
+//////		timer_event(100, motor_battery_week_change, 0x05);
 	}
 }
 
@@ -194,12 +194,12 @@ s16 motor_battery_week_to_position(u8 battery_week)
 		(battery_week <= BAT_PECENT_100)) {
 		motor_manager.motor_status[battery_week_motor].dst_pos = BAT_PECENT_100;
 		motor_manager.bat_week_dst = battery_week;
-		timer_event(motor_manager.run_interval_ms, motor_battery_week_change);
+		timer_event(motor_manager.run_interval_ms, motor_battery_week_change, 0x06);
 	}else if((motor_manager.motor_status[battery_week_motor].cur_pos < BAT_PECENT_100) &&
 		(battery_week >= BAT_PECENT_100)) {
 		motor_manager.motor_status[battery_week_motor].dst_pos = BAT_PECENT_100;
 		motor_manager.bat_week_dst = battery_week;
-		timer_event(motor_manager.run_interval_ms, motor_battery_week_change);
+		timer_event(motor_manager.run_interval_ms, motor_battery_week_change, 0x07);
 	}else if(BAT_PECENT_100 == motor_manager.motor_status[battery_week_motor].cur_pos) {
 		motor_manager.motor_status[battery_week_motor].dst_pos = battery_week;
 		if(motor_manager.motor_status[battery_week_motor].dst_pos > BAT_PECENT_100) {
@@ -270,9 +270,9 @@ static void motor_run_continue_check(void)
 		}
 	}else {
 		if(pos == motor_manager.run_direction) {
-			motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
+			motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit, 0x19);
 		}else {
-			motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
+			motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit, 0x1A);
 		}
 	}
 }
@@ -307,7 +307,7 @@ static void motor_run_positive_one_unit(u16 id)
 		case FIRST_HALF:
 			motor_manager.run_motor->motor_positive_first_half(NULL);
 			motor_manager.motor_status[motor_manager.run_motor_num].run_step_state = RECOVER;
-			motor_manager.drv->timer->timer_start(5, motor_run_positive_one_unit);
+			motor_manager.drv->timer->timer_start(5, motor_run_positive_one_unit, 0x1B);
 			break;
 		case RECOVER:
 			motor_manager.run_motor->motor_stop(NULL);
@@ -317,7 +317,7 @@ static void motor_run_positive_one_unit(u16 id)
 		case SECOND_HALF:
 			motor_manager.run_motor->motor_positive_second_half(NULL);
 			motor_manager.motor_status[motor_manager.run_motor_num].run_step_state = STOP;
-			motor_manager.drv->timer->timer_start(5, motor_run_positive_one_unit);
+			motor_manager.drv->timer->timer_start(5, motor_run_positive_one_unit, 0x1C);
 			break;
 		case STOP:
 			motor_manager.run_motor->motor_stop(NULL);
@@ -335,7 +335,7 @@ static void motor_run_negtive_one_unit(u16 id)
 		case FIRST_HALF:
 			motor_manager.run_motor->motor_negtive_first_half(NULL);
 			motor_manager.motor_status[motor_manager.run_motor_num].run_step_state = RECOVER;
-			motor_manager.drv->timer->timer_start(5, motor_run_negtive_one_unit);
+			motor_manager.drv->timer->timer_start(5, motor_run_negtive_one_unit, 0x1D);
 			break;
 		case RECOVER:
 			motor_manager.run_motor->motor_stop(NULL);
@@ -345,7 +345,7 @@ static void motor_run_negtive_one_unit(u16 id)
 		case SECOND_HALF:
 			motor_manager.run_motor->motor_negtive_second_half(NULL);
 			motor_manager.motor_status[motor_manager.run_motor_num].run_step_state = STOP;
-			motor_manager.drv->timer->timer_start(5, motor_run_negtive_one_unit);
+			motor_manager.drv->timer->timer_start(5, motor_run_negtive_one_unit, 0x1F);
 			break;
 		case STOP:
 			motor_manager.run_motor->motor_stop(NULL);
@@ -379,15 +379,15 @@ void motor_run_handler(u16 id)
 		if(motor_manager.motor_status[motor_manager.run_motor_num].dst_pos > 
 		   motor_manager.motor_status[motor_manager.run_motor_num].cur_pos) {
 			motor_manager.run_direction = pos;
-			motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
+			motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit, 0x20);
 		}else {
 			motor_manager.run_direction = neg;
-			motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
+			motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit, 0x21);
 		}
 	}
 
 	/*check loop*/
-	motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler);
+//////	motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler, 0x22);
 }
 
 static void motor_run_pos_one_step(u16 id)
@@ -396,7 +396,7 @@ static void motor_run_pos_one_step(u16 id)
 		case FIRST_HALF:
 			motor_manager.run_motor->motor_positive_first_half(NULL);
 			motor_manager.motor_status[motor_manager.run_motor_num].run_step_state = RECOVER;
-			motor_manager.drv->timer->timer_start(5, motor_run_pos_one_step);
+			motor_manager.drv->timer->timer_start(5, motor_run_pos_one_step, 0x23);
 			break;
 		case RECOVER:
 			motor_manager.run_motor->motor_stop(NULL);
@@ -405,7 +405,7 @@ static void motor_run_pos_one_step(u16 id)
 		case SECOND_HALF:
 			motor_manager.run_motor->motor_positive_second_half(NULL);
 			motor_manager.motor_status[motor_manager.run_motor_num].run_step_state = STOP;
-			motor_manager.drv->timer->timer_start(5, motor_run_pos_one_step);
+			motor_manager.drv->timer->timer_start(5, motor_run_pos_one_step, 0x24);
 			break;
 		case STOP:
 			motor_manager.run_motor->motor_stop(NULL);
@@ -422,7 +422,7 @@ static void motor_run_neg_one_step(u16 id)
 		case FIRST_HALF:
 			motor_manager.run_motor->motor_negtive_first_half(NULL);
 			motor_manager.motor_status[motor_manager.run_motor_num].run_step_state = RECOVER;
-			motor_manager.drv->timer->timer_start(5, motor_run_neg_one_step);
+			motor_manager.drv->timer->timer_start(5, motor_run_neg_one_step, 0x25);
 			break;
 		case RECOVER:
 			motor_manager.run_motor->motor_stop(NULL);
@@ -431,7 +431,7 @@ static void motor_run_neg_one_step(u16 id)
 		case SECOND_HALF:
 			motor_manager.run_motor->motor_negtive_second_half(NULL);
 			motor_manager.motor_status[motor_manager.run_motor_num].run_step_state = STOP;
-			motor_manager.drv->timer->timer_start(5, motor_run_neg_one_step);
+			motor_manager.drv->timer->timer_start(5, motor_run_neg_one_step, 0x26);
 			break;
 		case STOP:
 			motor_manager.run_motor->motor_stop(NULL);
@@ -448,9 +448,9 @@ void motor_run_one_step(u8 motor_num, u8 direction)
 	motor_manager.run_motor_num = motor_num;
 	motor_manager.run_direction = direction;
 	if(pos == motor_manager.run_direction) {
-		motor_manager.drv->timer->timer_start(1, motor_run_pos_one_step);
+		motor_manager.drv->timer->timer_start(1, motor_run_pos_one_step, 0x27);
 	}else {
-		motor_manager.drv->timer->timer_start(1, motor_run_neg_one_step);
+		motor_manager.drv->timer->timer_start(1, motor_run_neg_one_step, 0x28);
 	}
 }
 
@@ -497,7 +497,7 @@ s16 motor_manager_init(void)
 	motor_manager.motor_status[battery_week_motor].motor_ptr = motor_manager.drv->motor_battery_week;
 	motor_manager.motor_status[notify_motor].motor_ptr = motor_manager.drv->motor_notify;
 
-	motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler);
+	motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler, 0x29);
 	return 0;
 }
 

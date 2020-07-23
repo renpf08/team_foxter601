@@ -80,7 +80,7 @@ typedef struct {
 	motor_t		*motor_notify;
 }driver_t;
 
-void timer_create(uint32 timeout, timer_callback_arg handler);
+void timer_create(uint32 timeout, timer_callback_arg handler, u8 caller);
 s16 csr_keya_event_handler(u32 key_num, u32 key_status);
 s16 csr_keyb_event_handler(u32 key_num, u32 key_status);
 s16 csr_keym_event_handler(u32 key_num, u32 key_status);

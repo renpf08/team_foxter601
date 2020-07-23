@@ -179,7 +179,7 @@ void refresh_step(void)
     cmd_params_t* params = cmd_get_params();
     params->steps = step_get();
     params->clock = clock;
-    timer_event(10, activity_handler);
+    timer_event(10, activity_handler, 0x0F);
 }
 void sync_time(void)
 {
@@ -199,7 +199,9 @@ void sync_time(void)
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
 }
-void timer_event(u16 ms, timer_cb cb)
+void timer_event(u16 ms, timer_cb cb, u8 caller)
 {
-	adapter.drv->timer->timer_start(ms, cb);
+    u8 tb[2] = {0xAA, caller};
+    BLE_SEND_LOG(tb, 2);
+	adapter.drv->timer->timer_start(ms, cb, caller);
 }

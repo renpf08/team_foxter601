@@ -45,13 +45,13 @@ s16 csr_keya_event_handler(u32 key_num, u32 key_status)
 			if(0 == csr_keya_cfg.flag) {
 				csr_keya_cfg.flag = 1;
 				csr_keya_cfg.now_state = KEY_A_UP;
-				timer_create(10*MILLISECOND, csr_keya_event_recheck);
+				timer_create(10*MILLISECOND, csr_keya_event_recheck, 0x10);
 			}
 		} else {
 			if(0 == csr_keya_cfg.flag) {
 				csr_keya_cfg.flag = 1;
 				csr_keya_cfg.now_state = KEY_A_DOWN;
-				timer_create(10*MILLISECOND, csr_keya_event_recheck);
+				timer_create(10*MILLISECOND, csr_keya_event_recheck, 0x11);
 			}
 		}
 	}

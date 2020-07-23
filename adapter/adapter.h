@@ -23,7 +23,7 @@ void sync_time(void);
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num);
 #endif
-void timer_event(u16 ms, timer_cb cb);
+void timer_event(u16 ms, timer_cb cb, u8 caller);
 
 clock_t *clock_get(void);
 

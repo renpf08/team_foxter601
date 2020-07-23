@@ -541,7 +541,7 @@ typedef s16 (*fread)(u16 *buffer, u16 length, u16 offset);
 typedef s16 (*fwrite)(u16 *buffer, u16 length, u16 offset);
 
 typedef void(*timer_cb)(u16 id);
-typedef s16 (*timer_start_func)(u16 ms, timer_cb cb);
+typedef s16 (*timer_start_func)(u16 ms, timer_cb cb, u8 caller);
 
 typedef s16 (*state_func)(REPORT_E cb, void *args);
 

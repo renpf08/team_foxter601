@@ -45,13 +45,13 @@ s16 csr_keyb_event_handler(u32 key_num, u32 key_status)
 			if(0 == csr_keyb_cfg.flag) {
 				csr_keyb_cfg.flag = 1;
 				csr_keyb_cfg.now_state = KEY_B_UP;
-				timer_create(10*MILLISECOND, csr_keyb_event_recheck);
+				timer_create(10*MILLISECOND, csr_keyb_event_recheck, 0x12);
 			}
 		} else {
 			if(0 == csr_keyb_cfg.flag) {
 				csr_keyb_cfg.flag = 1;
 				csr_keyb_cfg.now_state = KEY_B_DOWN;
-				timer_create(10*MILLISECOND, csr_keyb_event_recheck);
+				timer_create(10*MILLISECOND, csr_keyb_event_recheck, 0x13);
 			}
 		}
 	}

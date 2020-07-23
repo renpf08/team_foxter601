@@ -68,7 +68,7 @@ u8 battery_percent_read(void)
 static void bat_cb_handler(u16 id)
 {
 	/*start another loop*/
-	bat_cfg.drv->timer->timer_start(3000, bat_cb_handler);
+	bat_cfg.drv->timer->timer_start(3000, bat_cb_handler, 0x17);
 
 	/*get current voltage*/
 	bat_cfg.val = (u16)bat_cfg.drv->battery->battery_voltage_read(NULL);
@@ -92,6 +92,6 @@ s16 battery_init(adapter_callback cb)
 	bat_cfg.drv = get_driver();
 	bat_cfg.cb = cb;
 	bat_cfg.cb(BATTERY_NORMAL, NULL);
-	bat_cfg.drv->timer->timer_start(1, bat_cb_handler);
+	bat_cfg.drv->timer->timer_start(1, bat_cb_handler, 0x18);
 	return 0;
 }

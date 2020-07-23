@@ -137,7 +137,7 @@ void state_run_test_handler(u16 id)
 	motor_activity_to_position(run_test.activity);
 
 	if(looping == run_test.test_status) {
-		timer_event(1000, state_run_test_handler);
+		timer_event(1000, state_run_test_handler, 0x0C);
 	}
 }
 
@@ -188,11 +188,11 @@ s16 state_run_test(REPORT_E cb, void *args)
 		}
 
 		run_test.test_status = looping;
-		timer_event(1, state_run_test_handler);
+		timer_event(1, state_run_test_handler, 0x0D);
 	}else {
 		run_test.work = run;
 		run_test.test_status = no_loop;
-		timer_event(1100, state_run_test_exit);
+		timer_event(1100, state_run_test_exit, 0x0E);
 	}
 
 	return 0;

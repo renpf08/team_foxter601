@@ -6,13 +6,13 @@
 #include "../driver.h"
 
 /* Number of timers used in this application */
-#define MAX_TIMERS 30
+#define MAX_TIMERS 130
 
 static uint16 app_timers[SIZEOF_APP_TIMER * MAX_TIMERS];
 
-static s16 csr_timer_start(u16 ms, timer_cb cb)
+static s16 csr_timer_start(u16 ms, timer_cb cb, u8 caller)
 {
-	timer_create(ms*MILLISECOND, cb);
+	timer_create(ms*MILLISECOND, cb, caller);
     return 0;
 }
 

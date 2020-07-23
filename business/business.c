@@ -105,7 +105,7 @@ s16 business_init(void)
     #endif
 	
 	#ifdef TEST_ZERO_ADJUST
-	timer_event(1000, zero_adjust_test);
+	timer_event(1000, zero_adjust_test, 0x01);
 	#endif
 
 	#ifdef TEST_NOTIFY
@@ -113,11 +113,11 @@ s16 business_init(void)
 	#endif
 
 	#ifdef TEST_BLE_SWITCH
-	timer_event(1000, ble_switch_test);
+	timer_event(1000, ble_switch_test, 0x02);
 	#endif
 
 	#ifdef TEST_RUN_TEST
-	timer_event(1000, test_run_test);
+	timer_event(1000, test_run_test, 0x03);
 	#endif
 
 	#ifdef TEST_BATTERY_WEEK
@@ -125,7 +125,7 @@ s16 business_init(void)
 	#endif
 
 	#ifdef TEST_TIME_ADJUST
-	timer_event(1000, time_adjust_test);
+	timer_event(1000, time_adjust_test, 0x04);
 	#endif
 	
 	battery_week_status = state_battery_week_status_get();

@@ -49,7 +49,7 @@ static void notify_swing_cb_handler(u16 id)
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
 
-    timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
+    timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler, 0x08);
 }
 void pair_code_generate(void)
 {
@@ -139,7 +139,7 @@ static u16 ble_change(void *args)
             #if USE_UART_PRINT
             print((u8*)&"adv swing", 9);
             #endif
-            timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
+            timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler, 0x09);
             return 0;
         } else {
             #if USE_UART_PRINT
@@ -150,7 +150,7 @@ static u16 ble_change(void *args)
         #if USE_UART_PRINT
         print((u8*)&"adv swing", 9);
         #endif
-        timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
+        timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler, 0x0A);
         return 0;
         #endif//USE_NO_SWING
     } else if(state_ble == app_idle){ // advertising stop
@@ -181,7 +181,7 @@ static u16 ble_switch(void *args)
     #if USE_NO_SWING
     if(swing_en == FALSE) { // first KEY_M_LONG_PRESS
         swing_en = TRUE;
-		timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
+		timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler, 0x0B);
 		return 0;
 		#if 0
         if(cur_state == app_advertising) {
