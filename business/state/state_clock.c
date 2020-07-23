@@ -142,6 +142,9 @@ s16 state_clock(REPORT_E cb, void *args)
 
     if(state_check(cb) != 0) {
         return 0;
+    } else if(cb == KEY_A_B_LONG_PRESS) {
+        zero_adjust_mode = 0;
+        motor_manager_init();
     }
 
 	#ifndef TEST_CLOCK

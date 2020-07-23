@@ -7,6 +7,7 @@
 #include <panic.h>
 #include <buf_utils.h>
 
+u8 zero_adjust_mode = 0;
 const u8 date[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
 	DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,

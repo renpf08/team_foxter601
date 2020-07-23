@@ -183,8 +183,8 @@ static void motor_battery_week_change(u16 id)
 		}
 		
 		motor_manager.motor_status[battery_week_motor].run_flag = 1;
-	}else {
-//////		timer_event(100, motor_battery_week_change, 0x05);
+	}else if(zero_adjust_mode != 1) {
+		timer_event(100, motor_battery_week_change, 0x05);
 	}
 }
 
@@ -387,7 +387,9 @@ void motor_run_handler(u16 id)
 	}
 
 	/*check loop*/
-//////	motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler, 0x22);
+    if(zero_adjust_mode != 1) {
+        motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler, 0x22);
+    }
 }
 
 static void motor_run_pos_one_step(u16 id)
