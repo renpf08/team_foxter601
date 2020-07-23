@@ -89,7 +89,7 @@ s16 nvm_write_test(void);
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
 cmd_params_t* cmd_get_params(void);
 cmd_group_t *cmd_get(void);
-void cmd_set(cmd_group_t *value);
+void cmd_check(cmd_group_t *value);
 
 app_msg_t *ancs_get(void);
 

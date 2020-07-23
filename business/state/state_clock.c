@@ -90,6 +90,7 @@ static void nvm_access(REPORT_E cb)
         nvm_read_alarm_clock((u16*)&value->set_alarm_clock, 0);
         nvm_read_pairing_code((u16*)&value->pair_code, 0);
         nvm_read_personal_info((u16*)&value->user_info, 0);
+        cmd_check(value);
     }
     #endif
 }
