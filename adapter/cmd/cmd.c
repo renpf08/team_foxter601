@@ -11,7 +11,7 @@
 #include "serial_service.h"
 #include "adapter/adapter.h"
 
-#define   DEFAULT_TARGET_STEPCOUNTS         10000     /*默认目标步数*/
+#define   DEFAULT_TARGET_STEPCOUNTS         1000     /*默认目标步数*/
 
 enum {
     STATE_HISDATA_START,
@@ -428,12 +428,12 @@ cmd_group_t *cmd_get(void)
 {
     return &cmd_group;
 }
-void cmd_set(cmd_group_t *value)
+void cmd_check(cmd_group_t *value)
 {
     if(value->user_info.target_steps == 0) {
         value->user_info.target_steps = DEFAULT_TARGET_STEPCOUNTS;
     }
-    MemCopy(&cmd_group, value, sizeof(cmd_group_t));
+    //MemCopy(&cmd_group, value, sizeof(cmd_group_t));
 }
 cmd_params_t* cmd_get_params(void)
 {
@@ -445,7 +445,10 @@ s16 cmd_init(adapter_callback cb)
     MemSet(&cmd_params, 0, sizeof(cmd_params_t));
     MemSet(&cmd_group, 0, sizeof(cmd_group_t));
     cmd_params.days = -1;
-    cmd_group.app_ack.state = STATE_INVALID;    
+    cmd_group.app_ack.state = STATE_INVALID;
+    #if !USE_PARAM_STORE
+    cmd_group.user_info.target_steps = DEFAULT_TARGET_STEPCOUNTS;
+    #endif
     
 	return 0;
 }
