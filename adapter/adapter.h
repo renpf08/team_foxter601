@@ -119,6 +119,7 @@ app_state ble_state_get(void);
 //u8 bcd_to_hex(u8 bcd_data);
 //u32 hex_to_bcd(u8 hex_data);
 
+extern u8 zero_adjust_mode;
 extern const u8 date[];
 
 #endif
