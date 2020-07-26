@@ -144,9 +144,6 @@ s16 state_clock(REPORT_E cb, void *args)
     if(state_check(cb) != 0) {
         return 0;
     }
-    if(cb == KEY_A_B_LONG_PRESS) {
-        restore_clock_hand();
-    }
 
 	#ifndef TEST_CLOCK
 	clock_t *clk;
@@ -154,6 +151,7 @@ s16 state_clock(REPORT_E cb, void *args)
 	motor_minute_to_position(clk->minute);
 	motor_hour_to_position(clk->hour);
     motor_date_to_position(date[clk->day]);
+    motor_restore_position(cb);
     minutely_check(cb);
 	#else
 	clk.minute++;

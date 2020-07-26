@@ -7,6 +7,7 @@
 #include <panic.h>
 #include <buf_utils.h>
 
+u8 stete_battery_week = state_battery;
 u8 activity_percent = 0;
 u8 zero_adjust_mode = 0;
 const u8 date[] = {DAY_0,
@@ -202,14 +203,19 @@ void sync_time(void)
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
 }
-static void return_battery_week_handler(u16 id)
+void motor_restore_position(REPORT_E cb)
 {
-    adapter.cb(RESTORE_BATTERY_WEEK, NULL);
-}
-void restore_clock_hand(void)
-{
-    motor_activity_to_position(activity_percent);
-    timer_event(10, return_battery_week_handler);
+    u8 position = 0;
+    
+    if(cb == KEY_A_B_LONG_PRESS) {
+    	if(stete_battery_week == state_battery) {
+    		position = battery_percent_read();
+    	}else {
+    		position = clock_get()->week;
+    	}
+        motor_battery_week_to_position(position);    
+        motor_activity_to_position(activity_percent);
+    }
 }
 void timer_event(u16 ms, timer_cb cb)
 {
