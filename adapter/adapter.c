@@ -7,6 +7,7 @@
 #include <panic.h>
 #include <buf_utils.h>
 
+u8 activity_percent = 0;
 u8 zero_adjust_mode = 0;
 const u8 date[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
@@ -144,14 +145,15 @@ static void activity_handler(u16 id)
 {
     u32 target_steps = cmd_get()->user_info.target_steps;
     u32 current_steps = step_get();
-    u8 activity = 40; // total 40 grids
 
-    if(current_steps <= target_steps) {
-        activity = (current_steps*40)/target_steps;
+    if(current_steps > target_steps) {
+        activity_percent = 40; // total 40 grids
+    } else if(current_steps <= target_steps) {
+        activity_percent = (current_steps*40)/target_steps;
     } else if(target_steps == 0) {
-        activity = 0;
+        activity_percent = 0;
     }
-    motor_activity_to_position(activity);
+    motor_activity_to_position(activity_percent);
     
     u16 length = 0; 
     u8 rsp_buf[20];
