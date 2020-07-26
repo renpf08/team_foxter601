@@ -332,7 +332,7 @@ static void step_sample_handler(u16 id)
     static u32 step_count = 0;
 
     if(zero_adjust_mode == 0) {
-    	get_driver()->timer->timer_start(280, step_sample_handler);
+    	timer_event(280, step_sample_handler);
     }
     if(step_count != acc_steps)
     {
@@ -342,7 +342,7 @@ static void step_sample_handler(u16 id)
 }
 s16 step_sample_init(adapter_callback cb)
 {
-	get_driver()->timer->timer_start(280, step_sample_handler); 
+	timer_event(280, step_sample_handler); 
 
     Step_Count_data.Pro_Step=PRO_STEP_START;  
     acc_steps = 0;
