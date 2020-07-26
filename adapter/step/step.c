@@ -328,17 +328,17 @@ static void StepCountProce(void)
 }
 static void step_sample_handler(u16 id)
 {
-    StepCountProce();
     static u32 step_count = 0;
 
     if(zero_adjust_mode == 0) {
-    	timer_event(280, step_sample_handler);
+        StepCountProce();
     }
     if(step_count != acc_steps)
     {
         step_count = acc_steps;
         steps_cb(REFRESH_STEPS, NULL);
     }    
+    timer_event(280, step_sample_handler);
 }
 s16 step_sample_init(adapter_callback cb)
 {

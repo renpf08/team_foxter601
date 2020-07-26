@@ -361,30 +361,33 @@ void motor_run_handler(u16 id)
 {
 	u8 i = 0;
 
-	/*search for run motor*/
-	for(i = 0; i < max_motor; i++) {
-		if(1 == motor_manager.motor_status[i].run_flag) {
-			motor_manager.run_motor = motor_manager.motor_status[i].motor_ptr;
-			motor_manager.run_motor_num = i;
-			break;
-		}
-	}
+    if(zero_adjust_mode == 0) {
+    	/*search for run motor*/
+    	for(i = 0; i < max_motor; i++) {
+    		if(1 == motor_manager.motor_status[i].run_flag) {
+    			motor_manager.run_motor = motor_manager.motor_status[i].motor_ptr;
+    			motor_manager.run_motor_num = i;
+    			break;
+    		}
+    	}
 
-	if(max_motor == i) {
-		motor_manager.run_motor = NULL;
-		motor_manager.run_motor_num = max_motor;
-	}else {
-		/*motor run start*/
-		motor_manager.run_step_num = 0;
-		if(motor_manager.motor_status[motor_manager.run_motor_num].dst_pos > 
-		   motor_manager.motor_status[motor_manager.run_motor_num].cur_pos) {
-			motor_manager.run_direction = pos;
-			motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
-		}else {
-			motor_manager.run_direction = neg;
-			motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
-		}
-	}
+    	if(max_motor == i) {
+    		motor_manager.run_motor = NULL;
+    		motor_manager.run_motor_num = max_motor;
+    	}else {
+    		/*motor run start*/
+    		motor_manager.run_step_num = 0;
+    		if(motor_manager.motor_status[motor_manager.run_motor_num].dst_pos > 
+    		   motor_manager.motor_status[motor_manager.run_motor_num].cur_pos) {
+    			motor_manager.run_direction = pos;
+    			motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
+    		}else {
+    			motor_manager.run_direction = neg;
+    			motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
+    		}
+    	}
+    }
+    zero_adjust_mode = 0;
 
 	/*check loop*/
 	motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler);

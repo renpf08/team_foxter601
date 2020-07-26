@@ -42,9 +42,9 @@ static s16 state_zero_adjust_motor_back_zero(u8 motor_num)
 
 s16 state_zero_adjust(REPORT_E cb, void *args)
 {	
+    zero_adjust_mode = 1;
 	if(KEY_A_B_LONG_PRESS == cb) {
 		/*hour back to zero position*/
-        zero_adjust_mode = 1;
 		state_zero.motor_num = minute_motor;
 		state_zero_adjust_motor_back_zero(state_zero.motor_num);
 	}else if(KEY_M_SHORT_PRESS == cb) {
