@@ -331,9 +331,13 @@ static void step_sample_handler(u16 id)
     StepCountProce();
     static u32 step_count = 0;
 
+    #if 1
     if(zero_adjust_mode != 1) {
 	    get_driver()->timer->timer_start(280, step_sample_handler, 0x2D);
     }
+    #else
+    get_driver()->timer->timer_start(280, step_sample_handler, 0x2D);
+    #endif
     if(step_count != acc_steps)
     {
         step_count = acc_steps;

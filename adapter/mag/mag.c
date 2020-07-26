@@ -200,9 +200,13 @@ static void mag_sample_handler(u16 id)
     }
     angle = mag.angle_value;
     #endif
+    #if 1
     if(zero_adjust_mode != 1) {
 	    get_driver()->timer->timer_start(280, mag_sample_handler, 0x2E);
     }
+    #else
+    get_driver()->timer->timer_start(280, mag_sample_handler, 0x2E);
+    #endif
 }
 
 s16 mag_sample_init(void)
