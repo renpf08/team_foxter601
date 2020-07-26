@@ -87,6 +87,7 @@ typedef enum {
     #if USE_PARAM_STORE
     READ_SYS_PARAMS = 40,
     #endif
+    RESTORE_BATTERY_WEEK = 41,
 	REPORT_MAX,
 }REPORT_E;
 

@@ -145,7 +145,7 @@ s16 state_clock(REPORT_E cb, void *args)
         return 0;
     }
     if(cb == KEY_A_B_LONG_PRESS) {
-        motor_activity_to_position(activity_percent);
+        restore_clock_hand();
     }
 
 	#ifndef TEST_CLOCK

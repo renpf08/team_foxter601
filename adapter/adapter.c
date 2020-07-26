@@ -202,6 +202,15 @@ void sync_time(void)
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
 }
+static void return_battery_week_handler(u16 id)
+{
+    adapter.cb(RESTORE_BATTERY_WEEK, NULL);
+}
+void restore_clock_hand(void)
+{
+    motor_activity_to_position(activity_percent);
+    timer_event(10, return_battery_week_handler);
+}
 void timer_event(u16 ms, timer_cb cb)
 {
 	adapter.drv->timer->timer_start(ms, cb);

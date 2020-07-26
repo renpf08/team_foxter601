@@ -20,6 +20,7 @@ s16 adapter_init(adapter_callback cb);
 void system_reboot(u8 reboot_type);
 void refresh_step(void);
 void sync_time(void);
+void restore_clock_hand(void);
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num);
 #endif
@@ -119,7 +120,6 @@ app_state ble_state_get(void);
 //u8 bcd_to_hex(u8 bcd_data);
 //u32 hex_to_bcd(u8 hex_data);
 
-extern u8 activity_percent;
 extern u8 zero_adjust_mode;
 extern const u8 date[];
 
