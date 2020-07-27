@@ -222,7 +222,7 @@ static s16 cmd_test(u8 *buffer, u8 length)
 	}
 
     while(cmd_test_list[i].cmd != CMD_TEST_NONE) {
-        if(cmd_test_list[i].cmd == test->head) {
+        if(cmd_test_list[i].cmd == test->cmd) {
             cmd_test_list[i].handler(buffer, length);
             break;
         }
