@@ -327,6 +327,7 @@ static void motor_run_positive_one_unit(u16 id)
 		default:
 			break;
 	}
+    zero_adjust_mode.run = 0;
 }
 
 static void motor_run_negtive_one_unit(u16 id)
@@ -355,13 +356,14 @@ static void motor_run_negtive_one_unit(u16 id)
 		default:
 			break;
 	}
+    zero_adjust_mode.run = 0;
 }
 
 void motor_run_handler(u16 id)
 {
 	u8 i = 0;
 
-    if(zero_adjust_mode == 0) {
+    if(zero_adjust_mode.press == 0) {
     	/*search for run motor*/
     	for(i = 0; i < max_motor; i++) {
     		if(1 == motor_manager.motor_status[i].run_flag) {
@@ -376,6 +378,7 @@ void motor_run_handler(u16 id)
     		motor_manager.run_motor_num = max_motor;
     	}else {
     		/*motor run start*/
+            zero_adjust_mode.run = 1;
     		motor_manager.run_step_num = 0;
     		if(motor_manager.motor_status[motor_manager.run_motor_num].dst_pos > 
     		   motor_manager.motor_status[motor_manager.run_motor_num].cur_pos) {
@@ -387,7 +390,7 @@ void motor_run_handler(u16 id)
     		}
     	}
     }
-    zero_adjust_mode = 0;
+    zero_adjust_mode.press = 0;
 
 	/*check loop*/
 	motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler);

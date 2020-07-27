@@ -42,12 +42,17 @@ static s16 state_zero_adjust_motor_back_zero(u8 motor_num)
 
 s16 state_zero_adjust(REPORT_E cb, void *args)
 {	
-    if(zero_adjust_mode == 1) {
-        u8 msg[2] = {CMD_TEST_SEND, 0x02};
-        BLE_SEND_LOG(msg, 2);
+    u8 msg[3] = {CMD_TEST_SEND, 0x02, 0};
+    if(zero_adjust_mode.press == 1) {
+        msg[2] = 0x01;
+        BLE_SEND_LOG(msg, 3);
+        return 1;
+    } else if(zero_adjust_mode.run == 1) {
+        msg[2] = 0x02;
+        BLE_SEND_LOG(msg, 3);
         return 1;
     }
-    zero_adjust_mode = 1;
+    zero_adjust_mode.press = 1;
 	if(KEY_A_B_LONG_PRESS == cb) {
 		/*hour back to zero position*/
 		state_zero.motor_num = minute_motor;

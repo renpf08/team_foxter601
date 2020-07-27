@@ -340,7 +340,8 @@ extern bool ble_send_data(uint8 *data, uint16 size)
 *         bb:event
 *         cc:next state
 *         dd:1-executed,0-not executed
-*	5F 02 // zero adjust jump empty
+*	5F 02 xx // zero adjust jump empty
+*         xx=1:press lock; xx=2:run lock
 */
 extern bool ble_send_log(uint8 *data, uint16 size)
 {

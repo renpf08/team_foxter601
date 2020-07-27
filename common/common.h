@@ -532,6 +532,10 @@ typedef struct {
     u32 steps;
     s16 days;
 } cmd_params_t;
+typedef struct {
+    u8 press;
+    u8 run;
+} zero_adjust_lock_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);

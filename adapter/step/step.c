@@ -330,7 +330,7 @@ static void step_sample_handler(u16 id)
 {
     static u32 step_count = 0;
 
-    if(zero_adjust_mode == 0) {
+    if(zero_adjust_mode.press == 0) {
         StepCountProce();
     }
     if(step_count != acc_steps)

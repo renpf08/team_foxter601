@@ -120,8 +120,8 @@ app_state ble_state_get(void);
 //u8 bcd_to_hex(u8 bcd_data);
 //u32 hex_to_bcd(u8 hex_data);
 
+extern zero_adjust_lock_t zero_adjust_mode;
 extern u8 stete_battery_week;
-extern u8 zero_adjust_mode;
 extern const u8 date[];
 #if USE_CMD_TEST_LOG_TYPE_EN
 extern u8 log_type_en[LOG_SEND_MAX];
