@@ -26,6 +26,7 @@ enum{
     CMD_TEST_NVM_ACCESS,
     CMD_TEST_ZERO_ADJUST,
     CMD_TEST_STEP_COUNT,
+    CMD_TEST_SYS_REBOOT,
 };
 #endif
 
@@ -158,6 +159,11 @@ static s16 cmd_test(u8 *buffer, u8 length)
     #if USE_CMD_TEST_STEP_COUNT
     case CMD_TEST_STEP_COUNT:
         step_test(test->act);
+        break;
+    #endif
+    #if USE_CMD_TEST_SYS_REBOOT
+    case CMD_TEST_SYS_REBOOT:
+        Panic(0);
         break;
     #endif
     default:
