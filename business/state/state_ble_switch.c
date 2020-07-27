@@ -78,10 +78,10 @@ void pair_code_generate(void)
         }
     }
 
-    u8 test_buf[3] = {0xAA, 0, 0};
-    test_buf[1] = hour;
-    test_buf[2] = minute;
-    BLE_SEND_LOG((u8*)&test_buf, 3);
+    u8 test_buf[4] = {0x5F, 0, 0, 0};
+    test_buf[2] = hour;
+    test_buf[3] = minute;
+    BLE_SEND_LOG((u8*)&test_buf, 4);
 	
 	motor_hour_to_position(hour);
 	motor_minute_to_position(minute);

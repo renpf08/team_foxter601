@@ -67,7 +67,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
     s16 res = 0;
-    u8 st_cb[5] = {0x5F, business.state_now, cb, 0, 0};
+    u8 st_cb[6] = {0x5F, 01, business.state_now, cb, 0, 0};
 
 	//return 0;
     #if USE_UART_PRINT
@@ -85,12 +85,12 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 			(state[i].ev == cb)) {
 			business.state_now = state[i].next_state;
 			res = state[i].func(cb, &business.state_now);
-            st_cb[4] = 1;
+            st_cb[5] = 1;
             break;
 		}
 	}
-    st_cb[3] = business.state_now;
-    BLE_SEND_LOG(st_cb, 5);
+    st_cb[4] = business.state_now;
+    BLE_SEND_LOG(st_cb, 6);
 	return res;
 }
 
