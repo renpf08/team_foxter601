@@ -358,12 +358,6 @@ typedef enum{
     LOG_SEND_MAX,
 }log_type_t;
 #endif
-#if USE_TIMER_CALLER
-typedef enum {
-    TIMER_CALLER_NONE = 0x00,
-    TIMER_CALLER_STEPS,
-} timer_caller_t;
-#endif
 
 typedef enum {
     CMD_PAIRING_CODE        = 0x00,
