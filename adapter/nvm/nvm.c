@@ -152,10 +152,6 @@
  * |/---------------\|
 */
 
-#if USE_PARAM_STORE
-static adapter_callback nvm_cb = NULL;
-#endif
-
 void nvm_read(u16 *buffer, u16 length, u16 offset);
 void nvm_write(u16 *buffer, u16 length, u16 offset);
 
@@ -167,7 +163,7 @@ void nvm_write(u16 *buffer, u16 length, u16 offset)
 {
     get_driver()->flash->flash_write(buffer, length, offset);
 }
-#if 0//USE_NVM_TEST
+#if 0//USE_CMD_TEST_NVM_ACCESS
 static u8 panic_check(u8 caller)
 {
     u8 hexCharTbl[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
@@ -195,15 +191,9 @@ s16 nvm_storage_init(adapter_callback cb)
     u16 erase_value = 0;
     u16 init_flag = 0;
 
-    #if USE_PARAM_STORE
-    nvm_cb = cb;
-    #endif
     nvm_read((u16*)&init_flag, USER_STORATE_INIT_FLAG_LENGTH, USER_STORATE_INIT_FLAG_OFFSET);
     if(init_flag == 0xA55A)
     {
-        #if USE_PARAM_STORE
-        nvm_cb(READ_SYS_PARAMS, NULL);
-        #endif
         return 1; 
     }
     for(erase_offset = 0; erase_offset < USER_STORAGE_TOTAL_LENGTH; erase_offset++)
@@ -220,10 +210,6 @@ s16 nvm_storage_init(adapter_callback cb)
 
     init_flag = 0xA55A;
     nvm_write((u16*)&init_flag, USER_STORATE_INIT_FLAG_LENGTH, USER_STORATE_INIT_FLAG_OFFSET);/* write user storage init flag */
-    
-    #if USE_PARAM_STORE
-    nvm_cb(WRITE_USER_INFO, NULL);
-    #endif
 
     return 0;
 }
@@ -427,7 +413,7 @@ u8 nvm_get_days(void)
 
     return his_days;
 }
-#if USE_NVM_TEST
+#if USE_CMD_TEST_NVM_ACCESS
 s16 nvm_read_oneday(u8 index)
 {
     his_data_t data;
@@ -447,6 +433,7 @@ s16 nvm_read_oneday(u8 index)
     #if USE_UART_PRINT
     print((u8*)buf, len);
     #endif
+    BLE_SEND_LOG((u8*)buf, len);
     
     return 0;
 }
@@ -471,6 +458,7 @@ s16 nvm_read_test(void)
         #if USE_UART_PRINT
         print((u8*)buf, len);
         #endif
+        BLE_SEND_LOG((u8*)buf, len);
     }
 
     return 0;
@@ -515,4 +503,4 @@ s16 nvm_write_test(void)
     return 0;
 }
 
-#endif //! USE_NVM_TEST
+#endif //! USE_CMD_TEST_NVM_ACCESS

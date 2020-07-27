@@ -332,9 +332,34 @@ extern bool ble_send_data(uint8 *data, uint16 size)
     return SerialSendNotification(data, size, HANDLE_SERIAL_SEND_DATA);
 }
 #if USE_BLE_LOG
+/**
+*	info message
+*	5F 00 xx yy // pair code, xx:yy
+*	5F 01 aa bb cc dd // state machine result
+*         aa:init state
+*         bb:event
+*         cc:next state
+*         dd:1-executed,0-not executed
+*	5F 02 xx // zero adjust jump empty
+*         xx=1:press lock; xx=2:run lock
+*/
 extern bool ble_send_log(uint8 *data, uint16 size)
 {
-    if(g_app_data.state != app_connected) return false;
+    #if USE_CMD_TEST_LOG_TYPE_EN
+    typedef struct{u8 head; u8 type;}log_t;
+    log_t* log = (log_t*)data;
+
+    if(log->head != CMD_TEST_SEND) {
+        return false;
+    }
+    if(log_type_en[log->type] == 0) {
+        return false;
+    }    
+    #endif
+    
+    if(g_app_data.state != app_connected) {
+        return false;
+    }
     size = (size>20)?20:size;
     return SerialSendNotification(data, size, HANDLE_SERIAL_SEND_LOG);
 }

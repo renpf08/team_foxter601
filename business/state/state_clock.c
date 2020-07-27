@@ -21,19 +21,7 @@ static clock_t clk = {
 	.second = 0,
 };
 #endif
-static void sport_activity_calc(void)
-{
-    u32 target_steps = cmd_get()->user_info.target_steps;
-    u32 current_steps = sport_get()->StepCounts;
-    u8 activity = 40; // total 40 grids
 
-    if(current_steps < target_steps) {
-        activity = (current_steps*40)/target_steps;
-    } else if(target_steps == 0) {
-        activity = 0;
-    }
-    motor_activity_to_position(activity);
-}
 static void alarm_clock_check(clock_t *clock)
 {
     cmd_set_alarm_clock_t *alarm_clock = (cmd_set_alarm_clock_t*)&cmd_get()->set_alarm_clock;
@@ -48,32 +36,104 @@ static void alarm_clock_check(clock_t *clock)
         }
     }
 }
-static void minute_data_handler(clock_t *clock)
+static void minutely_check(REPORT_E cb)
 {
-    his_data_t data = {0,0,0,0,0,0};
-    SPORT_INFO_T* sport_info = NULL;
-    static u8 sys_init = 0;
-    
-    if(sys_init == 0) {
-        sys_init = 1;
-        sport_set(&cmd_get()->user_info);
-        return;
-    } else if((clock->hour == 59)&&(clock->minute == 59)&&(clock->second == 59)) { // new day
-        sport_info = sport_get();
+    his_data_t data;
+    clock_t* clock = clock_get();
+    cmd_params_t* params = cmd_get_params();
+
+    if((clock->hour == 59)&&(clock->minute == 59)&&(clock->second == 59)) { // new day
         data.year = clock->year;
         data.month = clock->month;
         data.day = clock->day;
-        data.steps = sport_info->StepCounts;
-        data.colorie = sport_info->Calorie;
-        data.acute = sport_info->AcuteSportTimeCounts;
+        data.steps = step_get();
         nvm_write_data(&data);
-        sport_clear();
-    } else {
-        sport_minute_calc();
-        cmd_resp(CMD_SYNC_DATA, 0, (u8*)&"\xF5\xFA"); // send real-time data every minutes
+        step_clear();
     }
+    params->steps = step_get();
+    params->clock = clock;
     alarm_clock_check(clock);
-    sport_activity_calc();
+}
+static void read_current_step(void)
+{
+    cmd_params_t* params = cmd_get_params();
+
+    params->clock = clock_get();
+    params->steps = step_get();
+}
+static void nvm_access(REPORT_E cb)
+{
+    his_data_t data;
+    his_ctrl_t ctrl;
+    cmd_params_t* params = cmd_get_params();
+    #if USE_PARAM_STORE
+    cmd_group_t *value = cmd_get();
+    #endif
+
+    MemSet(&data, 0, sizeof(his_data_t));
+    MemSet(&ctrl, 0, sizeof(his_ctrl_t));
+    if(cb == READ_HISDAYS) {
+        nvm_read_ctrl(&ctrl);
+        ctrl.read_tail = ctrl.ring_buf_tail; // reset read pointer
+        nvm_write_ctrl(&ctrl);
+        params->days = nvm_get_days();
+    } else if(cb == READ_HISDATA) {
+        nvm_read_history_data((u16*)&data, READ_HISDATA_TOTAL);//res = nvm_read_data(&data);//
+        params->data = &data;
+    }
+    #if USE_PARAM_STORE
+    else if(cb == WRITE_ALARM_CLOCK) {
+        nvm_write_alarm_clock((u16*)&value->set_alarm_clock, 0);
+    } else if(cb == WRITE_USER_INFO) {
+        nvm_write_personal_info((u16*)&value->user_info, 0);
+    } else if(cb == READ_SYS_PARAMS) {
+        nvm_read_alarm_clock((u16*)&value->set_alarm_clock, 0);
+        nvm_read_pairing_code((u16*)&value->pair_code, 0);
+        nvm_read_personal_info((u16*)&value->user_info, 0);
+        cmd_check(value);
+    }
+    #endif
+}
+static u8 state_check(REPORT_E cb)
+{
+    #if USE_PARAM_STORE
+    static u8 flag = 0;
+
+    if(flag == 0) {
+        cb = READ_SYS_PARAMS;
+    }
+    #endif
+    switch(cb) {
+    case READ_CURDATA:
+        read_current_step();
+        break;
+    case READ_HISDAYS:
+    case READ_HISDATA:
+    #if USE_PARAM_STORE
+    case READ_SYS_PARAMS:
+    #endif
+    case WRITE_USER_INFO:
+    case WRITE_ALARM_CLOCK:
+        nvm_access(cb);
+        break;
+    case REFRESH_STEPS:
+        refresh_step();
+        break;
+    case SET_TIME:
+        sync_time();
+        break;
+    default:
+        return 0;
+        break;
+    }
+
+    #if USE_PARAM_STORE
+    if(flag == 0) {
+        flag = 1;
+        return 0;
+    }
+    #endif
+    return 1;
 }
 s16 state_clock(REPORT_E cb, void *args)
 {
@@ -81,13 +141,18 @@ s16 state_clock(REPORT_E cb, void *args)
 	print((u8 *)&"clock", 5);
     #endif
 
+    if(state_check(cb) != 0) {
+        return 0;
+    }
+
 	#ifndef TEST_CLOCK
 	clock_t *clk;
 	clk = clock_get();
 	motor_minute_to_position(clk->minute);
 	motor_hour_to_position(clk->hour);
     motor_date_to_position(date[clk->day]);
-    minute_data_handler(clk);
+    motor_restore_position(cb);
+    minutely_check(cb);
 	#else
 	clk.minute++;
 	if(60 == clk.minute) {
@@ -108,7 +173,7 @@ s16 state_clock(REPORT_E cb, void *args)
 	motor_minute_to_position(clk.minute);
 	motor_hour_to_position(clk.hour);
     motor_date_to_position(date[clk.day]);
-    minute_data_handler(clk);
+    //minutely_check(cb);
 	#endif
 
 	return 0;

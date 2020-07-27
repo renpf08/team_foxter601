@@ -17,13 +17,16 @@ extern bool ble_send_log(uint8 *data, uint16 size);
 
 void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
+void system_reboot(u8 reboot_type);
+void refresh_step(void);
+void sync_time(void);
+void motor_restore_position(REPORT_E cb);
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num);
 #endif
 void timer_event(u16 ms, timer_cb cb);
 
 clock_t *clock_get(void);
-s16 clock_set(clock_t *ck);
 
 s16 motor_manager_init(void);
 void motor_run_one_step(u8 motor_num, u8 direction);
@@ -77,7 +80,7 @@ s16 nvm_write_ctrl(his_ctrl_t *ctrl);
 s16 nvm_read_data(his_data_t *data);
 s16 nvm_write_data(his_data_t *data);
 u8 nvm_get_days(void);
-#if USE_NVM_TEST
+#if USE_CMD_TEST_NVM_ACCESS
 u8 panic_get(void);
 s16 nvm_read_oneday(u8 index);
 s16 nvm_read_test(void);
@@ -86,9 +89,8 @@ s16 nvm_write_test(void);
 
 u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *buffer);
 cmd_params_t* cmd_get_params(void);
-void cmd_set_params(cmd_params_t* params);
 cmd_group_t *cmd_get(void);
-void cmd_set(cmd_group_t *value);
+void cmd_check(cmd_group_t *value);
 
 app_msg_t *ancs_get(void);
 
@@ -97,12 +99,11 @@ app_msg_t *ancs_get(void);
 u8 angle_get(void);
 void Update_BodyInfo(uint8 Gender, uint8 Height, uint8 Weight);
 void One_Minute_Sport_Info_Pro(clock_t *clock);
-void sport_minute_calc(void);
-SPORT_INFO_T* sport_get(void);
-void sport_set(cmd_user_info_t *user_info);
-void sport_clear(void);
-//SPORT_INFO_T* get_minutes_info(void);
-//void set_minutes_info(SPORT_INFO_T *info);
+u32 step_get(void);
+#if USE_CMD_TEST_STEP_COUNT
+void step_test(u32 steps);
+#endif
+void step_clear(void);
 //void clear_minutes_info(void);
 s16 sport_get_data(his_data_t *data, clock_t *clock);
 
@@ -117,8 +118,13 @@ app_state ble_state_get(void);
 //void print_str_dec(u8 *buf, u16 dec_num);
 //void print_date_time(u8 *buf, clock_t *datm);
 //u8 bcd_to_hex(u8 bcd_data);
-u32 hex_to_bcd(u8 hex_data);
+//u32 hex_to_bcd(u8 hex_data);
 
+extern zero_adjust_lock_t zero_adjust_mode;
+extern u8 stete_battery_week;
 extern const u8 date[];
+#if USE_CMD_TEST_LOG_TYPE_EN
+extern u8 log_type_en[LOG_SEND_MAX];
+#endif
 
 #endif

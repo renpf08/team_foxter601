@@ -31,14 +31,28 @@ FO601
 
 #define USE_BLE_LOG         1
 #define USE_PARAM_STORE     0
-#define USE_NVM_TEST        0
 #define USE_UART_PRINT      0
 #define USE_PANIC_PRINT     0
 #define USE_WHITELIST_ADV   0
 #define USE_ADV_DATA        1  
-#define USE_PAIR_CODE_0000  1 // test mode, use pair code of 0x0000 as a bypass code 
-#define USE_CMD_ZERO_ADJUST 0
 #define USE_NEW_DAV_NAME    0
+#define USE_PAIR_CODE_0000  1 // test mode, use pair code of 0x0000 as a bypass code 
+#define USE_NO_SWING        1
+
+#define USE_CMD_TEST        1
+#if USE_CMD_TEST
+#define USE_CMD_TEST_NVM_ACCESS     1
+#define USE_CMD_TEST_STEP_COUNT     1
+#define USE_CMD_TEST_ZERO_ADJUST    1
+#define USE_CMD_TEST_SYS_REBOOT     1
+#define USE_CMD_TEST_LOG_TYPE_EN    1
+#else
+#define USE_CMD_TEST_NVM_ACCESS     0
+#define USE_CMD_TEST_STEP_COUNT     0
+#define USE_CMD_TEST_ZERO_ADJUST    0
+#define USE_CMD_TEST_SYS_REBOOT     0
+#define USE_CMD_TEST_LOG_TYPE_EN    0
+#endif
 
 /* Timer value for starting the Discovery Procedure once the connection is
  * established. 

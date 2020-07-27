@@ -31,6 +31,7 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 		clk = clock_get();
 		motor_battery_week_to_position(clk->week);
 	}
+    stete_battery_week = state_battery_week.cur_state;
 
 	*state = CLOCK;
 	return 0;

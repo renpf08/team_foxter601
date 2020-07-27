@@ -80,12 +80,12 @@ typedef enum {
     SET_FIND_WATCH = 33,
     SET_ANCS_BOND_REQ = 34,
     READ_STEPS_TARGET = 35,
-    READ_STEPS = 36,
-    READ_HISDAYS = 37,
-    READ_HISDATA = 38,
-    READ_REALTIME_SPORT = 39,
+    READ_HISDAYS = 36,
+    READ_HISDATA = 37,
+    READ_CURDATA = 38,
+    REFRESH_STEPS = 39,
     #if USE_PARAM_STORE
-    READ_SYS_PARAMS = 43,
+    READ_SYS_PARAMS = 40,
     #endif
 	REPORT_MAX,
 }REPORT_E;
@@ -349,6 +349,16 @@ typedef struct
 } app_msg_t;
 typedef app_msg_t cmd_recv_notify_t;
 
+#if USE_CMD_TEST_LOG_TYPE_EN
+typedef enum{
+    LOG_SEND_PAIR_CODE,
+    LOG_SEND_STATE_MACHINE,
+    LOG_SEND_ZERO_ADJUST_JUMP,
+    
+    LOG_SEND_MAX,
+}log_type_t;
+#endif
+
 typedef enum {
     CMD_PAIRING_CODE        = 0x00,
     CMD_USER_INFO           = 0x01,
@@ -366,8 +376,8 @@ typedef enum {
     CMD_SET_ANCS_BOND_REQ   = 0x0D,
     CMD_READ_STEPS_TARGET   = 0x0E,
 
-    CMD_ZERO_ADJUST         = 0xE0,
-    CMD_NVM_TEST            = 0xF0,
+    CMD_TEST_SEND           = 0x5F,
+    CMD_TEST_RCVD           = 0xAF,
     CMD_APP_NONE            = 0xFF
 } cmd_app_send_t;
 
@@ -386,13 +396,6 @@ typedef struct
 {
     u8 cmd; 
     u32 target_steps;
-    u32 target_dists;
-    u32 target_calorie;
-    u16 target_floors;
-    u16 target_acute_sport;
-    u8 gender;
-    u8 height;
-    u8 weight;
 } cmd_user_info_t;
 typedef struct {
     u8 cmd; 
@@ -487,7 +490,7 @@ typedef struct {
 typedef struct { 
     u8 cmd; 
     u8 type; 
-} cmd_READ_STEPS_TARGET_t;
+} cmd_read_steps_target_t;
 
 typedef struct {
     cmd_pairing_code_t pair_code;
@@ -504,7 +507,7 @@ typedef struct {
     cmd_set_vibration_t set_vib;
     cmd_find_watch_t find_watch;
     cmd_set_ancs_bond_req_t set_ancs_bond;
-    cmd_READ_STEPS_TARGET_t read_time_step;
+    cmd_read_steps_target_t read_time_step;
 } cmd_group_t;
 
 enum {
@@ -522,23 +525,17 @@ typedef struct {
     u8 month;
     u8 day;
     u32 steps;
-    u32 colorie;
-    u16 acute;
 }his_data_t; /* for nvm to store */
-typedef struct {
-    u32 StepCounts;           /*总步数 步*/
-    u32 Distance;             /*总距离 米*/
-    u32 Calorie;              /*总卡路里 千卡*/
-    u16 FloorCounts;          /*爬楼数 层*/
-    u16 AcuteSportTimeCounts; /*剧烈运动时间 分钟*/
-}SPORT_INFO_T;  /*运动数据结构*/
 typedef struct {
     clock_t *clock;
     his_data_t *data;
-    u32 steps; // current day
-    u32 min_steps;
+    u32 steps;
     s16 days;
 } cmd_params_t;
+typedef struct {
+    u8 press;
+    u8 run;
+} zero_adjust_lock_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);
