@@ -21,14 +21,6 @@ enum {
     STATE_SLEEP_SEND,
     STATE_INVALID
 };
-#if USE_CMD_TEST
-enum{
-    CMD_TEST_NVM_ACCESS,
-    CMD_TEST_ZERO_ADJUST,
-    CMD_TEST_STEP_COUNT,
-    CMD_TEST_SYS_REBOOT,
-};
-#endif
 
 typedef s16 (* LFPCMDHANDLER)(u8 *buffer, u8 length);
 
@@ -92,6 +84,14 @@ static const CMDENTRY cmd_list[] =
 
 #if USE_CMD_TEST
 /**
+*	info message
+*	5F 00 xx yy // pair code, xx:yy
+*	5F 01 aa bb cc dd // state machine result
+*         aa:init state
+*         bb:event
+*         cc:next state
+*         dd:1-executed,0-not executed
+*	5F 02 // zero adjust jump empty
 *   CMD_TEST_NVM_ACCESS:
 *   AF 00 00 // nvm write one day data
 *   AF 00 01 // nvm read all history data
@@ -103,75 +103,135 @@ static const CMDENTRY cmd_list[] =
 *   AF 01 02 // KEY_A_SHORT_PRESS
 *   AF 01 03 // KEY_B_SHORT_PRESS
 *   CMD_TEST_STEP_COUNT
-*   AF 02 xx // simulate step counting, xx means how many steps now
+*   AF 02 xx // xx simulate steps
+*   CMD_TEST_SYS_REBOOT
+*   AF 03 	 // set system reboot
 */
-static s16 cmd_test(u8 *buffer, u8 length)
+typedef void (* cmd_test_handler)(u8 *buffer, u8 length);
+enum{
+    CMD_TEST_NVM_ACCESS,
+    CMD_TEST_ZERO_ADJUST,
+    CMD_TEST_STEP_COUNT,
+    CMD_TEST_SYS_REBOOT,
+    
+    CMD_TEST_NONE,
+};
+typedef struct{
+    u8 head;
+    u8 cmd;
+    u8 act;
+    u8* payload;
+}cmd_test_t;
+typedef struct {
+	const cmd_app_send_t cmd;
+	cmd_test_handler handler;
+} cmd_test_entry_t;
+#if USE_CMD_TEST_NVM_ACCESS
+static void cmd_test_nvm_access(u8 *buffer, u8 length);
+#endif
+#if USE_CMD_TEST_ZERO_ADJUST
+static void cmd_test_zero_adjust(u8 *buffer, u8 length);
+#endif
+#if USE_CMD_TEST_STEP_COUNT
+static void cmd_test_step_count(u8 *buffer, u8 length);
+#endif
+#if USE_CMD_TEST_SYS_REBOOT
+static void cmd_test_sys_reboot(u8 *buffer, u8 length);
+#endif
+static const cmd_test_entry_t cmd_test_list[] =
 {
-    typedef struct{
-        u8 head;
-        u8 cmd;
-        u8 act;
-        u8* payload;
-    }cmd_test_t;
-    cmd_test_t* test = (cmd_test_t*)buffer;
-
-    switch(test->cmd) {
     #if USE_CMD_TEST_NVM_ACCESS
-    case CMD_TEST_NVM_ACCESS:
-        switch(test->act) {
-        case 0:
-            nvm_write_test();
-            break;
-        case 1:
-            nvm_read_test();
-            break;
-        case 2:
-            nvm_read_oneday(test->payload[0]);
-            break;
-        case 3:
-            nvm_erase_history_data();
-            break;
-        default:
-            break;
-        }
-        break;
+    {CMD_TEST_NVM_ACCESS,   cmd_test_nvm_access},
     #endif
     #if USE_CMD_TEST_ZERO_ADJUST
-    case CMD_TEST_ZERO_ADJUST:
-        switch(test->act) {
-        case 0:
-            cmd_cb(KEY_A_B_LONG_PRESS, NULL);
-            break;
-        case 1:
-            cmd_cb(KEY_M_SHORT_PRESS, NULL);
-            break;
-        case 2:
-            cmd_cb(KEY_A_SHORT_PRESS, NULL);
-            break;
-        case 3:
-            cmd_cb(KEY_B_SHORT_PRESS, NULL);
-            break;
-        default:
-            break;
-        }
-        break;
+    {CMD_TEST_ZERO_ADJUST,  cmd_test_zero_adjust},
     #endif
     #if USE_CMD_TEST_STEP_COUNT
-    case CMD_TEST_STEP_COUNT:
-        step_test(test->act);
-        break;
+    {CMD_TEST_STEP_COUNT,   cmd_test_step_count},
     #endif
     #if USE_CMD_TEST_SYS_REBOOT
-    case CMD_TEST_SYS_REBOOT:
-        Panic(0);
-        break;
+    {CMD_TEST_SYS_REBOOT,   cmd_test_sys_reboot},
     #endif
+    
+	{CMD_TEST_NONE,         0}
+};
+#if USE_CMD_TEST_NVM_ACCESS
+static void cmd_test_nvm_access(u8 *buffer, u8 length)
+{
+    cmd_test_t* test = (cmd_test_t*)buffer;
+    switch(test->act) {
+    case 0:
+        nvm_write_test();
+        break;
+    case 1:
+        nvm_read_test();
+        break;
+    case 2:
+        nvm_read_oneday(test->payload[0]);
+        break;
+    case 3:
+        nvm_erase_history_data();
+        break;
     default:
         break;
     }
-    return 0;
 }
 #endif
+#if USE_CMD_TEST_ZERO_ADJUST
+static void cmd_test_zero_adjust(u8 *buffer, u8 length)
+{
+    cmd_test_t* test = (cmd_test_t*)buffer;
+    switch(test->act) {
+    case 0:
+        cmd_cb(KEY_A_B_LONG_PRESS, NULL);
+        break;
+    case 1:
+        cmd_cb(KEY_M_SHORT_PRESS, NULL);
+        break;
+    case 2:
+        cmd_cb(KEY_A_SHORT_PRESS, NULL);
+        break;
+    case 3:
+        cmd_cb(KEY_B_SHORT_PRESS, NULL);
+        break;
+    default:
+        break;
+    }
+}
+#endif
+#if USE_CMD_TEST_STEP_COUNT
+static void cmd_test_step_count(u8 *buffer, u8 length)
+{
+    cmd_test_t* test = (cmd_test_t*)buffer;
+    step_test(test->act);
+}
+#endif
+#if USE_CMD_TEST_SYS_REBOOT
+static void cmd_test_sys_reboot(u8 *buffer, u8 length)
+{
+    Panic(0);
+}
+#endif
+static s16 cmd_test(u8 *buffer, u8 length)
+{
+    cmd_test_t* test = (cmd_test_t*)buffer;
+	u8 i = 0;
+
+	if(length == 0) {
+		return 0;
+	}
+
+    while(cmd_test_list[i].cmd != CMD_TEST_NONE) {
+        if(cmd_test_list[i].cmd == test->head) {
+            cmd_test_list[i].handler(buffer, length);
+            break;
+        }
+        i++;
+    }
+    
+    return 0;
+}
+#endif // USE_CMD_TEST
 static s16 cmd_pairing_code(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.pair_code, buffer, sizeof(cmd_pairing_code_t));
