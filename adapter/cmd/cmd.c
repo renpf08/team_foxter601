@@ -76,7 +76,7 @@ static const CMDENTRY cmd_list[] =
     {CMD_READ_STEPS_TARGET, READ_STEPS_TARGET,  cmd_read_steps_target},
         
     #if USE_CMD_TEST
-    {CMD_TEST,              REPORT_MAX,         cmd_test},
+    {CMD_TEST_RCVD,         REPORT_MAX,         cmd_test},
     #endif
     
 	{CMD_APP_NONE,          REPORT_MAX, NULL}
@@ -84,14 +84,6 @@ static const CMDENTRY cmd_list[] =
 
 #if USE_CMD_TEST
 /**
-*	info message
-*	5F 00 xx yy // pair code, xx:yy
-*	5F 01 aa bb cc dd // state machine result
-*         aa:init state
-*         bb:event
-*         cc:next state
-*         dd:1-executed,0-not executed
-*	5F 02 // zero adjust jump empty
 *   CMD_TEST_NVM_ACCESS:
 *   AF 00 00 // nvm write one day data
 *   AF 00 01 // nvm read all history data
@@ -108,22 +100,17 @@ static const CMDENTRY cmd_list[] =
 *   AF 03 	 // set system reboot
 */
 typedef void (* cmd_test_handler)(u8 *buffer, u8 length);
-enum{
-    CMD_TEST_NVM_ACCESS,
-    CMD_TEST_ZERO_ADJUST,
-    CMD_TEST_STEP_COUNT,
-    CMD_TEST_SYS_REBOOT,
+typedef enum{
+    CMD_TEST_NVM_ACCESS     = 0x00,
+    CMD_TEST_ZERO_ADJUST    = 0x01,
+    CMD_TEST_STEP_COUNT     = 0x02,
+    CMD_TEST_SYS_REBOOT     = 0x03,
+    CMD_TEST_LOG_TYPE_EN    = 0x04,
     
     CMD_TEST_NONE,
-};
-typedef struct{
-    u8 head;
-    u8 cmd;
-    u8 act;
-    u8* payload;
-}cmd_test_t;
+}cmt_test_enum_t;
 typedef struct {
-	const cmd_app_send_t cmd;
+	const cmt_test_enum_t cmd;
 	cmd_test_handler handler;
 } cmd_test_entry_t;
 #if USE_CMD_TEST_NVM_ACCESS
@@ -137,6 +124,9 @@ static void cmd_test_step_count(u8 *buffer, u8 length);
 #endif
 #if USE_CMD_TEST_SYS_REBOOT
 static void cmd_test_sys_reboot(u8 *buffer, u8 length);
+#endif
+#if USE_CMD_TEST_LOG_TYPE_EN
+static void cmd_test_log_type_en(u8 *buffer, u8 length);
 #endif
 static const cmd_test_entry_t cmd_test_list[] =
 {
@@ -152,14 +142,18 @@ static const cmd_test_entry_t cmd_test_list[] =
     #if USE_CMD_TEST_SYS_REBOOT
     {CMD_TEST_SYS_REBOOT,   cmd_test_sys_reboot},
     #endif
+    #if USE_CMD_TEST_LOG_TYPE_EN
+    {CMD_TEST_LOG_TYPE_EN, cmd_test_log_type_en},
+    #endif
     
 	{CMD_TEST_NONE,         0}
 };
 #if USE_CMD_TEST_NVM_ACCESS
 static void cmd_test_nvm_access(u8 *buffer, u8 length)
 {
-    cmd_test_t* test = (cmd_test_t*)buffer;
-    switch(test->act) {
+    typedef struct{u8 head; u8 cmd; u8 type;}cmd_test_nvm_access_t;
+    cmd_test_nvm_access_t* adjust = (cmd_test_nvm_access_t*)buffer;
+    switch(adjust->type) {
     case 0:
         nvm_write_test();
         break;
@@ -167,7 +161,7 @@ static void cmd_test_nvm_access(u8 *buffer, u8 length)
         nvm_read_test();
         break;
     case 2:
-        nvm_read_oneday(test->payload[0]);
+        nvm_read_oneday(buffer[1]);
         break;
     case 3:
         nvm_erase_history_data();
@@ -180,8 +174,9 @@ static void cmd_test_nvm_access(u8 *buffer, u8 length)
 #if USE_CMD_TEST_ZERO_ADJUST
 static void cmd_test_zero_adjust(u8 *buffer, u8 length)
 {
-    cmd_test_t* test = (cmd_test_t*)buffer;
-    switch(test->act) {
+    typedef struct{u8 head; u8 cmd; u8 type;}cmd_test_zero_adjust_t;
+    cmd_test_zero_adjust_t* adjust = (cmd_test_zero_adjust_t*)buffer;
+    switch(adjust->type) {
     case 0:
         cmd_cb(KEY_A_B_LONG_PRESS, NULL);
         break;
@@ -202,8 +197,10 @@ static void cmd_test_zero_adjust(u8 *buffer, u8 length)
 #if USE_CMD_TEST_STEP_COUNT
 static void cmd_test_step_count(u8 *buffer, u8 length)
 {
-    cmd_test_t* test = (cmd_test_t*)buffer;
-    step_test(test->act);
+    typedef struct{u8 head; u8 cmd; u8 hi; u8 lo;}cmd_test_step_count_t;
+    cmd_test_step_count_t* step = (cmd_test_step_count_t*)buffer;
+    u16 steps = (u16)(step->hi<<8 | step->lo);
+    step_test(steps);
 }
 #endif
 #if USE_CMD_TEST_SYS_REBOOT
@@ -212,8 +209,18 @@ static void cmd_test_sys_reboot(u8 *buffer, u8 length)
     Panic(0);
 }
 #endif
+#if USE_CMD_TEST_LOG_TYPE_EN
+u8 log_type_en[LOG_SEND_MAX];
+static void cmd_test_log_type_en(u8 *buffer, u8 length)
+{
+    typedef struct{u8 head; u8 cmd; u8 type; u8 en;}cmd_test_log_type_en_t;
+    cmd_test_log_type_en_t* log = (cmd_test_log_type_en_t*)buffer;
+    log_type_en[log->type] = log->en;
+}
+#endif
 static s16 cmd_test(u8 *buffer, u8 length)
 {
+    typedef struct{u8 head;u8 cmd;}cmd_test_t;
     cmd_test_t* test = (cmd_test_t*)buffer;
 	u8 i = 0;
 
@@ -514,6 +521,9 @@ s16 cmd_init(adapter_callback cb)
     cmd_group.app_ack.state = STATE_INVALID;
     #if !USE_PARAM_STORE
     cmd_group.user_info.target_steps = DEFAULT_TARGET_STEPCOUNTS;
+    #endif
+    #if USE_CMD_TEST_LOG_TYPE_EN
+    MemSet(log_type_en, 1, LOG_SEND_MAX);
     #endif
     
 	return 0;

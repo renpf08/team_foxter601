@@ -7,6 +7,9 @@
 #include <panic.h>
 #include <buf_utils.h>
 
+#if USE_TIMER_CALLER
+timer_caller_t timer_caller = TIMER_CALLER_NONE;
+#endif
 u8 stete_battery_week = state_battery;
 u8 activity_percent = 0;
 u8 zero_adjust_mode = 0;

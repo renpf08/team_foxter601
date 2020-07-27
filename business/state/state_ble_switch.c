@@ -78,7 +78,7 @@ void pair_code_generate(void)
         }
     }
 
-    u8 test_buf[4] = {0x5F, 0, 0, 0};
+    u8 test_buf[4] = {CMD_TEST_SEND, 0, 0, 0};
     test_buf[2] = hour;
     test_buf[3] = minute;
     BLE_SEND_LOG((u8*)&test_buf, 4);

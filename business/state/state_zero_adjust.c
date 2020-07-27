@@ -43,7 +43,7 @@ static s16 state_zero_adjust_motor_back_zero(u8 motor_num)
 s16 state_zero_adjust(REPORT_E cb, void *args)
 {	
     if(zero_adjust_mode == 1) {
-        u8 msg[2] = {0x5F, 0x02};
+        u8 msg[2] = {CMD_TEST_SEND, 0x02};
         BLE_SEND_LOG(msg, 2);
         return 1;
     }

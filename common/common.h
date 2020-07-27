@@ -349,6 +349,22 @@ typedef struct
 } app_msg_t;
 typedef app_msg_t cmd_recv_notify_t;
 
+#if USE_CMD_TEST_LOG_TYPE_EN
+typedef enum{
+    LOG_SEND_PAIR_CODE,
+    LOG_SEND_STATE_MACHINE,
+    LOG_SEND_ZERO_ADJUST_JUMP,
+    
+    LOG_SEND_MAX,
+}log_type_t;
+#endif
+#if USE_TIMER_CALLER
+typedef enum {
+    TIMER_CALLER_NONE = 0x00,
+    TIMER_CALLER_STEPS,
+} timer_caller_t;
+#endif
+
 typedef enum {
     CMD_PAIRING_CODE        = 0x00,
     CMD_USER_INFO           = 0x01,
@@ -366,7 +382,8 @@ typedef enum {
     CMD_SET_ANCS_BOND_REQ   = 0x0D,
     CMD_READ_STEPS_TARGET   = 0x0E,
 
-    CMD_TEST                = 0xAF,
+    CMD_TEST_SEND           = 0x5F,
+    CMD_TEST_RCVD           = 0xAF,
     CMD_APP_NONE            = 0xFF
 } cmd_app_send_t;
 

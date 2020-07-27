@@ -67,7 +67,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
     s16 res = 0;
-    u8 st_cb[6] = {0x5F, 01, business.state_now, cb, 0, 0};
+    u8 st_cb[6] = {CMD_TEST_SEND, 01, business.state_now, cb, 0, 0};
 
 	//return 0;
     #if USE_UART_PRINT
