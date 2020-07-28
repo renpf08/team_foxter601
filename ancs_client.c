@@ -732,7 +732,7 @@ static void handleSignalLmDisconnectComplete(
     if(OtaResetRequired())
     {
         ota_pre_handler();
-        OtaReset();
+        //OtaReset();
         /* The OtaReset function does not return */
     }
     else

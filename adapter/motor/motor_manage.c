@@ -277,6 +277,18 @@ static void motor_run_continue_check(void)
 	}
 }
 
+u16 motor_check_idle(void)
+{
+    u16 i = 0;
+    
+    for(i = 0; i < max_motor; i++) {
+        if(motor_manager.motor_status[i].run_flag == 1) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 #if 0
 static void motor_time_adjust_run_continue_check(void)
 {

@@ -6,6 +6,7 @@
 #include "adapter.h"
 #include <panic.h>
 #include <buf_utils.h>
+#include <csr_ota.h>
 
 u8 stete_battery_week = state_battery;
 u8 activity_percent = 0;
@@ -204,6 +205,14 @@ void sync_time(void)
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
 }
+static void ota_reset_handler(u16 id)
+{
+    if(motor_check_idle() != 0) {
+        timer_event(100, ota_reset_handler);
+        return;
+    }
+    OtaReset();
+}
 void ota_pre_handler(void)
 {
     motor_hour_to_position(HOUR0_0);
@@ -212,6 +221,7 @@ void ota_pre_handler(void)
     motor_date_to_position(DAY_1);
     motor_battery_week_to_position(BAT_PECENT_0);
     motor_notify_to_position(NOTIFY_NONE);
+    timer_event(100, ota_reset_handler);
 }
 void motor_restore_position(REPORT_E cb)
 {

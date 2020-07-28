@@ -31,6 +31,7 @@ clock_t *clock_get(void);
 
 s16 motor_manager_init(void);
 void motor_run_one_step(u8 motor_num, u8 direction);
+u16 motor_check_idle(void);
 #if 0
 void motor_time_adjust_mode_on(void);
 void motor_time_adjust_mode_off(void);
