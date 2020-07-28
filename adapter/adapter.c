@@ -8,9 +8,10 @@
 #include <buf_utils.h>
 #include <csr_ota.h>
 
-u8 stete_battery_week = state_battery;
 zero_adjust_lock_t zero_adjust_mode = {0, 0};
 motor_pos_t motor_pos = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE};
+u8 reset_supervise_timeout = 0;
+reboot_type_t reboot_type = 0;
 
 const u8 date[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
@@ -36,7 +37,7 @@ extern s16 ble_switch_init(adapter_callback cb);
 
 s16 csr_event_callback(EVENT_E ev);
 void driver_uninit(void);
-void reboot_pre_handler(void);
+void system_post_reboot(void);
 
 typedef struct {
 	driver_t *drv;
@@ -127,7 +128,7 @@ s16 adapter_init(adapter_callback cb)
     ble_switch_init(cb);
     nvm_storage_init(cb);
 
-    reboot_pre_handler();
+    system_post_reboot();
 	return 0;
 }
 #if USE_UART_PRINT
@@ -140,13 +141,6 @@ void print(u8 *buf, u16 num)
 	}
 }
 #endif
-void system_reboot(u8 reboot_type)
-{
-    if(reboot_type == 0) {
-        APP_Move_Bonded(4);
-    }
-    Panic(0x5AFF);
-}
 static void activity_handler(u16 id)
 {
     u32 target_steps = cmd_get()->user_info.target_steps;
@@ -209,50 +203,64 @@ void sync_time(void)
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
 }
-static void ota_reset_handler(u16 id)
+static void motor_to_position(void)
 {
-    if(motor_check_idle() != 0) {
-        timer_event(100, ota_reset_handler);
+    motor_minute_to_position(motor_pos.minute);
+    motor_hour_to_position(motor_pos.hour);
+    motor_activity_to_position(motor_pos.activity);
+    motor_date_to_position(motor_pos.day);
+    motor_battery_week_to_position(motor_pos.bat_week);
+    motor_notify_to_position(motor_pos.notify);
+}
+static void pre_reboot_handler(u16 id)
+{
+    if((motor_check_idle() != 0) && (reset_supervise_timeout == 0)) {
+        timer_event(100, pre_reboot_handler);
         return;
     }
-    
-    u16 ota_flag = 0x5AA5;
-    nvm_write_ota_flag_position(&ota_flag, 0);
-    OtaReset();
-}
-void ota_pre_handler(void)
-{
-    nvm_write_motor_current_position((u16*)&motor_pos, 0);
-    motor_hour_to_position(HOUR0_0);
-    motor_minute_to_position(MINUTE_0);
-    motor_activity_to_position(ACTIVITY_0);
-    motor_date_to_position(DAY_1);
-    motor_battery_week_to_position(BAT_PECENT_0);
-    motor_notify_to_position(NOTIFY_NONE);
-    timer_event(100, ota_reset_handler);
-}
-void reboot_pre_handler(void)
-{
-    u16 ota_flag = 0;
-    nvm_read_ota_flag_position(&ota_flag, 0);
-    if(ota_flag == 0x5AA5) {
-        ota_flag = 0;
-        nvm_write_ota_flag_position(&ota_flag, 0);
-        nvm_read_motor_current_position((u16*)&motor_pos, 0);
-        motor_hour_to_position(motor_pos.hour);
-        motor_minute_to_position(motor_pos.minute);
-        motor_activity_to_position(motor_pos.activity);
-        motor_date_to_position(motor_pos.day);
-        motor_battery_week_to_position(motor_pos.bat_week);
-        motor_notify_to_position(motor_pos.notify);
+
+    if(reboot_type == REBOOT_TYPE_BUTTON) {
+        Panic(0);
+    } else if(reboot_type == REBOOT_TYPE_OTA) {
+        OtaReset();
     }
+}
+static void pre_reboot_supervise_handler(u16 id)
+{
+    reset_supervise_timeout = 1;
+}
+void system_pre_reboot(reboot_type_t type)
+{
+    reboot_type = type;
+    APP_Move_Bonded(4);
+    nvm_write_motor_current_position((u16*)&motor_pos, 0);
+    motor_pos.minute = MINUTE_0;
+    motor_pos.hour = HOUR0_0;
+    motor_pos.activity = ACTIVITY_0;
+    motor_pos.day = DAY_1;
+    motor_pos.bat_week = BAT_PECENT_0;
+    motor_pos.notify = NOTIFY_NONE;
+    motor_to_position();
+    timer_event(100, pre_reboot_handler);
+    timer_event(30*1000, pre_reboot_supervise_handler);
+}
+void system_post_reboot(void)
+{
+    nvm_read_motor_current_position((u16*)&motor_pos, 0);
+    motor_pos.minute = (motor_pos.minute>MINUTE_60)?MINUTE_60:motor_pos.minute;
+    motor_pos.hour = (motor_pos.hour>HOUR12_0)?HOUR12_0:motor_pos.hour;
+    motor_pos.activity = (motor_pos.activity>ACTIVITY_100)?ACTIVITY_100:motor_pos.activity;
+    motor_pos.day = (motor_pos.day>DAY_1)?DAY_1:motor_pos.day;
+    motor_pos.bat_week = (motor_pos.bat_week>BAT_PECENT_0)?BAT_PECENT_0:motor_pos.bat_week;
+    motor_pos.notify = (motor_pos.notify>NOTIFY_COMMING_CALL)?NOTIFY_COMMING_CALL:motor_pos.notify;
+    motor_to_position();
 }
 void motor_restore_position(REPORT_E cb)
 {
     u8 position = 0;
     
     if(cb == KEY_A_B_LONG_PRESS) {
-    	if(stete_battery_week == state_battery) {
+    	if(motor_pos.bat_week == state_battery) {
     		position = battery_percent_read();
     	}else {
     		position = clock_get()->week;

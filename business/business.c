@@ -75,7 +75,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
     #endif
 
     if(cb == KEY_M_ULTRA_LONG_PRESS) {
-        system_reboot(0);
+        system_pre_reboot(REBOOT_TYPE_BUTTON);
     } else if(cb == REPORT_MAX) {
         return 0;
     }

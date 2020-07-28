@@ -203,6 +203,7 @@ s16 nvm_storage_init(adapter_callback cb)
     {
         nvm_write(&erase_value, 1, USER_STORAGE_START_OFFSET+erase_offset);
     }
+    nvm_write_motor_current_position((u16*)&motor_pos, 0);
 
     // print the initialized nvm contents
 //    for(erase_offset = 0; erase_offset < USER_STORAGE_TOTAL_LENGTH; erase_offset++)

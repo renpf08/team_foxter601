@@ -17,10 +17,10 @@ extern bool ble_send_log(uint8 *data, uint16 size);
 
 void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
-void system_reboot(u8 reboot_type);
+void system_pre_reboot(reboot_type_t type);
 void refresh_step(void);
 void sync_time(void);
-void ota_pre_handler(void);
+void motor_to_zero(void);
 void motor_restore_position(REPORT_E cb);
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num);
@@ -126,7 +126,6 @@ app_state ble_state_get(void);
 
 extern motor_pos_t motor_pos;
 extern zero_adjust_lock_t zero_adjust_mode;
-extern u8 stete_battery_week;
 extern const u8 date[];
 #if USE_CMD_TEST_LOG_TYPE_EN
 extern u8 log_type_en[LOG_SEND_MAX];
