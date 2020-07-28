@@ -9,8 +9,8 @@
 #include <csr_ota.h>
 
 u8 stete_battery_week = state_battery;
-u8 activity_percent = 0;
 zero_adjust_lock_t zero_adjust_mode = {0, 0};
+motor_pos_t motor_pos = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE};
 
 const u8 date[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
@@ -36,6 +36,7 @@ extern s16 ble_switch_init(adapter_callback cb);
 
 s16 csr_event_callback(EVENT_E ev);
 void driver_uninit(void);
+void reboot_pre_handler(void);
 
 typedef struct {
 	driver_t *drv;
@@ -125,6 +126,8 @@ s16 adapter_init(adapter_callback cb)
     mag_sample_init();
     ble_switch_init(cb);
     nvm_storage_init(cb);
+
+    reboot_pre_handler();
 	return 0;
 }
 #if USE_UART_PRINT
@@ -148,15 +151,16 @@ static void activity_handler(u16 id)
 {
     u32 target_steps = cmd_get()->user_info.target_steps;
     u32 current_steps = step_get();
+    u8 activity = 0;
 
     if(current_steps > target_steps) {
-        activity_percent = 40; // total 40 grids
+        activity = 40; // total 40 grids
     } else if(current_steps <= target_steps) {
-        activity_percent = (current_steps*40)/target_steps;
+        activity = (current_steps*40)/target_steps;
     } else if(target_steps == 0) {
-        activity_percent = 0;
+        activity = 0;
     }
-    motor_activity_to_position(activity_percent);
+    motor_activity_to_position(activity);
     
     u16 length = 0; 
     u8 rsp_buf[20];
@@ -211,10 +215,14 @@ static void ota_reset_handler(u16 id)
         timer_event(100, ota_reset_handler);
         return;
     }
+    
+    u16 ota_flag = 0x5AA5;
+    nvm_write_ota_flag_position(&ota_flag, 0);
     OtaReset();
 }
 void ota_pre_handler(void)
 {
+    nvm_write_motor_current_position((u16*)&motor_pos, 0);
     motor_hour_to_position(HOUR0_0);
     motor_minute_to_position(MINUTE_0);
     motor_activity_to_position(ACTIVITY_0);
@@ -222,6 +230,22 @@ void ota_pre_handler(void)
     motor_battery_week_to_position(BAT_PECENT_0);
     motor_notify_to_position(NOTIFY_NONE);
     timer_event(100, ota_reset_handler);
+}
+void reboot_pre_handler(void)
+{
+    u16 ota_flag = 0;
+    nvm_read_ota_flag_position(&ota_flag, 0);
+    if(ota_flag == 0x5AA5) {
+        ota_flag = 0;
+        nvm_write_ota_flag_position(&ota_flag, 0);
+        nvm_read_motor_current_position((u16*)&motor_pos, 0);
+        motor_hour_to_position(motor_pos.hour);
+        motor_minute_to_position(motor_pos.minute);
+        motor_activity_to_position(motor_pos.activity);
+        motor_date_to_position(motor_pos.day);
+        motor_battery_week_to_position(motor_pos.bat_week);
+        motor_notify_to_position(motor_pos.notify);
+    }
 }
 void motor_restore_position(REPORT_E cb)
 {
@@ -234,7 +258,7 @@ void motor_restore_position(REPORT_E cb)
     		position = clock_get()->week;
     	}
         motor_battery_week_to_position(position);    
-        motor_activity_to_position(activity_percent);
+        motor_activity_to_position(motor_pos.activity);
     }
 }
 void timer_event(u16 ms, timer_cb cb)

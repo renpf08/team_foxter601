@@ -10,8 +10,11 @@
 #define USER_STORATE_INIT_FLAG_LENGTH           (0x01)
 
 #if USE_PARAM_STORE
-#define MOTORS_CURRENT_POSITION_OFFSET          (USER_STORATE_INIT_FLAG_OFFSET+USER_STORATE_INIT_FLAG_LENGTH)
-#define MOTORS_CURRENT_POSITION_LENGTH          (0x06)
+#define OTA_FLAG_OFFSET                         (USER_STORATE_INIT_FLAG_OFFSET+USER_STORATE_INIT_FLAG_LENGTH)
+#define OTA_FLAG_LENGTH                         (0x01)
+
+#define MOTORS_CURRENT_POSITION_OFFSET          (OTA_FLAG_OFFSET+OTA_FLAG_LENGTH)
+#define MOTORS_CURRENT_POSITION_LENGTH          (sizeof(motor_pos_t))
 
 #define MOTORS_ZERO_POSITION_POLARITY_OFFSET    (MOTORS_CURRENT_POSITION_OFFSET+MOTORS_CURRENT_POSITION_LENGTH)
 #define MOTORS_ZERO_POSITION_POLARITY_LENGTH    (0x06)
@@ -214,6 +217,18 @@ s16 nvm_storage_init(adapter_callback cb)
     return 0;
 }
 #if USE_PARAM_STORE
+s16 nvm_read_ota_flag_position(u16 *buffer, u8 index)
+{
+    nvm_read(buffer, OTA_FLAG_LENGTH, OTA_FLAG_OFFSET);
+
+    return 0;
+}
+s16 nvm_write_ota_flag_position(u16 *buffer, u8 index)
+{ 
+    nvm_write(buffer, OTA_FLAG_LENGTH, OTA_FLAG_OFFSET);   
+
+    return 0;
+}
 s16 nvm_read_motor_current_position(u16 *buffer, u8 index)
 {
     nvm_read(buffer, MOTORS_CURRENT_POSITION_LENGTH, MOTORS_CURRENT_POSITION_OFFSET);

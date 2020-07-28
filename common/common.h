@@ -536,6 +536,14 @@ typedef struct {
     u8 press;
     u8 run;
 } zero_adjust_lock_t;
+typedef struct {
+    u16 minute;
+    u16 hour;
+    u16 activity;
+    u16 day;
+    u16 bat_week;
+    u16 notify;
+} motor_pos_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);

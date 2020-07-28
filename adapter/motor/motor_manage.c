@@ -98,6 +98,7 @@ u8 hour_list[] = {
 
 s16 motor_hour_to_position(u8 hour)
 {
+    motor_pos.hour = hour;
 	/*hour dst position configuration*/
 	u8 minute_pos = (motor_manager.motor_status[minute_motor].dst_pos == MINUTE_60) ? \
 						MINUTE_0 : motor_manager.motor_status[minute_motor].dst_pos;
@@ -126,6 +127,7 @@ s16 motor_hour_to_position(u8 hour)
 
 s16 motor_minute_to_position(u8 minute)
 {
+    motor_pos.minute = minute;
 	/*minute dst pos config*/
 	if((MINUTE_59 == motor_manager.motor_status[minute_motor].cur_pos) &&
 		(MINUTE_0 == minute)) {
@@ -148,6 +150,7 @@ s16 motor_minute_to_position(u8 minute)
 
 s16 motor_date_to_position(u8 day)
 {
+    motor_pos.day = day;
 	motor_manager.motor_status[date_motor].dst_pos = day;
 	if(motor_manager.motor_status[date_motor].dst_pos != 
 	   motor_manager.motor_status[date_motor].cur_pos) {
@@ -158,6 +161,7 @@ s16 motor_date_to_position(u8 day)
 
 s16 motor_notify_to_position(u8 notify)
 {
+    motor_pos.notify = notify;
 	motor_manager.motor_status[notify_motor].dst_pos = notify;
 	if(motor_manager.motor_status[notify_motor].dst_pos != 
 	   motor_manager.motor_status[notify_motor].cur_pos) {
@@ -190,6 +194,7 @@ static void motor_battery_week_change(u16 id)
 
 s16 motor_battery_week_to_position(u8 battery_week)
 {
+    motor_pos.bat_week = battery_week;
 	if((motor_manager.motor_status[battery_week_motor].cur_pos > BAT_PECENT_100) &&
 		(battery_week <= BAT_PECENT_100)) {
 		motor_manager.motor_status[battery_week_motor].dst_pos = BAT_PECENT_100;
@@ -220,6 +225,7 @@ s16 motor_battery_week_to_position(u8 battery_week)
 
 s16 motor_activity_to_position(u8 activity)
 {
+    motor_pos.activity = activity;
 	motor_manager.motor_status[activity_motor].dst_pos = activity;
 	if(motor_manager.motor_status[activity_motor].dst_pos != 
 	   motor_manager.motor_status[activity_motor].cur_pos) {

@@ -46,12 +46,14 @@ FO601
 #define USE_CMD_TEST_ZERO_ADJUST    1
 #define USE_CMD_TEST_SYS_REBOOT     1
 #define USE_CMD_TEST_LOG_TYPE_EN    1
+#define USE_CMD_TEST_OTA_WRITE      1
 #else
 #define USE_CMD_TEST_NVM_ACCESS     0
 #define USE_CMD_TEST_STEP_COUNT     0
 #define USE_CMD_TEST_ZERO_ADJUST    0
 #define USE_CMD_TEST_SYS_REBOOT     0
 #define USE_CMD_TEST_LOG_TYPE_EN    0
+#define USE_CMD_TEST_OTA_WRITE      0
 #endif
 
 /* Timer value for starting the Discovery Procedure once the connection is

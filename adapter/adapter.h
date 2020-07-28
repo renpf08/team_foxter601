@@ -55,6 +55,8 @@ u8 battery_percent_read(void);
 
 s16 nvm_storage_init(adapter_callback cb);
 #if USE_PARAM_STORE
+s16 nvm_read_ota_flag_position(u16 *buffer, u8 index);
+s16 nvm_write_ota_flag_position(u16 *buffer, u8 index);
 s16 nvm_read_motor_current_position(u16 *buffer, u8 index);
 s16 nvm_write_motor_current_position(u16 *buffer, u8 index);
 s16 nvm_read_zero_position_polarity(u16 *buffer, u8 index);
@@ -122,6 +124,7 @@ app_state ble_state_get(void);
 //u8 bcd_to_hex(u8 bcd_data);
 //u32 hex_to_bcd(u8 hex_data);
 
+extern motor_pos_t motor_pos;
 extern zero_adjust_lock_t zero_adjust_mode;
 extern u8 stete_battery_week;
 extern const u8 date[];

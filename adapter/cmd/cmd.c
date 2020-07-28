@@ -102,6 +102,8 @@ static const CMDENTRY cmd_list[] =
 *   AF 04 00 xx // send pair code
 *   AF 04 01 xx // send state machine
 *   AF 04 02 xx // send zero adjut jump
+*   CMD_TEST_OTA_WRITE
+*   AF 05 // test write motor position before ota
 */
 typedef void (* cmd_test_handler)(u8 *buffer, u8 length);
 typedef enum{
@@ -110,6 +112,7 @@ typedef enum{
     CMD_TEST_STEP_COUNT     = 0x02,
     CMD_TEST_SYS_REBOOT     = 0x03,
     CMD_TEST_LOG_TYPE_EN    = 0x04,
+    CMD_TEST_OTA_WRITE      = 0x05,
     
     CMD_TEST_NONE,
 }cmt_test_enum_t;
@@ -132,6 +135,9 @@ static void cmd_test_sys_reboot(u8 *buffer, u8 length);
 #if USE_CMD_TEST_LOG_TYPE_EN
 static void cmd_test_log_type_en(u8 *buffer, u8 length);
 #endif
+#if USE_CMD_TEST_OTA_WRITE
+static void cmd_test_ota_write(u8 *buffer, u8 length);
+#endif
 static const cmd_test_entry_t cmd_test_list[] =
 {
     #if USE_CMD_TEST_NVM_ACCESS
@@ -148,6 +154,9 @@ static const cmd_test_entry_t cmd_test_list[] =
     #endif
     #if USE_CMD_TEST_LOG_TYPE_EN
     {CMD_TEST_LOG_TYPE_EN, cmd_test_log_type_en},
+    #endif
+    #if USE_CMD_TEST_LOG_TYPE_EN
+    {CMD_TEST_OTA_WRITE, cmd_test_ota_write},
     #endif
     
 	{CMD_TEST_NONE,         0}
@@ -243,6 +252,12 @@ static s16 cmd_test(u8 *buffer, u8 length)
     return 0;
 }
 #endif // USE_CMD_TEST
+#if USE_CMD_TEST_OTA_WRITE
+static void cmd_test_ota_write(u8 *buffer, u8 length)
+{
+    ota_pre_handler();
+}
+#endif
 static s16 cmd_pairing_code(u8 *buffer, u8 length)
 {
     MemCopy(&cmd_group.pair_code, buffer, sizeof(cmd_pairing_code_t));
