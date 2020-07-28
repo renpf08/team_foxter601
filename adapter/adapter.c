@@ -204,6 +204,15 @@ void sync_time(void)
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
 }
+void ota_pre_handler(void)
+{
+    motor_hour_to_position(HOUR0_0);
+    motor_minute_to_position(MINUTE_0);
+    motor_activity_to_position(ACTIVITY_0);
+    motor_date_to_position(DAY_1);
+    motor_battery_week_to_position(BAT_PECENT_0);
+    motor_notify_to_position(NOTIFY_NONE);
+}
 void motor_restore_position(REPORT_E cb)
 {
     u8 position = 0;

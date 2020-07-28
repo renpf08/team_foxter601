@@ -20,6 +20,7 @@ s16 adapter_init(adapter_callback cb);
 void system_reboot(u8 reboot_type);
 void refresh_step(void);
 void sync_time(void);
+void ota_pre_handler(void);
 void motor_restore_position(REPORT_E cb);
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num);
