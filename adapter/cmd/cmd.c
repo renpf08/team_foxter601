@@ -87,7 +87,7 @@ static const CMDENTRY cmd_list[] =
 *   CMD_TEST_NVM_ACCESS:
 *   AF 00 00 // nvm write one day data
 *   AF 00 01 // nvm read all history data
-*   AF 00 02 // nvm read one day data
+*   AF 00 02 xx // nvm read one day data, index:xx
 *   AF 00 03 // nvm erase history data
 *   CMD_TEST_ZERO_ADJUST
 *   AF 01 00 // KEY_A_B_LONG_PRESS
@@ -95,9 +95,13 @@ static const CMDENTRY cmd_list[] =
 *   AF 01 02 // KEY_A_SHORT_PRESS
 *   AF 01 03 // KEY_B_SHORT_PRESS
 *   CMD_TEST_STEP_COUNT
-*   AF 02 xx // xx simulate steps
+*   AF 02 xx xx // xx xx simulate steps
 *   CMD_TEST_SYS_REBOOT
 *   AF 03 	 // set system reboot
+*   CMD_TEST_LOG_EN(xx=1 send; xx=0 not send)
+*   AF 04 00 xx // send pair code
+*   AF 04 01 xx // send state machine
+*   AF 04 02 xx // send zero adjut jump
 */
 typedef void (* cmd_test_handler)(u8 *buffer, u8 length);
 typedef enum{
