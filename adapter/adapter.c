@@ -37,7 +37,6 @@ extern s16 ble_switch_init(adapter_callback cb);
 
 s16 csr_event_callback(EVENT_E ev);
 void driver_uninit(void);
-void system_post_reboot(void);
 
 typedef struct {
 	driver_t *drv;
@@ -128,7 +127,6 @@ s16 adapter_init(adapter_callback cb)
     ble_switch_init(cb);
     nvm_storage_init(cb);
 
-    system_post_reboot();
 	return 0;
 }
 #if USE_UART_PRINT
@@ -247,13 +245,13 @@ void system_pre_reboot(reboot_type_t type)
 void system_post_reboot(void)
 {
     nvm_read_motor_current_position((u16*)&motor_pos, 0);
-    motor_pos.minute = (motor_pos.minute>MINUTE_60)?MINUTE_60:motor_pos.minute;
-    motor_pos.hour = (motor_pos.hour>HOUR12_0)?HOUR12_0:motor_pos.hour;
-    motor_pos.activity = (motor_pos.activity>ACTIVITY_100)?ACTIVITY_100:motor_pos.activity;
-    motor_pos.day = (motor_pos.day>DAY_1)?DAY_1:motor_pos.day;
-    motor_pos.bat_week = (motor_pos.bat_week>BAT_PECENT_0)?BAT_PECENT_0:motor_pos.bat_week;
-    motor_pos.notify = (motor_pos.notify>NOTIFY_COMMING_CALL)?NOTIFY_COMMING_CALL:motor_pos.notify;
-    motor_to_position();
+    motor_pos.minute = (motor_pos.minute>=MINUTE_60)?MINUTE_0:motor_pos.minute;
+    motor_pos.hour = (motor_pos.hour>=HOUR12_0)?HOUR0_0:motor_pos.hour;
+    motor_pos.activity = (motor_pos.activity>=ACTIVITY_100)?ACTIVITY_0:motor_pos.activity;
+    motor_pos.day = (motor_pos.day>=DAY_1)?DAY_1:motor_pos.day;
+    motor_pos.bat_week = (motor_pos.bat_week>=BAT_PECENT_0)?BAT_PECENT_0:motor_pos.bat_week;
+    motor_pos.notify = (motor_pos.notify>=NOTIFY_COMMING_CALL)?NOTIFY_NONE:motor_pos.notify;
+    //motor_to_position();
 }
 void motor_restore_position(REPORT_E cb)
 {

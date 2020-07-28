@@ -265,7 +265,7 @@ static void motor_run_continue_check(void)
 		/*motor position update*/
 		if(pos == motor_manager.run_direction) {
 			motor_manager.motor_status[motor_manager.run_motor_num].cur_pos++;
-		}else {
+		}else if(motor_manager.motor_status[motor_manager.run_motor_num].cur_pos != 0) {
 			motor_manager.motor_status[motor_manager.run_motor_num].cur_pos--;
 		}
 
@@ -402,9 +402,12 @@ void motor_run_handler(u16 id)
     		   motor_manager.motor_status[motor_manager.run_motor_num].cur_pos) {
     			motor_manager.run_direction = pos;
     			motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
-    		}else {
+    		}else if(motor_manager.motor_status[motor_manager.run_motor_num].dst_pos < 
+    		   motor_manager.motor_status[motor_manager.run_motor_num].cur_pos) {
     			motor_manager.run_direction = neg;
     			motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
+    		} else {
+                motor_manager.motor_status[motor_manager.run_motor_num].run_flag = 0;
     		}
     	}
     }
@@ -513,6 +516,8 @@ I      4号Motor为运动百分比，60格，5%为3格
 I      5号Motor为消息显示60格*/
 s16 motor_manager_init(void)
 {
+    u8 i = 0;
+    
 	motor_manager.drv = get_driver();
 	motor_manager.motor_status[hour_motor].motor_ptr = motor_manager.drv->motor_hour;
 	motor_manager.motor_status[minute_motor].motor_ptr = motor_manager.drv->motor_minute;
@@ -521,6 +526,16 @@ s16 motor_manager_init(void)
 	motor_manager.motor_status[battery_week_motor].motor_ptr = motor_manager.drv->motor_battery_week;
 	motor_manager.motor_status[notify_motor].motor_ptr = motor_manager.drv->motor_notify;
 
+    system_post_reboot();
+    motor_manager.motor_status[hour_motor].cur_pos = motor_pos.hour;
+    motor_manager.motor_status[minute_motor].cur_pos = motor_pos.minute;
+    motor_manager.motor_status[activity_motor].cur_pos = motor_pos.activity;
+    motor_manager.motor_status[date_motor].cur_pos = motor_pos.day;
+    motor_manager.motor_status[battery_week_motor].cur_pos = motor_pos.bat_week;
+    motor_manager.motor_status[notify_motor].cur_pos = motor_pos.notify;
+	for(i = 0; i < max_motor; i++) {
+        motor_manager.motor_status[i].run_flag = 1;
+	}
 	motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler);
 	return 0;
 }
