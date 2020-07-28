@@ -19,6 +19,7 @@ void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
 void system_pre_reboot(reboot_type_t type);
 void system_post_reboot(void);
+void read_motor_pos(void);
 void refresh_step(void);
 void sync_time(void);
 void motor_to_zero(void);

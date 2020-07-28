@@ -540,14 +540,6 @@ typedef struct {
     u8 press;
     u8 run;
 } zero_adjust_lock_t;
-typedef struct {
-    u16 minute;
-    u16 hour;
-    u16 activity;
-    u16 day;
-    u16 bat_week;
-    u16 notify;
-} motor_pos_t;
 
 typedef s16 (*event_callback)(EVENT_E ev);
 typedef s16 (*adapter_callback)(REPORT_E cb, void *args);
@@ -590,6 +582,11 @@ typedef enum
 	NOTIFY_REMOVE = 2,
 	NOTIFY_RESERVE = 3,
 }NOTIFY_STATE_E;
+    
+typedef struct {
+    u8 cur[max_motor];
+    u8 dst[max_motor];
+} motor_pos_t;
 
 typedef struct {
 	STATE_E   init_state;
