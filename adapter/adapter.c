@@ -244,6 +244,14 @@ void system_pre_reboot_handler(reboot_type_t type)
     timer_event(100, pre_reboot_handler);
     timer_event(30*1000, pre_reboot_supervise_handler);
 }
+static void get_battery_week_pos(void)
+{
+    if(motor_dst[max_motor] == state_battery) {
+		motor_dst[battery_week_motor] = battery_percent_read();
+    } else if(motor_dst[max_motor] == state_week) {
+		motor_dst[battery_week_motor] = clock_get()->week;
+    }
+}
 void system_post_reboot_handler(void)
 {
     clock_t* clock = clock_get();
@@ -254,6 +262,7 @@ void system_post_reboot_handler(void)
         motor_dst[minute_motor] = clock->minute;
         motor_dst[hour_motor] = clock->hour;
         motor_dst[date_motor] = date[clock->day];
+        get_battery_week_pos();
     } else {
         MemCopy(&motor_dst, motor_zero, max_motor);
     }
@@ -261,11 +270,7 @@ void system_post_reboot_handler(void)
 }
 void motor_recover_from_zero(void)
 {
-    if(motor_dst[max_motor] == state_battery) {
-		motor_dst[battery_week_motor] = battery_percent_read();
-    } else if(motor_dst[max_motor] == state_week) {
-		motor_dst[battery_week_motor] = clock_get()->week;
-    }
+    get_battery_week_pos();
     motor_battery_week_to_position(motor_dst[battery_week_motor]);    
     motor_activity_to_position(motor_dst[activity_motor]);
 }
