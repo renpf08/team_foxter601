@@ -79,6 +79,9 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
     } else if(cb == REPORT_MAX) {
         return 0;
     }
+    if(system_reboot_lock == 1) {
+        return 0;
+    }
     
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 

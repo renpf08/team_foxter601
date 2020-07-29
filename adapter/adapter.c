@@ -9,11 +9,11 @@
 #include <csr_ota.h>
 
 zero_adjust_lock_t zero_adjust_mode = {0, 0};
-u16 motor_dst[max_motor] = {0, 0, 0, 0, 0, 0};
+u16 motor_dst[max_motor+1] = {0, 0, 0, 0, 0, 0, state_battery};
 u8 reset_supervise_timeout = 0;
 reboot_type_t reboot_type = 0;
-STATE_BATTERY_WEEK_E bat_week_state = state_battery;
 u8 motor_zero[max_motor] = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE};
+u8 system_reboot_lock = 0;
 
 const u8 date[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
@@ -232,7 +232,8 @@ static void motor_to_position(void)
 void system_pre_reboot_handler(reboot_type_t type)
 {
     clock_t* clock = clock_get();
-    
+
+    system_reboot_lock = 1;
     reboot_type = type;
     APP_Move_Bonded(4);
     nvm_write_date_time((u16*)clock, 0);
@@ -256,18 +257,15 @@ void system_post_reboot_handler(void)
     } else {
         MemCopy(&motor_dst, motor_zero, max_motor);
     }
-    #if 0
-    motor_dst[0] = 0x01;
-    motor_dst[1] = 0x14;
-    motor_dst[2] = 0x00;
-    motor_dst[3] = 0x02;
-    motor_dst[4] = 0x11;
-    motor_dst[5] = 0x00;
-    #endif
     motor_to_position();
 }
 void motor_recover_from_zero(void)
 {
+    if(motor_dst[max_motor] == state_battery) {
+		motor_dst[battery_week_motor] = battery_percent_read();
+    } else if(motor_dst[max_motor] == state_week) {
+		motor_dst[battery_week_motor] = clock_get()->week;
+    }
     motor_battery_week_to_position(motor_dst[battery_week_motor]);    
     motor_activity_to_position(motor_dst[activity_motor]);
 }
