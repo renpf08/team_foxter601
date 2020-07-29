@@ -17,13 +17,12 @@ extern bool ble_send_log(uint8 *data, uint16 size);
 
 void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
-void system_pre_reboot(reboot_type_t type);
-void system_post_reboot(void);
-void read_motor_pos(void);
+void system_pre_reboot_handler(reboot_type_t type);
+void system_post_reboot_handler(void);
 void refresh_step(void);
 void sync_time(void);
 void motor_to_zero(void);
-void motor_restore_position(REPORT_E cb);
+void motor_recover_from_zero(void);
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num);
 #endif
@@ -55,10 +54,10 @@ s16 motor_activity_to_position(u8 activity);
 s16 battery_init(adapter_callback cb);
 u8 battery_percent_read(void);
 
-s16 nvm_storage_init(adapter_callback cb);
+s16 nvm_init(adapter_callback cb);
 #if USE_PARAM_STORE
-s16 nvm_read_ota_flag_position(u16 *buffer, u8 index);
-s16 nvm_write_ota_flag_position(u16 *buffer, u8 index);
+s16 nvm_read_motor_init_flag(void);
+s16 nvm_write_motor_init_flag(void);
 s16 nvm_read_motor_current_position(u16 *buffer, u8 index);
 s16 nvm_write_motor_current_position(u16 *buffer, u8 index);
 s16 nvm_read_zero_position_polarity(u16 *buffer, u8 index);
@@ -126,7 +125,8 @@ app_state ble_state_get(void);
 //u8 bcd_to_hex(u8 bcd_data);
 //u32 hex_to_bcd(u8 hex_data);
 
-extern motor_pos_t motor_pos;
+extern STATE_BATTERY_WEEK_E bat_week_state;
+extern u16 motor_dst[max_motor];
 extern zero_adjust_lock_t zero_adjust_mode;
 extern const u8 date[];
 #if USE_CMD_TEST_LOG_TYPE_EN

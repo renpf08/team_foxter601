@@ -52,23 +52,23 @@ typedef struct {
 static motor_manager_t motor_manager = {
 	.drv = NULL,
 	.motor_status = {
+		[minute_motor] = {
+			NULL, MINUTE_0, 0, 0, 3, FIRST_HALF
+		},
 		[hour_motor] = {
 			NULL, HOUR0_0, 0, 0, 2, FIRST_HALF
 		},
-		[minute_motor] = {
-			NULL, MINUTE_0, 0, 0, 3, FIRST_HALF
+		[activity_motor] = {
+			NULL, ACTIVITY_0, 0, 0, 1, FIRST_HALF
 		},
 		[date_motor] = {
 			NULL, DAY_1, 0, 0, 3, FIRST_HALF
 		},
-		[notify_motor] = {
-			NULL, NOTIFY_NONE, 0, 0, 1, FIRST_HALF
-		},
 		[battery_week_motor] = {
 			NULL, BAT_PECENT_0, 0, 0, BAT_INTERVAL_STEP, FIRST_HALF
 		},
-		[activity_motor] = {
-			NULL, ACTIVITY_0, 0, 0, 1, FIRST_HALF
+		[notify_motor] = {
+			NULL, NOTIFY_NONE, 0, 0, 1, FIRST_HALF
 		},
 	 },
 	.run_motor = NULL,
@@ -98,7 +98,7 @@ u8 hour_list[] = {
 
 s16 motor_hour_to_position(u8 hour)
 {
-    motor_pos.dst[hour_motor] = hour;
+    motor_dst[hour_motor] = hour;
 	/*hour dst position configuration*/
 	u8 minute_pos = (motor_manager.motor_status[minute_motor].dst_pos == MINUTE_60) ? \
 						MINUTE_0 : motor_manager.motor_status[minute_motor].dst_pos;
@@ -116,7 +116,6 @@ s16 motor_hour_to_position(u8 hour)
 	/*hour cur pos configuration*/
 	if(HOUR12_0 == motor_manager.motor_status[hour_motor].cur_pos) {
 		motor_manager.motor_status[hour_motor].cur_pos = HOUR0_0;
-        motor_pos.cur[hour_motor] = HOUR0_0;
 	}
 	   
 	if(motor_manager.motor_status[hour_motor].dst_pos != 
@@ -128,7 +127,7 @@ s16 motor_hour_to_position(u8 hour)
 
 s16 motor_minute_to_position(u8 minute)
 {
-    motor_pos.dst[minute_motor] = minute;
+    motor_dst[minute_motor] = minute;
 	/*minute dst pos config*/
 	if((MINUTE_59 == motor_manager.motor_status[minute_motor].cur_pos) &&
 		(MINUTE_0 == minute)) {
@@ -140,7 +139,6 @@ s16 motor_minute_to_position(u8 minute)
 	/*minute cur pos config*/
 	if(MINUTE_60 == motor_manager.motor_status[minute_motor].cur_pos) {
 		motor_manager.motor_status[minute_motor].cur_pos = MINUTE_0;
-        motor_pos.cur[minute_motor] = MINUTE_0;
 	}
 	
 	if(motor_manager.motor_status[minute_motor].dst_pos != 
@@ -152,7 +150,7 @@ s16 motor_minute_to_position(u8 minute)
 
 s16 motor_date_to_position(u8 day)
 {
-    motor_pos.dst[date_motor] = day;
+    motor_dst[date_motor] = day;
 	motor_manager.motor_status[date_motor].dst_pos = day;
 	if(motor_manager.motor_status[date_motor].dst_pos != 
 	   motor_manager.motor_status[date_motor].cur_pos) {
@@ -163,7 +161,7 @@ s16 motor_date_to_position(u8 day)
 
 s16 motor_notify_to_position(u8 notify)
 {
-    motor_pos.dst[notify_motor] = notify;
+    motor_dst[notify_motor] = notify;
 	motor_manager.motor_status[notify_motor].dst_pos = notify;
 	if(motor_manager.motor_status[notify_motor].dst_pos != 
 	   motor_manager.motor_status[notify_motor].cur_pos) {
@@ -196,7 +194,7 @@ static void motor_battery_week_change(u16 id)
 
 s16 motor_battery_week_to_position(u8 battery_week)
 {
-    motor_pos.dst[battery_week_motor] = battery_week;
+    motor_dst[battery_week_motor] = battery_week;
 	if((motor_manager.motor_status[battery_week_motor].cur_pos > BAT_PECENT_100) &&
 		(battery_week <= BAT_PECENT_100)) {
 		motor_manager.motor_status[battery_week_motor].dst_pos = BAT_PECENT_100;
@@ -227,7 +225,7 @@ s16 motor_battery_week_to_position(u8 battery_week)
 
 s16 motor_activity_to_position(u8 activity)
 {
-    motor_pos.dst[activity_motor] = activity;
+    motor_dst[activity_motor] = activity;
 	motor_manager.motor_status[activity_motor].dst_pos = activity;
 	if(motor_manager.motor_status[activity_motor].dst_pos != 
 	   motor_manager.motor_status[activity_motor].cur_pos) {
@@ -239,7 +237,6 @@ s16 motor_activity_to_position(u8 activity)
 s16 motor_hour_one_step(u8 hour_step)
 {
 	motor_manager.motor_status[hour_motor].dst_pos = hour_step;
-    motor_pos.dst[hour_motor] = hour_step;
 	
 	if(motor_manager.motor_status[hour_motor].dst_pos != 
 	   motor_manager.motor_status[hour_motor].cur_pos) {
@@ -251,7 +248,6 @@ s16 motor_hour_one_step(u8 hour_step)
 s16 motor_minute_one_step(u8 minute_step)
 {
 	motor_manager.motor_status[minute_motor].dst_pos = minute_step;
-    motor_pos.dst[minute_motor] = minute_step;
 	
 	if(motor_manager.motor_status[minute_motor].dst_pos != 
 	   motor_manager.motor_status[minute_motor].cur_pos) {
@@ -269,10 +265,8 @@ static void motor_run_continue_check(void)
 		/*motor position update*/
 		if(pos == motor_manager.run_direction) {
 			motor_manager.motor_status[motor_manager.run_motor_num].cur_pos++;
-            motor_pos.cur[motor_manager.run_motor_num]++;
 		}else if(motor_manager.motor_status[motor_manager.run_motor_num].cur_pos != 0) {
 			motor_manager.motor_status[motor_manager.run_motor_num].cur_pos--;
-            motor_pos.cur[motor_manager.run_motor_num]--;
 		}
 
 		/*motor continue run or not check*/
@@ -287,18 +281,6 @@ static void motor_run_continue_check(void)
 			motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
 		}
 	}
-}
-
-u16 motor_check_idle(void)
-{
-    u16 i = 0;
-    
-    for(i = 0; i < max_motor; i++) {
-        if(motor_manager.motor_status[i].run_flag == 1) {
-            return 1;
-        }
-    }
-    return 0;
 }
 
 #if 0
@@ -532,18 +514,21 @@ s16 motor_manager_init(void)
 	motor_manager.motor_status[battery_week_motor].motor_ptr = motor_manager.drv->motor_battery_week;
 	motor_manager.motor_status[notify_motor].motor_ptr = motor_manager.drv->motor_notify;
 
-    read_motor_pos();
-    motor_manager.motor_status[hour_motor].cur_pos = motor_pos.cur[hour_motor];
-    motor_manager.motor_status[minute_motor].cur_pos = motor_pos.cur[minute_motor];
-    motor_manager.motor_status[activity_motor].cur_pos = motor_pos.cur[activity_motor];
-    motor_manager.motor_status[date_motor].cur_pos = motor_pos.cur[date_motor];
-    motor_manager.motor_status[battery_week_motor].cur_pos = motor_pos.cur[battery_week_motor];
-    motor_manager.motor_status[notify_motor].cur_pos = motor_pos.cur[notify_motor];
-//	for(i = 0; i < max_motor; i++) {
-//        motor_manager.motor_status[i].run_flag = 1;
-//	}
 	motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler);
+    system_post_reboot_handler();
 	return 0;
+}
+
+u16 motor_check_idle(void)
+{
+    u16 i = 0;
+    
+    for(i = 0; i < max_motor; i++) {
+        if(motor_manager.motor_status[i].run_flag == 1) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 #if 0

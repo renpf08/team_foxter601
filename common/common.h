@@ -582,11 +582,6 @@ typedef enum
 	NOTIFY_REMOVE = 2,
 	NOTIFY_RESERVE = 3,
 }NOTIFY_STATE_E;
-    
-typedef struct {
-    u8 cur[max_motor];
-    u8 dst[max_motor];
-} motor_pos_t;
 
 typedef struct {
 	STATE_E   init_state;

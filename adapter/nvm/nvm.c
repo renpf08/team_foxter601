@@ -10,11 +10,11 @@
 #define USER_STORATE_INIT_FLAG_LENGTH           (0x01)
 
 #if USE_PARAM_STORE
-#define OTA_FLAG_OFFSET                         (USER_STORATE_INIT_FLAG_OFFSET+USER_STORATE_INIT_FLAG_LENGTH)
-#define OTA_FLAG_LENGTH                         (0x01)
+#define MOTOR_INIT_FLAG_OFFSET                  (USER_STORATE_INIT_FLAG_OFFSET+USER_STORATE_INIT_FLAG_LENGTH)
+#define MOTOR_INIT_FLAG_LENGTH                  (0x01)
 
-#define MOTORS_CURRENT_POSITION_OFFSET          (OTA_FLAG_OFFSET+OTA_FLAG_LENGTH)
-#define MOTORS_CURRENT_POSITION_LENGTH          (sizeof(motor_pos_t))
+#define MOTORS_CURRENT_POSITION_OFFSET          (MOTOR_INIT_FLAG_OFFSET+MOTOR_INIT_FLAG_LENGTH)
+#define MOTORS_CURRENT_POSITION_LENGTH          (sizeof(motor_dst))
 
 #define MOTORS_ZERO_POSITION_POLARITY_OFFSET    (MOTORS_CURRENT_POSITION_OFFSET+MOTORS_CURRENT_POSITION_LENGTH)
 #define MOTORS_ZERO_POSITION_POLARITY_LENGTH    (0x06)
@@ -23,7 +23,7 @@
 #define PAIRING_CODE_LENGTH                     (0x02)
 
 #define SYSTEM_DATE_TIME_OFFSET                 (PAIRING_CODE_OFFSET+PAIRING_CODE_LENGTH)
-#define SYSTEM_DATE_TIME_LENGTH                 (0x07)/*save system date time every 15 ninutes*/
+#define SYSTEM_DATE_TIME_LENGTH                 (sizeof(clock_t))
 
 #define ALARM_CLOCK_OFFSET                      (SYSTEM_DATE_TIME_OFFSET+SYSTEM_DATE_TIME_LENGTH)
 #define ALARM_CLOCK_SINGLE_LENGTH               (0x04)
@@ -188,7 +188,7 @@ static u8 panic_check(u8 caller)
     return 0;
 }
 #endif
-s16 nvm_storage_init(adapter_callback cb)
+s16 nvm_init(adapter_callback cb)
 {
     volatile u16 erase_offset = 0;
     u16 erase_value = 0;
@@ -203,7 +203,6 @@ s16 nvm_storage_init(adapter_callback cb)
     {
         nvm_write(&erase_value, 1, USER_STORAGE_START_OFFSET+erase_offset);
     }
-    nvm_write_motor_current_position((u16*)&motor_pos, 0);
 
     // print the initialized nvm contents
 //    for(erase_offset = 0; erase_offset < USER_STORAGE_TOTAL_LENGTH; erase_offset++)
@@ -218,15 +217,20 @@ s16 nvm_storage_init(adapter_callback cb)
     return 0;
 }
 #if USE_PARAM_STORE
-s16 nvm_read_ota_flag_position(u16 *buffer, u8 index)
+s16 nvm_read_motor_init_flag(void)
 {
-    nvm_read(buffer, OTA_FLAG_LENGTH, OTA_FLAG_OFFSET);
+    u16 buffer = 0;
+    nvm_read(&buffer, MOTOR_INIT_FLAG_LENGTH, MOTOR_INIT_FLAG_OFFSET);
+    if(buffer != 0x5AA5) {
+        return 1;
+    }
 
     return 0;
 }
-s16 nvm_write_ota_flag_position(u16 *buffer, u8 index)
+s16 nvm_write_motor_init_flag(void)
 { 
-    nvm_write(buffer, OTA_FLAG_LENGTH, OTA_FLAG_OFFSET);   
+    u16 buffer = 0x5AA5;
+    nvm_write(&buffer, MOTOR_INIT_FLAG_LENGTH, MOTOR_INIT_FLAG_OFFSET);   
 
     return 0;
 }
@@ -238,8 +242,9 @@ s16 nvm_read_motor_current_position(u16 *buffer, u8 index)
 }
 s16 nvm_write_motor_current_position(u16 *buffer, u8 index)
 { 
-    nvm_write(buffer, MOTORS_CURRENT_POSITION_LENGTH, MOTORS_CURRENT_POSITION_OFFSET);   
-
+    nvm_write(buffer, MOTORS_CURRENT_POSITION_LENGTH, MOTORS_CURRENT_POSITION_OFFSET);
+    nvm_write_motor_init_flag();
+    
     return 0;
 }
 s16 nvm_read_zero_position_polarity(u16 *buffer, u8 index)

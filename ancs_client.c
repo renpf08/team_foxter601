@@ -731,7 +731,7 @@ static void handleSignalLmDisconnectComplete(
 {
     if(OtaResetRequired())
     {
-        system_pre_reboot(REBOOT_TYPE_OTA);
+        system_pre_reboot_handler(REBOOT_TYPE_OTA);
         //OtaReset();
         /* The OtaReset function does not return */
     }
