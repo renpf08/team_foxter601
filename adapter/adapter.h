@@ -126,7 +126,7 @@ app_state ble_state_get(void);
 //u8 bcd_to_hex(u8 bcd_data);
 //u32 hex_to_bcd(u8 hex_data);
 
-extern u16 motor_dst[max_motor+1];
+extern u8 motor_dst[max_motor+1];
 extern zero_adjust_lock_t zero_adjust_mode;
 extern const u8 date[];
 #if USE_CMD_TEST_LOG_TYPE_EN
