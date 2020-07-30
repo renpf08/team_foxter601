@@ -189,6 +189,7 @@ void sync_time(void)
 {
 	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
     clock_t* clock = clock_get();
+    MOTOR_MASK_E mask = MOTOR_MASK_NONE;
 
     clock->year = time->year[1]<<8 | time->year[0];
     clock->month = time->month;
@@ -199,9 +200,11 @@ void sync_time(void)
     clock->second = time->second;
 
     BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
-	motor_minute_to_position(clock->minute);
-	motor_hour_to_position(clock->hour);
-    motor_date_to_position(date[clock->day]);
+    mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE);
+    motor_dst[minute_motor] = clock->minute;
+    motor_dst[hour_motor] = clock->hour;
+    motor_dst[date_motor] = date[clock->day];
+    motor_set_position(motor_dst, mask);
     refresh_step();
 }
 static void pre_reboot_handler(u16 id)
