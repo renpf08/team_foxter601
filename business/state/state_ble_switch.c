@@ -138,6 +138,7 @@ static u16 ble_change(void *args)
     STATE_E *state_mc = (STATE_E *)args;
     app_state state_ble = ble_state_get();
     
+    motor_dst[notify_motor] = NOTIFY_NONE;
     if(state_ble == app_advertising) { // advertising start
         #if USE_NO_SWING
         if(swing_en == TRUE) {
@@ -162,7 +163,7 @@ static u16 ble_change(void *args)
         #if USE_UART_PRINT
         print((u8*)&"adv stop", 8);
         #endif
-        motor_notify_to_position(NOTIFY_NONE);
+        motor_set_position(motor_dst, MOTOR_MASK_NOTIFY);
     } else if(state_ble == app_connected){ // connected
         #if USE_UART_PRINT
         print((u8*)&"connect", 7);
@@ -170,7 +171,7 @@ static u16 ble_change(void *args)
         #if USE_NO_SWING
         if(swing_en == FALSE) swing_en = TRUE;
         #endif
-        motor_notify_to_position(NOTIFY_NONE);
+        motor_set_position(motor_dst, MOTOR_MASK_NOTIFY);
     } else { // disconnected
         #if USE_UART_PRINT
         print((u8*)&"disconect", 9);

@@ -15,23 +15,22 @@ static state_battery_week_t state_battery_week = {
 
 s16 state_battery_week_switch(REPORT_E cb, void *args)
 {
-	clock_t * clk = NULL;
-	u8 battery_level = BAT_PECENT_0;
+//	clock_t * clk = NULL;
+//	u8 battery_level = BAT_PECENT_0;
 	STATE_E *state = (STATE_E *)args;
 
 	//print((u8 *)&"battery_week", 12);
 	if(state_week == state_battery_week.cur_state) {
 		state_battery_week.cur_state = state_battery;
 		/*get battery level*/
-		battery_level = battery_percent_read();
-		motor_battery_week_to_position(battery_level);
+		motor_dst[battery_week_motor] = battery_percent_read();
 	}else {
 		state_battery_week.cur_state = state_week;
 		/*get week*/
-		clk = clock_get();
-		motor_battery_week_to_position(clk->week);
+		motor_dst[battery_week_motor] = clock_get()->week;
 	}
-    motor_dst[max_motor] = state_battery_week.cur_state;
+    //motor_dst[max_motor] = state_battery_week.cur_state;
+    motor_set_position(motor_dst, MOTOR_MASK_BAT_WEEK);
 
 	*state = CLOCK;
 	return 0;

@@ -124,7 +124,8 @@ s16 state_time_adjust(REPORT_E cb, void *args)
 		if(TIME_MOTOR_MAX == state_time_adj.motor_num) {
 			state_time_adj.motor_num = 0;
 		}else if(battery_week_motor == time_adj_motor[state_time_adj.motor_num]) {
-			motor_battery_week_to_position(state_time_adj.clk->week);
+		    motor_dst[battery_week_motor] = state_time_adj.clk->week;
+            motor_set_position(motor_dst, MOTOR_MASK_BAT_WEEK);
 		}
 	}else if(KEY_A_SHORT_PRESS == cb) {
 		/*motor run positive one unit*/
