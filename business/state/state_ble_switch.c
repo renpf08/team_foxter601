@@ -58,6 +58,7 @@ void pair_code_generate(void)
     u16 old_pair_code = 0;
     u8 hour;
     u8 minute;
+    MOTOR_MASK_E mask = MOTOR_MASK_NOTIFY;
     
     while(1) {
         old_pair_code = pair_code.pair_code;
@@ -85,8 +86,10 @@ void pair_code_generate(void)
     test_buf[3] = minute;
     BLE_SEND_LOG((u8*)&test_buf, 4);
 	
-	motor_hour_to_position(hour);
-	motor_minute_to_position(minute);
+    mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE);
+    motor_dst[minute_motor] = minute;
+    motor_dst[hour_motor] = hour;
+    motor_set_position(motor_dst, mask);
 }
 static s16 ble_pair(void *args)
 {
