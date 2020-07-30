@@ -17,6 +17,8 @@ extern bool ble_send_log(uint8 *data, uint16 size);
 
 void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
+void motor_set_position(u8* motor_pos, MOTOR_MASK_E motor_mask);
+void motor_get_position(u8* motor_pos);
 void system_pre_reboot_handler(reboot_type_t type);
 void system_post_reboot_handler(void);
 void refresh_step(void);
@@ -126,6 +128,7 @@ app_state ble_state_get(void);
 //u8 bcd_to_hex(u8 bcd_data);
 //u32 hex_to_bcd(u8 hex_data);
 
+extern u8 notify_pos;
 extern u8 motor_dst[max_motor+1];
 extern zero_adjust_lock_t zero_adjust_mode;
 extern const u8 date[];

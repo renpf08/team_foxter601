@@ -13,6 +13,8 @@ u8 motor_dst[max_motor+1] = {0, 0, 0, 0, 0, 0, state_battery};
 reboot_type_t reboot_type = 0;
 u8 motor_zero[max_motor] = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE};
 u8 system_reboot_lock = 0;
+u8 activity_pos = 0;
+u8 notify_pos = 0;
 
 const u8 date[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
@@ -144,16 +146,15 @@ static void activity_handler(u16 id)
 {
     u32 target_steps = cmd_get()->user_info.target_steps;
     u32 current_steps = step_get();
-    u8 activity = 0;
 
     if(current_steps > target_steps) {
-        activity = 40; // total 40 grids
+        activity_pos = 40; // total 40 grids
     } else if(current_steps <= target_steps) {
-        activity = (current_steps*40)/target_steps;
+        activity_pos = (current_steps*40)/target_steps;
     } else if(target_steps == 0) {
-        activity = 0;
+        activity_pos = 0;
     }
-    motor_activity_to_position(activity);
+    motor_activity_to_position(activity_pos);
     
     u16 length = 0; 
     u8 rsp_buf[20];
@@ -216,34 +217,16 @@ static void pre_reboot_handler(u16 id)
         OtaReset();
     }
 }
-//static void motor_to_position(void)
-//{
-//    motor_minute_to_position(motor_dst[minute_motor]);
-//    motor_hour_to_position(motor_dst[hour_motor]);
-//    motor_activity_to_position(motor_dst[activity_motor]);
-//    motor_date_to_position(motor_dst[date_motor]);
-//    motor_battery_week_to_position(motor_dst[battery_week_motor]);
-//    motor_notify_to_position(motor_dst[notify_motor]);
-//}
-static void get_battery_week_pos(void)
+static u8 get_battery_week_pos(void)
 {
     if(motor_dst[max_motor] == state_battery) {
 		motor_dst[battery_week_motor] = battery_percent_read();
     } else if(motor_dst[max_motor] == state_week) {
 		motor_dst[battery_week_motor] = clock_get()->week;
     }
+    return motor_dst[battery_week_motor];
 }
-typedef enum {
-    MOTOR_MASK_MINUTE   = 0x01,
-    MOTOR_MASK_HOUR     = 0x02,
-    MOTOR_MASK_ACTIVITY = 0x04,
-    MOTOR_MASK_DATE     = 0x08,
-    MOTOR_MASK_BAT_WEEK = 0x10,
-    MOTOR_MASK_NOTIFY   = 0x20,
-    MOTOR_MASK_NONE     = 0x40,
-    MOTOR_MASK_ALL      = 0x80,
-}motor_mask_t;
-static void motor_set_position(u8* motor_pos, u8 motor_mask)
+void motor_set_position(u8* motor_pos, MOTOR_MASK_E motor_mask)
 {
     if(motor_mask & (MOTOR_MASK_ALL|MOTOR_MASK_MINUTE)) {
         motor_minute_to_position(motor_pos[minute_motor]);
@@ -264,6 +247,17 @@ static void motor_set_position(u8* motor_pos, u8 motor_mask)
         motor_notify_to_position(motor_pos[notify_motor]);
     }
 }
+void motor_get_position(u8* motor_pos)
+{
+    clock_t* clock = clock_get();
+
+    motor_pos[minute_motor] = clock->minute;
+    motor_pos[hour_motor] = clock->hour;
+    motor_pos[date_motor] = date[clock->day];
+    motor_pos[activity_motor] = activity_pos;
+    motor_pos[battery_week_motor] = get_battery_week_pos();
+    motor_pos[notify_motor] = motor_dst[notify_motor];
+}
 void system_pre_reboot_handler(reboot_type_t type)
 {
     clock_t* clock = clock_get();
@@ -273,8 +267,6 @@ void system_pre_reboot_handler(reboot_type_t type)
     APP_Move_Bonded(4);
     nvm_write_date_time((u16*)clock, 0);
     nvm_write_motor_current_position((u16*)&motor_dst, 0);
-//    MemCopy(&motor_dst, motor_zero, max_motor);
-//    motor_set_position(motor_dst, MOTOR_MASK_ALL);
     motor_set_position(motor_zero, MOTOR_MASK_ALL);
     timer_event(100, pre_reboot_handler);
 }
@@ -298,7 +290,7 @@ u8 state_machine_check(REPORT_E cb)
 {
     if(cb == KEY_M_ULTRA_LONG_PRESS) {
         system_pre_reboot_handler(REBOOT_TYPE_BUTTON);
-    } else if(cb == REPORT_MAX) {
+    } else if(cb >= REPORT_MAX) {
         return 1;
     }
     if(system_reboot_lock == 1) {
