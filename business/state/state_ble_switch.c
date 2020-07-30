@@ -26,28 +26,30 @@ static void notify_swing_cb_handler(u16 id)
 
     app_state cur_state = ble_state_get();
     clock_t *clock = clock_get();
+    MOTOR_MASK_E mask = MOTOR_MASK_NOTIFY;
     
     if(cur_state != app_advertising) {
         if(notify_swing_start == TRUE) {
             notify_swing_start = FALSE;
-            motor_notify_to_position(NOTIFY_NONE);
+            motor_dst[notify_motor] = NOTIFY_NONE;
+            motor_set_position(motor_dst, mask);
         }
         return;
     }
 
     if(notify_swing_start == FALSE) {
         notify_swing_start = TRUE;
-        motor_notify_to_position(NOTIFY_COMMING_CALL);
-        //print((u8*)&"forward", 7);
+        motor_dst[notify_motor] = NOTIFY_COMMING_CALL;
     } else {
         notify_swing_start = FALSE;
-        motor_notify_to_position(NOTIFY_NONE);
-        //print((u8*)&"backward", 8);
+        motor_dst[notify_motor] = NOTIFY_NONE;
     }
-    
-	motor_minute_to_position(clock->minute);
-	motor_hour_to_position(clock->hour);
-    motor_date_to_position(date[clock->day]);
+
+    mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE);
+    motor_dst[minute_motor] = clock->minute;
+    motor_dst[hour_motor] = clock->hour;
+    motor_dst[date_motor] = date[clock->day];
+    motor_set_position(motor_dst, mask);
 
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
 }
