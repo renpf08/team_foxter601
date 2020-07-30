@@ -154,7 +154,8 @@ static void activity_handler(u16 id)
     } else if(target_steps == 0) {
         activity_pos = 0;
     }
-    motor_activity_to_position(activity_pos);
+    motor_dst[activity_motor] = activity_pos;
+    motor_set_position(motor_dst, MOTOR_MASK_ACTIVITY);
     
     u16 length = 0; 
     u8 rsp_buf[20];

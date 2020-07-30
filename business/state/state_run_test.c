@@ -129,12 +129,13 @@ void state_run_test_handler(u16 id)
 {
 	state_run_test_increase();
 
-	motor_hour_one_step(run_test.hour);
-	motor_minute_one_step(run_test.minute);	
-	motor_date_to_position(run_test.day);
-	motor_notify_to_position(run_test.notify);
-	motor_battery_week_to_position(run_test.battery_week);
-	motor_activity_to_position(run_test.activity);
+    motor_dst[minute_motor] = run_test.minute;
+    motor_dst[hour_motor] = run_test.hour;
+    motor_dst[activity_motor] = run_test.activity;
+    motor_dst[date_motor] = run_test.day;
+    motor_dst[battery_week_motor] = run_test.battery_week;
+    motor_dst[notify_motor] = run_test.notify;
+    motor_set_position(motor_dst, MOTOR_MASK_ALL);
 
 	if(looping == run_test.test_status) {
 		timer_event(1000, state_run_test_handler);
