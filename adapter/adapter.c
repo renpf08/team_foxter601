@@ -202,6 +202,7 @@ void sync_time(void)
 	motor_minute_to_position(clock->minute);
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
+    refresh_step();
 }
 static void pre_reboot_handler(u16 id)
 {
