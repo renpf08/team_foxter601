@@ -268,13 +268,13 @@ typedef enum {
 }STATE_BATTERY_WEEK_E;
 
 typedef enum {
+    MOTOR_MASK_NONE     = 0x00,
     MOTOR_MASK_MINUTE   = 0x01,
     MOTOR_MASK_HOUR     = 0x02,
     MOTOR_MASK_ACTIVITY = 0x04,
     MOTOR_MASK_DATE     = 0x08,
     MOTOR_MASK_BAT_WEEK = 0x10,
     MOTOR_MASK_NOTIFY   = 0x20,
-    MOTOR_MASK_NONE     = 0x40,
     MOTOR_MASK_ALL      = 0x80,
 } MOTOR_MASK_E;
 

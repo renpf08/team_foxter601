@@ -137,6 +137,7 @@ static u8 state_check(REPORT_E cb)
 }
 s16 state_clock(REPORT_E cb, void *args)
 {
+    MOTOR_MASK_E mask = MOTOR_MASK_NONE;
     #if USE_UART_PRINT
 	print((u8 *)&"clock", 5);
     #endif
@@ -145,15 +146,18 @@ s16 state_clock(REPORT_E cb, void *args)
         return 0;
     }
     if(cb == KEY_A_B_LONG_PRESS) {
-        motor_recover_from_zero();
+        motor_get_position(motor_dst);
+        mask = (MOTOR_MASK_ACTIVITY|MOTOR_MASK_BAT_WEEK|MOTOR_MASK_NOTIFY);
     }
 
 	#ifndef TEST_CLOCK
 	clock_t *clk;
 	clk = clock_get();
-	motor_minute_to_position(clk->minute);
-	motor_hour_to_position(clk->hour);
-    motor_date_to_position(date[clk->day]);
+    mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE);
+    motor_dst[minute_motor] = clk->minute;
+    motor_dst[hour_motor] = clk->hour;
+    motor_dst[date_motor] = date[clk->day];
+    motor_set_position(motor_dst, mask);
     minutely_check(cb);
 	#else
 	clk.minute++;
