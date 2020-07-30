@@ -230,6 +230,14 @@ static void motor_to_position(void)
     motor_battery_week_to_position(motor_dst[battery_week_motor]);
     motor_notify_to_position(motor_dst[notify_motor]);
 }
+static void get_battery_week_pos(void)
+{
+    if(motor_dst[max_motor] == state_battery) {
+		motor_dst[battery_week_motor] = battery_percent_read();
+    } else if(motor_dst[max_motor] == state_week) {
+		motor_dst[battery_week_motor] = clock_get()->week;
+    }
+}
 void system_pre_reboot_handler(reboot_type_t type)
 {
     clock_t* clock = clock_get();
@@ -244,14 +252,6 @@ void system_pre_reboot_handler(reboot_type_t type)
     reset_supervise_timeout = 0;
     timer_event(100, pre_reboot_handler);
     timer_event(30*1000, pre_reboot_supervise_handler);
-}
-static void get_battery_week_pos(void)
-{
-    if(motor_dst[max_motor] == state_battery) {
-		motor_dst[battery_week_motor] = battery_percent_read();
-    } else if(motor_dst[max_motor] == state_week) {
-		motor_dst[battery_week_motor] = clock_get()->week;
-    }
 }
 void system_post_reboot_handler(void)
 {
@@ -268,6 +268,18 @@ void system_post_reboot_handler(void)
         MemCopy(&motor_dst, motor_zero, max_motor);
     }
     motor_to_position();
+}
+u8 state_machine_check(REPORT_E cb)
+{
+    if(cb == KEY_M_ULTRA_LONG_PRESS) {
+        system_pre_reboot_handler(REBOOT_TYPE_BUTTON);
+    } else if(cb == REPORT_MAX) {
+        return 1;
+    }
+    if(system_reboot_lock == 1) {
+        return 1;
+    }
+    return 0;
 }
 void motor_recover_from_zero(void)
 {

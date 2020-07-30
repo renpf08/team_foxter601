@@ -22,6 +22,7 @@ void system_post_reboot_handler(void);
 void refresh_step(void);
 void sync_time(void);
 void motor_to_zero(void);
+u8 state_machine_check(REPORT_E cb);
 void motor_recover_from_zero(void);
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num);
@@ -125,7 +126,6 @@ app_state ble_state_get(void);
 //u8 bcd_to_hex(u8 bcd_data);
 //u32 hex_to_bcd(u8 hex_data);
 
-extern u8 system_reboot_lock;
 extern u16 motor_dst[max_motor+1];
 extern zero_adjust_lock_t zero_adjust_mode;
 extern const u8 date[];
