@@ -22,6 +22,8 @@ static state_time_adjust_t state_time_adj = {
 u8 time_adj_motor[TIME_MOTOR_MAX] = {minute_motor, hour_motor, date_motor, battery_week_motor};
 static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 {
+    MOTOR_MASK_E mask = MOTOR_MASK_NONE;
+
 	switch(motor_num) {
 		case minute_motor:
 			if(pos == direction) {
@@ -36,8 +38,9 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 					state_time_adj.clk->minute--;
 				}
 			}
-			
-			motor_minute_to_position(state_time_adj.clk->minute);
+
+            mask = MOTOR_MASK_MINUTE;
+            motor_dst[minute_motor] = state_time_adj.clk->minute;
 			break;
 		case hour_motor:
 			if(pos == direction) {
@@ -54,7 +57,8 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 			}
 			
 			//print(&state_time_adj.clk->hour, 1);
-			motor_hour_to_position(state_time_adj.clk->hour);
+            mask = MOTOR_MASK_HOUR;
+            motor_dst[hour_motor] = state_time_adj.clk->hour;
 			break;
 		case date_motor:
 			if(pos == direction) {
@@ -70,7 +74,8 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 					state_time_adj.clk->day++;
 				}
 			}
-			motor_date_to_position(date[state_time_adj.clk->day]);
+            mask = MOTOR_MASK_DATE;
+            motor_dst[date_motor] = date[state_time_adj.clk->day];
 			break;
 		case battery_week_motor:
 			if(pos == direction) {
@@ -86,11 +91,13 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 				}
 			}
 			//print(&state_time_adj.clk->week, 1);
-			motor_battery_week_to_position(state_time_adj.clk->week);
+            mask = MOTOR_MASK_DATE;
+            motor_dst[battery_week_motor] = state_time_adj.clk->week;
 			break;
 		default:
-			break;
+			return;
 	}
+    motor_set_position(motor_dst, mask);
 }
 
 s16 state_time_adjust(REPORT_E cb, void *args)
