@@ -5,14 +5,6 @@
 #include "../../adapter/adapter.h"
 #include "state.h"
 
-typedef struct {
-	u8 cur_state;
-}state_battery_week_t;
-
-static state_battery_week_t state_battery_week = {
-	.cur_state = state_battery,
-};
-
 s16 state_battery_week_switch(REPORT_E cb, void *args)
 {
 //	clock_t * clk = NULL;
@@ -20,25 +12,16 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 	STATE_E *state = (STATE_E *)args;
 
 	//print((u8 *)&"battery_week", 12);
-	if(state_week == state_battery_week.cur_state) {
-		state_battery_week.cur_state = state_battery;
-		/*get battery level*/
-		motor_dst[battery_week_motor] = battery_percent_read();
+	if(state_week == current_bat_week_sta) {
+		current_bat_week_sta = state_battery;
 	}else {
-		state_battery_week.cur_state = state_week;
-		/*get week*/
-		motor_dst[battery_week_motor] = clock_get()->week;
+		current_bat_week_sta = state_week;
 	}
-    //motor_dst[max_motor] = state_battery_week.cur_state;
+    motor_dst[battery_week_motor] = get_battery_week_pos(current_bat_week_sta);
     motor_set_position(motor_dst, MOTOR_MASK_BAT_WEEK);
 
 	*state = CLOCK;
 	return 0;
-}
-
-s16 state_battery_week_status_get(void)
-{
-	return state_battery_week.cur_state;
 }
 
 #if 0

@@ -94,8 +94,6 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 //#define TEST_TIME_ADJUST
 s16 business_init(void)
 {
-	s16 battery_week_status;
-
 	adapter_init(adapter_cb_handler);
 
     #if USE_UART_PRINT
@@ -125,12 +123,7 @@ s16 business_init(void)
 	#ifdef TEST_TIME_ADJUST
 	timer_event(1000, time_adjust_test);
 	#endif
-	
-	battery_week_status = state_battery_week_status_get();
-	if(state_battery == battery_week_status) {
-		state_battery_week_switch(KEY_M_SHORT_PRESS, NULL);
-	}
-	
+
 	business.state_now = CLOCK;
 	state_clock(CLOCK_1_MINUTE, NULL);
 	return 0;

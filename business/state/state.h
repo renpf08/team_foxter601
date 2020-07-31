@@ -14,7 +14,6 @@ s16 state_notify(REPORT_E cb, void *args);
 void notify_test(void);
 
 s16 state_battery_week_switch(REPORT_E cb, void *args);
-s16 state_battery_week_status_get(void);
 //void battery_week_test(adapter_callback cb);
 
 s16 state_run_test(REPORT_E cb, void *args);

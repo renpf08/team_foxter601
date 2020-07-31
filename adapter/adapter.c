@@ -15,13 +15,14 @@ typedef struct {
     u8 trig_pos;
 } motor_trig_t;
 zero_adjust_lock_t zero_adjust_mode = {0, 0};
-u8 motor_dst[max_motor+1] = {0, 0, 0, 0, 0, 0, state_battery};
+u8 motor_dst[max_motor] = {0, 0, 0, 0, 0, 0};
 reboot_type_t reboot_type = 0;
 u8 motor_zero[max_motor] = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE};
 u8 system_reboot_lock = 0;
 u8 activity_pos = 0;
 u8 notify_pos = 0;
 u8 current_motor_num = 0;
+u8 current_bat_week_sta = state_battery;
 motor_trig_t motor_trig[max_motor] = {
     [minute_motor]          = {motor_minute_to_position,        MINUTE_0,       MINUTE_3},
     [hour_motor]            = {motor_hour_to_position,          HOUR0_0,        HOUR0_2},
@@ -139,8 +140,8 @@ s16 adapter_init(adapter_callback cb)
 	clock_init(cb);
 	ancs_init(cb);
     cmd_init(cb);
-	motor_manager_init();
 	battery_init(cb);
+	motor_manager_init();
     step_sample_init(cb);
     mag_sample_init();
     ble_switch_init(cb);
@@ -215,7 +216,7 @@ void sync_time(void)
     clock->second = time->second;
 
     BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
-    motor_set_day_time(clock, (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE));
+    motor_set_day_time(clock, (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK));
     refresh_step();
 }
 static void pre_reboot_handler(u16 id)
@@ -231,14 +232,13 @@ static void pre_reboot_handler(u16 id)
         OtaReset();
     }
 }
-static u8 get_battery_week_pos(void)
+u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state)
 {
-    if(motor_dst[max_motor] == state_battery) {
-		motor_dst[battery_week_motor] = battery_percent_read();
-    } else if(motor_dst[max_motor] == state_week) {
-		motor_dst[battery_week_motor] = clock_get()->week;
+    if((state) == state_battery) {
+		return battery_percent_read();
+    } else {
+		return clock_get()->week;
     }
-    return motor_dst[battery_week_motor];
 }
 static void motor_trig_handler(u16 id)
 {
@@ -287,6 +287,7 @@ void motor_set_day_time(clock_t *clock, MOTOR_MASK_E mask)
     motor_dst[minute_motor] = clock->minute;
     motor_dst[hour_motor] = clock->hour;
     motor_dst[date_motor] = date[clock->day];
+    motor_dst[battery_week_motor] = get_battery_week_pos(current_bat_week_sta);
     motor_set_position(motor_dst, mask);
 }
 void system_pre_reboot_handler(reboot_type_t type)
@@ -306,12 +307,12 @@ void system_post_reboot_handler(void)
     clock_t* clock = clock_get();
     
     if(nvm_read_motor_init_flag() == 0) {
-        nvm_read_date_time((u16*)clock, 0);
         nvm_read_motor_current_position((u16*)motor_dst, 0);
+        nvm_read_date_time((u16*)clock, 0);
         motor_dst[minute_motor] = clock->minute;
         motor_dst[hour_motor] = clock->hour;
         motor_dst[date_motor] = date[clock->day];
-        get_battery_week_pos();
+        motor_dst[battery_week_motor] = get_battery_week_pos(current_bat_week_sta);
     } else {
         MemCopy(&motor_dst, motor_zero, max_motor);
     }
