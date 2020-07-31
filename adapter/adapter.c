@@ -8,6 +8,12 @@
 #include <buf_utils.h>
 #include <csr_ota.h>
 
+typedef s16 (* motor_handler)(u8 motor);
+typedef struct {
+    motor_handler func;
+    u8 zero_pos;
+    u8 trig_pos;
+} motor_trig_t;
 zero_adjust_lock_t zero_adjust_mode = {0, 0};
 u8 motor_dst[max_motor+1] = {0, 0, 0, 0, 0, 0, state_battery};
 reboot_type_t reboot_type = 0;
@@ -15,6 +21,15 @@ u8 motor_zero[max_motor] = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, 
 u8 system_reboot_lock = 0;
 u8 activity_pos = 0;
 u8 notify_pos = 0;
+u8 current_motor_num = 0;
+motor_trig_t motor_trig[max_motor] = {
+    [minute_motor]          = {motor_minute_to_position,        MINUTE_0,       MINUTE_3},
+    [hour_motor]            = {motor_hour_to_position,          HOUR0_0,        HOUR0_2},
+    [activity_motor]        = {motor_activity_to_position,      ACTIVITY_0,     ACTIVITY_10},
+    [date_motor]            = {motor_date_to_position,          DAY_1,          DAY_5},
+    [battery_week_motor]    = {motor_battery_week_to_position,  BAT_PECENT_0,   BAT_PECENT_50},
+    [notify_motor]          = {motor_notify_to_position,        NOTIFY_NONE,    NOTIFY_EMAIL},
+};
 
 const u8 date[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
@@ -230,6 +245,24 @@ static u8 get_battery_week_pos(void)
     }
     return motor_dst[battery_week_motor];
 }
+static void motor_trig_handler(u16 id)
+{
+    static u8 trig_state = 0;
+
+    if(motor_check_idle() == 0) {
+        if(trig_state == 0) {
+            trig_state = 1;
+            motor_trig[current_motor_num].func(motor_trig[current_motor_num].trig_pos);
+        } else if(trig_state == 1) {
+            trig_state = 2;
+            motor_trig[current_motor_num].func(motor_trig[current_motor_num].zero_pos);
+        } else {
+            trig_state = 0;
+            return;
+        }
+    }
+    timer_event(100, motor_trig_handler);
+}
 void motor_set_position(u8* motor_pos, MOTOR_MASK_E motor_mask)
 {
     if(motor_mask & (MOTOR_MASK_ALL|MOTOR_MASK_MINUTE)) {
@@ -249,6 +282,9 @@ void motor_set_position(u8* motor_pos, MOTOR_MASK_E motor_mask)
     }
     if(motor_mask & (MOTOR_MASK_ALL|MOTOR_MASK_NOTIFY)) {
         motor_notify_to_position(motor_pos[notify_motor]);
+    }
+    if((motor_mask >= MOTOR_MASK_COMBO) || (motor_mask == MOTOR_MASK_NONE)) { // zero adjust mode
+        motor_trig_handler(0);
     }
 }
 void motor_get_position(u8* motor_pos)

@@ -275,6 +275,7 @@ typedef enum {
     MOTOR_MASK_DATE     = 0x08,
     MOTOR_MASK_BAT_WEEK = 0x10,
     MOTOR_MASK_NOTIFY   = 0x20,
+    MOTOR_MASK_COMBO    = 0x3F,
     MOTOR_MASK_ALL      = 0x80,
 } MOTOR_MASK_E;
 

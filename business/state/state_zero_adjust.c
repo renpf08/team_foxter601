@@ -4,49 +4,6 @@
 #include "../../adapter/adapter.h"
 #include "state.h"
 
-typedef struct {
-	u8 motor_num;
-	
-}state_zero_adjust_t;
-
-static state_zero_adjust_t state_zero = {
-	.motor_num = 0,
-};
-
-static s16 state_zero_adjust_motor_back_zero(u8 motor_num)
-{
-    motor_dst[minute_motor] = MINUTE_0;
-    motor_dst[hour_motor] = HOUR0_0;
-    motor_dst[date_motor] = DAY_1;
-    motor_dst[activity_motor] = ACTIVITY_0;
-    motor_dst[battery_week_motor] = BAT_PECENT_0;
-    motor_dst[notify_motor] = NOTIFY_NONE;
-    motor_set_position(motor_dst, MOTOR_MASK_ALL);
-//	switch(motor_num) {
-//		case hour_motor:
-//			motor_hour_to_position(HOUR0_0);
-//			break;
-//		case minute_motor:
-//			motor_minute_to_position(MINUTE_0);
-//			break;
-//		case activity_motor:
-//			motor_activity_to_position(ACTIVITY_0);
-//			break;
-//		case date_motor:
-//			motor_date_to_position(DAY_1);
-//			break;
-//		case battery_week_motor:
-//			motor_battery_week_to_position(BAT_PECENT_0);
-//			break;
-//		case notify_motor:
-//			motor_notify_to_position(NOTIFY_NONE);
-//			break;
-//		default:
-//			break;
-//	}
-	return 0;
-}
-
 s16 state_zero_adjust(REPORT_E cb, void *args)
 {	
     u8 msg[3] = {CMD_TEST_SEND, 0x02, 0};
@@ -62,21 +19,22 @@ s16 state_zero_adjust(REPORT_E cb, void *args)
     zero_adjust_mode.press = 1;
 	if(KEY_A_B_LONG_PRESS == cb) {
 		/*hour back to zero position*/
-		state_zero.motor_num = minute_motor;
-		state_zero_adjust_motor_back_zero(state_zero.motor_num);
+		current_motor_num = minute_motor;
+        motor_set_position(motor_zero, MOTOR_MASK_ALL);
 	}else if(KEY_M_SHORT_PRESS == cb) {
 		/*motor switcch:hour -> minute -> activity -> date -> battery_week ->notify -> hour*/
-		state_zero.motor_num++;
-		if(max_motor == state_zero.motor_num) {
-			state_zero.motor_num = minute_motor;
+		current_motor_num++;
+		if(max_motor == current_motor_num) {
+			current_motor_num = minute_motor;
 		}
-		//state_zero_adjust_motor_back_zero(state_zero.motor_num);
+        motor_set_position(NULL, MOTOR_MASK_NONE);
+		//state_zero_adjust_motor_back_zero(motor_num);
 	}else if(KEY_A_SHORT_PRESS == cb) {
 		/*motor run positive half step*/
-		motor_run_one_step(state_zero.motor_num, pos);
+		motor_run_one_step(current_motor_num, pos);
 	}else if(KEY_B_SHORT_PRESS == cb){
 		/*motor run negtive half step*/
-		motor_run_one_step(state_zero.motor_num, neg);
+		motor_run_one_step(current_motor_num, neg);
 	}
 	
 	return 0;

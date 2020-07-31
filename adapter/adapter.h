@@ -128,6 +128,8 @@ app_state ble_state_get(void);
 //u8 bcd_to_hex(u8 bcd_data);
 //u32 hex_to_bcd(u8 hex_data);
 
+extern u8 motor_zero[max_motor];
+extern u8 current_motor_num;
 extern u8 notify_pos;
 extern u8 motor_dst[max_motor+1];
 extern zero_adjust_lock_t zero_adjust_mode;
