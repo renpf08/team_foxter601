@@ -94,6 +94,7 @@ static const CMDENTRY cmd_list[] =
 *   AF 01 01 // KEY_M_SHORT_PRESS
 *   AF 01 02 // KEY_A_SHORT_PRESS
 *   AF 01 03 // KEY_B_SHORT_PRESS
+*   AF 01 04 // KEY_A_B_M_LONG_PRESS
 *   CMD_TEST_STEP_COUNT
 *   AF 02 xx xx // xx xx simulate steps
 *   CMD_TEST_SYS_REBOOT
@@ -192,6 +193,9 @@ static void cmd_test_zero_adjust(u8 *buffer, u8 length)
         break;
     case 3:
         cmd_cb(KEY_B_SHORT_PRESS, NULL);
+        break;
+    case 4:
+        cmd_cb(KEY_A_B_M_LONG_PRESS, NULL);
         break;
     default:
         break;

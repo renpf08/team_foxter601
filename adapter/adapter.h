@@ -35,7 +35,6 @@ clock_t *clock_get(void);
 
 s16 motor_manager_init(void);
 void motor_run_one_step(u8 motor_num, u8 direction);
-u16 motor_check_idle(void);
 #if 0
 void motor_time_adjust_mode_on(void);
 void motor_time_adjust_mode_off(void);
@@ -53,6 +52,8 @@ s16 motor_date_to_position(u8 day);
 s16 motor_notify_to_position(u8 notify);
 s16 motor_battery_week_to_position(u8 battery_week);
 s16 motor_activity_to_position(u8 activity);
+
+u16 motor_check_idle(void);
 
 s16 battery_init(adapter_callback cb);
 u8 battery_percent_read(void);
@@ -119,14 +120,6 @@ void ble_switch_on(void);
 void ble_switch_off(void);
 void ble_state_set(app_state cur_state);
 app_state ble_state_get(void);
-
-//int sprintf(char *buf, const char * sFormat, ...);
-//int printf(const char * sFormat, ...);
-//void print_str_hex(u8 *buf, u16 hex_num);
-//void print_str_dec(u8 *buf, u16 dec_num);
-//void print_date_time(u8 *buf, clock_t *datm);
-//u8 bcd_to_hex(u8 bcd_data);
-//u32 hex_to_bcd(u8 hex_data);
 
 extern u8 activity_pos;
 extern u8 motor_zero[max_motor];

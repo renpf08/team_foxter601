@@ -1,5 +1,6 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
+#include <mem.h>
 
 #include "../../common/common.h"
 #include "../../adapter/adapter.h"
@@ -15,6 +16,7 @@ enum{
 };
 
 typedef struct {
+    u8 motor_rdc[max_motor];
 	u8 hour;
 	u8 hour_dir;
 	u8 minute;
@@ -127,15 +129,16 @@ void state_run_test_increase(void)
 
 void state_run_test_handler(u16 id)
 {
+    u8 motor_test[max_motor] = {0,0,0,0,0,0};
 	state_run_test_increase();
 
-    motor_dst[minute_motor] = run_test.minute;
-    motor_dst[hour_motor] = run_test.hour;
-    motor_dst[activity_motor] = run_test.activity;
-    motor_dst[date_motor] = run_test.day;
-    motor_dst[battery_week_motor] = run_test.battery_week;
-    motor_dst[notify_motor] = run_test.notify;
-    motor_set_position(motor_dst, MOTOR_MASK_ALL);
+    motor_test[minute_motor] = run_test.minute;
+    motor_test[hour_motor] = run_test.hour;
+    motor_test[activity_motor] = run_test.activity;
+    motor_test[date_motor] = run_test.day;
+    motor_test[battery_week_motor] = run_test.battery_week;
+    motor_test[notify_motor] = run_test.notify;
+    motor_set_position(motor_test, MOTOR_MASK_ALL);
 
 	if(looping == run_test.test_status) {
 		timer_event(1000, state_run_test_handler);
@@ -145,11 +148,14 @@ void state_run_test_handler(u16 id)
 void state_run_test_exit(u16 id)
 {
 	*(run_test.state) = CLOCK;
+    MemCopy(motor_dst, run_test.motor_rdc, max_motor*sizeof(u8));
+    motor_set_position(motor_dst, MOTOR_MASK_ALL);
 }
 
 s16 state_run_test(REPORT_E cb, void *args)
 {
 	if(run == run_test.work) {
+        MemCopy(run_test.motor_rdc, motor_dst, max_motor*sizeof(u8));
 		run_test.work = idle;
 		run_test.state = (STATE_E *)args;
 		if(HOUR12_0 == run_test.hour) {
