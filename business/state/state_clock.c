@@ -6,22 +6,6 @@
 #include "../../adapter/adapter.h"
 #include "state.h"
 
-#define HISTORY_STORE_INVERVAL  15 //! minute
-
-//#define TEST_CLOCK
-
-#ifdef TEST_CLOCK
-static clock_t clk = {
-	.year = 1970,
-	.month = 1,
-	.day = 1,
-	.week = 0,
-	.hour = 23,
-	.minute = 30,
-	.second = 0,
-};
-#endif
-
 static void alarm_clock_check(clock_t *clock)
 {
     cmd_set_alarm_clock_t *alarm_clock = (cmd_set_alarm_clock_t*)&cmd_get()->set_alarm_clock;
@@ -138,49 +122,18 @@ static u8 state_check(REPORT_E cb)
 s16 state_clock(REPORT_E cb, void *args)
 {
     MOTOR_MASK_E mask = MOTOR_MASK_NONE;
-    #if USE_UART_PRINT
-	print((u8 *)&"clock", 5);
-    #endif
+	clock_t *clock = clock_get();
 
     if(state_check(cb) != 0) {
         return 0;
     }
     if(cb == KEY_A_B_LONG_PRESS) {
-        motor_get_position(motor_dst);
-        mask = (MOTOR_MASK_ACTIVITY|MOTOR_MASK_BAT_WEEK|MOTOR_MASK_NOTIFY);
+        mask = (MOTOR_MASK_ALL);
+    } else {
+        mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE);
     }
-
-	#ifndef TEST_CLOCK
-	clock_t *clk;
-	clk = clock_get();
-    mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE);
-    motor_dst[minute_motor] = clk->minute;
-    motor_dst[hour_motor] = clk->hour;
-    motor_dst[date_motor] = date[clk->day];
-    motor_set_position(motor_dst, mask);
+    motor_set_day_time(clock, mask);
     minutely_check(cb);
-	#else
-	clk.minute++;
-	if(60 == clk.minute) {
-		clk.minute = 0;
-		clk.hour++;
-	}
-
-	if(24 == clk.hour) {
-		clk.hour = 0;
-	}
-	
-	clk.day++;
-	if(31 == clk.day) {
-		clk.day = 0;
-	}
-
-    //print((u8*)&"system clock", 12);
-	motor_minute_to_position(clk.minute);
-	motor_hour_to_position(clk.hour);
-    motor_date_to_position(date[clk.day]);
-    //minutely_check(cb);
-	#endif
 
 	return 0;
 }

@@ -20,14 +20,14 @@ s16 state_zero_adjust(REPORT_E cb, void *args)
 	if(KEY_A_B_LONG_PRESS == cb) {
 		/*hour back to zero position*/
 		current_motor_num = minute_motor;
-        motor_set_position(motor_zero, MOTOR_MASK_ALL);
+        motor_set_position(motor_zero, (MOTOR_MASK_ALL|MOTOR_MASK_TRIG));
 	}else if(KEY_M_SHORT_PRESS == cb) {
 		/*motor switcch:hour -> minute -> activity -> date -> battery_week ->notify -> hour*/
 		current_motor_num++;
 		if(max_motor == current_motor_num) {
 			current_motor_num = minute_motor;
 		}
-        motor_set_position(NULL, MOTOR_MASK_NONE);
+        motor_set_position(NULL, MOTOR_MASK_TRIG);
 		//state_zero_adjust_motor_back_zero(motor_num);
 	}else if(KEY_A_SHORT_PRESS == cb) {
 		/*motor run positive half step*/

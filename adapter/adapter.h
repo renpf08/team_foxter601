@@ -18,14 +18,13 @@ extern bool ble_send_log(uint8 *data, uint16 size);
 void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
 void motor_set_position(u8* motor_pos, MOTOR_MASK_E motor_mask);
-void motor_get_position(u8* motor_pos);
+void motor_set_day_time(clock_t *clock, MOTOR_MASK_E mask);
 void system_pre_reboot_handler(reboot_type_t type);
 void system_post_reboot_handler(void);
 void refresh_step(void);
 void sync_time(void);
 void motor_to_zero(void);
 u8 state_machine_check(REPORT_E cb);
-void motor_recover_from_zero(void);
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num);
 #endif
@@ -128,6 +127,7 @@ app_state ble_state_get(void);
 //u8 bcd_to_hex(u8 bcd_data);
 //u32 hex_to_bcd(u8 hex_data);
 
+extern u8 activity_pos;
 extern u8 motor_zero[max_motor];
 extern u8 current_motor_num;
 extern u8 notify_pos;

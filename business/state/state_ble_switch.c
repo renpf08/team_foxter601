@@ -23,10 +23,10 @@ static bool swing_en = FALSE;
 static void notify_swing_cb_handler(u16 id)
 {
     static bool notify_swing_start = FALSE;	
-
     app_state cur_state = ble_state_get();
     clock_t *clock = clock_get();
     MOTOR_MASK_E mask = MOTOR_MASK_NOTIFY;
+    static u8 minute = 0;
     
     if(cur_state != app_advertising) {
         if(notify_swing_start == TRUE) {
@@ -45,12 +45,11 @@ static void notify_swing_cb_handler(u16 id)
         motor_dst[notify_motor] = NOTIFY_NONE;
     }
 
-    mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE);
-    motor_dst[minute_motor] = clock->minute;
-    motor_dst[hour_motor] = clock->hour;
-    motor_dst[date_motor] = date[clock->day];
-    motor_set_position(motor_dst, mask);
-
+    if(minute != clock->minute) {
+        minute = clock->minute;
+        mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE);
+    }
+    motor_set_day_time(clock, mask);
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
 }
 void pair_code_generate(void)
