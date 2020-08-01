@@ -96,9 +96,9 @@ u8 hour_list[] = {
 	HOUR12_0,
 };
 
-s16 motor_hour_to_position(u8 hour)
+s16 motor_hour_to_position(void)
 {
-    adapter_ctrl.motor_dst[hour_motor] = hour;
+    u8 hour = adapter_ctrl.motor_dst[hour_motor];
 	/*hour dst position configuration*/
 	u8 minute_pos = (motor_manager.motor_status[minute_motor].dst_pos == MINUTE_60) ? \
 						MINUTE_0 : motor_manager.motor_status[minute_motor].dst_pos;
@@ -125,15 +125,14 @@ s16 motor_hour_to_position(u8 hour)
 	return 0;
 }
 
-s16 motor_minute_to_position(u8 minute)
+s16 motor_minute_to_position(void)
 {
-    adapter_ctrl.motor_dst[minute_motor] = minute;
 	/*minute dst pos config*/
 	if((MINUTE_59 == motor_manager.motor_status[minute_motor].cur_pos) &&
-		(MINUTE_0 == minute)) {
+		(MINUTE_0 == adapter_ctrl.motor_dst[minute_motor])) {
 		motor_manager.motor_status[minute_motor].dst_pos = MINUTE_60;
 	}else {
-		motor_manager.motor_status[minute_motor].dst_pos = minute;
+		motor_manager.motor_status[minute_motor].dst_pos = adapter_ctrl.motor_dst[minute_motor];
 	}
 
 	/*minute cur pos config*/
@@ -148,10 +147,9 @@ s16 motor_minute_to_position(u8 minute)
 	return 0;
 }
 
-s16 motor_date_to_position(u8 day)
+s16 motor_date_to_position(void)
 {
-    adapter_ctrl.motor_dst[date_motor] = day;
-	motor_manager.motor_status[date_motor].dst_pos = day;
+	motor_manager.motor_status[date_motor].dst_pos = adapter_ctrl.motor_dst[date_motor];
 	if(motor_manager.motor_status[date_motor].dst_pos != 
 	   motor_manager.motor_status[date_motor].cur_pos) {
 		motor_manager.motor_status[date_motor].run_flag = 1;
@@ -159,10 +157,9 @@ s16 motor_date_to_position(u8 day)
 	return 0;
 }
 
-s16 motor_notify_to_position(u8 notify)
+s16 motor_notify_to_position(void)
 {
-    adapter_ctrl.motor_dst[notify_motor] = notify;
-	motor_manager.motor_status[notify_motor].dst_pos = notify;
+	motor_manager.motor_status[notify_motor].dst_pos = adapter_ctrl.motor_dst[notify_motor];
 	if(motor_manager.motor_status[notify_motor].dst_pos != 
 	   motor_manager.motor_status[notify_motor].cur_pos) {
 		motor_manager.motor_status[notify_motor].run_flag = 1;
@@ -192,28 +189,27 @@ static void motor_battery_week_change(u16 id)
 	}
 }
 
-s16 motor_battery_week_to_position(u8 battery_week)
+s16 motor_battery_week_to_position(void)
 {
-    adapter_ctrl.motor_dst[battery_week_motor] = battery_week;
 	if((motor_manager.motor_status[battery_week_motor].cur_pos > BAT_PECENT_100) &&
-		(battery_week <= BAT_PECENT_100)) {
+		(adapter_ctrl.motor_dst[battery_week_motor] <= BAT_PECENT_100)) {
 		motor_manager.motor_status[battery_week_motor].dst_pos = BAT_PECENT_100;
-		motor_manager.bat_week_dst = battery_week;
+		motor_manager.bat_week_dst = adapter_ctrl.motor_dst[battery_week_motor];
 		timer_event(motor_manager.run_interval_ms, motor_battery_week_change);
 	}else if((motor_manager.motor_status[battery_week_motor].cur_pos < BAT_PECENT_100) &&
-		(battery_week >= BAT_PECENT_100)) {
+		(adapter_ctrl.motor_dst[battery_week_motor] >= BAT_PECENT_100)) {
 		motor_manager.motor_status[battery_week_motor].dst_pos = BAT_PECENT_100;
-		motor_manager.bat_week_dst = battery_week;
+		motor_manager.bat_week_dst = adapter_ctrl.motor_dst[battery_week_motor];
 		timer_event(motor_manager.run_interval_ms, motor_battery_week_change);
 	}else if(BAT_PECENT_100 == motor_manager.motor_status[battery_week_motor].cur_pos) {
-		motor_manager.motor_status[battery_week_motor].dst_pos = battery_week;
+		motor_manager.motor_status[battery_week_motor].dst_pos = adapter_ctrl.motor_dst[battery_week_motor];
 		if(motor_manager.motor_status[battery_week_motor].dst_pos > BAT_PECENT_100) {
 			motor_manager.motor_status[battery_week_motor].unit_interval_step = BAT_INTERVAL_STEP;
 		}else {
 			motor_manager.motor_status[battery_week_motor].unit_interval_step = WEEK_INTERVAL_STEP;
 		}
 	}else {
-		motor_manager.motor_status[battery_week_motor].dst_pos = battery_week;
+		motor_manager.motor_status[battery_week_motor].dst_pos = adapter_ctrl.motor_dst[battery_week_motor];
 	}
 
 	if(motor_manager.motor_status[battery_week_motor].dst_pos != 
@@ -223,10 +219,9 @@ s16 motor_battery_week_to_position(u8 battery_week)
 	return 0;
 }
 
-s16 motor_activity_to_position(u8 activity)
+s16 motor_activity_to_position(void)
 {
-    adapter_ctrl.motor_dst[activity_motor] = activity;
-	motor_manager.motor_status[activity_motor].dst_pos = activity;
+	motor_manager.motor_status[activity_motor].dst_pos = adapter_ctrl.motor_dst[activity_motor];
 	if(motor_manager.motor_status[activity_motor].dst_pos != 
 	   motor_manager.motor_status[activity_motor].cur_pos) {
 		motor_manager.motor_status[activity_motor].run_flag = 1;

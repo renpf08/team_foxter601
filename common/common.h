@@ -576,7 +576,7 @@ typedef s16 (*timer_start_func)(u16 ms, timer_cb cb);
 
 typedef s16 (*state_func)(REPORT_E cb, void *args);
 
-typedef s16 (* motor_handler)(u8 motor);
+typedef s16 (* motor_handler)(void);
 
 enum {
 	minute_motor = 0,
@@ -609,7 +609,6 @@ typedef struct {
     #endif
     u8 system_reboot_lock;
     u8 activity_pos;
-    u8 notify_pos;
     u8 current_motor_num;;
     u8 current_bat_week_sta;
     reboot_type_t reboot_type;

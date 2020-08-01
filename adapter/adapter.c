@@ -14,7 +14,6 @@ adapter_ctrl_t adapter_ctrl = {
     #endif
     .system_reboot_lock = 0,
     .activity_pos = 0,
-    .notify_pos = 0,
     .current_motor_num = 0,
     .current_bat_week_sta = state_battery,
     .reboot_type = 0,
@@ -243,10 +242,12 @@ static void motor_trig_handler(u16 id)
     if(motor_check_idle() == 0) {
         if(trig_state == 0) {
             trig_state = 1;
-            adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].func(adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].trig_pos);
+            adapter_ctrl.motor_dst[adapter_ctrl.current_motor_num] = adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].trig_pos;
+            adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].func();
         } else if(trig_state == 1) {
             trig_state = 2;
-            adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].func(adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].zero_pos);
+            adapter_ctrl.motor_dst[adapter_ctrl.current_motor_num] = adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].zero_pos;
+            adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].func();
         } else {
             trig_state = 0;
             return;
@@ -257,22 +258,22 @@ static void motor_trig_handler(u16 id)
 void motor_set_position(u8* motor_pos, MOTOR_MASK_E motor_mask)
 {
     if(motor_mask & (MOTOR_MASK_ALL|MOTOR_MASK_MINUTE)) {
-        motor_minute_to_position(motor_pos[minute_motor]);
+        motor_minute_to_position();
     }
     if(motor_mask & (MOTOR_MASK_ALL|MOTOR_MASK_HOUR)) {
-        motor_hour_to_position(motor_pos[hour_motor]);
+        motor_hour_to_position();
     }
     if(motor_mask & (MOTOR_MASK_ALL|MOTOR_MASK_ACTIVITY)) {
-        motor_activity_to_position(motor_pos[activity_motor]);
+        motor_activity_to_position();
     }
     if(motor_mask & (MOTOR_MASK_ALL|MOTOR_MASK_DATE)) {
-        motor_date_to_position(motor_pos[date_motor]);
+        motor_date_to_position();
     }
     if(motor_mask & (MOTOR_MASK_ALL|MOTOR_MASK_BAT_WEEK)) {
-        motor_battery_week_to_position(motor_pos[battery_week_motor]);
+        motor_battery_week_to_position();
     }
     if(motor_mask & (MOTOR_MASK_ALL|MOTOR_MASK_NOTIFY)) {
-        motor_notify_to_position(motor_pos[notify_motor]);
+        motor_notify_to_position();
     }
     if(motor_mask & MOTOR_MASK_TRIG) { // zero adjust mode
         motor_trig_handler(0);
