@@ -6,201 +6,53 @@
 #include "../../adapter/adapter.h"
 #include "state.h"
 
-void state_run_test_handler(u16 id);
-void state_run_test_increase(void);
-void state_run_test_exit(u16 id);
-
-enum{
-	looping,
-	no_loop,
-};
-
 typedef struct {
-    u8 motor_rdc[max_motor];
-	u8 hour;
-	u8 hour_dir;
-	u8 minute;
-	u8 minute_dir;
-	u8 day;
-	u8 day_dir;
-	u8 notify;
-	u8 notify_dir;
-	u8 battery_week;
-	u8 battery_week_dir;
-	u8 activity;
-	u8 activity_dir;
-	u8 work;
-	u8 test_status;
-	STATE_E *state;
-}run_test_t;
+    u8 start;
+    u8 end;
+} motor_test_t;
 
-static run_test_t run_test = {
-	.hour = HOUR0_0,
-	.hour_dir = pos,
-	.minute = MINUTE_0,
-	.minute_dir = pos,
-	.day = DAY_1,
-	.day_dir = pos,
-	.notify = NOTIFY_NONE,
-	.notify_dir = pos,
-	.battery_week = BAT_PECENT_0,
-	.battery_week_dir = pos,
-	.activity = ACTIVITY_0,
-	.activity_dir = pos,
-	.work = run,
-	.test_status = no_loop,
-	.state = NULL,
+u8 motor_rdc[max_motor] = {0,0,0,0,0,0};
+u8 run_flag = 0;
+motor_test_t motor_test[max_motor] = {
+    [minute_motor] = {MINUTE_0, MINUTE_60},
+    [hour_motor] = {HOUR0_0, HOUR12_0},
+    [activity_motor] = {ACTIVITY_0, ACTIVITY_100},
+    [date_motor] = {DAY_31, DAY_1},
+    [battery_week_motor] = {SUNDAY, BAT_PECENT_0},
+    [notify_motor] = {NOTIFY_NONE, NOTIFY_DONE},
 };
 
-void state_run_test_increase(void)
+static void state_run_test_handler(u16 id)
 {
-	if(pos == run_test.hour_dir) {
-		run_test.hour++;
-		if(HOUR12_0 == run_test.hour) {
-			run_test.hour_dir = neg;
-		}
-	}else {
-		run_test.hour--;
-		if(HOUR0_0 == run_test.hour) {
-			run_test.hour_dir = pos;
-		}
-	}
+    static s8 inc[max_motor] = {1,1,1,1,1,1};
+    u8 i = 0;
 
-	if(pos == run_test.minute_dir) {
-		run_test.minute++;
-		if(MINUTE_60 == run_test.minute) {
-			run_test.minute_dir = neg;
-		}
-	}else {
-		run_test.minute--;
-		if(MINUTE_0 == run_test.minute) {
-			run_test.minute_dir = pos;
-		}
-	}
-
-	if(pos == run_test.day_dir) {
-		run_test.day--;
-		if(DAY_31 == run_test.day) {
-			run_test.day_dir = neg;
-		}
-	}else {
-		run_test.day++;
-		if(DAY_1 == run_test.day) {
-			run_test.day_dir = pos;
-		}
-	}
-
-	if(pos == run_test.battery_week_dir) {
-		run_test.battery_week--;
-		if(SUNDAY == run_test.battery_week) {
-			run_test.battery_week_dir = neg;
-		}
-	}else {
-		run_test.battery_week++;
-		if(BAT_PECENT_0 == run_test.battery_week) {
-			run_test.battery_week_dir = pos;
-		}
-	}
-
-	if(pos == run_test.notify_dir) {
-		run_test.notify++;
-		if((NOTIFY_DONE - 1) == run_test.notify) {
-			run_test.notify_dir = neg;
-		}
-	}else {
-		run_test.notify--;
-		if(NOTIFY_NONE == run_test.notify) {
-			run_test.notify_dir = pos;
-		}
-	}
-
-	if(pos == run_test.activity_dir) {
-		run_test.activity++;
-		if(ACTIVITY_100 == run_test.activity) {
-			run_test.activity_dir = neg;
-		}
-	}else {
-		run_test.activity--;
-		if(ACTIVITY_0 == run_test.activity) {
-			run_test.activity_dir = pos;
-		}
-	}
-}
-
-void state_run_test_handler(u16 id)
-{
-	state_run_test_increase();
-
-    adapter_ctrl.motor_dst[minute_motor] = run_test.minute;
-    adapter_ctrl.motor_dst[hour_motor] = run_test.hour;
-    adapter_ctrl.motor_dst[activity_motor] = run_test.activity;
-    adapter_ctrl.motor_dst[date_motor] = run_test.day;
-    adapter_ctrl.motor_dst[battery_week_motor] = run_test.battery_week;
-    adapter_ctrl.motor_dst[notify_motor] = run_test.notify;
+    for(i = 0; i < max_motor; i++) {
+        if(adapter_ctrl.motor_dst[i] == motor_test[i].start) inc[i] = 1;
+        else if(adapter_ctrl.motor_dst[i] == motor_test[i].end) inc[i] = -1;
+        adapter_ctrl.motor_dst[i] += inc[i];
+    }
     motor_set_position(MOTOR_MASK_ALL);
 
-	if(looping == run_test.test_status) {
+	if(run_flag == 1) {
 		timer_event(1000, state_run_test_handler);
 	}
 }
 
-void state_run_test_exit(u16 id)
-{
-	*(run_test.state) = CLOCK;
-    MemCopy(adapter_ctrl.motor_dst, run_test.motor_rdc, max_motor*sizeof(u8));
-    motor_set_position(MOTOR_MASK_ALL);
-}
-
 s16 state_run_test(REPORT_E cb, void *args)
 {
-	if(run == run_test.work) {
-        MemCopy(run_test.motor_rdc, adapter_ctrl.motor_dst, max_motor*sizeof(u8));
-		run_test.work = idle;
-		run_test.state = (STATE_E *)args;
-		if(HOUR12_0 == run_test.hour) {
-			run_test.hour_dir = neg;
-		}else {
-			run_test.hour_dir = pos;
-		}
-
-		if(MINUTE_60 == run_test.minute) {
-			run_test.minute_dir = neg;
-		}else {
-			run_test.minute_dir = pos;
-		}
-
-		if(DAY_31 == run_test.day) {
-			run_test.day_dir = neg;
-		}else {
-			run_test.day_dir = pos;
-		}
-
-		if(SUNDAY == run_test.battery_week) {
-			run_test.battery_week_dir = neg;
-		}else {
-			run_test.battery_week_dir = pos;
-		}
-
-		if((NOTIFY_DONE - 1) == run_test.notify) {
-			run_test.notify_dir = neg;
-		}else {
-			run_test.notify_dir = pos;
-		}
-		
-		if(ACTIVITY_100 == run_test.activity) {
-			run_test.activity_dir = neg;
-		}else {
-			run_test.activity_dir = pos;
-		}
-
-		run_test.test_status = looping;
-		timer_event(1, state_run_test_handler);
-	}else {
-		run_test.work = run;
-		run_test.test_status = no_loop;
-		timer_event(1100, state_run_test_exit);
-	}
-
+	STATE_E *state = (STATE_E *)args;
+    
+    if(run_flag == 0)
+    {
+        run_flag = 1;
+        MemCopy(motor_rdc, adapter_ctrl.motor_dst, max_motor*sizeof(u8));
+        state_run_test_handler(0);
+    } else {
+        run_flag = 0;
+        MemCopy(adapter_ctrl.motor_dst, motor_rdc, max_motor*sizeof(u8));
+        *state = CLOCK;
+    }
 	return 0;
 }
 

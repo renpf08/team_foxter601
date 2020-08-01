@@ -260,7 +260,7 @@ static s16 cmd_set_time(u8 *buffer, u8 length)
 {
     u8 days[13] = {00,31,28,31,30,31,30,31,31,30,31,30,31};
     u16 year = 0;
-    volatile cmd_set_time_t* set_time = (cmd_set_time_t*)buffer;
+    cmd_set_time_t* set_time = (cmd_set_time_t*)buffer;
 
     year = (u16)((set_time->year[1]<<8 & 0xFF00) | set_time->year[0]);
     days[2] = (0 == (year % 400) || (0 == (year % 4) && (0 != (year % 100))))?29:28;
