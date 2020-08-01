@@ -633,6 +633,19 @@ typedef struct {
 	EVENT_E last_state;
 	EVENT_E now_state;
 }csr_key_cfg_t;
+typedef struct {
+    u8 min;
+    u8 max;
+} motor_range_t;
+typedef struct {
+    motor_range_t motor_range[max_motor];
+    u8 motor_offset[max_motor];
+    u8 motor_flag[max_motor];
+    u8 motor_dirc[max_motor];
+    u8 random_val[max_motor];
+    s8 calc_dirc[max_motor];
+    u8 motor_state;
+} motor_run_t;
 
 #define POS_HIGH(num) PioSet((num), 1UL)
 #define POS_LOW(num) PioSet((num), 0UL)

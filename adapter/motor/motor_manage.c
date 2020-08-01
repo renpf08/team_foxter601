@@ -464,6 +464,71 @@ void motor_run_one_step(u8 motor_num, u8 direction)
 	}
 }
 
+motor_run_t motor_run = {
+    .motor_range = {
+        [minute_motor] = {MINUTE_0, MINUTE_60},
+        [hour_motor] = {HOUR0_0, MINUTE_60},
+        [activity_motor] = {ACTIVITY_0, ACTIVITY_100},
+        [date_motor] = {DAY_31, DAY_1},
+        [battery_week_motor] = {SUNDAY, BAT_PECENT_0},
+        [notify_motor] = {NOTIFY_NONE, NOTIFY_DONE},
+    },
+    .motor_offset = {0,0,0,0,0,0},
+    .motor_flag = {1,1,1,1,1,1},
+    .motor_dirc = {0,0,0,0,0,0},
+    .random_val = {MINUTE_0,MINUTE_0,ACTIVITY_0,DAY_31,SUNDAY,NOTIFY_DONE},
+    .calc_dirc = {1,1,1,1,1,1},
+    .motor_state = FIRST_HALF,
+};
+void motor_run_one_step_handler(u16 id)
+{
+    u8 i = 0;
+	switch(motor_run.motor_state) {
+		case FIRST_HALF:
+            for(i = 0; i < max_motor; i++) {
+                if(motor_run.motor_flag[i] == 1) {
+                    if(motor_run.motor_dirc[i] == pos)
+                        motor_manager.motor_status[i].motor_ptr->motor_positive_first_half(NULL);
+                    else
+                        motor_manager.motor_status[i].motor_ptr->motor_negtive_first_half(NULL);
+                }
+            }
+			motor_run.motor_state = RECOVER;
+			motor_manager.drv->timer->timer_start(5, motor_run_one_step_handler);
+			break;
+		case RECOVER:
+            for(i = 0; i < max_motor; i++) {
+                if(motor_run.motor_flag[i] == 1) {
+                    motor_manager.motor_status[i].motor_ptr->motor_stop(NULL);
+                }
+            }
+			motor_run.motor_state = SECOND_HALF;
+			break;
+		case SECOND_HALF:
+            for(i = 0; i < max_motor; i++) {
+                if(motor_run.motor_flag[i] == 1) {
+                    if(motor_run.motor_dirc[i] == pos)
+                        motor_manager.motor_status[i].motor_ptr->motor_positive_second_half(NULL);
+                    else
+                        motor_manager.motor_status[i].motor_ptr->motor_negtive_second_half(NULL);
+                }
+            }
+			motor_run.motor_state = STOP;
+			motor_manager.drv->timer->timer_start(5, motor_run_one_step_handler);
+			break;
+		case STOP:
+            for(i = 0; i < max_motor; i++) {
+                if(motor_run.motor_flag[i] == 1) {
+                    motor_manager.motor_status[i].motor_ptr->motor_stop(NULL);
+                }
+            }
+			motor_run.motor_state = FIRST_HALF;
+			break;
+		default :
+			break;
+	}
+}
+
 #if 0
 void motor_time_adjust_mode_on(void)
 {

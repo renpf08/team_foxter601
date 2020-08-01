@@ -35,6 +35,7 @@ clock_t *clock_get(void);
 
 s16 motor_manager_init(void);
 void motor_run_one_step(u8 motor_num, u8 direction);
+void motor_run_one_step_handler(u16 id);
 #if 0
 void motor_time_adjust_mode_on(void);
 void motor_time_adjust_mode_off(void);
@@ -121,6 +122,7 @@ void ble_switch_off(void);
 void ble_state_set(app_state cur_state);
 app_state ble_state_get(void);
 
+extern motor_run_t motor_run;
 extern adapter_ctrl_t adapter_ctrl;
 
 #endif
