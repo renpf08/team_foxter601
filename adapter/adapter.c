@@ -7,33 +7,35 @@
 #include <panic.h>
 #include <buf_utils.h>
 #include <csr_ota.h>
-adapter_ctrl_t adapter_ctrl;
-//
-//adapter_ctrl_t adapter_ctrl = {
-//    .system_reboot_lock = 0;
-//    .activity_pos = 0;
-//    .notify_pos = 0;
-//    .current_motor_num = 0;
-//    .current_bat_week_sta = state_battery;
-//    .reboot_type = 0;
-//    .zero_adjust_mode = {0,0};
-//    .motor_dst[max_motor] = {0, 0, 0, 0, 0, 0};
-//    .motor_zero[max_motor] = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE};
-//    .motor_trig = [max_motor] = {
-//        [minute_motor]          = {motor_minute_to_position,        MINUTE_0,       MINUTE_3},
-//        [hour_motor]            = {motor_hour_to_position,          HOUR0_0,        HOUR0_2},
-//        [activity_motor]        = {motor_activity_to_position,      ACTIVITY_0,     ACTIVITY_10},
-//        [date_motor]            = {motor_date_to_position,          DAY_1,          DAY_5},
-//        [battery_week_motor]    = {motor_battery_week_to_position,  BAT_PECENT_0,   BAT_PECENT_40},
-//        [notify_motor]          = {motor_notify_to_position,        NOTIFY_NONE,    NOTIFY_EMAIL}};
-//    .date[] = { DAY_0, DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
-//            	DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
-//            	DAY_11, DAY_12, DAY_13, DAY_14, DAY_15,
-//            	DAY_16, DAY_17, DAY_18, DAY_19, DAY_20,
-//            	DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
-//            	DAY_26, DAY_27, DAY_28, DAY_29, DAY_30,
-//            	DAY_31};
-//};
+
+adapter_ctrl_t adapter_ctrl = {
+    #if USE_CMD_TEST_LOG_TYPE_EN
+    .log_type_en = {1, 1, 1},
+    #endif
+    .system_reboot_lock = 0,
+    .activity_pos = 0,
+    .notify_pos = 0,
+    .current_motor_num = 0,
+    .current_bat_week_sta = state_battery,
+    .reboot_type = 0,
+    .zero_adjust_mode = {0,0},
+    .motor_dst = {0, 0, 0, 0, 0, 0},
+    .motor_zero = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE},
+    .motor_trig = {
+        [minute_motor]          = {motor_minute_to_position,        MINUTE_0,       MINUTE_3},
+        [hour_motor]            = {motor_hour_to_position,          HOUR0_0,        HOUR0_2},
+        [activity_motor]        = {motor_activity_to_position,      ACTIVITY_0,     ACTIVITY_10},
+        [date_motor]            = {motor_date_to_position,          DAY_1,          DAY_5},
+        [battery_week_motor]    = {motor_battery_week_to_position,  BAT_PECENT_0,   BAT_PECENT_40},
+        [notify_motor]          = {motor_notify_to_position,        NOTIFY_NONE,    NOTIFY_EMAIL}},
+    .date = { DAY_0, DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
+            	DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
+            	DAY_11, DAY_12, DAY_13, DAY_14, DAY_15,
+            	DAY_16, DAY_17, DAY_18, DAY_19, DAY_20,
+            	DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
+            	DAY_26, DAY_27, DAY_28, DAY_29, DAY_30,
+            	DAY_31},
+};
 
 
 //callback handler
