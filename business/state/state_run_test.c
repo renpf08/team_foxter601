@@ -138,7 +138,7 @@ void state_run_test_handler(u16 id)
     motor_test[date_motor] = run_test.day;
     motor_test[battery_week_motor] = run_test.battery_week;
     motor_test[notify_motor] = run_test.notify;
-    motor_set_position(motor_test, MOTOR_MASK_ALL);
+    motor_set_position(MOTOR_MASK_ALL);
 
 	if(looping == run_test.test_status) {
 		timer_event(1000, state_run_test_handler);
@@ -149,7 +149,7 @@ void state_run_test_exit(u16 id)
 {
 	*(run_test.state) = CLOCK;
     MemCopy(adapter_ctrl.motor_dst, run_test.motor_rdc, max_motor*sizeof(u8));
-    motor_set_position(adapter_ctrl.motor_dst, MOTOR_MASK_ALL);
+    motor_set_position(MOTOR_MASK_ALL);
 }
 
 s16 state_run_test(REPORT_E cb, void *args)

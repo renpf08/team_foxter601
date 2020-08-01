@@ -18,7 +18,7 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 		adapter_ctrl.current_bat_week_sta = state_week;
 	}
     adapter_ctrl.motor_dst[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
-    motor_set_position(adapter_ctrl.motor_dst, MOTOR_MASK_BAT_WEEK);
+    motor_set_position(MOTOR_MASK_BAT_WEEK);
 
 	*state = CLOCK;
 	return 0;
