@@ -148,14 +148,14 @@ void state_run_test_handler(u16 id)
 void state_run_test_exit(u16 id)
 {
 	*(run_test.state) = CLOCK;
-    MemCopy(motor_dst, run_test.motor_rdc, max_motor*sizeof(u8));
-    motor_set_position(motor_dst, MOTOR_MASK_ALL);
+    MemCopy(adapter_ctrl.motor_dst, run_test.motor_rdc, max_motor*sizeof(u8));
+    motor_set_position(adapter_ctrl.motor_dst, MOTOR_MASK_ALL);
 }
 
 s16 state_run_test(REPORT_E cb, void *args)
 {
 	if(run == run_test.work) {
-        MemCopy(run_test.motor_rdc, motor_dst, max_motor*sizeof(u8));
+        MemCopy(run_test.motor_rdc, adapter_ctrl.motor_dst, max_motor*sizeof(u8));
 		run_test.work = idle;
 		run_test.state = (STATE_E *)args;
 		if(HOUR12_0 == run_test.hour) {

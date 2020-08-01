@@ -12,13 +12,13 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 	STATE_E *state = (STATE_E *)args;
 
 	//print((u8 *)&"battery_week", 12);
-	if(state_week == current_bat_week_sta) {
-		current_bat_week_sta = state_battery;
+	if(state_week == adapter_ctrl.current_bat_week_sta) {
+		adapter_ctrl.current_bat_week_sta = state_battery;
 	}else {
-		current_bat_week_sta = state_week;
+		adapter_ctrl.current_bat_week_sta = state_week;
 	}
-    motor_dst[battery_week_motor] = get_battery_week_pos(current_bat_week_sta);
-    motor_set_position(motor_dst, MOTOR_MASK_BAT_WEEK);
+    adapter_ctrl.motor_dst[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
+    motor_set_position(adapter_ctrl.motor_dst, MOTOR_MASK_BAT_WEEK);
 
 	*state = CLOCK;
 	return 0;

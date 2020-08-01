@@ -102,12 +102,12 @@ s16 state_notify(REPORT_E cb, void *args)
     	return 0;
     }
 	if(NOTIFY_ADD == ancs_msg->sta) {
-		motor_dst[notify_motor] = ancs_msg->type;
+		adapter_ctrl.motor_dst[notify_motor] = ancs_msg->type;
 	}else if(NOTIFY_REMOVE == ancs_msg->sta) {
-        motor_dst[notify_motor] = NOTIFY_NONE;
+        adapter_ctrl.motor_dst[notify_motor] = NOTIFY_NONE;
 	}
-    if(notify_pos < NOTIFY_DONE) {
-        motor_set_position(motor_dst, MOTOR_MASK_NOTIFY);
+    if(adapter_ctrl.motor_dst[notify_motor] < NOTIFY_DONE) {
+        motor_set_position(adapter_ctrl.motor_dst, MOTOR_MASK_NOTIFY);
     }
     log[2] = ancs_msg->sta;
     log[3] = ancs_msg->level;

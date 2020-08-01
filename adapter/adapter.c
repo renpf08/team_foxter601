@@ -7,39 +7,34 @@
 #include <panic.h>
 #include <buf_utils.h>
 #include <csr_ota.h>
+adapter_ctrl_t adapter_ctrl;
+//
+//adapter_ctrl_t adapter_ctrl = {
+//    .system_reboot_lock = 0;
+//    .activity_pos = 0;
+//    .notify_pos = 0;
+//    .current_motor_num = 0;
+//    .current_bat_week_sta = state_battery;
+//    .reboot_type = 0;
+//    .zero_adjust_mode = {0,0};
+//    .motor_dst[max_motor] = {0, 0, 0, 0, 0, 0};
+//    .motor_zero[max_motor] = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE};
+//    .motor_trig = [max_motor] = {
+//        [minute_motor]          = {motor_minute_to_position,        MINUTE_0,       MINUTE_3},
+//        [hour_motor]            = {motor_hour_to_position,          HOUR0_0,        HOUR0_2},
+//        [activity_motor]        = {motor_activity_to_position,      ACTIVITY_0,     ACTIVITY_10},
+//        [date_motor]            = {motor_date_to_position,          DAY_1,          DAY_5},
+//        [battery_week_motor]    = {motor_battery_week_to_position,  BAT_PECENT_0,   BAT_PECENT_40},
+//        [notify_motor]          = {motor_notify_to_position,        NOTIFY_NONE,    NOTIFY_EMAIL}};
+//    .date[] = { DAY_0, DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
+//            	DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
+//            	DAY_11, DAY_12, DAY_13, DAY_14, DAY_15,
+//            	DAY_16, DAY_17, DAY_18, DAY_19, DAY_20,
+//            	DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
+//            	DAY_26, DAY_27, DAY_28, DAY_29, DAY_30,
+//            	DAY_31};
+//};
 
-typedef s16 (* motor_handler)(u8 motor);
-typedef struct {
-    motor_handler func;
-    u8 zero_pos;
-    u8 trig_pos;
-} motor_trig_t;
-zero_adjust_lock_t zero_adjust_mode = {0, 0};
-u8 motor_dst[max_motor] = {0, 0, 0, 0, 0, 0};
-reboot_type_t reboot_type = 0;
-u8 motor_zero[max_motor] = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE};
-u8 system_reboot_lock = 0;
-u8 activity_pos = 0;
-u8 notify_pos = 0;
-u8 current_motor_num = 0;
-u8 current_bat_week_sta = state_battery;
-motor_trig_t motor_trig[max_motor] = {
-    [minute_motor]          = {motor_minute_to_position,        MINUTE_0,       MINUTE_3},
-    [hour_motor]            = {motor_hour_to_position,          HOUR0_0,        HOUR0_2},
-    [activity_motor]        = {motor_activity_to_position,      ACTIVITY_0,     ACTIVITY_10},
-    [date_motor]            = {motor_date_to_position,          DAY_1,          DAY_5},
-    [battery_week_motor]    = {motor_battery_week_to_position,  BAT_PECENT_0,   BAT_PECENT_40},
-    [notify_motor]          = {motor_notify_to_position,        NOTIFY_NONE,    NOTIFY_EMAIL},
-};
-
-const u8 date[] = {DAY_0,
-	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
-	DAY_6, DAY_7, DAY_8, DAY_9, DAY_10,
-	DAY_11, DAY_12, DAY_13, DAY_14, DAY_15,
-	DAY_16, DAY_17, DAY_18, DAY_19, DAY_20,
-	DAY_21, DAY_22, DAY_23, DAY_24, DAY_25,
-	DAY_26, DAY_27, DAY_28, DAY_29, DAY_30,
-	DAY_31};
 
 //callback handler
 extern s16 mag_cb_handler(void *args);
@@ -164,14 +159,13 @@ static void activity_handler(u16 id)
     u32 current_steps = step_get();
 
     if(current_steps > target_steps) {
-        activity_pos = 40; // total 40 grids
+        adapter_ctrl.motor_dst[activity_motor] = 40; // total 40 grids
     } else if(current_steps <= target_steps) {
-        activity_pos = (current_steps*40)/target_steps;
+        adapter_ctrl.motor_dst[activity_motor] = (current_steps*40)/target_steps;
     } else if(target_steps == 0) {
-        activity_pos = 0;
+        adapter_ctrl.motor_dst[activity_motor] = 0;
     }
-    motor_dst[activity_motor] = activity_pos;
-    motor_set_position(motor_dst, MOTOR_MASK_ACTIVITY);
+    motor_set_position(adapter_ctrl.motor_dst, MOTOR_MASK_ACTIVITY);
     
     u16 length = 0; 
     u8 rsp_buf[20];
@@ -226,9 +220,9 @@ static void pre_reboot_handler(u16 id)
         return;
     }
 
-    if(reboot_type == REBOOT_TYPE_BUTTON) {
+    if(adapter_ctrl.reboot_type == REBOOT_TYPE_BUTTON) {
         Panic(0);
-    } else if(reboot_type == REBOOT_TYPE_OTA) {
+    } else if(adapter_ctrl.reboot_type == REBOOT_TYPE_OTA) {
         OtaReset();
     }
 }
@@ -247,10 +241,10 @@ static void motor_trig_handler(u16 id)
     if(motor_check_idle() == 0) {
         if(trig_state == 0) {
             trig_state = 1;
-            motor_trig[current_motor_num].func(motor_trig[current_motor_num].trig_pos);
+            adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].func(adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].trig_pos);
         } else if(trig_state == 1) {
             trig_state = 2;
-            motor_trig[current_motor_num].func(motor_trig[current_motor_num].zero_pos);
+            adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].func(adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].zero_pos);
         } else {
             trig_state = 0;
             return;
@@ -284,22 +278,22 @@ void motor_set_position(u8* motor_pos, MOTOR_MASK_E motor_mask)
 }
 void motor_set_day_time(clock_t *clock, MOTOR_MASK_E mask)
 {
-    motor_dst[minute_motor] = clock->minute;
-    motor_dst[hour_motor] = clock->hour;
-    motor_dst[date_motor] = date[clock->day];
-    motor_dst[battery_week_motor] = get_battery_week_pos(current_bat_week_sta);
-    motor_set_position(motor_dst, mask);
+    adapter_ctrl.motor_dst[minute_motor] = clock->minute;
+    adapter_ctrl.motor_dst[hour_motor] = clock->hour;
+    adapter_ctrl.motor_dst[date_motor] = adapter_ctrl.date[clock->day];
+    adapter_ctrl.motor_dst[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
+    motor_set_position(adapter_ctrl.motor_dst, mask);
 }
 void system_pre_reboot_handler(reboot_type_t type)
 {
     clock_t* clock = clock_get();
 
-    system_reboot_lock = 1;
-    reboot_type = type;
+    adapter_ctrl.system_reboot_lock = 1;
+    adapter_ctrl.reboot_type = type;
     APP_Move_Bonded(4);
     nvm_write_date_time((u16*)clock, 0);
-    nvm_write_motor_current_position((u16*)&motor_dst, 0);
-    motor_set_position(motor_zero, MOTOR_MASK_ALL);
+    nvm_write_motor_current_position((u16*)&adapter_ctrl.motor_dst, 0);
+    motor_set_position(adapter_ctrl.motor_zero, MOTOR_MASK_ALL);
     timer_event(100, pre_reboot_handler);
 }
 void system_post_reboot_handler(void)
@@ -307,16 +301,16 @@ void system_post_reboot_handler(void)
     clock_t* clock = clock_get();
     
     if(nvm_read_motor_init_flag() == 0) {
-        nvm_read_motor_current_position((u16*)motor_dst, 0);
+        nvm_read_motor_current_position((u16*)adapter_ctrl.motor_dst, 0);
         nvm_read_date_time((u16*)clock, 0);
-        motor_dst[minute_motor] = clock->minute;
-        motor_dst[hour_motor] = clock->hour;
-        motor_dst[date_motor] = date[clock->day];
-        motor_dst[battery_week_motor] = get_battery_week_pos(current_bat_week_sta);
+        adapter_ctrl.motor_dst[minute_motor] = clock->minute;
+        adapter_ctrl.motor_dst[hour_motor] = clock->hour;
+        adapter_ctrl.motor_dst[date_motor] = adapter_ctrl.date[clock->day];
+        adapter_ctrl.motor_dst[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
     } else {
-        MemCopy(&motor_dst, motor_zero, max_motor);
+        MemCopy(&adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor);
     }
-    motor_set_position(motor_dst, MOTOR_MASK_ALL);
+    motor_set_position(adapter_ctrl.motor_dst, MOTOR_MASK_ALL);
 }
 u8 state_machine_check(REPORT_E cb)
 {
@@ -325,7 +319,7 @@ u8 state_machine_check(REPORT_E cb)
     } else if(cb >= REPORT_MAX) {
         return 1;
     }
-    if(system_reboot_lock == 1) {
+    if(adapter_ctrl.system_reboot_lock == 1) {
         return 1;
     }
     return 0;

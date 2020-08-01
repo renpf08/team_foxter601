@@ -121,16 +121,6 @@ void ble_switch_off(void);
 void ble_state_set(app_state cur_state);
 app_state ble_state_get(void);
 
-extern u8 activity_pos;
-extern u8 motor_zero[max_motor];
-extern u8 current_motor_num;
-extern u8 current_bat_week_sta;
-extern u8 notify_pos;
-extern u8 motor_dst[max_motor];
-extern zero_adjust_lock_t zero_adjust_mode;
-extern const u8 date[];
-#if USE_CMD_TEST_LOG_TYPE_EN
-extern u8 log_type_en[LOG_SEND_MAX];
-#endif
+extern adapter_ctrl_t adapter_ctrl;
 
 #endif

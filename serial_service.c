@@ -357,7 +357,7 @@ extern bool ble_send_log(uint8 *data, uint16 size)
     if(log->head != CMD_TEST_SEND) {
         return false;
     }
-    if(log_type_en[log->type] == 0) {
+    if(adapter_ctrl.log_type_en[log->type] == 0) {
         return false;
     }    
     #endif

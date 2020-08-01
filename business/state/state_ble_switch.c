@@ -31,18 +31,18 @@ static void notify_swing_cb_handler(u16 id)
     if(cur_state != app_advertising) {
         if(notify_swing_start == TRUE) {
             notify_swing_start = FALSE;
-            motor_dst[notify_motor] = NOTIFY_NONE;
-            motor_set_position(motor_dst, mask);
+            adapter_ctrl.motor_dst[notify_motor] = NOTIFY_NONE;
+            motor_set_position(adapter_ctrl.motor_dst, mask);
         }
         return;
     }
 
     if(notify_swing_start == FALSE) {
         notify_swing_start = TRUE;
-        motor_dst[notify_motor] = NOTIFY_COMMING_CALL;
+        adapter_ctrl.motor_dst[notify_motor] = NOTIFY_COMMING_CALL;
     } else {
         notify_swing_start = FALSE;
-        motor_dst[notify_motor] = NOTIFY_NONE;
+        adapter_ctrl.motor_dst[notify_motor] = NOTIFY_NONE;
     }
 
     if(minute != clock->minute) {
@@ -86,9 +86,9 @@ void pair_code_generate(void)
     BLE_SEND_LOG((u8*)&test_buf, 4);
 	
     mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE);
-    motor_dst[minute_motor] = minute;
-    motor_dst[hour_motor] = hour;
-    motor_set_position(motor_dst, mask);
+    adapter_ctrl.motor_dst[minute_motor] = minute;
+    adapter_ctrl.motor_dst[hour_motor] = hour;
+    motor_set_position(adapter_ctrl.motor_dst, mask);
 }
 static s16 ble_pair(void *args)
 {
@@ -137,7 +137,7 @@ static u16 ble_change(void *args)
     STATE_E *state_mc = (STATE_E *)args;
     app_state state_ble = ble_state_get();
     
-    motor_dst[notify_motor] = NOTIFY_NONE;
+    adapter_ctrl.motor_dst[notify_motor] = NOTIFY_NONE;
     if(state_ble == app_advertising) { // advertising start
         #if USE_NO_SWING
         if(swing_en == TRUE) {
@@ -162,7 +162,7 @@ static u16 ble_change(void *args)
         #if USE_UART_PRINT
         print((u8*)&"adv stop", 8);
         #endif
-        motor_set_position(motor_dst, MOTOR_MASK_NOTIFY);
+        motor_set_position(adapter_ctrl.motor_dst, MOTOR_MASK_NOTIFY);
     } else if(state_ble == app_connected){ // connected
         #if USE_UART_PRINT
         print((u8*)&"connect", 7);
@@ -170,7 +170,7 @@ static u16 ble_change(void *args)
         #if USE_NO_SWING
         if(swing_en == FALSE) swing_en = TRUE;
         #endif
-        motor_set_position(motor_dst, MOTOR_MASK_NOTIFY);
+        motor_set_position(adapter_ctrl.motor_dst, MOTOR_MASK_NOTIFY);
     } else { // disconnected
         #if USE_UART_PRINT
         print((u8*)&"disconect", 9);

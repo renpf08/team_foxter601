@@ -40,7 +40,7 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 			}
 
             mask = MOTOR_MASK_MINUTE;
-            motor_dst[minute_motor] = state_time_adj.clk->minute;
+            adapter_ctrl.motor_dst[minute_motor] = state_time_adj.clk->minute;
 			break;
 		case hour_motor:
 			if(pos == direction) {
@@ -58,7 +58,7 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 			
 			//print(&state_time_adj.clk->hour, 1);
             mask = MOTOR_MASK_HOUR;
-            motor_dst[hour_motor] = state_time_adj.clk->hour;
+            adapter_ctrl.motor_dst[hour_motor] = state_time_adj.clk->hour;
 			break;
 		case date_motor:
 			if(pos == direction) {
@@ -75,7 +75,7 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 				}
 			}
             mask = MOTOR_MASK_DATE;
-            motor_dst[date_motor] = date[state_time_adj.clk->day];
+            adapter_ctrl.motor_dst[date_motor] = adapter_ctrl.date[state_time_adj.clk->day];
 			break;
 		case battery_week_motor:
 			if(pos == direction) {
@@ -92,12 +92,12 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 			}
 			//print(&state_time_adj.clk->week, 1);
             mask = MOTOR_MASK_DATE;
-            motor_dst[battery_week_motor] = state_time_adj.clk->week;
+            adapter_ctrl.motor_dst[battery_week_motor] = state_time_adj.clk->week;
 			break;
 		default:
 			return;
 	}
-    motor_set_position(motor_dst, mask);
+    motor_set_position(adapter_ctrl.motor_dst, mask);
 }
 
 s16 state_time_adjust(REPORT_E cb, void *args)
@@ -124,8 +124,8 @@ s16 state_time_adjust(REPORT_E cb, void *args)
 		if(TIME_MOTOR_MAX == state_time_adj.motor_num) {
 			state_time_adj.motor_num = 0;
 		}else if(battery_week_motor == time_adj_motor[state_time_adj.motor_num]) {
-		    motor_dst[battery_week_motor] = state_time_adj.clk->week;
-            motor_set_position(motor_dst, MOTOR_MASK_BAT_WEEK);
+		    adapter_ctrl.motor_dst[battery_week_motor] = state_time_adj.clk->week;
+            motor_set_position(adapter_ctrl.motor_dst, MOTOR_MASK_BAT_WEEK);
 		}
 	}else if(KEY_A_SHORT_PRESS == cb) {
 		/*motor run positive one unit*/
