@@ -1,5 +1,6 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
+#include <mem.h>
 
 #include "../../common/common.h"
 #include "../../adapter/adapter.h"
@@ -21,6 +22,7 @@ s16 state_zero_adjust(REPORT_E cb, void *args)
 	if(KEY_A_B_LONG_PRESS == cb) {
 		/*hour back to zero position*/
 		adapter_ctrl.current_motor_num = minute_motor;
+        MemCopy(adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
         motor_set_position(MOTOR_MASK_ALL|MOTOR_MASK_TRIG);
 	}else if(KEY_M_SHORT_PRESS == cb) {
 		/*motor switcch:hour -> minute -> activity -> date -> battery_week ->notify -> hour*/
