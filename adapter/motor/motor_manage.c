@@ -1,6 +1,7 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
 #include <time.h>
+#include <mem.h>
 #include "../adapter.h"
 
 void motor_run_handler(u16 id);
@@ -400,6 +401,7 @@ void motor_run_handler(u16 id)
 	motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler);
 }
 
+#if 0
 static void motor_run_pos_one_step(u16 id)
 {
 	switch(motor_manager.motor_status[motor_manager.run_motor_num].run_step_state) {
@@ -451,18 +453,19 @@ static void motor_run_neg_one_step(u16 id)
 			break;
 	}
 }
+#endif
 
-void motor_run_one_step(u8 motor_num, u8 direction)
-{
-	motor_manager.run_motor = motor_manager.motor_status[motor_num].motor_ptr;
-	motor_manager.run_motor_num = motor_num;
-	motor_manager.run_direction = direction;
-	if(pos == motor_manager.run_direction) {
-		motor_manager.drv->timer->timer_start(1, motor_run_pos_one_step);
-	}else {
-		motor_manager.drv->timer->timer_start(1, motor_run_neg_one_step);
-	}
-}
+//void motor_run_one_step(u8 motor_num, u8 direction)
+//{
+//	motor_manager.run_motor = motor_manager.motor_status[motor_num].motor_ptr;
+//	motor_manager.run_motor_num = motor_num;
+//	motor_manager.run_direction = direction;
+//	if(pos == motor_manager.run_direction) {
+//		motor_manager.drv->timer->timer_start(1, motor_run_pos_one_step);
+//	}else {
+//		motor_manager.drv->timer->timer_start(1, motor_run_neg_one_step);
+//	}
+//}
 
 motor_run_t motor_run = {
     .motor_range = {
@@ -527,6 +530,14 @@ void motor_run_one_step_handler(u16 id)
 		default :
 			break;
 	}
+}
+
+void motor_run_one_step(u8 motor_num, u8 direction)
+{
+    MemSet(motor_run.motor_flag, 0, max_motor*sizeof(u8));
+    motor_run.motor_flag[motor_num] = 1;
+    motor_run.motor_dirc[motor_num] = direction;
+    motor_run_one_step_handler(0);
 }
 
 #if 0
