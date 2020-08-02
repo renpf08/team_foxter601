@@ -38,7 +38,7 @@ static void state_run_test_handler(u16 id)
         motor_run_state_calc(i);
     }
     MemSet(motor_run.motor_flag, 1, max_motor*sizeof(u8));
-    motor_run_one_step_handler(0);
+    motor_check_run(0);
 	if(run_enable == 1) {
 		timer_event(40, state_run_test_handler);
 	}
@@ -47,7 +47,7 @@ static void state_run_test_handler(u16 id)
 static void motor_roll_back_handler(u16 id)
 {
     if(motor_check_idle() == 0) {
-        state_run_test_handler(0);
+		timer_event(1, state_run_test_handler);
         return;
     }
     timer_event(100, motor_roll_back_handler);

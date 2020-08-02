@@ -35,7 +35,7 @@ clock_t *clock_get(void);
 
 s16 motor_manager_init(void);
 void motor_run_one_step(u8 motor_num, u8 direction);
-void motor_run_one_step_handler(u16 id);
+void motor_check_run(u16 id);
 #if 0
 void motor_time_adjust_mode_on(void);
 void motor_time_adjust_mode_off(void);
@@ -54,6 +54,7 @@ s16 motor_notify_to_position(void);
 s16 motor_battery_week_to_position(void);
 s16 motor_activity_to_position(void);
 
+void motor_run_one_unit(void);
 u16 motor_check_idle(void);
 
 s16 battery_init(adapter_callback cb);

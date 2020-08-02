@@ -275,6 +275,8 @@ void motor_set_position(MOTOR_MASK_E motor_mask)
     if(motor_mask & (MOTOR_MASK_ALL|MOTOR_MASK_NOTIFY)) {
         motor_notify_to_position();
     }
+
+    motor_run_one_unit();
     if(motor_mask & MOTOR_MASK_TRIG) { // zero adjust mode
         motor_trig_handler(0);
     }

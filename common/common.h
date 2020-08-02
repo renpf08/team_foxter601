@@ -297,6 +297,7 @@ enum {
 enum {
 	pos = 0,
 	neg = 1,
+	none = 2,
 };
 
 enum{
@@ -639,12 +640,14 @@ typedef struct {
 } motor_range_t;
 typedef struct {
     motor_range_t motor_range[max_motor];
+    u8 motor_contiune[max_motor];
     u8 motor_offset[max_motor];
     u8 motor_flag[max_motor];
     u8 motor_dirc[max_motor];
     u8 random_val[max_motor];
     s8 calc_dirc[max_motor];
     u8 motor_state;
+    u8 run_cnt;
 } motor_run_t;
 
 #define POS_HIGH(num) PioSet((num), 1UL)
