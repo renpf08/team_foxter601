@@ -23,7 +23,7 @@ s16 state_zero_adjust(REPORT_E cb, void *args)
 		/*hour back to zero position*/
 		adapter_ctrl.current_motor_num = minute_motor;
         MemCopy(adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
-        motor_run.timer_interval = 20;
+        motor_run.timer_interval = 10;
         motor_set_position(MOTOR_MASK_ALL|MOTOR_MASK_TRIG);
 	}else if(KEY_M_SHORT_PRESS == cb) {
 		/*motor switcch:hour -> minute -> activity -> date -> battery_week ->notify -> hour*/
@@ -31,7 +31,7 @@ s16 state_zero_adjust(REPORT_E cb, void *args)
 		if(max_motor == adapter_ctrl.current_motor_num) {
 			adapter_ctrl.current_motor_num = minute_motor;
 		}
-        motor_run.timer_interval = 20;
+        motor_run.timer_interval = 10;
         motor_set_position(MOTOR_MASK_TRIG);
 		//state_zero_adjust_motor_back_zero(motor_num);
 	}else if(KEY_A_SHORT_PRESS == cb) {
