@@ -38,6 +38,7 @@ static void state_run_test_handler(u16 id)
     motor_run_state_calc(date_motor, DAY_31, DAY_1);
     motor_run_state_calc(battery_week_motor, SUNDAY, BAT_PECENT_0);
     motor_run_state_calc(notify_motor, NOTIFY_NONE, NOTIFY_DONE);
+    MemSet(motor_run.motor_flag, 1, max_motor*sizeof(u8));
     motor_run_one_step_handler(0);
 	if(run_enable == 1) {
 		timer_event(40, state_run_test_handler);
