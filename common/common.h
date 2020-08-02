@@ -295,9 +295,9 @@ enum {
 };
 
 enum {
-	pos = 0,
-	neg = 1,
-	none = 2,
+	none = 0,
+	pos = 1,
+	neg = 2,
 };
 
 enum{
@@ -647,6 +647,7 @@ typedef struct {
     u8 random_val[max_motor];
     s8 calc_dirc[max_motor];
     u8 motor_state;
+    u8 timer_interval;
     u8 run_cnt;
 } motor_run_t;
 

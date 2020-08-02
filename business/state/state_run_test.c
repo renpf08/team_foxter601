@@ -38,7 +38,8 @@ static void state_run_test_handler(u16 id)
         motor_run_state_calc(i);
     }
     MemSet(motor_run.motor_flag, 1, max_motor*sizeof(u8));
-    motor_check_run(0);
+    motor_run.timer_interval = 5;
+    timer_event(1, motor_check_run);
 	if(run_enable == 1) {
 		timer_event(40, state_run_test_handler);
 	}

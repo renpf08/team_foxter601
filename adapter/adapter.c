@@ -244,10 +244,12 @@ static void motor_trig_handler(u16 id)
             trig_state = 1;
             adapter_ctrl.motor_dst[adapter_ctrl.current_motor_num] = adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].trig_pos;
             adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].func();
+            motor_set_position(1<<adapter_ctrl.current_motor_num);
         } else if(trig_state == 1) {
             trig_state = 2;
             adapter_ctrl.motor_dst[adapter_ctrl.current_motor_num] = adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].zero_pos;
             adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].func();
+            motor_set_position(1<<adapter_ctrl.current_motor_num);
         } else {
             trig_state = 0;
             return;
@@ -275,10 +277,11 @@ void motor_set_position(MOTOR_MASK_E motor_mask)
     if(motor_mask & (MOTOR_MASK_ALL|MOTOR_MASK_NOTIFY)) {
         motor_notify_to_position();
     }
-
-    motor_run_one_unit();
+    if(motor_mask & ~MOTOR_MASK_TRIG) {
+        motor_run_one_unit();
+    }
     if(motor_mask & MOTOR_MASK_TRIG) { // zero adjust mode
-        motor_trig_handler(0);
+        timer_event(50, motor_trig_handler);
     }
 }
 void motor_set_day_time(clock_t *clock, MOTOR_MASK_E mask)
