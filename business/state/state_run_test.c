@@ -89,9 +89,9 @@ static void state_run_test_handler(u16 id)
         timer_event(1, motor_recover_handler);
         return; // all motor has back to zero position
     }
-    motor_run.timer_interval = 3;
+    motor_run.timer_interval = 5;
     timer_event(1, motor_check_run);
-	timer_event(30, state_run_test_handler);
+	timer_event(40, state_run_test_handler);
 }
 
 s16 state_run_test(REPORT_E cb, void *args)

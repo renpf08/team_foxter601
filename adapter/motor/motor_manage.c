@@ -78,12 +78,12 @@ static motor_manager_t motor_manager = {
             
 motor_run_t motor_run = {
     .motor_range = {
-        [minute_motor] = {MINUTE_0, 181},
-        [hour_motor] = {HOUR0_0, 121},
-        [activity_motor] = {ACTIVITY_0, ACTIVITY_100},
-        [date_motor] = {DAY_31, 91},
-        [battery_week_motor] = {SUNDAY, 62},
-        [notify_motor] = {NOTIFY_NONE, NOTIFY_DONE},
+        [minute_motor]          = {0, 182},
+        [hour_motor]            = {0, 122},
+        [activity_motor]        = {0, ACTIVITY_100},
+        [date_motor]            = {0, 92},
+        [battery_week_motor]    = {0, 62},
+        [notify_motor]          = {0, NOTIFY_DONE},
     },
     .motor_contiune = {0,0,0,0,0,0},
     .motor_offset = {0,0,0,0,0,0},
