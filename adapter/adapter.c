@@ -314,6 +314,7 @@ void system_pre_reboot_handler(reboot_type_t type)
         nvm_write_date_time((u16*)clock, 0);
         nvm_write_motor_current_position((u16*)&adapter_ctrl.motor_dst, 0);
         MemCopy(adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
+        motor_run.timer_interval = 10;
         motor_set_position(MOTOR_MASK_ALL);
         timer_event(100, pre_reboot_handler);
     }
@@ -332,6 +333,7 @@ void system_post_reboot_handler(void)
     } else {
         MemCopy(&adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor);
     }
+    motor_run.timer_interval = 10;
     motor_set_position(MOTOR_MASK_ALL);
 }
 u8 state_machine_check(REPORT_E cb)

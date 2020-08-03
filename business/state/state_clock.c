@@ -132,6 +132,7 @@ s16 state_clock(REPORT_E cb, void *args)
     } else {
         mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE);
     }
+    motor_run.timer_interval = 10;
     motor_set_day_time(clock, mask);
     minutely_check(cb);
 

@@ -49,7 +49,7 @@ static void notify_swing_cb_handler(u16 id)
         minute = clock->minute;
         mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE);
     }
-    motor_run.timer_interval = 40;
+    motor_run.timer_interval = 50;
     motor_set_day_time(clock, mask);
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
 }
