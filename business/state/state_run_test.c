@@ -12,6 +12,7 @@ u8 motor_rdc[max_motor] = {0,0,0,0,0,0};
 
 static void motor_run_state_calc(u8 motor_num)
 {
+    #if 0
     if(motor_run.random_val[motor_num] <= motor_run.motor_range[motor_num].min) {
         motor_run.motor_dirc[motor_num] = pos;
         motor_run.calc_dirc[motor_num] = 1;
@@ -29,6 +30,24 @@ static void motor_run_state_calc(u8 motor_num)
     }
     motor_run.random_val[motor_num] += motor_run.calc_dirc[motor_num];
     motor_run.motor_offset[motor_num] += motor_run.calc_dirc[motor_num];
+    #else
+    if(motor_run.step_cnt[motor_num] <= motor_run.motor_range[motor_num].min) {
+        if((motor_num == battery_week_motor) || (motor_num == date_motor)) {
+            motor_run.motor_dirc[motor_num] = neg;
+        } else {
+            motor_run.motor_dirc[motor_num] = pos;
+        }
+        motor_run.calc_dirc[motor_num] = 1;
+    } else if(motor_run.step_cnt[motor_num] >= motor_run.motor_range[motor_num].max) {
+        if((motor_num == battery_week_motor) || (motor_num == date_motor)) {
+            motor_run.motor_dirc[motor_num] = pos;
+        } else {
+            motor_run.motor_dirc[motor_num] = neg;
+        }
+        motor_run.calc_dirc[motor_num] = -1;
+    }
+    motor_run.step_cnt[motor_num] += motor_run.calc_dirc[motor_num];
+    #endif
 }
 static void state_run_test_handler(u16 id)
 {
@@ -37,6 +56,7 @@ static void state_run_test_handler(u16 id)
     for(i = 0; i < max_motor; i++) {
         motor_run_state_calc(i);
     }
+    //motor_run_state_calc(hour_motor);
     MemSet(motor_run.motor_flag, 1, max_motor*sizeof(u8));
     motor_run.timer_interval = 5;
     timer_event(1, motor_check_run);
