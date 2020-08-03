@@ -32,6 +32,9 @@ s16 state_zero_adjust(REPORT_E cb, void *args)
 			adapter_ctrl.current_motor_num = minute_motor;
 		}
         motor_run.timer_interval = 10;
+        if((adapter_ctrl.current_motor_num == notify_motor) || (adapter_ctrl.current_motor_num == activity_motor)) {
+            motor_run.timer_interval = 25;
+        }
         motor_set_position(MOTOR_MASK_TRIG);
 		//state_zero_adjust_motor_back_zero(motor_num);
 	}else if(KEY_A_SHORT_PRESS == cb) {
