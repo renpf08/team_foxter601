@@ -608,6 +608,7 @@ typedef struct {
     #if USE_CMD_TEST_LOG_TYPE_EN
     u8 log_type_en[LOG_SEND_MAX];
     #endif
+    u8 system_started;
     u8 system_reboot_lock;
     u8 activity_pos;
     u8 current_motor_num;;

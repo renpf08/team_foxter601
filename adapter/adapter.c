@@ -12,6 +12,7 @@ adapter_ctrl_t adapter_ctrl = {
     #if USE_CMD_TEST_LOG_TYPE_EN
     .log_type_en = {1, 1, 1},
     #endif
+    .system_started = 0,
     .system_reboot_lock = 0,
     .activity_pos = 0,
     .current_motor_num = 0,
@@ -321,6 +322,14 @@ void system_pre_reboot_handler(reboot_type_t type)
         timer_event(100, pre_reboot_handler);
     }
 }
+static void system_init_handler(u16 id)
+{
+    if(motor_check_idle() == 0) {
+        adapter_ctrl.system_started = 1;
+        return;
+    }
+    timer_event(100, system_init_handler);
+}
 void system_post_reboot_handler(void)
 {
     clock_t* clock = clock_get();
@@ -336,6 +345,7 @@ void system_post_reboot_handler(void)
         MemCopy(&adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor);
     }
     motor_set_position(10, MOTOR_MASK_ALL);
+    timer_event(100, system_init_handler);
 }
 u8 state_machine_check(REPORT_E cb)
 {
@@ -345,6 +355,9 @@ u8 state_machine_check(REPORT_E cb)
         return 1;
     }
     if(adapter_ctrl.system_reboot_lock == 1) {
+        return 1;
+    }
+    if(adapter_ctrl.system_started == 0) {
         return 1;
     }
     if((motor_run.test_mode == 1) && (cb != KEY_A_B_M_LONG_PRESS)) {
