@@ -292,18 +292,31 @@ void motor_set_day_time(clock_t *clock, MOTOR_MASK_E mask)
     adapter_ctrl.motor_dst[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
     motor_set_position(mask);
 }
+static void motor_test_mode_reboot_handler(u16 id)
+{
+    if(motor_run.test_mode == 0) {
+		system_pre_reboot_handler(REBOOT_TYPE_OTA);
+        return;
+    }
+    timer_event(100, motor_test_mode_reboot_handler);
+}
 void system_pre_reboot_handler(reboot_type_t type)
 {
     clock_t* clock = clock_get();
 
-    adapter_ctrl.system_reboot_lock = 1;
-    adapter_ctrl.reboot_type = type;
-    APP_Move_Bonded(4);
-    nvm_write_date_time((u16*)clock, 0);
-    nvm_write_motor_current_position((u16*)&adapter_ctrl.motor_dst, 0);
-    MemCopy(adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
-    motor_set_position(MOTOR_MASK_ALL);
-    timer_event(100, pre_reboot_handler);
+    if(motor_run.test_mode == 1) {
+        adapter.cb(KEY_A_B_M_LONG_PRESS, NULL);
+        timer_event(100, motor_test_mode_reboot_handler);
+    } else {
+        adapter_ctrl.system_reboot_lock = 1;
+        adapter_ctrl.reboot_type = type;
+        APP_Move_Bonded(4);
+        nvm_write_date_time((u16*)clock, 0);
+        nvm_write_motor_current_position((u16*)&adapter_ctrl.motor_dst, 0);
+        MemCopy(adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
+        motor_set_position(MOTOR_MASK_ALL);
+        timer_event(100, pre_reboot_handler);
+    }
 }
 void system_post_reboot_handler(void)
 {

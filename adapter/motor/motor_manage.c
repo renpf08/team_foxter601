@@ -98,6 +98,7 @@ motor_run_t motor_run = {
     .motor_state = FIRST_HALF,
     .timer_interval = 0,
     .run_cnt = 0,
+    .test_mode = 0,
 };
 
 u8 hour_list[] = {

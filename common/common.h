@@ -653,6 +653,7 @@ typedef struct {
     u8 motor_state;
     u8 timer_interval;
     u8 run_cnt;
+    u8 test_mode;
 } motor_run_t;
 
 #define POS_HIGH(num) PioSet((num), 1UL)

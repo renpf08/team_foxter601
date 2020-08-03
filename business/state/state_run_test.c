@@ -29,6 +29,7 @@ static void motor_reset_handler(u16 id)
 static void motor_recover_handler(u16 id)
 {
     if(motor_check_idle() == 0) {
+        motor_run.test_mode = 0;
         *state = CLOCK;
         return;
     }
@@ -100,6 +101,7 @@ s16 state_run_test(REPORT_E cb, void *args)
     if(run_enable == 0)
     {
         run_enable = 1;
+        motor_run.test_mode = 1;
         MemSet(run_quit, 0, max_motor*sizeof(u8));
         MemCopy(motor_rdc, adapter_ctrl.motor_dst, max_motor*sizeof(u8));
         MemCopy(adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
