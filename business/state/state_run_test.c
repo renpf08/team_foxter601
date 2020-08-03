@@ -46,22 +46,32 @@ static void motor_run_state_calc(u8 motor_num)
         }
         motor_run.calc_dirc[motor_num] = -1;
     }
-    motor_run.step_cnt[motor_num] += motor_run.calc_dirc[motor_num];
+    if(motor_run.skip_cnt[motor_num] == 0) {
+        motor_run.step_cnt[motor_num]+= motor_run.calc_dirc[motor_num];
+    }
     #endif
 }
 static void state_run_test_handler(u16 id)
 {
-    u8 i = 0;
+    u8 i = activity_motor;
     
+    MemSet(motor_run.motor_flag, 1, max_motor*sizeof(u8));
+    for(i = 0; i < max_motor; i++) {
+        if(motor_run.skip_cnt[i] < (motor_run.skip_total[i])*2) {
+            motor_run.skip_cnt[i]++;
+            motor_run.motor_flag[i] = 0;
+        } else if(motor_run.skip_cnt[i] != 0) {
+            motor_run.skip_cnt[i] = 0;
+        }
+    }
     for(i = 0; i < max_motor; i++) {
         motor_run_state_calc(i);
     }
-    //motor_run_state_calc(hour_motor);
-    MemSet(motor_run.motor_flag, 1, max_motor*sizeof(u8));
+    //motor_run_state_calc(i);
     motor_run.timer_interval = 5;
     timer_event(1, motor_check_run);
 	if(run_enable == 1) {
-		timer_event(40, state_run_test_handler);
+		timer_event(30, state_run_test_handler);
 	}
 }
 
