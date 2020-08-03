@@ -32,7 +32,7 @@ static void notify_swing_cb_handler(u16 id)
         if(notify_swing_start == TRUE) {
             notify_swing_start = FALSE;
             adapter_ctrl.motor_dst[notify_motor] = NOTIFY_NONE;
-            motor_set_position(mask);
+            motor_set_position(40, mask);
         }
         return;
     }
@@ -48,9 +48,10 @@ static void notify_swing_cb_handler(u16 id)
     if(minute != clock->minute) {
         minute = clock->minute;
         mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE);
+        motor_set_day_time(clock, mask);
+    } else {
+        motor_set_position(40, mask);
     }
-    motor_run.timer_interval = 50;
-    motor_set_day_time(clock, mask);
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
 }
 void pair_code_generate(void)
@@ -89,7 +90,7 @@ void pair_code_generate(void)
     mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE);
     adapter_ctrl.motor_dst[minute_motor] = minute;
     adapter_ctrl.motor_dst[hour_motor] = hour;
-    motor_set_position(mask);
+    motor_set_position(10, mask);
 }
 static s16 ble_pair(void *args)
 {
@@ -163,7 +164,7 @@ static u16 ble_change(void *args)
         #if USE_UART_PRINT
         print((u8*)&"adv stop", 8);
         #endif
-        motor_set_position(MOTOR_MASK_NOTIFY);
+        motor_set_position(40, MOTOR_MASK_NOTIFY);
     } else if(state_ble == app_connected){ // connected
         #if USE_UART_PRINT
         print((u8*)&"connect", 7);
@@ -171,7 +172,7 @@ static u16 ble_change(void *args)
         #if USE_NO_SWING
         if(swing_en == FALSE) swing_en = TRUE;
         #endif
-        motor_set_position(MOTOR_MASK_NOTIFY);
+        motor_set_position(40, MOTOR_MASK_NOTIFY);
     } else { // disconnected
         #if USE_UART_PRINT
         print((u8*)&"disconect", 9);

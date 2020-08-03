@@ -16,7 +16,7 @@ adapter_ctrl_t adapter_ctrl = {
     .activity_pos = 0,
     .current_motor_num = 0,
     .current_bat_week_sta = state_battery,
-    .reboot_type = 0,
+    .reboot_type = REBOOT_TYPE_BUTTON,
     .zero_adjust_mode = {0,0},
     .motor_dst = {0, 0, 0, 0, 0, 0},
     .motor_zero = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE},
@@ -166,7 +166,7 @@ static void activity_handler(u16 id)
     } else if(target_steps == 0) {
         adapter_ctrl.motor_dst[activity_motor] = 0;
     }
-    motor_set_position(MOTOR_MASK_ACTIVITY);
+    motor_set_position(25, MOTOR_MASK_ACTIVITY);
     
     u16 length = 0; 
     u8 rsp_buf[20];
@@ -238,26 +238,29 @@ u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state)
 static void motor_trig_handler(u16 id)
 {
     static u8 trig_state = 0;
+    u8 timer_interval = 10;
 
     if(motor_check_idle() == 0) {
+        if((adapter_ctrl.current_motor_num == notify_motor) || (adapter_ctrl.current_motor_num == activity_motor)) {
+            timer_interval = 25;
+        }
         if(trig_state == 0) {
             trig_state = 1;
             adapter_ctrl.motor_dst[adapter_ctrl.current_motor_num] = adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].trig_pos;
             adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].func();
-            motor_set_position(1<<adapter_ctrl.current_motor_num);
         } else if(trig_state == 1) {
             trig_state = 2;
             adapter_ctrl.motor_dst[adapter_ctrl.current_motor_num] = adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].zero_pos;
             adapter_ctrl.motor_trig[adapter_ctrl.current_motor_num].func();
-            motor_set_position(1<<adapter_ctrl.current_motor_num);
         } else {
             trig_state = 0;
             return;
         }
+        motor_set_position(timer_interval, 1<<adapter_ctrl.current_motor_num);
     }
     timer_event(100, motor_trig_handler);
 }
-void motor_set_position(MOTOR_MASK_E motor_mask)
+void motor_set_position(u8 timer_intervel, MOTOR_MASK_E motor_mask)
 {
     if(motor_mask & (MOTOR_MASK_ALL|MOTOR_MASK_MINUTE)) {
         motor_minute_to_position();
@@ -278,7 +281,7 @@ void motor_set_position(MOTOR_MASK_E motor_mask)
         motor_notify_to_position();
     }
     if(motor_mask & ~MOTOR_MASK_TRIG) {
-        motor_run_one_unit();
+        motor_run_one_unit(timer_intervel);
     }
     if(motor_mask & MOTOR_MASK_TRIG) { // zero adjust mode
         timer_event(50, motor_trig_handler);
@@ -290,12 +293,12 @@ void motor_set_day_time(clock_t *clock, MOTOR_MASK_E mask)
     adapter_ctrl.motor_dst[hour_motor] = clock->hour;
     adapter_ctrl.motor_dst[date_motor] = adapter_ctrl.date[clock->day];
     adapter_ctrl.motor_dst[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
-    motor_set_position(mask);
+    motor_set_position(10, mask);
 }
 static void motor_test_mode_reboot_handler(u16 id)
 {
     if(motor_run.test_mode == 0) {
-		system_pre_reboot_handler(REBOOT_TYPE_OTA);
+		system_pre_reboot_handler(adapter_ctrl.reboot_type);
         return;
     }
     timer_event(100, motor_test_mode_reboot_handler);
@@ -304,18 +307,17 @@ void system_pre_reboot_handler(reboot_type_t type)
 {
     clock_t* clock = clock_get();
 
+    adapter_ctrl.reboot_type = type;
     if(motor_run.test_mode == 1) {
         adapter.cb(KEY_A_B_M_LONG_PRESS, NULL);
         timer_event(100, motor_test_mode_reboot_handler);
     } else {
         adapter_ctrl.system_reboot_lock = 1;
-        adapter_ctrl.reboot_type = type;
         APP_Move_Bonded(4);
         nvm_write_date_time((u16*)clock, 0);
         nvm_write_motor_current_position((u16*)&adapter_ctrl.motor_dst, 0);
         MemCopy(adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
-        motor_run.timer_interval = 10;
-        motor_set_position(MOTOR_MASK_ALL);
+        motor_set_position(10, MOTOR_MASK_ALL);
         timer_event(100, pre_reboot_handler);
     }
 }
@@ -333,8 +335,7 @@ void system_post_reboot_handler(void)
     } else {
         MemCopy(&adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor);
     }
-    motor_run.timer_interval = 10;
-    motor_set_position(MOTOR_MASK_ALL);
+    motor_set_position(10, MOTOR_MASK_ALL);
 }
 u8 state_machine_check(REPORT_E cb)
 {
@@ -344,6 +345,9 @@ u8 state_machine_check(REPORT_E cb)
         return 1;
     }
     if(adapter_ctrl.system_reboot_lock == 1) {
+        return 1;
+    }
+    if((motor_run.test_mode == 1) && (cb != KEY_A_B_M_LONG_PRESS)) {
         return 1;
     }
     return 0;

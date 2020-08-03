@@ -52,6 +52,12 @@ static void motor_run_state_calc(u8 motor_num)
         }
         motor_run.calc_dirc[motor_num] = 1;
     } else if(motor_run.step_cnt[motor_num] >= motor_run.motor_range[motor_num].max) {
+        if((run_enable == 0) && ((motor_num == minute_motor) ||(motor_num == hour_motor))) { // back to zero position
+            run_quit[motor_num] = 1;
+            motor_run.motor_flag[motor_num] = 0;
+            motor_run.motor_dirc[motor_num] = none;
+            return;
+        }
         if((motor_num == battery_week_motor) || (motor_num == date_motor)) {
             motor_run.motor_dirc[motor_num] = pos;
         } else {
@@ -65,51 +71,52 @@ static void motor_run_state_calc(u8 motor_num)
 }
 static void state_run_test_handler(u16 id)
 {
-    u8 i = activity_motor;
-    
-    MemSet(motor_run.motor_flag, 1, max_motor*sizeof(u8));
-    for(i = 0; i < max_motor; i++) {
-        if(motor_run.skip_cnt[i] < (motor_run.skip_total[i])*2) {
-            motor_run.skip_cnt[i]++;
-            motor_run.motor_flag[i] = 0;
-        } else if(motor_run.skip_cnt[i] != 0) {
-            motor_run.skip_cnt[i] = 0;
+    u8 i = 0;
+
+    if(motor_check_idle() == 0) {
+        MemSet(motor_run.motor_flag, 1, max_motor*sizeof(u8));
+        for(i = 0; i < max_motor; i++) {
+            if(motor_run.skip_cnt[i] < (motor_run.skip_total[i])*2) {
+                motor_run.skip_cnt[i]++;
+                motor_run.motor_flag[i] = 0;
+            } else if(motor_run.skip_cnt[i] != 0) {
+                motor_run.skip_cnt[i] = 0;
+            }
         }
-    }
-    for(i = 0; i < max_motor; i++) {
-        motor_run_state_calc(i);
-    }
-    for(i = 0; i < max_motor; i++) {
-        if(run_quit[i] != 1) {
-            break;
+        for(i = 0; i < max_motor; i++) {
+            motor_run_state_calc(i);
         }
+        for(i = 0; i < max_motor; i++) {
+            if(run_quit[i] != 1) {
+                break;
+            }
+        }
+        if(i == max_motor) {
+            MemCopy(adapter_ctrl.motor_dst, motor_rdc, max_motor*sizeof(u8));
+            motor_set_position(10, MOTOR_MASK_ALL);
+            timer_event(1, motor_recover_handler);
+            return; // all motor has back to zero position
+        }
+        motor_run.timer_interval = 5;
+        timer_event(1, motor_check_run);
     }
-    if(i == max_motor) {
-        MemCopy(adapter_ctrl.motor_dst, motor_rdc, max_motor*sizeof(u8));
-        motor_set_position(MOTOR_MASK_ALL);
-        timer_event(1, motor_recover_handler);
-        return; // all motor has back to zero position
-    }
-    motor_run.timer_interval = 5;
-    timer_event(1, motor_check_run);
-	timer_event(40, state_run_test_handler);
+	timer_event(25, state_run_test_handler);
 }
 
 s16 state_run_test(REPORT_E cb, void *args)
 {
-    
-    if(run_enable == 0)
-    {
+    state = args;
+
+    if(run_enable == 0) {
         run_enable = 1;
         motor_run.test_mode = 1;
         MemSet(run_quit, 0, max_motor*sizeof(u8));
         MemCopy(motor_rdc, adapter_ctrl.motor_dst, max_motor*sizeof(u8));
         MemCopy(adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
-        motor_set_position(MOTOR_MASK_ALL);
+        motor_set_position(10, MOTOR_MASK_ALL);
         timer_event(1, motor_reset_handler);
     } else {
         run_enable = 0;
-        state = args;
     }
 	return 0;
 }

@@ -367,10 +367,11 @@ void motor_check_run(u16 id)
 			break;
 	}
 }
-void motor_run_one_unit(void)
+void motor_run_one_unit(u8 timer_intervel)
 {
 	u8 i = 0;
 
+    motor_run.timer_interval = timer_intervel;
     motor_run.run_cnt = 0;
 	for(i = 0; i < max_motor; i++) {
 		if(motor_run.motor_flag[i] == 1) {

@@ -18,7 +18,7 @@ extern bool ble_send_log(uint8 *data, uint16 size);
 void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
 u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state);
-void motor_set_position(MOTOR_MASK_E motor_mask);
+void motor_set_position(u8 timer_intervel, MOTOR_MASK_E motor_mask);
 void motor_set_day_time(clock_t *clock, MOTOR_MASK_E mask);
 void system_pre_reboot_handler(reboot_type_t type);
 void system_post_reboot_handler(void);
@@ -43,7 +43,7 @@ s16 motor_notify_to_position(void);
 s16 motor_battery_week_to_position(void);
 s16 motor_activity_to_position(void);
 
-void motor_run_one_unit(void);
+void motor_run_one_unit(u8 timer_intervel);
 u16 motor_check_idle(void);
 
 s16 battery_init(adapter_callback cb);

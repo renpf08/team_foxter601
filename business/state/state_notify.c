@@ -107,7 +107,7 @@ s16 state_notify(REPORT_E cb, void *args)
         adapter_ctrl.motor_dst[notify_motor] = NOTIFY_NONE;
 	}
     if(adapter_ctrl.motor_dst[notify_motor] < NOTIFY_DONE) {
-        motor_set_position(MOTOR_MASK_NOTIFY);
+        motor_set_position(40, MOTOR_MASK_NOTIFY);
     }
     log[2] = ancs_msg->sta;
     log[3] = ancs_msg->level;
