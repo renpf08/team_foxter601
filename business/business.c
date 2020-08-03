@@ -125,6 +125,6 @@ s16 business_init(void)
 	#endif
 
 	business.state_now = CLOCK;
-	state_clock(CLOCK_1_MINUTE, NULL);
+	//state_clock(CLOCK_1_MINUTE, NULL);
 	return 0;
 }

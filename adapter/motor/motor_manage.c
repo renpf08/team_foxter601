@@ -87,7 +87,7 @@ motor_run_t motor_run = {
     },
     .motor_contiune = {0,0,0,0,0,0},
     .motor_offset = {0,0,0,0,0,0},
-    .motor_flag = {1,1,1,1,1,1},
+    .motor_flag = {0,0,0,0,0,0},
     .motor_dirc = {0,0,0,0,0,0},
     .skip_total = {0,0,0,0,0,1},
     .skip_cnt = {0,0,0,0,0,0},
