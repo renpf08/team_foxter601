@@ -27,6 +27,7 @@ static void minutely_check(REPORT_E cb)
     cmd_params_t* params = cmd_get_params();
 
     if((clock->hour == 59)&&(clock->minute == 59)&&(clock->second == 59)) { // new day
+        adapter_ctrl.motor_dst[activity_motor] = 40;
         data.year = clock->year;
         data.month = clock->month;
         data.day = clock->day;

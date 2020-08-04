@@ -7,18 +7,7 @@
 #include "state.h"
 
 s16 state_zero_adjust(REPORT_E cb, void *args)
-{	
-//    u8 msg[3] = {CMD_TEST_SEND, 0x02, 0};
-//    if(adapter_ctrl.zero_adjust_mode.press == 1) {
-//        msg[2] = 0x01;
-//        BLE_SEND_LOG(msg, 3);
-//        return 1;
-//    } else if(adapter_ctrl.zero_adjust_mode.run == 1) {
-//        msg[2] = 0x02;
-//        BLE_SEND_LOG(msg, 3);
-//        return 1;
-//    }
-//    adapter_ctrl.zero_adjust_mode.press = 1;
+{
     u8 timer_interval = 10;
 	if(KEY_A_B_LONG_PRESS == cb) {
 		/*hour back to zero position*/

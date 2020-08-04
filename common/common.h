@@ -614,7 +614,6 @@ typedef struct {
     u8 current_motor_num;;
     u8 current_bat_week_sta;
     reboot_type_t reboot_type;
-    zero_adjust_lock_t zero_adjust_mode;
     u8 motor_dst[max_motor];
     u8 motor_zero[max_motor];
     motor_trig_t motor_trig[max_motor];

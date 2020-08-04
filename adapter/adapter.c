@@ -18,7 +18,6 @@ adapter_ctrl_t adapter_ctrl = {
     .current_motor_num = 0,
     .current_bat_week_sta = state_battery,
     .reboot_type = REBOOT_TYPE_BUTTON,
-    .zero_adjust_mode = {0,0},
     .motor_dst = {0, 0, 0, 0, 0, 0},
     .motor_zero = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE},
     .motor_trig = {
@@ -155,10 +154,19 @@ void print(u8 *buf, u16 num)
 	}
 }
 #endif
+static void activity_set_hander(u16 id) 
+{
+    if(motor_check_idle() == 0) {
+        motor_set_position(25, MOTOR_MASK_ACTIVITY);
+        return;
+    }
+    timer_event(100, activity_set_hander);
+}
 static void activity_handler(u16 id)
 {
     u32 target_steps = cmd_get()->user_info.target_steps;
     u32 current_steps = step_get();
+    static u32 last_steps = 0;
 
     if(current_steps > target_steps) {
         adapter_ctrl.motor_dst[activity_motor] = 40; // total 40 grids
@@ -167,7 +175,11 @@ static void activity_handler(u16 id)
     } else if(target_steps == 0) {
         adapter_ctrl.motor_dst[activity_motor] = 0;
     }
-    motor_set_position(25, MOTOR_MASK_ACTIVITY);
+    if(last_steps != adapter_ctrl.motor_dst[activity_motor]) {
+        //motor_set_position(25, MOTOR_MASK_ACTIVITY);
+        timer_event(10, activity_set_hander);
+    }
+    last_steps = adapter_ctrl.motor_dst[activity_motor];
     
     u16 length = 0; 
     u8 rsp_buf[20];
