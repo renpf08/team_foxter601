@@ -119,16 +119,15 @@ u8 hour_list[] = {
 
 s16 motor_hour_to_position(void)
 {
-    u8 hour = adapter_ctrl.motor_dst[hour_motor];
 	/*hour dst position configuration*/
-	u8 minute_pos = (motor_manager.motor_status[minute_motor].dst_pos == MINUTE_60) ? \
-						MINUTE_0 : motor_manager.motor_status[minute_motor].dst_pos;
+    u8 hour_pos = adapter_ctrl.motor_dst[hour_motor];
+	u8 hour_offset = motor_manager.motor_status[minute_motor].dst_pos/12;
 
-	if(hour >= 12) {
-		hour -= 12;
+	if(hour_pos >= 12) {
+		hour_pos -= 12;
 	}
 
-	motor_manager.motor_status[hour_motor].dst_pos = hour_list[hour] + minute_pos/12;
+	motor_manager.motor_status[hour_motor].dst_pos = hour_list[hour_pos] + hour_offset;
 	if((HOUR11_8 == motor_manager.motor_status[hour_motor].cur_pos) &&
 	   (HOUR0_0 == motor_manager.motor_status[hour_motor].dst_pos) ){
 		motor_manager.motor_status[hour_motor].dst_pos = HOUR12_0;
