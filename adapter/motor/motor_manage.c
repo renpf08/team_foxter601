@@ -325,7 +325,7 @@ void motor_check_run(u16 id)
                 if(motor_run.motor_flag[i] == 1) {
                     motor_manager.motor_status[i].motor_ptr->motor_stop(NULL);
                     if(motor_run.motor_contiune[i] == 1) {
-                        continue_flag = motor_check_continue(i);
+                        continue_flag += motor_check_continue(i);
                     } else {
                         motor_run.motor_flag[i] = 0;
                     }
@@ -353,7 +353,7 @@ void motor_check_run(u16 id)
                 if(motor_run.motor_flag[i] == 1) {
                     motor_manager.motor_status[i].motor_ptr->motor_stop(NULL);
                     if(motor_run.motor_contiune[i] == 1) {
-                        continue_flag = motor_check_continue(i);
+                        continue_flag += motor_check_continue(i);
                     } else {
                         motor_run.motor_flag[i] = 0;
                     }
