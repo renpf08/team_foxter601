@@ -291,7 +291,8 @@ static u8 motor_check_continue(u8 motor_num)
                 motor_manager.motor_status[motor_num].cur_pos = 1;
             }
 			motor_manager.motor_status[motor_num].cur_pos--;
-    	} else {
+    	}
+        if(motor_manager.motor_status[motor_num].dst_pos == motor_manager.motor_status[motor_num].cur_pos) {
             motor_run.motor_flag[motor_num] = 0;
             motor_run.motor_contiune[motor_num] = 0;
             motor_run.motor_dirc[motor_num] = none;
@@ -324,7 +325,7 @@ void motor_check_run(u16 id)
                 if(motor_run.motor_flag[i] == 1) {
                     motor_manager.motor_status[i].motor_ptr->motor_stop(NULL);
                     if(motor_run.motor_contiune[i] == 1) {
-                        continue_flag += motor_check_continue(i);
+                        continue_flag = motor_check_continue(i);
                     } else {
                         motor_run.motor_flag[i] = 0;
                     }
@@ -352,7 +353,7 @@ void motor_check_run(u16 id)
                 if(motor_run.motor_flag[i] == 1) {
                     motor_manager.motor_status[i].motor_ptr->motor_stop(NULL);
                     if(motor_run.motor_contiune[i] == 1) {
-                        continue_flag += motor_check_continue(i);
+                        continue_flag = motor_check_continue(i);
                     } else {
                         motor_run.motor_flag[i] = 0;
                     }
