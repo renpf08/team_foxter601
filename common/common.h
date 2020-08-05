@@ -577,7 +577,8 @@ typedef s16 (*timer_start_func)(u16 ms, timer_cb cb);
 
 typedef s16 (*state_func)(REPORT_E cb, void *args);
 
-typedef s16 (* motor_handler)(void);
+typedef s16 (*motor_set_handler)(void);
+typedef s16 (*motor_cb_handler)(void *args);
 
 enum {
 	minute_motor = 0,
@@ -599,7 +600,7 @@ typedef enum
 }NOTIFY_STATE_E;
 
 typedef struct {
-    motor_handler func;
+    motor_set_handler func;
     u8 zero_pos;
     u8 trig_pos;
 } motor_trig_t;
@@ -643,6 +644,7 @@ typedef struct {
 	u8 dst_pos;
 	u8 run_flag;
 	u8 unit_interval_step;
+	u8 unit_step_num;
     u8 run_direc;
     motor_range_t run_range;
 }motor_run_status_t;
@@ -655,6 +657,7 @@ typedef struct {
     u8 skip_cnt[max_motor];
     u8 step_cnt[max_motor];
     s8 calc_dirc[max_motor];
+	u8 bat_week_dst;
 	u8 run_interval_ms;
     u8 timer_interval;
     u8 run_test_mode;

@@ -7,8 +7,6 @@
 #define BAT_INTERVAL_STEP 2
 #define WEEK_INTERVAL_STEP 5
 
-typedef s16 (*motor_cb_handler)(void *args);
-
 enum {
 	FIRST_HALF,
 	SECOND_HALF,
@@ -25,24 +23,19 @@ typedef struct {
     motor_cb_ctrl_t cb[max_motor];
     
 	/*record step run state and run step interval*/
-	u8 run_step_num[max_motor];
-	u8 bat_week_dst;
 }motor_manager_t;
 
-static motor_manager_t motor_manager = {
-	.run_step_num = {0,0,0,0,0,0},
-	.bat_week_dst = BAT_PECENT_0,
-};
+static motor_manager_t motor_manager;
             
 motor_run_t motor_run = {
 	.status = {
-     // motor                     cur               dst flag    unit_step             direc range              
-		[minute_motor]          = {MINUTE_0,        0,  0,      3,                    none, {0, 180}},
-		[hour_motor]            = {HOUR0_0,         0,  0,      2,                    none, {0, 120}},
-		[activity_motor]        = {ACTIVITY_0,      0,  0,      1,                    none, {0, ACTIVITY_100}},
-		[date_motor]            = {DAY_1,           0,  0,      3,                    none, {0, 90}},
-		[battery_week_motor]    = {BAT_PECENT_0,    0,  0,      BAT_INTERVAL_STEP,    none, {0, 60}},
-		[notify_motor]          = {NOTIFY_NONE,     0,  0,      1,                    none, {0, NOTIFY_DONE}},
+     // motor                     cur               dst flag    unit_step             steps direc range              
+		[minute_motor]          = {MINUTE_0,        0,  0,      3,                    0,    none, {0, 180}},
+		[hour_motor]            = {HOUR0_0,         0,  0,      2,                    0,    none, {0, 120}},
+		[activity_motor]        = {ACTIVITY_0,      0,  0,      1,                    0,    none, {0, ACTIVITY_100}},
+		[date_motor]            = {DAY_1,           0,  0,      3,                    0,    none, {0, 90}},
+		[battery_week_motor]    = {BAT_PECENT_0,    0,  0,      BAT_INTERVAL_STEP,    0,    none, {0, 60}},
+		[notify_motor]          = {NOTIFY_NONE,     0,  0,      1,                    0,    none, {0, NOTIFY_DONE}},
 	 },
     .run_next = {0,0,0,0,0,0},
     .run_state_self = {FIRST_HALF,FIRST_HALF,FIRST_HALF,FIRST_HALF,FIRST_HALF,FIRST_HALF},
@@ -51,6 +44,7 @@ motor_run_t motor_run = {
     .skip_cnt = {0,0,0,0,0,0},
     .step_cnt = {0,0,0,0,0,0},
     .calc_dirc = {1,1,1,1,1,1},
+	.bat_week_dst = BAT_PECENT_0,
 	.run_interval_ms = 100,
     .timer_interval = 0,
     .run_test_mode = 0,
@@ -155,12 +149,12 @@ static void motor_battery_week_change(u16 id)
 	if((BAT_PECENT_100 == motor_run.status[battery_week_motor].cur_pos) &&
 		(0 == motor_run.status[battery_week_motor].run_flag)) {
 		
-		if(BAT_PECENT_100 == motor_manager.bat_week_dst) {
+		if(BAT_PECENT_100 == motor_run.bat_week_dst) {
 			return;
 		}
 		
-		motor_run.status[battery_week_motor].dst_pos = motor_manager.bat_week_dst;
-		if(motor_manager.bat_week_dst > BAT_PECENT_100) {
+		motor_run.status[battery_week_motor].dst_pos = motor_run.bat_week_dst;
+		if(motor_run.bat_week_dst > BAT_PECENT_100) {
 			motor_run.status[battery_week_motor].unit_interval_step = BAT_INTERVAL_STEP;
 		}else {
 			motor_run.status[battery_week_motor].unit_interval_step = WEEK_INTERVAL_STEP;
@@ -177,12 +171,12 @@ s16 motor_battery_week_to_position(void)
 	if((motor_run.status[battery_week_motor].cur_pos > BAT_PECENT_100) &&
 		(adapter_ctrl.motor_dst[battery_week_motor] <= BAT_PECENT_100)) {
 		motor_run.status[battery_week_motor].dst_pos = BAT_PECENT_100;
-		motor_manager.bat_week_dst = adapter_ctrl.motor_dst[battery_week_motor];
+		motor_run.bat_week_dst = adapter_ctrl.motor_dst[battery_week_motor];
 		timer_event(motor_run.run_interval_ms, motor_battery_week_change);
 	}else if((motor_run.status[battery_week_motor].cur_pos < BAT_PECENT_100) &&
 		(adapter_ctrl.motor_dst[battery_week_motor] >= BAT_PECENT_100)) {
 		motor_run.status[battery_week_motor].dst_pos = BAT_PECENT_100;
-		motor_manager.bat_week_dst = adapter_ctrl.motor_dst[battery_week_motor];
+		motor_run.bat_week_dst = adapter_ctrl.motor_dst[battery_week_motor];
 		timer_event(motor_run.run_interval_ms, motor_battery_week_change);
 	}else if(BAT_PECENT_100 == motor_run.status[battery_week_motor].cur_pos) {
 		motor_run.status[battery_week_motor].dst_pos = adapter_ctrl.motor_dst[battery_week_motor];
@@ -223,9 +217,9 @@ enum {
 };
 static u8 motor_check_continue(u8 motor_num)
 {
-	motor_manager.run_step_num[motor_num]++;
-	if(motor_manager.run_step_num[motor_num] >= motor_run.status[motor_num].unit_interval_step) {
-		motor_manager.run_step_num[motor_num] = 0;
+	motor_run.status[motor_num].unit_step_num++;
+	if(motor_run.status[motor_num].unit_step_num >= motor_run.status[motor_num].unit_interval_step) {
+		motor_run.status[motor_num].unit_step_num = 0;
 
         //motor_check_direction(motor_num);
     	if(motor_run.status[motor_num].dst_pos > motor_run.status[motor_num].cur_pos) {
@@ -342,7 +336,7 @@ void motor_run_one_unit(u8 timer_intervel)
         if(motor_run.status[i].run_flag != 0) {
             motor_run.run_next[i] = 1;
             run_cnt++;
-    	    motor_manager.run_step_num[i] = 0;
+    	    motor_run.status[i].unit_step_num = 0;
         }
 	}
 
