@@ -38,30 +38,30 @@ static void motor_recover_handler(u16 id)
 
 static void motor_run_state_calc(u8 motor_num)
 {
-    if(motor_run.step_cnt[motor_num] <= motor_run.run_range[motor_num].min) {
+    if(motor_run.step_cnt[motor_num] <= motor_run.status[motor_num].run_range.min) {
         if(run_enable == 0) { // back to zero position
             run_quit[motor_num] = 1;
             motor_run.status[motor_num].run_flag = 0;
-            motor_run.run_direc[motor_num] = none;
+            motor_run.status[motor_num].run_direc = none;
             return;
         }
         if((motor_num == battery_week_motor) || (motor_num == date_motor)) {
-            motor_run.run_direc[motor_num] = neg;
+            motor_run.status[motor_num].run_direc = neg;
         } else {
-            motor_run.run_direc[motor_num] = pos;
+            motor_run.status[motor_num].run_direc = pos;
         }
         motor_run.calc_dirc[motor_num] = 1;
-    } else if(motor_run.step_cnt[motor_num] >= motor_run.run_range[motor_num].max) {
+    } else if(motor_run.step_cnt[motor_num] >= motor_run.status[motor_num].run_range.max) {
 //        if((run_enable == 0) && ((motor_num == minute_motor) ||(motor_num == hour_motor))) { // back to zero position
 //            run_quit[motor_num] = 1;
 //            motor_run.status[motor_num].run_flag = 0;
-//            motor_run.run_direc[motor_num] = none;
+//            motor_run.status[motor_num].run_direc = none;
 //            return;
 //        }
         if((motor_num == battery_week_motor) || (motor_num == date_motor)) {
-            motor_run.run_direc[motor_num] = pos;
+            motor_run.status[motor_num].run_direc = pos;
         } else {
-            motor_run.run_direc[motor_num] = neg;
+            motor_run.status[motor_num].run_direc = neg;
         }
         motor_run.calc_dirc[motor_num] = -1;
     }

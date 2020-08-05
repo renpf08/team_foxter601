@@ -26,41 +26,32 @@ typedef struct {
     
 	/*record step run state and run step interval*/
 	u8 run_step_num[max_motor];
-	u8 run_interval_ms;
 	u8 bat_week_dst;
 }motor_manager_t;
 
 static motor_manager_t motor_manager = {
 	.run_step_num = {0,0,0,0,0,0},
-	.run_interval_ms = 100,
 	.bat_week_dst = BAT_PECENT_0,
 };
             
 motor_run_t motor_run = {
 	.status = {
-		[minute_motor] = {MINUTE_0, 0, 0, 3},
-		[hour_motor] = {HOUR0_0, 0, 0, 2},
-		[activity_motor] = {ACTIVITY_0, 0, 0, 1},
-		[date_motor] = {DAY_1, 0, 0, 3},
-		[battery_week_motor] = {BAT_PECENT_0, 0, 0, BAT_INTERVAL_STEP},
-		[notify_motor] = {NOTIFY_NONE, 0, 0, 1},
+     // motor                     cur               dst flag    unit_step             direc range              
+		[minute_motor]          = {MINUTE_0,        0,  0,      3,                    none, {0, 180}},
+		[hour_motor]            = {HOUR0_0,         0,  0,      2,                    none, {0, 120}},
+		[activity_motor]        = {ACTIVITY_0,      0,  0,      1,                    none, {0, ACTIVITY_100}},
+		[date_motor]            = {DAY_1,           0,  0,      3,                    none, {0, 90}},
+		[battery_week_motor]    = {BAT_PECENT_0,    0,  0,      BAT_INTERVAL_STEP,    none, {0, 60}},
+		[notify_motor]          = {NOTIFY_NONE,     0,  0,      1,                    none, {0, NOTIFY_DONE}},
 	 },
-    .run_range = {
-        [minute_motor]          = {0, 180},
-        [hour_motor]            = {0, 120},
-        [activity_motor]        = {0, ACTIVITY_100},
-        [date_motor]            = {0, 90},
-        [battery_week_motor]    = {0, 60},
-        [notify_motor]          = {0, NOTIFY_DONE},
-    },
     .run_next = {0,0,0,0,0,0},
-    .run_direc = {none,none,none,none,none,none},
     .run_state_self = {FIRST_HALF,FIRST_HALF,FIRST_HALF,FIRST_HALF,FIRST_HALF,FIRST_HALF},
     .run_main_self = FIRST_HALF,
     .skip_total = {0,0,1,0,0,1},
     .skip_cnt = {0,0,0,0,0,0},
     .step_cnt = {0,0,0,0,0,0},
     .calc_dirc = {1,1,1,1,1,1},
+	.run_interval_ms = 100,
     .timer_interval = 0,
     .run_test_mode = 0,
 };
@@ -187,12 +178,12 @@ s16 motor_battery_week_to_position(void)
 		(adapter_ctrl.motor_dst[battery_week_motor] <= BAT_PECENT_100)) {
 		motor_run.status[battery_week_motor].dst_pos = BAT_PECENT_100;
 		motor_manager.bat_week_dst = adapter_ctrl.motor_dst[battery_week_motor];
-		timer_event(motor_manager.run_interval_ms, motor_battery_week_change);
+		timer_event(motor_run.run_interval_ms, motor_battery_week_change);
 	}else if((motor_run.status[battery_week_motor].cur_pos < BAT_PECENT_100) &&
 		(adapter_ctrl.motor_dst[battery_week_motor] >= BAT_PECENT_100)) {
 		motor_run.status[battery_week_motor].dst_pos = BAT_PECENT_100;
 		motor_manager.bat_week_dst = adapter_ctrl.motor_dst[battery_week_motor];
-		timer_event(motor_manager.run_interval_ms, motor_battery_week_change);
+		timer_event(motor_run.run_interval_ms, motor_battery_week_change);
 	}else if(BAT_PECENT_100 == motor_run.status[battery_week_motor].cur_pos) {
 		motor_run.status[battery_week_motor].dst_pos = adapter_ctrl.motor_dst[battery_week_motor];
 		if(motor_run.status[battery_week_motor].dst_pos > BAT_PECENT_100) {
@@ -238,10 +229,10 @@ static u8 motor_check_continue(u8 motor_num)
 
         //motor_check_direction(motor_num);
     	if(motor_run.status[motor_num].dst_pos > motor_run.status[motor_num].cur_pos) {
-    		motor_run.run_direc[motor_num] = pos;
+    		motor_run.status[motor_num].run_direc = pos;
 			motor_run.status[motor_num].cur_pos++;
     	}else if(motor_run.status[motor_num].dst_pos < motor_run.status[motor_num].cur_pos) {
-    		motor_run.run_direc[motor_num] = neg;
+    		motor_run.status[motor_num].run_direc = neg;
             if(motor_run.status[motor_num].cur_pos == 0) {
                 motor_run.status[motor_num].cur_pos = 1;
             }
@@ -250,7 +241,7 @@ static u8 motor_check_continue(u8 motor_num)
         if(motor_run.status[motor_num].dst_pos == motor_run.status[motor_num].cur_pos) {
             motor_run.status[motor_num].run_flag = 0;
             motor_run.run_next[motor_num] = 0;
-            motor_run.run_direc[motor_num] = none;
+            motor_run.status[motor_num].run_direc = none;
             return MOTOR_RUN_OVER;
     	}
         return MOTOR_RUN_NEXT_UNIT;
@@ -268,7 +259,7 @@ void motor_check_run(u16 id)
             if((motor_run.status[i].run_flag == 0) || (motor_run.run_state_self[i] != motor_run.run_main_self)) {
                 continue;
             }
-            motor_manager.cb[i].motor_run_half[motor_run.run_state_self[i]][motor_run.run_direc[i]](NULL);
+            motor_manager.cb[i].motor_run_half[motor_run.run_state_self[i]][motor_run.status[i].run_direc](NULL);
             motor_run.run_state_self[i] = (motor_run.run_state_self[i]==FIRST_HALF)?RECOVER:STOP;
         }
 		motor_run.run_main_self = (motor_run.run_main_self==FIRST_HALF)?RECOVER:STOP;
@@ -300,7 +291,7 @@ void motor_check_run(u16 id)
                 if(motor_run.motor_flag[i] == 0) {
                     continue;
                 }
-                motor_manager.cb[i].motor_run_half[motor_run.motor_state][motor_run.run_direc[i]](NULL);
+                motor_manager.cb[i].motor_run_half[motor_run.status[i].run_direc](NULL);
             }
 			motor_run.motor_state = (motor_run.motor_state==FIRST_HALF)?RECOVER:STOP;
 			timer_event(motor_run.timer_interval, motor_check_run);
@@ -340,11 +331,11 @@ void motor_run_one_unit(u8 timer_intervel)
 		if(motor_run.status[i].run_flag == 1) {
             //motor_check_direction(i);
         	if(motor_run.status[i].dst_pos > motor_run.status[i].cur_pos) {
-        		motor_run.run_direc[i] = pos;
+        		motor_run.status[i].run_direc = pos;
         	}else if(motor_run.status[i].dst_pos < motor_run.status[i].cur_pos) {
-        		motor_run.run_direc[i] = neg;
+        		motor_run.status[i].run_direc = neg;
         	} else {
-                motor_run.run_direc[i] = none;
+                motor_run.status[i].run_direc = none;
                 motor_run.status[i].run_flag = 0;
         	}
 		}
@@ -364,7 +355,7 @@ void motor_run_one_step(u8 motor_num, u8 direction)
 {
     //MemSet(motor_run.motor_runnig, 0, max_motor*sizeof(u8));
     motor_run.status[motor_num].run_flag = 1;
-    motor_run.run_direc[motor_num] = direction;
+    motor_run.status[motor_num].run_direc = direction;
     motor_run.timer_interval = 10;
     timer_event(1, motor_check_run);
 }
