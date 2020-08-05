@@ -644,13 +644,14 @@ typedef struct {
     u8 motor_offset[max_motor];
     u8 motor_flag[max_motor];
     u8 motor_dirc[max_motor];
+    u8 motor_single_state[max_motor];
+    u8 motor_main_state;
     u8 skip_total[max_motor];
     u8 skip_cnt[max_motor];
     u8 step_cnt[max_motor];
     u8 step_unit[max_motor];
     u8 random_val[max_motor];
     s8 calc_dirc[max_motor];
-    u8 motor_state;
     u8 timer_interval;
     u8 run_cnt;
     u8 test_mode;

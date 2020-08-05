@@ -97,13 +97,14 @@ motor_run_t motor_run = {
     .motor_offset = {0,0,0,0,0,0},
     .motor_flag = {0,0,0,0,0,0},
     .motor_dirc = {none,none,none,none,none,none},
+    .motor_single_state = {FIRST_HALF,FIRST_HALF,FIRST_HALF,FIRST_HALF,FIRST_HALF,FIRST_HALF},
+    .motor_main_state = FIRST_HALF,
     .skip_total = {0,0,0,0,0,1},
     .skip_cnt = {0,0,0,0,0,0},
     .step_cnt = {0,0,0,0,0,0},
     .step_unit = {3,2,1,3,2,1},
     .random_val = {MINUTE_0,MINUTE_0,ACTIVITY_0,DAY_31,SUNDAY,NOTIFY_DONE},
     .calc_dirc = {1,1,1,1,1,1},
-    .motor_state = FIRST_HALF,
     .timer_interval = 0,
     .run_cnt = 0,
     .test_mode = 0,
@@ -282,6 +283,11 @@ s16 motor_activity_to_position(void)
 	return 0;
 }
 
+enum {
+    MOTOR_RUN_OVER,
+    MOTOR_RUN_NEXT_STEP,
+    MOTOR_RUN_NEXT_UNIT,
+};
 static u8 motor_check_continue(u8 motor_num)
 {
 	motor_manager.run_step_num[motor_num]++;
@@ -303,43 +309,83 @@ static u8 motor_check_continue(u8 motor_num)
             motor_run.motor_flag[motor_num] = 0;
             motor_run.motor_contiune[motor_num] = 0;
             motor_run.motor_dirc[motor_num] = none;
-            return 0;
+            return MOTOR_RUN_OVER;
     	}
+        return MOTOR_RUN_NEXT_UNIT;
 	}
-    return 1;
+    return MOTOR_RUN_NEXT_STEP;
 }
 
 void motor_check_run(u16 id)
 {
     u8 i = 0;
-    u16 continue_flag = 0;
+    u16 run_continue = 0;
 
-    if((motor_run.motor_state == FIRST_HALF) || (motor_run.motor_state == SECOND_HALF)) {
+    if((motor_run.motor_main_state == FIRST_HALF) || (motor_run.motor_main_state == SECOND_HALF)) {
         for(i = 0; i < max_motor; i++) {
-            if(motor_run.motor_flag[i] == 0) {
+            if((motor_run.motor_flag[i] == 0) || (motor_run.motor_single_state[i] != motor_run.motor_main_state)) {
                 continue;
             }
-            motor_cb[i].motor_run_half[motor_run.motor_state][motor_run.motor_dirc[i]](NULL);
+            motor_cb[i].motor_run_half[motor_run.motor_single_state[i]][motor_run.motor_dirc[i]](NULL);
+            motor_run.motor_single_state[i] = (motor_run.motor_single_state[i]==FIRST_HALF)?RECOVER:STOP;
         }
-		motor_run.motor_state = (motor_run.motor_state==FIRST_HALF)?RECOVER:STOP;
+		motor_run.motor_main_state = (motor_run.motor_main_state==FIRST_HALF)?RECOVER:STOP;
 		timer_event(motor_run.timer_interval, motor_check_run);
-    }else if((motor_run.motor_state == RECOVER) || (motor_run.motor_state == STOP)) {
+    }else if((motor_run.motor_main_state == RECOVER) || (motor_run.motor_main_state == STOP)) {
         for(i = 0; i < max_motor; i++) {
             if(motor_run.motor_flag[i] == 0) {
                 continue;
             }
             motor_cb[i].motor_stop(NULL);
+            motor_run.motor_single_state[i] = (motor_run.motor_single_state[i]==RECOVER)?SECOND_HALF:FIRST_HALF;
             if(motor_run.motor_contiune[i] == 1) {
-                continue_flag += motor_check_continue(i);
+                run_continue += motor_check_continue(i);
             } else {
                 motor_run.motor_flag[i] = 0;
             }
         }
-		motor_run.motor_state = (motor_run.motor_state==RECOVER)?SECOND_HALF:FIRST_HALF;
-        if(continue_flag > 0) {
+		motor_run.motor_main_state = (motor_run.motor_main_state==RECOVER)?SECOND_HALF:FIRST_HALF;
+        if(run_continue > 0) {
             timer_event(motor_run.timer_interval, motor_check_run);
         }
     }
+
+    #if 0
+	switch(motor_run.motor_state) {
+		case FIRST_HALF:
+		case SECOND_HALF:
+            for(i = 0; i < max_motor; i++) {
+                if(motor_run.motor_flag[i] == 0) {
+                    continue;
+                }
+                motor_cb[i].motor_run_half[motor_run.motor_state][motor_run.motor_dirc[i]](NULL);
+            }
+			motor_run.motor_state = (motor_run.motor_state==FIRST_HALF)?RECOVER:STOP;
+			motor_manager.drv->timer->timer_start(motor_run.timer_interval, motor_check_run);
+			break;
+		case RECOVER:
+		case STOP:
+            for(i = 0; i < max_motor; i++) {
+                if(motor_run.motor_flag[i] == 0) {
+                    continue;
+                }
+                motor_cb[i].motor_stop(NULL);
+                if(motor_run.motor_contiune[i] == 1) {
+                    continue_flag += motor_check_continue(i);
+                } else {
+                    motor_run.motor_flag[i] = 0;
+                }
+            }
+			//motor_run.motor_state = FIRST_HALF;
+			motor_run.motor_state = (motor_run.motor_state==RECOVER)?SECOND_HALF:FIRST_HALF;
+            if(continue_flag > 0) {
+                motor_manager.drv->timer->timer_start(motor_run.timer_interval, motor_check_run);
+            }
+			break;
+		default :
+			break;
+	}
+    #endif
 }
 void motor_run_one_unit(u8 timer_intervel)
 {
