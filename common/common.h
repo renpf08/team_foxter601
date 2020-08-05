@@ -639,22 +639,18 @@ typedef struct {
     u8 max;
 } motor_range_t;
 typedef struct {
-    motor_range_t motor_range[max_motor];
-    u8 motor_contiune[max_motor];
-    u8 motor_offset[max_motor];
-    u8 motor_flag[max_motor];
-    u8 motor_dirc[max_motor];
-    u8 motor_single_state[max_motor];
-    u8 motor_main_state;
+    motor_range_t run_range[max_motor];
+    u8 run_next[max_motor];
+    u8 run_direc[max_motor];
+    u8 run_state_self[max_motor];
+    u8 motor_runnig[max_motor];
+    u8 run_main_self;
     u8 skip_total[max_motor];
     u8 skip_cnt[max_motor];
     u8 step_cnt[max_motor];
-    u8 step_unit[max_motor];
-    u8 random_val[max_motor];
     s8 calc_dirc[max_motor];
     u8 timer_interval;
-    u8 run_cnt;
-    u8 test_mode;
+    u8 run_test_mode;
 } motor_run_t;
 
 #define POS_HIGH(num) PioSet((num), 1UL)
