@@ -17,10 +17,15 @@ extern bool ble_send_log(uint8 *data, uint16 size);
 
 void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
-void system_reboot(u8 reboot_type);
+u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state);
+void motor_set_position(u8 timer_intervel, MOTOR_MASK_E motor_mask);
+void motor_set_day_time(clock_t *clock, MOTOR_MASK_E mask);
+void system_pre_reboot_handler(reboot_type_t type);
+void system_post_reboot_handler(void);
 void refresh_step(void);
 void sync_time(void);
-void motor_restore_position(REPORT_E cb);
+void motor_to_zero(void);
+u8 state_machine_check(REPORT_E cb);
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num);
 #endif
@@ -30,29 +35,24 @@ clock_t *clock_get(void);
 
 s16 motor_manager_init(void);
 void motor_run_one_step(u8 motor_num, u8 direction);
-#if 0
-void motor_time_adjust_mode_on(void);
-void motor_time_adjust_mode_off(void);
-void motor_run_one_unit(u8 motor_num, u8 direction);
-#endif
+void motor_check_run(u16 id);
+s16 motor_hour_to_position(void);
+s16 motor_minute_to_position(void);
+s16 motor_date_to_position(void);
+s16 motor_notify_to_position(void);
+s16 motor_battery_week_to_position(void);
+s16 motor_activity_to_position(void);
 
-s16 motor_hour_to_position(u8 hour);
-s16 motor_hour_one_step(u8 hour_step);
-//s16 motor_hour_test_run(u8 direction);
-
-s16 motor_minute_to_position(u8 minute);
-s16 motor_minute_one_step(u8 minute_step);
-
-s16 motor_date_to_position(u8 day);
-s16 motor_notify_to_position(u8 notify);
-s16 motor_battery_week_to_position(u8 battery_week);
-s16 motor_activity_to_position(u8 activity);
+void motor_run_one_unit(u8 timer_intervel);
+u16 motor_check_idle(void);
 
 s16 battery_init(adapter_callback cb);
 u8 battery_percent_read(void);
 
-s16 nvm_storage_init(adapter_callback cb);
+s16 nvm_init(adapter_callback cb);
 #if USE_PARAM_STORE
+s16 nvm_read_motor_init_flag(void);
+s16 nvm_write_motor_init_flag(void);
 s16 nvm_read_motor_current_position(u16 *buffer, u8 index);
 s16 nvm_write_motor_current_position(u16 *buffer, u8 index);
 s16 nvm_read_zero_position_polarity(u16 *buffer, u8 index);
@@ -112,19 +112,7 @@ void ble_switch_off(void);
 void ble_state_set(app_state cur_state);
 app_state ble_state_get(void);
 
-//int sprintf(char *buf, const char * sFormat, ...);
-//int printf(const char * sFormat, ...);
-//void print_str_hex(u8 *buf, u16 hex_num);
-//void print_str_dec(u8 *buf, u16 dec_num);
-//void print_date_time(u8 *buf, clock_t *datm);
-//u8 bcd_to_hex(u8 bcd_data);
-//u32 hex_to_bcd(u8 hex_data);
-
-extern zero_adjust_lock_t zero_adjust_mode;
-extern u8 stete_battery_week;
-extern const u8 date[];
-#if USE_CMD_TEST_LOG_TYPE_EN
-extern u8 log_type_en[LOG_SEND_MAX];
-#endif
+extern motor_run_t motor_run;
+extern adapter_ctrl_t adapter_ctrl;
 
 #endif

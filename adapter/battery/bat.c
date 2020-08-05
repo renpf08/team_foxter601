@@ -92,6 +92,7 @@ s16 battery_init(adapter_callback cb)
 	bat_cfg.drv = get_driver();
 	bat_cfg.cb = cb;
 	bat_cfg.cb(BATTERY_NORMAL, NULL);
-	bat_cfg.drv->timer->timer_start(1, bat_cb_handler);
+    bat_cb_handler(0); // confirm to read valid voltage before motor set
+	//bat_cfg.drv->timer->timer_start(1, bat_cb_handler);
 	return 0;
 }

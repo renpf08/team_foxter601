@@ -1,75 +1,36 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
-#include "../../common/common.h"
+#include <mem.h>
+
+#include "../../common/common.h"
 #include "../../adapter/adapter.h"
 #include "state.h"
 
-typedef struct {
-	u8 motor_num;
-	
-}state_zero_adjust_t;
-
-static state_zero_adjust_t state_zero = {
-	.motor_num = 0,
-};
-
-static s16 state_zero_adjust_motor_back_zero(u8 motor_num)
-{
-	switch(motor_num) {
-		case hour_motor:
-			motor_hour_to_position(HOUR0_0);
-			break;
-		case minute_motor:
-			motor_minute_to_position(MINUTE_0);
-			break;
-		case activity_motor:
-			motor_activity_to_position(ACTIVITY_0);
-			break;
-		case date_motor:
-			motor_date_to_position(DAY_1);
-			break;
-		case battery_week_motor:
-			motor_battery_week_to_position(BAT_PECENT_0);
-			break;
-		case notify_motor:
-			motor_notify_to_position(NOTIFY_NONE);
-			break;
-		default:
-			break;
-	}
-	return 0;
-}
-
 s16 state_zero_adjust(REPORT_E cb, void *args)
-{	
-    u8 msg[3] = {CMD_TEST_SEND, 0x02, 0};
-    if(zero_adjust_mode.press == 1) {
-        msg[2] = 0x01;
-        BLE_SEND_LOG(msg, 3);
-        return 1;
-    } else if(zero_adjust_mode.run == 1) {
-        msg[2] = 0x02;
-        BLE_SEND_LOG(msg, 3);
-        return 1;
-    }
-    zero_adjust_mode.press = 1;
+{
+    u8 timer_interval = 10;
 	if(KEY_A_B_LONG_PRESS == cb) {
 		/*hour back to zero position*/
-		state_zero.motor_num = minute_motor;
-		state_zero_adjust_motor_back_zero(state_zero.motor_num);
+		adapter_ctrl.current_motor_num = minute_motor;
+        MemCopy(adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
+        motor_set_position(10, MOTOR_MASK_ALL|MOTOR_MASK_TRIG);
 	}else if(KEY_M_SHORT_PRESS == cb) {
 		/*motor switcch:hour -> minute -> activity -> date -> battery_week ->notify -> hour*/
-		state_zero.motor_num++;
-		if(max_motor == state_zero.motor_num) {
-			state_zero.motor_num = minute_motor;
+		adapter_ctrl.current_motor_num++;
+		if(max_motor == adapter_ctrl.current_motor_num) {
+			adapter_ctrl.current_motor_num = minute_motor;
 		}
-		state_zero_adjust_motor_back_zero(state_zero.motor_num);
+        if((adapter_ctrl.current_motor_num == notify_motor) || (adapter_ctrl.current_motor_num == activity_motor)) {
+            timer_interval = 25;
+        }
+        motor_set_position(timer_interval, MOTOR_MASK_TRIG);
+		//state_zero_adjust_motor_back_zero(motor_num);
 	}else if(KEY_A_SHORT_PRESS == cb) {
 		/*motor run positive half step*/
-		motor_run_one_step(state_zero.motor_num, pos);
+		motor_run_one_step(adapter_ctrl.current_motor_num, pos);
 	}else if(KEY_B_SHORT_PRESS == cb){
 		/*motor run negtive half step*/
-		motor_run_one_step(state_zero.motor_num, neg);
+		motor_run_one_step(adapter_ctrl.current_motor_num, neg);
 	}
 	
 	return 0;

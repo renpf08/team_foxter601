@@ -342,6 +342,11 @@ extern bool ble_send_data(uint8 *data, uint16 size)
 *         dd:1-executed,0-not executed
 *	5F 02 xx // zero adjust jump empty
 *         xx=1:press lock; xx=2:run lock
+*	5F 03 aa bb cc dd // notify msg
+*         aa:sta, fixed to: 0:added, 1:modified, 2:removed
+*         bb:level, 0~255, look appMsgList[] of MESSAGE_POSITION_xxx for details
+*         cc:type, look appMsgList[] of APP_ID_STRING_xxx's index for details
+*         dd:cnt, msg count
 */
 extern bool ble_send_log(uint8 *data, uint16 size)
 {
@@ -352,7 +357,7 @@ extern bool ble_send_log(uint8 *data, uint16 size)
     if(log->head != CMD_TEST_SEND) {
         return false;
     }
-    if(log_type_en[log->type] == 0) {
+    if(adapter_ctrl.log_type_en[log->type] == 0) {
         return false;
     }    
     #endif

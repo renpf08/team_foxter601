@@ -267,6 +267,18 @@ typedef enum {
 	state_week,
 }STATE_BATTERY_WEEK_E;
 
+typedef enum {
+    MOTOR_MASK_NONE     = 0x00,
+    MOTOR_MASK_MINUTE   = 0x01,
+    MOTOR_MASK_HOUR     = 0x02,
+    MOTOR_MASK_ACTIVITY = 0x04,
+    MOTOR_MASK_DATE     = 0x08,
+    MOTOR_MASK_BAT_WEEK = 0x10,
+    MOTOR_MASK_NOTIFY   = 0x20,
+    MOTOR_MASK_ALL      = 0x40,
+    MOTOR_MASK_TRIG     = 0x80,
+} MOTOR_MASK_E;
+
 typedef struct {
 	u16 year;
 	u8 month;	
@@ -283,8 +295,9 @@ enum {
 };
 
 enum {
-	pos = 0,
-	neg = 1,
+	none = 0,
+	pos = 1,
+	neg = 2,
 };
 
 enum{
@@ -388,6 +401,10 @@ typedef enum {
     
     CMD_WATCH_NONE          = 0xFF
 } cmd_watch_send_t;
+typedef enum {
+    REBOOT_TYPE_BUTTON,
+    REBOOT_TYPE_OTA,
+} reboot_type_t;
 typedef struct {
     u8 cmd; 
     u8 code[2];
@@ -560,6 +577,8 @@ typedef s16 (*timer_start_func)(u16 ms, timer_cb cb);
 
 typedef s16 (*state_func)(REPORT_E cb, void *args);
 
+typedef s16 (* motor_handler)(void);
+
 enum {
 	minute_motor = 0,
 	hour_motor = 1,
@@ -580,6 +599,28 @@ typedef enum
 }NOTIFY_STATE_E;
 
 typedef struct {
+    motor_handler func;
+    u8 zero_pos;
+    u8 trig_pos;
+} motor_trig_t;
+
+typedef struct {
+    #if USE_CMD_TEST_LOG_TYPE_EN
+    u8 log_type_en[LOG_SEND_MAX];
+    #endif
+    u8 system_started;
+    u8 system_reboot_lock;
+    u8 activity_pos;
+    u8 current_motor_num;;
+    u8 current_bat_week_sta;
+    reboot_type_t reboot_type;
+    u8 motor_dst[max_motor];
+    u8 motor_zero[max_motor];
+    motor_trig_t motor_trig[max_motor];
+    const u8 date[];
+} adapter_ctrl_t;
+
+typedef struct {
 	STATE_E   init_state;
 	REPORT_E  ev;
 	STATE_E   next_state;
@@ -593,6 +634,27 @@ typedef struct {
 	EVENT_E last_state;
 	EVENT_E now_state;
 }csr_key_cfg_t;
+typedef struct {
+    u8 min;
+    u8 max;
+} motor_range_t;
+typedef struct {
+    motor_range_t motor_range[max_motor];
+    u8 motor_contiune[max_motor];
+    u8 motor_offset[max_motor];
+    u8 motor_flag[max_motor];
+    u8 motor_dirc[max_motor];
+    u8 skip_total[max_motor];
+    u8 skip_cnt[max_motor];
+    u8 step_cnt[max_motor];
+    u8 step_unit[max_motor];
+    u8 random_val[max_motor];
+    s8 calc_dirc[max_motor];
+    u8 motor_state;
+    u8 timer_interval;
+    u8 run_cnt;
+    u8 test_mode;
+} motor_run_t;
 
 #define POS_HIGH(num) PioSet((num), 1UL)
 #define POS_LOW(num) PioSet((num), 0UL)

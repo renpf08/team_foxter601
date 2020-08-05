@@ -38,7 +38,7 @@ static state_t state[] = {
 	STATE_FILL(ZERO_ADJUST,         KEY_B_SHORT_PRESS,  	ZERO_ADJUST,            state_zero_adjust),
 	STATE_FILL(ZERO_ADJUST,         KEY_M_SHORT_PRESS,		ZERO_ADJUST,            state_zero_adjust),
 	STATE_FILL(ZERO_ADJUST,         KEY_A_B_LONG_PRESS, 	CLOCK,                  state_clock),
-	/*ble switch open*/	
+	/*ble switch*/	
 	STATE_FILL(CLOCK,               KEY_M_LONG_PRESS,   	BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(CLOCK,               BLE_CHANGE,   	        BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(CLOCK,               BLE_PAIR,               BLE_SWITCH,             state_ble_switch),
@@ -69,15 +69,12 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
     s16 res = 0;
     u8 st_cb[6] = {CMD_TEST_SEND, 01, business.state_now, cb, 0, 0};
 
-	//return 0;
     #if USE_UART_PRINT
 	print((u8 *)&cb, 1);
     #endif
 
-    if(cb == KEY_M_ULTRA_LONG_PRESS) {
-        system_reboot(0);
-    } else if(cb == REPORT_MAX) {
-        return 0;
+    if(state_machine_check(cb) == 1) {
+        return 1;
     }
     
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
@@ -97,8 +94,6 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 //#define TEST_TIME_ADJUST
 s16 business_init(void)
 {
-	s16 battery_week_status;
-
 	adapter_init(adapter_cb_handler);
 
     #if USE_UART_PRINT
@@ -128,13 +123,8 @@ s16 business_init(void)
 	#ifdef TEST_TIME_ADJUST
 	timer_event(1000, time_adjust_test);
 	#endif
-	
-	battery_week_status = state_battery_week_status_get();
-	if(state_battery == battery_week_status) {
-		state_battery_week_switch(KEY_M_SHORT_PRESS, NULL);
-	}
-	
+
 	business.state_now = CLOCK;
-	state_clock(CLOCK_1_MINUTE, NULL);
+	//state_clock(CLOCK_1_MINUTE, NULL);
 	return 0;
 }

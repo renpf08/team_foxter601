@@ -5,6 +5,24 @@
 #include "../../adapter/adapter.h"
 #include "state.h"
 
+/**
+* u8 cmd; //! fixed to 0x07
+* u8 sta; //! fixed to: 0:added, 1:modified, 2:removed
+* u8 level; //! 0~255, look appMsgList[] of MESSAGE_POSITION_xxx for details
+* u8 type; //! look appMsgList[] of APP_ID_STRING_xxx's index for details
+* u8 cnt; //! msg count
+* notify test command
+* notify type    notify switch   notify response         android cmd
+* Skype:         04 00 01 00 00  07 xx xx 08 xx          07 00 00 08 01
+* WhatsApp:      04 00 04 00 00  07 xx xx 0A xx          07 00 00 0A 01
+* Twitter:       04 00 02 00 00  07 xx xx 09 xx          07 00 00 09 01
+* email:         04 04 00 00 00  07 xx xx 02 xx          07 00 00 02 01
+* Facebook:      04 20 00 00 00  07 xx xx 05 xx          07 00 00 05 01
+* sms:           04 02 00 00 00  07 xx xx 01 xx          07 00 00 01 01
+* linkedin:      04 00 10 00 00  07 xx xx 0C xx          07 00 00 0C 01
+* call:          04 01 00 00 00  07 xx xx 00 xx          07 00 00 00 01
+*/
+
 typedef enum {
 	NOTIFY_RECV_CALL,
 	NOTIFY_RECV_SMS,
@@ -52,6 +70,7 @@ s16 state_notify(REPORT_E cb, void *args)
     u8 i = 0;
     u8 *en = cmd_get()->notify_switch.en;
     u32 msg_en = 0;
+    u8 log[6] = {0x5F, 0x03, 0, 0, 0, 0};
 
     for(i = 0; i < 4; i++) {
         msg_en  <<= 8;
@@ -83,17 +102,18 @@ s16 state_notify(REPORT_E cb, void *args)
     	return 0;
     }
 	if(NOTIFY_ADD == ancs_msg->sta) {
-		if(ancs_msg->type < NOTIFY_DONE) {
-            #if USE_UART_PRINT
-			print((u8 *)&ancs_msg->type, 1);
-            #endif
-			motor_notify_to_position(ancs_msg->type);
-		}
+		adapter_ctrl.motor_dst[notify_motor] = ancs_msg->type;
 	}else if(NOTIFY_REMOVE == ancs_msg->sta) {
-		motor_notify_to_position(NOTIFY_NONE);
+        adapter_ctrl.motor_dst[notify_motor] = NOTIFY_NONE;
 	}
-    ancs_msg->type = i; // set msg type to protocol specified value
-    BLE_SEND_LOG((u8*)ancs_msg, sizeof(app_msg_t));
+    if(adapter_ctrl.motor_dst[notify_motor] < NOTIFY_DONE) {
+        motor_set_position(40, MOTOR_MASK_NOTIFY);
+    }
+    log[2] = ancs_msg->sta;
+    log[3] = ancs_msg->level;
+    log[4] = ancs_msg->type;
+    log[5] = ancs_msg->cnt;
+    BLE_SEND_LOG(log, 6);
 
 	*state = CLOCK;
 	return 0;

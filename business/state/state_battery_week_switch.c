@@ -5,41 +5,23 @@
 #include "../../adapter/adapter.h"
 #include "state.h"
 
-typedef struct {
-	u8 cur_state;
-}state_battery_week_t;
-
-static state_battery_week_t state_battery_week = {
-	.cur_state = state_battery,
-};
-
 s16 state_battery_week_switch(REPORT_E cb, void *args)
 {
-	clock_t * clk = NULL;
-	u8 battery_level = BAT_PECENT_0;
+//	clock_t * clk = NULL;
+//	u8 battery_level = BAT_PECENT_0;
 	STATE_E *state = (STATE_E *)args;
 
 	//print((u8 *)&"battery_week", 12);
-	if(state_week == state_battery_week.cur_state) {
-		state_battery_week.cur_state = state_battery;
-		/*get battery level*/
-		battery_level = battery_percent_read();
-		motor_battery_week_to_position(battery_level);
+	if(state_week == adapter_ctrl.current_bat_week_sta) {
+		adapter_ctrl.current_bat_week_sta = state_battery;
 	}else {
-		state_battery_week.cur_state = state_week;
-		/*get week*/
-		clk = clock_get();
-		motor_battery_week_to_position(clk->week);
+		adapter_ctrl.current_bat_week_sta = state_week;
 	}
-    stete_battery_week = state_battery_week.cur_state;
+    adapter_ctrl.motor_dst[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
+    motor_set_position(10, MOTOR_MASK_BAT_WEEK);
 
 	*state = CLOCK;
 	return 0;
-}
-
-s16 state_battery_week_status_get(void)
-{
-	return state_battery_week.cur_state;
 }
 
 #if 0
