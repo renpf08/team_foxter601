@@ -29,7 +29,7 @@ static void motor_reset_handler(u16 id)
 static void motor_recover_handler(u16 id)
 {
     if(motor_check_idle() == 0) {
-        motor_run.run_test_mode = 0;
+        motor_manager.run_test_mode = 0;
         *state = CLOCK;
         return;
     }
@@ -38,36 +38,36 @@ static void motor_recover_handler(u16 id)
 
 static void motor_run_state_calc(u8 motor_num)
 {
-    if(motor_run.step_cnt[motor_num] <= motor_run.status[motor_num].run_range.min) {
+    if(motor_manager.step_cnt[motor_num] <= motor_manager.status[motor_num].run_range.min) {
         if(run_enable == 0) { // back to zero position
             run_quit[motor_num] = 1;
-            motor_run.status[motor_num].run_flag = 0;
-            motor_run.status[motor_num].run_direc = none;
+            motor_manager.status[motor_num].run_flag = 0;
+            motor_manager.status[motor_num].run_direc = none;
             return;
         }
         if((motor_num == battery_week_motor) || (motor_num == date_motor)) {
-            motor_run.status[motor_num].run_direc = neg;
+            motor_manager.status[motor_num].run_direc = neg;
         } else {
-            motor_run.status[motor_num].run_direc = pos;
+            motor_manager.status[motor_num].run_direc = pos;
         }
-        motor_run.calc_dirc[motor_num] = 1;
-    } else if(motor_run.step_cnt[motor_num] >= motor_run.status[motor_num].run_range.max) {
+        motor_manager.calc_dirc[motor_num] = 1;
+    } else if(motor_manager.step_cnt[motor_num] >= motor_manager.status[motor_num].run_range.max) {
 //        if((run_enable == 0) && ((motor_num == minute_motor) ||(motor_num == hour_motor))) { // back to zero position
 //            run_quit[motor_num] = 1;
-//            motor_run.status[motor_num].run_flag = 0;
-//            motor_run.status[motor_num].run_direc = none;
+//            motor_manager.status[motor_num].run_flag = 0;
+//            motor_manager.status[motor_num].run_direc = none;
 //            return;
 //        }
         if((motor_num == battery_week_motor) || (motor_num == date_motor)) {
-            motor_run.status[motor_num].run_direc = pos;
+            motor_manager.status[motor_num].run_direc = pos;
         } else {
-            motor_run.status[motor_num].run_direc = neg;
+            motor_manager.status[motor_num].run_direc = neg;
         }
-        motor_run.calc_dirc[motor_num] = -1;
+        motor_manager.calc_dirc[motor_num] = -1;
     }
-    if(motor_run.skip_cnt[motor_num] == 0) {
-        motor_run.status[motor_num].run_flag = 1;
-        motor_run.step_cnt[motor_num]+= motor_run.calc_dirc[motor_num];
+    if(motor_manager.skip_cnt[motor_num] == 0) {
+        motor_manager.status[motor_num].run_flag = 1;
+        motor_manager.step_cnt[motor_num]+= motor_manager.calc_dirc[motor_num];
     }
 }
 static void state_run_test_handler(u16 id)
@@ -75,13 +75,13 @@ static void state_run_test_handler(u16 id)
     u8 i = 0;
 
     if(motor_check_idle() == 0) {
-        //MemSet(motor_run.motor_runnig, 1, max_motor*sizeof(u8));
+        //MemSet(motor_manager.motor_runnig, 1, max_motor*sizeof(u8));
         for(i = 0; i < max_motor; i++) {
-            if(motor_run.skip_cnt[i] < (motor_run.skip_total[i])*2) {
-                motor_run.skip_cnt[i]++;
-                //motor_run.motor_runnig[i] = 0;
-            } else if(motor_run.skip_cnt[i] != 0) {
-                motor_run.skip_cnt[i] = 0;
+            if(motor_manager.skip_cnt[i] < (motor_manager.skip_total[i])*2) {
+                motor_manager.skip_cnt[i]++;
+                //motor_manager.motor_runnig[i] = 0;
+            } else if(motor_manager.skip_cnt[i] != 0) {
+                motor_manager.skip_cnt[i] = 0;
             }
         }
         for(i = 0; i < max_motor; i++) {
@@ -98,7 +98,7 @@ static void state_run_test_handler(u16 id)
             timer_event(1, motor_recover_handler);
             return; // all motor has back to zero position
         }
-        motor_run.timer_interval = 5;
+        motor_manager.timer_interval = 5;
         timer_event(1, motor_check_run);
     }
 	timer_event(25, state_run_test_handler);
@@ -110,7 +110,7 @@ s16 state_run_test(REPORT_E cb, void *args)
 
     if(run_enable == 0) {
         run_enable = 1;
-        motor_run.run_test_mode = 1;
+        motor_manager.run_test_mode = 1;
         MemSet(run_quit, 0, max_motor*sizeof(u8));
         MemCopy(motor_rdc, adapter_ctrl.motor_dst, max_motor*sizeof(u8));
         MemCopy(adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor*sizeof(u8));

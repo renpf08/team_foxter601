@@ -310,7 +310,7 @@ void motor_set_day_time(clock_t *clock, MOTOR_MASK_E mask)
 }
 static void motor_test_mode_reboot_handler(u16 id)
 {
-    if(motor_run.run_test_mode == 0) {
+    if(motor_manager.run_test_mode == 0) {
 		system_pre_reboot_handler(adapter_ctrl.reboot_type);
         return;
     }
@@ -321,7 +321,7 @@ void system_pre_reboot_handler(reboot_type_t type)
     clock_t* clock = clock_get();
 
     adapter_ctrl.reboot_type = type;
-    if(motor_run.run_test_mode == 1) {
+    if(motor_manager.run_test_mode == 1) {
         adapter.cb(KEY_A_B_M_LONG_PRESS, NULL);
         timer_event(100, motor_test_mode_reboot_handler);
     } else {
@@ -372,7 +372,7 @@ u8 state_machine_check(REPORT_E cb)
     if(adapter_ctrl.system_started == 0) {
         return 1;
     }
-    if((motor_run.run_test_mode == 1) && (cb != KEY_A_B_M_LONG_PRESS)) {
+    if((motor_manager.run_test_mode == 1) && (cb != KEY_A_B_M_LONG_PRESS)) {
         return 1;
     }
     return 0;
