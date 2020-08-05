@@ -41,7 +41,7 @@ static void motor_run_state_calc(u8 motor_num)
     if(motor_run.step_cnt[motor_num] <= motor_run.run_range[motor_num].min) {
         if(run_enable == 0) { // back to zero position
             run_quit[motor_num] = 1;
-            motor_run.motor_runnig[motor_num] = 0;
+            motor_run.status[motor_num].run_flag = 0;
             motor_run.run_direc[motor_num] = none;
             return;
         }
@@ -52,12 +52,12 @@ static void motor_run_state_calc(u8 motor_num)
         }
         motor_run.calc_dirc[motor_num] = 1;
     } else if(motor_run.step_cnt[motor_num] >= motor_run.run_range[motor_num].max) {
-        if((run_enable == 0) && ((motor_num == minute_motor) ||(motor_num == hour_motor))) { // back to zero position
-            run_quit[motor_num] = 1;
-            motor_run.motor_runnig[motor_num] = 0;
-            motor_run.run_direc[motor_num] = none;
-            return;
-        }
+//        if((run_enable == 0) && ((motor_num == minute_motor) ||(motor_num == hour_motor))) { // back to zero position
+//            run_quit[motor_num] = 1;
+//            motor_run.status[motor_num].run_flag = 0;
+//            motor_run.run_direc[motor_num] = none;
+//            return;
+//        }
         if((motor_num == battery_week_motor) || (motor_num == date_motor)) {
             motor_run.run_direc[motor_num] = pos;
         } else {
@@ -66,6 +66,7 @@ static void motor_run_state_calc(u8 motor_num)
         motor_run.calc_dirc[motor_num] = -1;
     }
     if(motor_run.skip_cnt[motor_num] == 0) {
+        motor_run.status[motor_num].run_flag = 1;
         motor_run.step_cnt[motor_num]+= motor_run.calc_dirc[motor_num];
     }
 }
@@ -74,11 +75,11 @@ static void state_run_test_handler(u16 id)
     u8 i = 0;
 
     if(motor_check_idle() == 0) {
-        MemSet(motor_run.motor_runnig, 1, max_motor*sizeof(u8));
+        //MemSet(motor_run.motor_runnig, 1, max_motor*sizeof(u8));
         for(i = 0; i < max_motor; i++) {
             if(motor_run.skip_cnt[i] < (motor_run.skip_total[i])*2) {
                 motor_run.skip_cnt[i]++;
-                motor_run.motor_runnig[i] = 0;
+                //motor_run.motor_runnig[i] = 0;
             } else if(motor_run.skip_cnt[i] != 0) {
                 motor_run.skip_cnt[i] = 0;
             }

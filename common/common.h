@@ -639,11 +639,22 @@ typedef struct {
     u8 max;
 } motor_range_t;
 typedef struct {
+	/*record current position*/
+	u8 cur_pos;
+	/*record the motor dst position*/
+	u8 dst_pos;
+	/*run flag*/
+	u8 run_flag;
+	/*unit interval steps*/
+	u8 unit_interval_step;
+	/*run step state*/
+}motor_run_status_t;
+typedef struct {
+    motor_run_status_t status[max_motor];
     motor_range_t run_range[max_motor];
     u8 run_next[max_motor];
     u8 run_direc[max_motor];
     u8 run_state_self[max_motor];
-    u8 motor_runnig[max_motor];
     u8 run_main_self;
     u8 skip_total[max_motor];
     u8 skip_cnt[max_motor];
