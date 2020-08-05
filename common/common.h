@@ -640,6 +640,10 @@ typedef struct {
     u8 max;
 } motor_range_t;
 typedef struct {
+    motor_cb_handler motor_run_half[2][2];
+    motor_cb_handler motor_stop;
+} motor_cb_ctrl_t;
+typedef struct {
 	u8 cur_pos;
 	u8 dst_pos;
 	u8 run_flag;
@@ -649,6 +653,7 @@ typedef struct {
     motor_range_t run_range;
 }motor_run_status_t;
 typedef struct {
+    motor_cb_ctrl_t cb[max_motor];
     motor_run_status_t status[max_motor];
     u8 run_next[max_motor];
     u8 run_state_self[max_motor];

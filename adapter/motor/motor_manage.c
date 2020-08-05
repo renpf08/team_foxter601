@@ -14,18 +14,13 @@ enum {
 	STOP,
 };
     
-typedef struct {
-    motor_cb_handler motor_run_half[2][2];
-    motor_cb_handler motor_stop;
-} motor_cb_ctrl_t;
-
-typedef struct {
-    motor_cb_ctrl_t cb[max_motor];
-    
-	/*record step run state and run step interval*/
-}motor_manager_t;
-
-static motor_manager_t motor_manager;
+//typedef struct {
+//    motor_cb_ctrl_t cb[max_motor];
+//    
+//	/*record step run state and run step interval*/
+//}motor_manager_t;
+//
+//static motor_manager_t motor_manager;
             
 motor_run_t motor_run = {
 	.status = {
@@ -253,7 +248,7 @@ void motor_check_run(u16 id)
             if((motor_run.status[i].run_flag == 0) || (motor_run.run_state_self[i] != motor_run.run_main_self)) {
                 continue;
             }
-            motor_manager.cb[i].motor_run_half[motor_run.run_state_self[i]][motor_run.status[i].run_direc](NULL);
+            motor_run.cb[i].motor_run_half[motor_run.run_state_self[i]][motor_run.status[i].run_direc](NULL);
             motor_run.run_state_self[i] = (motor_run.run_state_self[i]==FIRST_HALF)?RECOVER:STOP;
         }
 		motor_run.run_main_self = (motor_run.run_main_self==FIRST_HALF)?RECOVER:STOP;
@@ -263,7 +258,7 @@ void motor_check_run(u16 id)
             if(motor_run.status[i].run_flag == 0) {
                 continue;
             }
-            motor_manager.cb[i].motor_stop(NULL);
+            motor_run.cb[i].motor_stop(NULL);
             motor_run.run_state_self[i] = (motor_run.run_state_self[i]==RECOVER)?SECOND_HALF:FIRST_HALF;
             if(motor_run.run_next[i] == 1) {
                 run_continue += motor_check_continue(i);
@@ -285,7 +280,7 @@ void motor_check_run(u16 id)
                 if(motor_run.motor_flag[i] == 0) {
                     continue;
                 }
-                motor_manager.cb[i].motor_run_half[motor_run.status[i].run_direc](NULL);
+                motor_run.cb[i].motor_run_half[motor_run.status[i].run_direc](NULL);
             }
 			motor_run.motor_state = (motor_run.motor_state==FIRST_HALF)?RECOVER:STOP;
 			timer_event(motor_run.timer_interval, motor_check_run);
@@ -296,7 +291,7 @@ void motor_check_run(u16 id)
                 if(motor_run.motor_flag[i] == 0) {
                     continue;
                 }
-                motor_manager.cb[i].motor_stop(NULL);
+                motor_run.cb[i].motor_stop(NULL);
                 if(motor_run.run_next[i] == 1) {
                     continue_flag += motor_check_continue(i);
                 } else {
@@ -411,7 +406,7 @@ s16 motor_manager_init(void)
             .motor_stop = driver->motor_notify->motor_stop,
         },
     };
-    MemCopy(&motor_manager.cb, &motor_cb_ctrl, max_motor*sizeof(motor_cb_ctrl_t));
+    MemCopy(&motor_run.cb, &motor_cb_ctrl, max_motor*sizeof(motor_cb_ctrl_t));
 
     system_post_reboot_handler();
 	return 0;
