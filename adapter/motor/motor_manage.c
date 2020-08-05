@@ -7,6 +7,15 @@
 #define BAT_INTERVAL_STEP 2
 #define WEEK_INTERVAL_STEP 5
 
+typedef s16 (*motor_cb_handler)(void *args);
+
+typedef struct {
+    motor_cb_handler motor_first_half[2];
+    motor_cb_handler motor_second_half[2];
+    motor_cb_handler motor_stop;
+} motor_cb_ctrl_t;
+motor_cb_ctrl_t motor_cb[max_motor];
+
 enum {
 	FIRST_HALF,
 	RECOVER,
@@ -88,7 +97,7 @@ motor_run_t motor_run = {
     .motor_contiune = {0,0,0,0,0,0},
     .motor_offset = {0,0,0,0,0,0},
     .motor_flag = {0,0,0,0,0,0},
-    .motor_dirc = {0,0,0,0,0,0},
+    .motor_dirc = {none,none,none,none,none,none},
     .skip_total = {0,0,0,0,0,1},
     .skip_cnt = {0,0,0,0,0,0},
     .step_cnt = {0,0,0,0,0,0},
@@ -309,25 +318,24 @@ void motor_check_run(u16 id)
 	switch(motor_run.motor_state) {
 		case FIRST_HALF:
             for(i = 0; i < max_motor; i++) {
-                if(motor_run.motor_flag[i] == 1) {
-                    if(motor_run.motor_dirc[i] == pos)
-                        motor_manager.motor_status[i].motor_ptr->motor_positive_first_half(NULL);
-                    else if(motor_run.motor_dirc[i] == neg)
-                        motor_manager.motor_status[i].motor_ptr->motor_negtive_first_half(NULL);
+                if(motor_run.motor_flag[i] == 0) {
+                    continue;
                 }
+                motor_cb[i].motor_first_half[motor_run.motor_dirc[i]](NULL);
             }
 			motor_run.motor_state = RECOVER;
 			motor_manager.drv->timer->timer_start(motor_run.timer_interval, motor_check_run);
 			break;
 		case RECOVER:
             for(i = 0; i < max_motor; i++) {
-                if(motor_run.motor_flag[i] == 1) {
-                    motor_manager.motor_status[i].motor_ptr->motor_stop(NULL);
-                    if(motor_run.motor_contiune[i] == 1) {
-                        continue_flag += motor_check_continue(i);
-                    } else {
-                        motor_run.motor_flag[i] = 0;
-                    }
+                if(motor_run.motor_flag[i] == 0) {
+                    continue;
+                }
+                motor_cb[i].motor_stop(NULL);
+                if(motor_run.motor_contiune[i] == 1) {
+                    continue_flag += motor_check_continue(i);
+                } else {
+                    motor_run.motor_flag[i] = 0;
                 }
             }
 			motor_run.motor_state = SECOND_HALF;
@@ -337,25 +345,24 @@ void motor_check_run(u16 id)
 			break;
 		case SECOND_HALF:
             for(i = 0; i < max_motor; i++) {
-                if(motor_run.motor_flag[i] == 1) {
-                    if(motor_run.motor_dirc[i] == pos)
-                        motor_manager.motor_status[i].motor_ptr->motor_positive_second_half(NULL);
-                    else if(motor_run.motor_dirc[i] == neg)
-                        motor_manager.motor_status[i].motor_ptr->motor_negtive_second_half(NULL);
+                if(motor_run.motor_flag[i] == 0) {
+                    continue;
                 }
+                motor_cb[i].motor_second_half[motor_run.motor_dirc[i]](NULL);
             }
 			motor_run.motor_state = STOP;
 			motor_manager.drv->timer->timer_start(motor_run.timer_interval, motor_check_run);
 			break;
 		case STOP:
             for(i = 0; i < max_motor; i++) {
-                if(motor_run.motor_flag[i] == 1) {
-                    motor_manager.motor_status[i].motor_ptr->motor_stop(NULL);
-                    if(motor_run.motor_contiune[i] == 1) {
-                        continue_flag += motor_check_continue(i);
-                    } else {
-                        motor_run.motor_flag[i] = 0;
-                    }
+                if(motor_run.motor_flag[i] == 0) {
+                    continue;
+                }
+                motor_cb[i].motor_stop(NULL);
+                if(motor_run.motor_contiune[i] == 1) {
+                    continue_flag += motor_check_continue(i);
+                } else {
+                    motor_run.motor_flag[i] = 0;
                 }
             }
 			motor_run.motor_state = FIRST_HALF;
@@ -426,6 +433,40 @@ s16 motor_manager_init(void)
 	motor_manager.motor_status[date_motor].motor_ptr = motor_manager.drv->motor_date;
 	motor_manager.motor_status[battery_week_motor].motor_ptr = motor_manager.drv->motor_battery_week;
 	motor_manager.motor_status[notify_motor].motor_ptr = motor_manager.drv->motor_notify;
+
+    motor_cb_ctrl_t motor_cb_ctrl[max_motor] = {
+        [hour_motor] = {
+            .motor_first_half = {motor_manager.drv->motor_hour->motor_positive_first_half, motor_manager.drv->motor_hour->motor_negtive_first_half},
+            .motor_second_half = {motor_manager.drv->motor_hour->motor_positive_second_half, motor_manager.drv->motor_hour->motor_negtive_second_half},
+            .motor_stop = motor_manager.drv->motor_hour->motor_stop,
+        },
+        [minute_motor] = {
+            .motor_first_half = {motor_manager.drv->motor_minute->motor_positive_first_half, motor_manager.drv->motor_minute->motor_negtive_first_half},
+            .motor_second_half = {motor_manager.drv->motor_minute->motor_positive_second_half, motor_manager.drv->motor_minute->motor_negtive_second_half},
+            .motor_stop = motor_manager.drv->motor_minute->motor_stop,
+        },
+        [activity_motor] = {
+            .motor_first_half = {motor_manager.drv->motor_activity->motor_positive_first_half, motor_manager.drv->motor_activity->motor_negtive_first_half},
+            .motor_second_half = {motor_manager.drv->motor_activity->motor_positive_second_half, motor_manager.drv->motor_activity->motor_negtive_second_half},
+            .motor_stop = motor_manager.drv->motor_activity->motor_stop,
+        },
+        [date_motor] = {
+            .motor_first_half = {motor_manager.drv->motor_date->motor_positive_first_half, motor_manager.drv->motor_date->motor_negtive_first_half},
+            .motor_second_half = {motor_manager.drv->motor_date->motor_positive_second_half, motor_manager.drv->motor_date->motor_negtive_second_half},
+            .motor_stop = motor_manager.drv->motor_date->motor_stop,
+        },
+        [battery_week_motor] = {
+            .motor_first_half = {motor_manager.drv->motor_battery_week->motor_positive_first_half, motor_manager.drv->motor_battery_week->motor_negtive_first_half},
+            .motor_second_half = {motor_manager.drv->motor_battery_week->motor_positive_second_half, motor_manager.drv->motor_battery_week->motor_negtive_second_half},
+            .motor_stop = motor_manager.drv->motor_battery_week->motor_stop,
+        },
+        [notify_motor] = {
+            .motor_first_half = {motor_manager.drv->motor_notify->motor_positive_first_half, motor_manager.drv->motor_notify->motor_negtive_first_half},
+            .motor_second_half = {motor_manager.drv->motor_notify->motor_positive_second_half, motor_manager.drv->motor_notify->motor_negtive_second_half},
+            .motor_stop = motor_manager.drv->motor_notify->motor_stop,
+        },
+    };
+    MemCopy(&motor_cb, &motor_cb_ctrl, max_motor*sizeof(motor_cb_ctrl_t));
 
 	//motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler2);
     system_post_reboot_handler();

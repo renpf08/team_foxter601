@@ -295,9 +295,9 @@ enum {
 };
 
 enum {
-	none = 0,
-	pos = 1,
-	neg = 2,
+	pos = 0,
+	neg = 1,
+	none = 2,
 };
 
 enum{
