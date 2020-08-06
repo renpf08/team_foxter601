@@ -73,6 +73,7 @@ static void motor_run_state_calc(u8 motor_num)
 static void state_run_test_handler(u16 id)
 {
     u8 i = 0;
+    motor_queue_t queue_param = {.user = QUEUE_USER_RUN_HANDLER, .intervel = 10, .mask = MOTOR_MASK_ALL};
 
     if(motor_check_idle() == 0) {
         //MemSet(motor_manager.motor_runnig, 1, max_motor*sizeof(u8));
@@ -93,8 +94,8 @@ static void state_run_test_handler(u16 id)
             }
         }
         if(i == max_motor) {
-            MemCopy(adapter_ctrl.motor_dst, motor_rdc, max_motor*sizeof(u8));
-            motor_set_position(10, MOTOR_MASK_ALL);
+            MemCopy(queue_param.dest, motor_rdc, max_motor*sizeof(u8));
+            motor_params_enqueue(&queue_param);
             timer_event(1, motor_recover_handler);
             return; // all motor has back to zero position
         }
@@ -107,14 +108,15 @@ static void state_run_test_handler(u16 id)
 s16 state_run_test(REPORT_E cb, void *args)
 {
     state = args;
+    motor_queue_t queue_param = {.user = QUEUE_USER_RUN_TEST, .intervel = 10, .mask = MOTOR_MASK_ALL};
 
     if(run_enable == 0) {
         run_enable = 1;
         motor_manager.run_test_mode = 1;
         MemSet(run_quit, 0, max_motor*sizeof(u8));
         MemCopy(motor_rdc, adapter_ctrl.motor_dst, max_motor*sizeof(u8));
-        MemCopy(adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
-        motor_set_position(10, MOTOR_MASK_ALL);
+        MemCopy(queue_param.dest, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
+        motor_params_enqueue(&queue_param);
         timer_event(1, motor_reset_handler);
     } else {
         run_enable = 0;

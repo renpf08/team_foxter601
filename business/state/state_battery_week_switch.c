@@ -10,6 +10,7 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 //	clock_t * clk = NULL;
 //	u8 battery_level = BAT_PECENT_0;
 	STATE_E *state = (STATE_E *)args;
+    motor_queue_t queue_param = {.user = QUEUE_USER_BATWEEK_SWITCH, .intervel = 10, .mask = MOTOR_MASK_BAT_WEEK};
 
 	//print((u8 *)&"battery_week", 12);
 	if(state_week == adapter_ctrl.current_bat_week_sta) {
@@ -17,8 +18,8 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 	}else {
 		adapter_ctrl.current_bat_week_sta = state_week;
 	}
-    adapter_ctrl.motor_dst[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
-    motor_set_position(10, MOTOR_MASK_BAT_WEEK);
+    queue_param.dest[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
+    motor_params_enqueue(&queue_param);
 
 	*state = CLOCK;
 	return 0;

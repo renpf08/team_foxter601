@@ -347,6 +347,10 @@ extern bool ble_send_data(uint8 *data, uint16 size)
 *         bb:level, 0~255, look appMsgList[] of MESSAGE_POSITION_xxx for details
 *         cc:type, look appMsgList[] of APP_ID_STRING_xxx's index for details
 *         dd:cnt, msg count
+*	5F 04 aa bb cc // motor queue
+*         aa:queue useer
+*         bb:tail
+*         cc:head
 */
 extern bool ble_send_log(uint8 *data, uint16 size)
 {

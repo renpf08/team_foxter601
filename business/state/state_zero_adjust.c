@@ -8,12 +8,14 @@
 
 s16 state_zero_adjust(REPORT_E cb, void *args)
 {
-    u8 timer_interval = 10;
+    motor_queue_t queue_param = {.user = QUEUE_USER_ZERO_ADJUST, .intervel = 10, .mask = MOTOR_MASK_TRIG};
+    
 	if(KEY_A_B_LONG_PRESS == cb) {
 		/*hour back to zero position*/
 		adapter_ctrl.current_motor_num = minute_motor;
-        MemCopy(adapter_ctrl.motor_dst, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
-        motor_set_position(10, MOTOR_MASK_ALL|MOTOR_MASK_TRIG);
+        MemCopy(queue_param.dest, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
+        queue_param.mask = (MOTOR_MASK_ALL|MOTOR_MASK_TRIG);
+        motor_params_enqueue(&queue_param);
 	}else if(KEY_M_SHORT_PRESS == cb) {
 		/*motor switcch:hour -> minute -> activity -> date -> battery_week ->notify -> hour*/
 		adapter_ctrl.current_motor_num++;
@@ -21,10 +23,9 @@ s16 state_zero_adjust(REPORT_E cb, void *args)
 			adapter_ctrl.current_motor_num = minute_motor;
 		}
         if((adapter_ctrl.current_motor_num == notify_motor) || (adapter_ctrl.current_motor_num == activity_motor)) {
-            timer_interval = 25;
+            queue_param.intervel = 25;
         }
-        motor_set_position(timer_interval, MOTOR_MASK_TRIG);
-		//state_zero_adjust_motor_back_zero(motor_num);
+        motor_params_enqueue(&queue_param);
 	}else if(KEY_A_SHORT_PRESS == cb) {
 		/*motor run positive half step*/
 		motor_run_one_step(adapter_ctrl.current_motor_num, pos);

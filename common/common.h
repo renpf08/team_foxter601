@@ -11,7 +11,8 @@
 
 #define VAL_GET(num)        PioGet(num)
 
-#define QUEUE_BUFFER    64
+#define QUEUE_BUFFER        64
+#define MOTOR_QUEUE_SIZE    32
 
 typedef struct {
 	u8 x_l;
@@ -617,7 +618,6 @@ typedef struct {
     reboot_type_t reboot_type;
     u8 motor_dst[max_motor];
     u8 motor_zero[max_motor];
-    motor_trig_t motor_trig[max_motor];
     const u8 date[];
 } adapter_ctrl_t;
 
@@ -652,6 +652,33 @@ typedef struct {
     u8 run_direc;
     motor_range_t run_range;
 }motor_run_status_t;
+typedef enum {
+    QUEUE_USER_ACTIVITY_CALC,
+    QUEUE_USER_MOTOR_TRIG,
+    QUEUE_USER_DATE_TIME,
+    QUEUE_USER_PRE_REBOOT,
+    QUEUE_USER_POST_REBOOT,
+    QUEUE_USER_BATWEEK_SWITCH,
+    QUEUE_USER_BLE_SWING,
+    QUEUE_USER_PAIR_CODE,
+    QUEUE_USER_BLE_CHANGE,
+    QUEUE_USER_NOTIFY_RCVD,
+    QUEUE_USER_RUN_HANDLER,
+    QUEUE_USER_RUN_TEST,
+    QUEUE_USER_ZERO_ADJUST
+}queue_user_t;
+typedef struct {
+    queue_user_t user;
+    u8 intervel;
+    MOTOR_MASK_E mask;
+    u8 dest[max_motor];
+} motor_queue_t;
+typedef struct {
+	motor_queue_t queue_params[MOTOR_QUEUE_SIZE];
+    queue_user_t cur_user;
+    u8 head;
+    u8 tail;
+}motor_queue_buffer_t;
 typedef struct {
     motor_cb_ctrl_t cb[max_motor];
     motor_run_status_t status[max_motor];
@@ -666,6 +693,7 @@ typedef struct {
 	u8 run_interval_ms;
     u8 timer_interval;
     u8 run_test_mode;
+    motor_queue_t queue_params; 
 } motor_manager_t;
 
 #define POS_HIGH(num) PioSet((num), 1UL)
