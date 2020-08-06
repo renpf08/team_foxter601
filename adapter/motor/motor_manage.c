@@ -41,6 +41,7 @@ motor_manager_t motor_manager = {
 	.run_interval_ms = 100,
     .timer_interval = 0,
     .run_test_mode = 0,
+    .instance = 0,
 };
 
 u8 hour_list[] = {
@@ -268,10 +269,9 @@ void motor_check_run(u16 id)
             }
         }
 		motor_manager.run_main_self = (motor_manager.run_main_self==RECOVER)?SECOND_HALF:FIRST_HALF;
-        if(run_continue > 0) {
+        motor_manager.instance = run_continue;
+        if(motor_manager.instance > 0) {
             timer_event(motor_manager.timer_interval, motor_check_run);
-        } else {
-            timer_event(10, motor_params_dequeue);
         }
     }
 }
@@ -284,7 +284,6 @@ void motor_run_one_unit(u8 timer_intervel)
     run_cnt = 0;
 	for(i = 0; i < max_motor; i++) {
 		if(motor_manager.status[i].run_flag == 1) {
-            //motor_check_direction(i);
         	if(motor_manager.status[i].dst_pos > motor_manager.status[i].cur_pos) {
         		motor_manager.status[i].run_direc = pos;
         	}else if(motor_manager.status[i].dst_pos < motor_manager.status[i].cur_pos) {
@@ -302,7 +301,7 @@ void motor_run_one_unit(u8 timer_intervel)
 	}
 
     if(run_cnt > 0) {
-        timer_event(5, motor_check_run);
+        timer_event(1, motor_check_run);
     }
 }
 
@@ -376,17 +375,5 @@ s16 motor_manager_init(void)
 
     system_post_reboot_handler();
 	return 0;
-}
-
-u16 motor_check_idle(void)
-{
-    u16 i = 0;
-    
-    for(i = 0; i < max_motor; i++) {
-        if(motor_manager.status[i].run_flag == 1) {
-            return 1;
-        }
-    }
-    return 0;
 }
 

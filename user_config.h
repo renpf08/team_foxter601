@@ -37,7 +37,6 @@ FO601
 #define USE_ADV_DATA        1  
 #define USE_NEW_DAV_NAME    0
 #define USE_PAIR_CODE_0000  1 // test mode, use pair code of 0x0000 as a bypass code 
-#define USE_NO_SWING        1
 
 #define USE_CMD_TEST        1
 #if USE_CMD_TEST

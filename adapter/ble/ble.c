@@ -2,11 +2,7 @@
 #include "adapter/adapter.h"
 #include <macros.h>
 
-#if USE_NO_SWING
-static app_state ble_last_state = app_advertising;
-#else
 static app_state ble_last_state = app_init;
-#endif
 static adapter_callback ble_switch_cb = NULL;
 
 s16 ble_switch_init(adapter_callback cb);

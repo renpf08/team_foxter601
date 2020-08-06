@@ -676,6 +676,7 @@ typedef struct {
 typedef struct {
 	motor_queue_t queue_params[MOTOR_QUEUE_SIZE];
     queue_user_t cur_user;
+    u8 poling_timer_running;
     u8 head;
     u8 tail;
 }motor_queue_buffer_t;
@@ -693,6 +694,7 @@ typedef struct {
 	u8 run_interval_ms;
     u8 timer_interval;
     u8 run_test_mode;
+    u8 instance;
     motor_queue_t queue_params; 
 } motor_manager_t;
 
