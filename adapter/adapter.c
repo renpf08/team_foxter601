@@ -218,7 +218,7 @@ void sync_time(void)
 }
 static void pre_reboot_handler(u16 id)
 {
-    if(motor_manager.instance != 0) {
+    if(motor_check_idle() != 0) {
         timer_event(100, pre_reboot_handler);
         return;
     }
@@ -286,7 +286,6 @@ static void motor_set_position(motor_queue_t *queue_params)
     if(queue_params->mask & MOTOR_MASK_TRIG) { // zero adjust mode
         timer_event(1, motor_trig_handler);
     }
-    motor_manager.instance = set_result;
 }
 void motor_params_enqueue(motor_queue_t *queue_params)
 {
@@ -296,9 +295,6 @@ void motor_params_enqueue(motor_queue_t *queue_params)
     }
     MemCopy(&motor_queue.queue_params[motor_queue.head], queue_params, sizeof(motor_queue_t));
     motor_queue.head = (motor_queue.head+1)%MOTOR_QUEUE_SIZE;
-    if(motor_queue.poling_timer_running == 0) {
-        timer_event(1, motor_poling_queue);
-    }
 }
 void motor_poling_queue(u16 id)
 {
@@ -306,7 +302,6 @@ void motor_poling_queue(u16 id)
     u8 queue_info[5] = {0x5F, 0x04, 0x00, 0x00, 0x00};
     #endif
 
-    motor_queue.poling_timer_running = 0;
     if(motor_queue.tail != motor_queue.head) {
         #if 0
         queue_info[2] = motor_queue.queue_params[motor_queue.tail].user;
@@ -314,14 +309,13 @@ void motor_poling_queue(u16 id)
         queue_info[4] = motor_queue.head;
         BLE_SEND_LOG(queue_info, 5);
         #endif
-        if(motor_manager.instance == 0) {
+        if(motor_check_idle() == 0) {
             motor_queue.cur_user = motor_queue.queue_params[motor_queue.tail].user; // for debug
             motor_set_position(&motor_queue.queue_params[motor_queue.tail]);
             motor_queue.tail = (motor_queue.tail+1)%MOTOR_QUEUE_SIZE;
         }
-        timer_event(10, motor_poling_queue);
-        motor_queue.poling_timer_running = 1;
     }
+    timer_event(100, motor_poling_queue);
 }
 void motor_set_date_time(clock_t *clock, MOTOR_MASK_E mask)
 {

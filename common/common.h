@@ -694,7 +694,6 @@ typedef struct {
 	u8 run_interval_ms;
     u8 timer_interval;
     u8 run_test_mode;
-    u8 instance;
     motor_queue_t queue_params; 
 } motor_manager_t;
 

@@ -45,6 +45,7 @@ s16 motor_battery_week_to_position(u8 dst_pos);
 s16 motor_activity_to_position(u8 dst_pos);
 
 void motor_run_one_unit(u8 timer_intervel);
+u16 motor_check_idle(void);
 
 s16 battery_init(adapter_callback cb);
 u8 battery_percent_read(void);
