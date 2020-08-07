@@ -12,7 +12,7 @@
 #define VAL_GET(num)        PioGet(num)
 
 #define QUEUE_BUFFER        64
-#define MOTOR_QUEUE_SIZE    32
+#define MOTOR_QUEUE_SIZE    255
 
 typedef struct {
 	u8 x_l;
@@ -676,6 +676,9 @@ typedef struct {
 typedef struct {
 	motor_queue_t queue_params[MOTOR_QUEUE_SIZE];
     queue_user_t cur_user;
+    u16 write_cnt;
+    u16 read_cnt;
+    u16 drop_cnt;
     u8 poling_timer_running;
     u8 head;
     u8 tail;
@@ -685,7 +688,7 @@ typedef struct {
     motor_run_status_t status[max_motor];
     u8 run_next[max_motor];
     u8 run_state_self[max_motor];
-    u8 run_main_self;
+    u8 run_state_main;
     u8 skip_total[max_motor];
     u8 skip_cnt[max_motor];
     u8 step_cnt[max_motor];
@@ -694,6 +697,7 @@ typedef struct {
 	u8 run_interval_ms;
     u8 timer_interval;
     u8 run_test_mode;
+    u8 motor_running;
     motor_queue_t queue_params; 
 } motor_manager_t;
 

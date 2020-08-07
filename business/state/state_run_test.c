@@ -76,11 +76,9 @@ static void state_run_test_handler(u16 id)
     motor_queue_t queue_param = {.user = QUEUE_USER_RUN_HANDLER, .intervel = 10, .mask = MOTOR_MASK_ALL};
 
     if(motor_check_idle() == 0) {
-        //MemSet(motor_manager.motor_runnig, 1, max_motor*sizeof(u8));
         for(i = 0; i < max_motor; i++) {
             if(motor_manager.skip_cnt[i] < (motor_manager.skip_total[i])*2) {
                 motor_manager.skip_cnt[i]++;
-                //motor_manager.motor_runnig[i] = 0;
             } else if(motor_manager.skip_cnt[i] != 0) {
                 motor_manager.skip_cnt[i] = 0;
             }

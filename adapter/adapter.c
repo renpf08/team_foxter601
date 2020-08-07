@@ -218,7 +218,10 @@ void sync_time(void)
 }
 static void pre_reboot_handler(u16 id)
 {
-    if(motor_check_idle() != 0) {
+    static u8 wait_cnt = 0;
+    
+    if((motor_check_idle() != 0) && (wait_cnt < 50)) { // max waiting time: 5 second
+        wait_cnt++;
         timer_event(100, pre_reboot_handler);
         return;
     }
@@ -287,35 +290,38 @@ static void motor_set_position(motor_queue_t *queue_params)
         timer_event(1, motor_trig_handler);
     }
 }
+static void motor_queue_handler(u16 id)
+{
+    if(motor_manager.motor_running != 0) {
+        timer_event(100, motor_queue_handler);
+    }
+    if(motor_queue.tail != motor_queue.head) {
+        timer_event(100, motor_params_dequeue);
+    }
+}
+void motor_params_dequeue(u16 id)
+{
+    if(motor_queue.tail != motor_queue.head) {
+        motor_queue.cur_user = motor_queue.queue_params[motor_queue.tail].user; // for debug
+        motor_set_position(&motor_queue.queue_params[motor_queue.tail]);
+        motor_queue.tail = (motor_queue.tail+1)%MOTOR_QUEUE_SIZE;
+        motor_queue.read_cnt++;
+        timer_event(1, motor_queue_handler);
+    }
+}
 void motor_params_enqueue(motor_queue_t *queue_params)
 {
     /** queue is fulled, discard the oldest one */
     if(motor_queue.tail == (motor_queue.head+1)%MOTOR_QUEUE_SIZE) {
         motor_queue.tail = (motor_queue.tail+1)%MOTOR_QUEUE_SIZE;
+        motor_queue.drop_cnt++;
     }
     MemCopy(&motor_queue.queue_params[motor_queue.head], queue_params, sizeof(motor_queue_t));
     motor_queue.head = (motor_queue.head+1)%MOTOR_QUEUE_SIZE;
-}
-void motor_poling_queue(u16 id)
-{
-    #if 0
-    u8 queue_info[5] = {0x5F, 0x04, 0x00, 0x00, 0x00};
-    #endif
-
-    if(motor_queue.tail != motor_queue.head) {
-        #if 0
-        queue_info[2] = motor_queue.queue_params[motor_queue.tail].user;
-        queue_info[3] = motor_queue.tail;
-        queue_info[4] = motor_queue.head;
-        BLE_SEND_LOG(queue_info, 5);
-        #endif
-        if(motor_check_idle() == 0) {
-            motor_queue.cur_user = motor_queue.queue_params[motor_queue.tail].user; // for debug
-            motor_set_position(&motor_queue.queue_params[motor_queue.tail]);
-            motor_queue.tail = (motor_queue.tail+1)%MOTOR_QUEUE_SIZE;
-        }
+    motor_queue.write_cnt++;
+    if(motor_manager.motor_running == 0) {
+        timer_event(1, motor_queue_handler);
     }
-    timer_event(100, motor_poling_queue);
 }
 void motor_set_date_time(clock_t *clock, MOTOR_MASK_E mask)
 {
@@ -372,7 +378,7 @@ void system_post_reboot_handler(void)
     }
     motor_params_enqueue(&queue_param);
     adapter_ctrl.system_started = 1;
-    timer_event(1, motor_poling_queue);
+    timer_event(1, motor_queue_handler);
 }
 u8 state_machine_check(REPORT_E cb)
 {

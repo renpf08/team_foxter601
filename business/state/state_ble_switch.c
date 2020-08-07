@@ -28,6 +28,10 @@ static void notify_swing_cb_handler(u16 id)
     static u8 swing_state = NOTIFY_NONE;
     motor_queue_t queue_param = {.user = QUEUE_USER_BLE_SWING, .intervel = 40, .mask = SWING_MOTOR_MASK};
 
+//    if(motor_check_idle() != 0) {
+//        timer_event(100, notify_swing_cb_handler);
+//        return;
+//    }
     swing_ongoing = 0;
     if(ble_state_get() != app_advertising) {
         queue_param.dest[SWING_MOTOR_NAME] = NOTIFY_NONE;
