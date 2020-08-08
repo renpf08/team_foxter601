@@ -273,19 +273,22 @@ void motor_check_run(u16 id)
             timer_event(motor_manager.timer_interval, motor_check_run);
         } else {
             motor_manager.motor_running = 0;
-            //timer_event(1, motor_params_dequeue);
+//            if(motor_check_idle() == 0) {
+////                motor_manager.motor_running = 0;
+//                timer_event(1, motor_params_dequeue);
+//            }
         }
     }
 }
-static void motor_wait_idle(u16 id)
-{
-    if(motor_manager.motor_running == 1) {
-        timer_event(10, motor_wait_idle);
-        return;
-    }
-    motor_manager.motor_running = 1;
-    timer_event(1, motor_check_run);
-}
+//static void motor_wait_idle(u16 id)
+//{
+//    if(motor_manager.motor_running == 1) {
+//        timer_event(10, motor_wait_idle);
+//        return;
+//    }
+//    motor_manager.motor_running = 1;
+//    timer_event(1, motor_check_run);
+//}
 void motor_run_one_unit(u8 timer_intervel)
 {
 	u8 i = 0;
@@ -312,7 +315,9 @@ void motor_run_one_unit(u8 timer_intervel)
 	}
 
     if(run_cnt > 0) {
-        timer_event(1, motor_wait_idle);
+//        timer_event(1, motor_wait_idle);
+        motor_manager.motor_running = 1;
+        timer_event(1, motor_check_run);
     }
 }
 
@@ -322,7 +327,7 @@ void motor_run_one_step(u8 motor_num, u8 direction)
     motor_manager.status[motor_num].run_flag = 1;
     motor_manager.status[motor_num].run_direc = direction;
     motor_manager.timer_interval = 10;
-    timer_event(1, motor_wait_idle);
+    timer_event(1, motor_check_run);
 }
 
 /*only for zero adjust mode*/

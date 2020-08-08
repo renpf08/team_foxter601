@@ -368,6 +368,7 @@ typedef enum{
     LOG_SEND_PAIR_CODE,
     LOG_SEND_STATE_MACHINE,
     LOG_SEND_ZERO_ADJUST_JUMP,
+    LOG_SEND_QUEUE,
     
     LOG_SEND_MAX,
 }log_type_t;
@@ -605,7 +606,10 @@ typedef struct {
     u8 zero_pos;
     u8 trig_pos;
 } motor_trig_t;
-
+typedef struct {
+    u8 num;
+    u8 pos;
+} motor_asjust_t;
 typedef struct {
     #if USE_CMD_TEST_LOG_TYPE_EN
     u8 log_type_en[LOG_SEND_MAX];
@@ -613,7 +617,7 @@ typedef struct {
     u8 system_started;
     u8 system_reboot_lock;
     u8 activity_pos;
-    u8 current_motor_num;;
+    motor_asjust_t current_motor;
     u8 current_bat_week_sta;
     reboot_type_t reboot_type;
     u8 motor_dst[max_motor];
@@ -653,19 +657,19 @@ typedef struct {
     motor_range_t run_range;
 }motor_run_status_t;
 typedef enum {
-    QUEUE_USER_ACTIVITY_CALC,
-    QUEUE_USER_MOTOR_TRIG,
-    QUEUE_USER_DATE_TIME,
-    QUEUE_USER_PRE_REBOOT,
-    QUEUE_USER_POST_REBOOT,
-    QUEUE_USER_BATWEEK_SWITCH,
-    QUEUE_USER_BLE_SWING,
-    QUEUE_USER_PAIR_CODE,
-    QUEUE_USER_BLE_CHANGE,
-    QUEUE_USER_NOTIFY_RCVD,
-    QUEUE_USER_RUN_HANDLER,
-    QUEUE_USER_RUN_TEST,
-    QUEUE_USER_ZERO_ADJUST
+    QUEUE_USER_ACTIVITY_CALC    = 0x00,
+    QUEUE_USER_MOTOR_TRIG       = 0x01,
+    QUEUE_USER_DATE_TIME        = 0x02,
+    QUEUE_USER_PRE_REBOOT       = 0x03,
+    QUEUE_USER_POST_REBOOT      = 0x04,
+    QUEUE_USER_BATWEEK_SWITCH   = 0x05,
+    QUEUE_USER_BLE_SWING        = 0x06,
+    QUEUE_USER_PAIR_CODE        = 0x07,
+    QUEUE_USER_BLE_CHANGE       = 0x08,
+    QUEUE_USER_NOTIFY_RCVD      = 0x09,
+    QUEUE_USER_RUN_HANDLER      = 0x0A,
+    QUEUE_USER_RUN_TEST         = 0x0B,
+    QUEUE_USER_ZERO_ADJUST      = 0x0C,
 }queue_user_t;
 typedef struct {
     queue_user_t user;
@@ -676,6 +680,8 @@ typedef struct {
 typedef struct {
 	motor_queue_t queue_params[MOTOR_QUEUE_SIZE];
     queue_user_t cur_user;
+    u8 motor_name;
+    u8 handle_name;
     u16 write_cnt;
     u16 read_cnt;
     u16 drop_cnt;
