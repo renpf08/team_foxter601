@@ -200,6 +200,7 @@ void sync_time(void)
     clock->second = time->second;
 
     BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
+    refresh_step();
 	motor_minute_to_position(clock->minute);
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
