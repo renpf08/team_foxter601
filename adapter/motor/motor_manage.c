@@ -214,6 +214,9 @@ s16 motor_activity_to_position(u8 dst_pos)
 
 static u8 motor_check_continue(u8 motor_num)
 {
+    if(motor_queue.cur_user == QUEUE_USER_MOTOR_TRIG) {
+        motor_manager.motor_run_info.step++;
+    }
 	motor_manager.status[motor_num].unit_step_num++;
 	if(motor_manager.status[motor_num].unit_step_num >= motor_manager.status[motor_num].unit_interval_step) {
 		motor_manager.status[motor_num].unit_step_num = 0;
@@ -233,6 +236,11 @@ static u8 motor_check_continue(u8 motor_num)
             motor_manager.status[motor_num].run_flag = 0;
             motor_manager.run_next[motor_num] = 0;
             motor_manager.status[motor_num].run_direc = none;
+            if(motor_queue.cur_user == QUEUE_USER_MOTOR_TRIG) {
+                send_motor_run_info();
+                motor_manager.motor_run_info.step = 0;
+            motor_manager.motor_run_info.stage++;
+            }
             return MOTOR_RUN_OVER;
     	}
         return MOTOR_RUN_NEXT_UNIT;
@@ -273,11 +281,6 @@ void motor_check_run(u16 id)
             timer_event(motor_manager.timer_interval, motor_check_run);
         } else {
             motor_manager.motor_running = 0;
-            if(motor_manager.motor_run_info.flag == 1) {
-                motor_manager.motor_run_info.flag = 0;
-                motor_manager.motor_run_info.stage  = 1;
-                send_motor_run_info();
-            }
 //            if(motor_check_idle() == 0) {
 ////                motor_manager.motor_running = 0;
 //                timer_event(1, motor_params_dequeue);

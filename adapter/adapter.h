@@ -114,6 +114,7 @@ void ble_switch_off(void);
 void ble_state_set(app_state cur_state);
 app_state ble_state_get(void);
 
+extern motor_queue_buffer_t motor_queue;
 extern motor_manager_t motor_manager;
 extern adapter_ctrl_t adapter_ctrl;
 

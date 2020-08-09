@@ -207,8 +207,8 @@ void sync_time(void)
     clock->second = time->second;
 
     BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
+    refresh_step();
     motor_set_date_time(clock, (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK), QUEUE_USER_SYNC_DATETIME);
-    //refresh_step();
 }
 u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state)
 {
@@ -220,20 +220,11 @@ u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state)
 }
 void send_motor_run_info(void)
 {
-    motor_manager.motor_run_info.num = adapter_ctrl.current_motor.num;
-    motor_manager.motor_run_info.cur = motor_manager.status[adapter_ctrl.current_motor.num].cur_pos;
-    motor_manager.motor_run_info.dst = motor_manager.status[adapter_ctrl.current_motor.num].dst_pos;
-    motor_manager.motor_run_info.step = (motor_manager.status[adapter_ctrl.current_motor.num].dst_pos>motor_manager.status[adapter_ctrl.current_motor.num].cur_pos)?
-                                        (motor_manager.status[adapter_ctrl.current_motor.num].dst_pos-motor_manager.status[adapter_ctrl.current_motor.num].cur_pos):
-                                        (motor_manager.status[adapter_ctrl.current_motor.num].cur_pos-motor_manager.status[adapter_ctrl.current_motor.num].dst_pos);
-
-    u8 ble_log[7] = {0x5F, 0x05, 0,0,0,0};
+    u8 ble_log[5] = {0x5F, 0x05, 0,0,0};
     ble_log[2] = motor_manager.motor_run_info.num;
     ble_log[3] = motor_manager.motor_run_info.stage;
-    ble_log[4] = motor_manager.motor_run_info.cur;
-    ble_log[5] = motor_manager.motor_run_info.dst;
-    ble_log[6] = motor_manager.motor_run_info.step;
-    BLE_SEND_LOG(ble_log, 7);
+    ble_log[4] = motor_manager.motor_run_info.step;
+    BLE_SEND_LOG(ble_log, 5);
 }
 static void motor_set_position(motor_queue_t *queue_params)
 {

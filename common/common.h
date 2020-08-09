@@ -692,11 +692,8 @@ typedef struct {
     u8 tail;
 }motor_queue_buffer_t;
 typedef struct {
-    u8 flag;
     u8 num;
     u8 stage;
-    u8 cur;
-    u8 dst;
     u8 step;
 } motor_run_info_t;
 typedef struct {

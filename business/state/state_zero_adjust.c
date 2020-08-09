@@ -24,11 +24,8 @@ static void motor_trig_handler(void)
             [notify_motor]          = {25, NOTIFY_NONE,    NOTIFY_EMAIL},
     };
             
-    MemSet(&motor_manager.motor_run_info, 0, sizeof(motor_run_info_t));
-    motor_manager.motor_run_info.flag = 1;
-    motor_manager.motor_run_info.stage  = 0;
-    send_motor_run_info();
-    
+    MemSet(&motor_manager.motor_run_info, 0, sizeof(motor_run_info_t));    
+    motor_manager.motor_run_info.num = adapter_ctrl.current_motor.num;
     queue_param.intervel = trig_range[adapter_ctrl.current_motor.num].rotate_speed;
     queue_param.mask = (1<<adapter_ctrl.current_motor.num);
     queue_param.dest[adapter_ctrl.current_motor.num] = trig_range[adapter_ctrl.current_motor.num].forward_pos;
