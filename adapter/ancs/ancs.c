@@ -117,6 +117,8 @@ void ancs_business_handle(packing_msg_t* pack_msg)
     {
         ancs_msg.level = 255; //! invalid if proMst.msgType = 255
         ancs_msg.type = 255; //! indicated unknown message
+        
+        BLE_SEND_LOG((u8*)&pack_msg->attr_id_app_id, StrLen((char*)pack_msg->attr_id_app_id));
     }
     else
     {
@@ -124,8 +126,6 @@ void ancs_business_handle(packing_msg_t* pack_msg)
         ancs_msg.type = app_msg_list[i].app_index;
     }
     
-        
-    BLE_SEND_LOG((u8*)&pack_msg->attr_id_app_id[4], StrLen((char*)pack_msg->attr_id_app_id)-4);
     ancs_msg.sta = pack_msg->evt_id;
     ancs_msg.cnt = pack_msg->cat_cnt;
     if(NULL != ancs_cb) {

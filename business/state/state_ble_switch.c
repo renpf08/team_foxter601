@@ -23,35 +23,32 @@ static bool swing_en = FALSE;
 static void notify_swing_cb_handler(u16 id)
 {
     static bool notify_swing_start = FALSE;	
+
     app_state cur_state = ble_state_get();
     clock_t *clock = clock_get();
-    MOTOR_MASK_E mask = MOTOR_MASK_NOTIFY;
-    static u8 minute = 0;
     
     if(cur_state != app_advertising) {
         if(notify_swing_start == TRUE) {
             notify_swing_start = FALSE;
-            adapter_ctrl.motor_dst[notify_motor] = NOTIFY_NONE;
-            motor_set_position(40, mask);
+            motor_notify_to_position(NOTIFY_NONE);
         }
         return;
     }
 
     if(notify_swing_start == FALSE) {
         notify_swing_start = TRUE;
-        adapter_ctrl.motor_dst[notify_motor] = NOTIFY_COMMING_CALL;
+        motor_notify_to_position(NOTIFY_COMMING_CALL);
+        //print((u8*)&"forward", 7);
     } else {
         notify_swing_start = FALSE;
-        adapter_ctrl.motor_dst[notify_motor] = NOTIFY_NONE;
+        motor_notify_to_position(NOTIFY_NONE);
+        //print((u8*)&"backward", 8);
     }
+    
+	motor_minute_to_position(clock->minute);
+	motor_hour_to_position(clock->hour);
+    motor_date_to_position(date[clock->day]);
 
-    if(minute != clock->minute) {
-        minute = clock->minute;
-        mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE);
-        motor_set_day_time(clock, mask);
-    } else {
-        motor_set_position(40, mask);
-    }
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
 }
 void pair_code_generate(void)
@@ -59,7 +56,6 @@ void pair_code_generate(void)
     u16 old_pair_code = 0;
     u8 hour;
     u8 minute;
-    MOTOR_MASK_E mask = MOTOR_MASK_NOTIFY;
     
     while(1) {
         old_pair_code = pair_code.pair_code;
@@ -87,10 +83,8 @@ void pair_code_generate(void)
     test_buf[3] = minute;
     BLE_SEND_LOG((u8*)&test_buf, 4);
 	
-    mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE);
-    adapter_ctrl.motor_dst[minute_motor] = minute;
-    adapter_ctrl.motor_dst[hour_motor] = hour;
-    motor_set_position(10, mask);
+	motor_hour_to_position(hour);
+	motor_minute_to_position(minute);
 }
 static s16 ble_pair(void *args)
 {
@@ -139,7 +133,6 @@ static u16 ble_change(void *args)
     STATE_E *state_mc = (STATE_E *)args;
     app_state state_ble = ble_state_get();
     
-    adapter_ctrl.motor_dst[notify_motor] = NOTIFY_NONE;
     if(state_ble == app_advertising) { // advertising start
         #if USE_NO_SWING
         if(swing_en == TRUE) {
@@ -164,7 +157,7 @@ static u16 ble_change(void *args)
         #if USE_UART_PRINT
         print((u8*)&"adv stop", 8);
         #endif
-        motor_set_position(40, MOTOR_MASK_NOTIFY);
+        motor_notify_to_position(NOTIFY_NONE);
     } else if(state_ble == app_connected){ // connected
         #if USE_UART_PRINT
         print((u8*)&"connect", 7);
@@ -172,7 +165,7 @@ static u16 ble_change(void *args)
         #if USE_NO_SWING
         if(swing_en == FALSE) swing_en = TRUE;
         #endif
-        motor_set_position(40, MOTOR_MASK_NOTIFY);
+        motor_notify_to_position(NOTIFY_NONE);
     } else { // disconnected
         #if USE_UART_PRINT
         print((u8*)&"disconect", 9);
