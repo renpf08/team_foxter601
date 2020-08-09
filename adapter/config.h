@@ -13,7 +13,7 @@ cfg_t args = {
 		},
 		.keya_cfg = {
 			.group = 0,
-			.num = 31,
+			.num = 3,
 		},
 		.keym_cfg = {
 			.group = 0,
@@ -21,7 +21,7 @@ cfg_t args = {
 		},
 		.keyb_cfg = {
 			.group = 0,
-			.num = 3,
+			.num = 31,
 		},
 		.vibrator_cfg = {
 			.group = 0,

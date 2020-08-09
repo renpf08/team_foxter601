@@ -92,13 +92,13 @@ typedef enum {
 
 typedef enum {
 	/*week*/
-	SUNDAY,
 	MONDAY,
 	TUESDAY,
 	WEDNESDAY,
 	THURSDAY,
 	FRIDAY,
 	SATURDAY,
+	SUNDAY,
 
 	/*battery*/
 	BAT_PECENT_100,
