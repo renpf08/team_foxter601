@@ -21,7 +21,7 @@ static adapter_t adapter = {
 motor_queue_buffer_t motor_queue;
 adapter_ctrl_t adapter_ctrl = {
     #if USE_CMD_TEST_LOG_TYPE_EN
-    .log_type_en = {1, 1, 1, 1},
+    .log_type_en = {1, 1, 1, 1, 1},
     #endif
     .system_started = 0,
     .system_reboot_lock = 0,
@@ -218,6 +218,23 @@ u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state)
 		return clock_get()->week;
     }
 }
+void send_motor_run_info(void)
+{
+    motor_manager.motor_run_info.num = adapter_ctrl.current_motor.num;
+    motor_manager.motor_run_info.cur = motor_manager.status[adapter_ctrl.current_motor.num].cur_pos;
+    motor_manager.motor_run_info.dst = motor_manager.status[adapter_ctrl.current_motor.num].dst_pos;
+    motor_manager.motor_run_info.step = (motor_manager.status[adapter_ctrl.current_motor.num].dst_pos>motor_manager.status[adapter_ctrl.current_motor.num].cur_pos)?
+                                        (motor_manager.status[adapter_ctrl.current_motor.num].dst_pos-motor_manager.status[adapter_ctrl.current_motor.num].cur_pos):
+                                        (motor_manager.status[adapter_ctrl.current_motor.num].cur_pos-motor_manager.status[adapter_ctrl.current_motor.num].dst_pos);
+
+    u8 ble_log[7] = {0x5F, 0x05, 0,0,0,0};
+    ble_log[2] = motor_manager.motor_run_info.num;
+    ble_log[3] = motor_manager.motor_run_info.stage;
+    ble_log[4] = motor_manager.motor_run_info.cur;
+    ble_log[5] = motor_manager.motor_run_info.dst;
+    ble_log[6] = motor_manager.motor_run_info.step;
+    BLE_SEND_LOG(ble_log, 7);
+}
 static void motor_set_position(motor_queue_t *queue_params)
 {
     u8 set_result = 0;
@@ -265,7 +282,7 @@ static void motor_set_position(motor_queue_t *queue_params)
         motor_run_one_unit(queue_params->intervel);
     }
     
-    u8 ble_log[7] = {0x5F, 0x04, 0,0,0};
+    u8 ble_log[7] = {0x5F, 0x04, 0,0,0,0,0};
     ble_log[2] = motor_queue.tail;
     ble_log[3] = motor_queue.head;
     ble_log[4] = motor_queue.cur_user;

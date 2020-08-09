@@ -273,6 +273,11 @@ void motor_check_run(u16 id)
             timer_event(motor_manager.timer_interval, motor_check_run);
         } else {
             motor_manager.motor_running = 0;
+            if(motor_manager.motor_run_info.flag == 1) {
+                motor_manager.motor_run_info.flag = 0;
+                motor_manager.motor_run_info.stage  = 1;
+                send_motor_run_info();
+            }
 //            if(motor_check_idle() == 0) {
 ////                motor_manager.motor_running = 0;
 //                timer_event(1, motor_params_dequeue);

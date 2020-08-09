@@ -369,6 +369,7 @@ typedef enum{
     LOG_SEND_STATE_MACHINE,
     LOG_SEND_ZERO_ADJUST_JUMP,
     LOG_SEND_QUEUE,
+    LOG_SEND_RUN_INFO,
     
     LOG_SEND_MAX,
 }log_type_t;
@@ -691,6 +692,14 @@ typedef struct {
     u8 tail;
 }motor_queue_buffer_t;
 typedef struct {
+    u8 flag;
+    u8 num;
+    u8 stage;
+    u8 cur;
+    u8 dst;
+    u8 step;
+} motor_run_info_t;
+typedef struct {
     motor_cb_ctrl_t cb[max_motor];
     motor_run_status_t status[max_motor];
     u8 run_next[max_motor];
@@ -706,6 +715,7 @@ typedef struct {
     u8 run_test_mode;
     u8 motor_running;
     motor_queue_t queue_params; 
+    motor_run_info_t  motor_run_info;
 } motor_manager_t;
 
 #define POS_HIGH(num) PioSet((num), 1UL)

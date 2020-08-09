@@ -18,6 +18,7 @@ extern bool ble_send_log(uint8 *data, uint16 size);
 void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
 u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state);
+void send_motor_run_info(void);
 void motor_params_dequeue(u16 id);
 void motor_params_enqueue(motor_queue_t *queue_params);
 void motor_set_date_time(clock_t *clock, MOTOR_MASK_E mask, queue_user_t user);
