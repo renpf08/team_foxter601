@@ -261,8 +261,16 @@ void motor_check_run(u16 id)
             if(motor_queue.cur_user == QUEUE_USER_MOTOR_TRIG) {
                 if(motor_manager.run_state_self[i] == FIRST_HALF) {
                     motor_manager.motor_run_info.first_half++;
+                    if((motor_manager.motor_run_info.first_half-motor_manager.motor_run_info.second_half)>2) {
+                        motor_manager.run_state_self[i] = FIRST_HALF;
+                        BLE_SEND_LOG((u8*)&"\x00", 1);
+                    }
                 } else if(motor_manager.run_state_self[i] == SECOND_HALF) {
                     motor_manager.motor_run_info.second_half++;
+                    if((motor_manager.motor_run_info.second_half-motor_manager.motor_run_info.first_half)>2) {
+                        motor_manager.run_state_self[i] = SECOND_HALF;
+                        BLE_SEND_LOG((u8*)&"\x01", 1);
+                    }
                 }
                 if(motor_manager.status[i].run_direc == pos) {
                     motor_manager.motor_run_info.pos_step++;
