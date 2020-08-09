@@ -131,9 +131,9 @@ s16 state_clock(REPORT_E cb, void *args)
     if(cb == KEY_A_B_LONG_PRESS) {
         mask = (MOTOR_MASK_ALL);
     } else {
-        mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK);
+        mask = (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK);
     }
-    motor_set_date_time(clock, mask);
+    motor_set_date_time(clock, mask, QUEUE_USER_EXIT_ADJUST);
     minutely_check(cb);
 
 	return 0;

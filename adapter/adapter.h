@@ -20,7 +20,7 @@ s16 adapter_init(adapter_callback cb);
 u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state);
 void motor_params_dequeue(u16 id);
 void motor_params_enqueue(motor_queue_t *queue_params);
-void motor_set_date_time(clock_t *clock, MOTOR_MASK_E mask);
+void motor_set_date_time(clock_t *clock, MOTOR_MASK_E mask, queue_user_t user);
 void system_pre_reboot_handler(reboot_type_t type);
 void system_post_reboot_handler(void);
 void refresh_step(void);

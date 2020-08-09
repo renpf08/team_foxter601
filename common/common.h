@@ -659,7 +659,7 @@ typedef struct {
 typedef enum {
     QUEUE_USER_ACTIVITY_CALC    = 0x00,
     QUEUE_USER_MOTOR_TRIG       = 0x01,
-    QUEUE_USER_DATE_TIME        = 0x02,
+    QUEUE_USER_SYNC_DATETIME    = 0x02,
     QUEUE_USER_PRE_REBOOT       = 0x03,
     QUEUE_USER_POST_REBOOT      = 0x04,
     QUEUE_USER_BATWEEK_SWITCH   = 0x05,
@@ -670,6 +670,7 @@ typedef enum {
     QUEUE_USER_RUN_HANDLER      = 0x0A,
     QUEUE_USER_RUN_TEST         = 0x0B,
     QUEUE_USER_ZERO_ADJUST      = 0x0C,
+    QUEUE_USER_EXIT_ADJUST      = 0x0D,
 }queue_user_t;
 typedef struct {
     queue_user_t user;

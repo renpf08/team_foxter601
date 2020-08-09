@@ -31,14 +31,6 @@ static void motor_trig_handler(void)
     queue_param.dest[adapter_ctrl.current_motor.num] = trig_range[adapter_ctrl.current_motor.num].backward_pos;
     motor_params_enqueue(&queue_param);
 }
-//static void motor_run_one_step_handler(u16 id)
-//{
-//    if(motor_check_idle() == 0) {
-//        motor_run_one_step(adapter_ctrl.current_motor.num, adapter_ctrl.current_motor.pos);
-//        return;
-//    }
-//    timer_event(100, motor_run_one_step_handler);
-//}
 s16 state_zero_adjust(REPORT_E cb, void *args)
 {
     motor_queue_t queue_param = {.user = QUEUE_USER_ZERO_ADJUST, .intervel = 10, .mask = MOTOR_MASK_ALL};

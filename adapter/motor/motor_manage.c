@@ -280,15 +280,6 @@ void motor_check_run(u16 id)
         }
     }
 }
-//static void motor_wait_idle(u16 id)
-//{
-//    if(motor_manager.motor_running == 1) {
-//        timer_event(10, motor_wait_idle);
-//        return;
-//    }
-//    motor_manager.motor_running = 1;
-//    timer_event(1, motor_check_run);
-//}
 void motor_run_one_unit(u8 timer_intervel)
 {
 	u8 i = 0;
@@ -315,9 +306,8 @@ void motor_run_one_unit(u8 timer_intervel)
 	}
 
     if(run_cnt > 0) {
-//        timer_event(1, motor_wait_idle);
         motor_manager.motor_running = 1;
-        timer_event(1, motor_check_run);
+        motor_check_run(0);
     }
 }
 

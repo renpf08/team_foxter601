@@ -191,7 +191,7 @@ void refresh_step(void)
     cmd_params_t* params = cmd_get_params();
     params->steps = step_get();
     params->clock = clock;
-    timer_event(1, activity_handler);
+    activity_handler(0);
 }
 void sync_time(void)
 {
@@ -207,8 +207,8 @@ void sync_time(void)
     clock->second = time->second;
 
     BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
-    motor_set_date_time(clock, (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK));
-    refresh_step();
+    motor_set_date_time(clock, (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK), QUEUE_USER_SYNC_DATETIME);
+    //refresh_step();
 }
 u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state)
 {
@@ -221,40 +221,47 @@ u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state)
 static void motor_set_position(motor_queue_t *queue_params)
 {
     u8 set_result = 0;
+    u8 set_cnt = 0;
 
     motor_queue.motor_name = 0;
     motor_queue.handle_name = 0;
     if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_MINUTE)) {
         set_result = motor_minute_to_position(queue_params->dest[minute_motor]);
+        set_cnt += set_result;
         motor_queue.handle_name |= (set_result<<minute_motor);
         motor_queue.motor_name |= (1<<minute_motor);
     }
     if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_HOUR)) {
         set_result = motor_hour_to_position(queue_params->dest[hour_motor]);
+        set_cnt += set_result;
         motor_queue.handle_name |= (set_result<<hour_motor);
         motor_queue.motor_name |= (1<<hour_motor);
     }
     if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_ACTIVITY)) {
         set_result = motor_activity_to_position(queue_params->dest[activity_motor]);
+        set_cnt += set_result;
         motor_queue.handle_name |= (set_result<<activity_motor);
         motor_queue.motor_name |= (1<<activity_motor);
     }
     if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_DATE)) {
         set_result = motor_date_to_position(queue_params->dest[date_motor]);
+        set_cnt += set_result;
         motor_queue.handle_name |= (set_result<<date_motor);
         motor_queue.motor_name |= (1<<date_motor);
     }
     if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_BAT_WEEK)) {
         set_result = motor_battery_week_to_position(queue_params->dest[battery_week_motor]);
+        set_cnt += set_result;
         motor_queue.handle_name |= (set_result<<battery_week_motor);
         motor_queue.motor_name |= (1<<battery_week_motor);
     }
     if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_NOTIFY)) {
         set_result = motor_notify_to_position(queue_params->dest[notify_motor]);
+        set_cnt += set_result;
         motor_queue.handle_name |= (set_result<<notify_motor);
         motor_queue.motor_name |= (1<<notify_motor);
     }
-    if(set_result > 0) {
+    if(set_cnt > 0) {
         motor_run_one_unit(queue_params->intervel);
     }
     
@@ -315,9 +322,9 @@ void motor_params_enqueue(motor_queue_t *queue_params)
 //        timer_event(1, motor_poling_queue);
 //    }
 }
-void motor_set_date_time(clock_t *clock, MOTOR_MASK_E mask)
+void motor_set_date_time(clock_t *clock, MOTOR_MASK_E mask, queue_user_t user)
 {
-    motor_queue_t queue_param = {.user = QUEUE_USER_DATE_TIME, .intervel = 10};
+    motor_queue_t queue_param = {.user = user, .intervel = 10};
     
     queue_param.dest[minute_motor] = clock->minute;
     queue_param.dest[hour_motor] = clock->hour;
