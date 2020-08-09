@@ -22,8 +22,6 @@ static state_time_adjust_t state_time_adj = {
 u8 time_adj_motor[TIME_MOTOR_MAX] = {minute_motor, hour_motor, date_motor, battery_week_motor};
 static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 {
-    MOTOR_MASK_E mask = MOTOR_MASK_NONE;
-
 	switch(motor_num) {
 		case minute_motor:
 			if(pos == direction) {
@@ -38,9 +36,8 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 					state_time_adj.clk->minute--;
 				}
 			}
-
-            mask = MOTOR_MASK_MINUTE;
-            adapter_ctrl.motor_dst[minute_motor] = state_time_adj.clk->minute;
+			
+			motor_minute_to_position(state_time_adj.clk->minute);
 			break;
 		case hour_motor:
 			if(pos == direction) {
@@ -57,8 +54,7 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 			}
 			
 			//print(&state_time_adj.clk->hour, 1);
-            mask = MOTOR_MASK_HOUR;
-            adapter_ctrl.motor_dst[hour_motor] = state_time_adj.clk->hour;
+			motor_hour_to_position(state_time_adj.clk->hour);
 			break;
 		case date_motor:
 			if(pos == direction) {
@@ -74,8 +70,7 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 					state_time_adj.clk->day++;
 				}
 			}
-            mask = MOTOR_MASK_DATE;
-            adapter_ctrl.motor_dst[date_motor] = adapter_ctrl.date[state_time_adj.clk->day];
+			motor_date_to_position(date[state_time_adj.clk->day]);
 			break;
 		case battery_week_motor:
 			if(pos == direction) {
@@ -91,13 +86,11 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 				}
 			}
 			//print(&state_time_adj.clk->week, 1);
-            mask = MOTOR_MASK_DATE;
-            adapter_ctrl.motor_dst[battery_week_motor] = state_time_adj.clk->week;
+			motor_battery_week_to_position(state_time_adj.clk->week);
 			break;
 		default:
-			return;
+			break;
 	}
-    motor_set_position(10, mask);
 }
 
 s16 state_time_adjust(REPORT_E cb, void *args)
@@ -124,8 +117,7 @@ s16 state_time_adjust(REPORT_E cb, void *args)
 		if(TIME_MOTOR_MAX == state_time_adj.motor_num) {
 			state_time_adj.motor_num = 0;
 		}else if(battery_week_motor == time_adj_motor[state_time_adj.motor_num]) {
-		    adapter_ctrl.motor_dst[battery_week_motor] = state_time_adj.clk->week;
-            motor_set_position(10, MOTOR_MASK_BAT_WEEK);
+			motor_battery_week_to_position(state_time_adj.clk->week);
 		}
 	}else if(KEY_A_SHORT_PRESS == cb) {
 		/*motor run positive one unit*/
