@@ -210,22 +210,6 @@ void sync_time(void)
     motor_set_date_time(clock, (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK));
     refresh_step();
 }
-static void pre_reboot_handler(u16 id)
-{
-    static u8 wait_cnt = 0;
-    
-    if((motor_check_idle() != 0) && (wait_cnt < 50)) { // max waiting time: 5 second
-        wait_cnt++;
-        timer_event(100, pre_reboot_handler);
-        return;
-    }
-
-    if(adapter_ctrl.reboot_type == REBOOT_TYPE_BUTTON) {
-        Panic(0);
-    } else if(adapter_ctrl.reboot_type == REBOOT_TYPE_OTA) {
-        OtaReset();
-    }
-}
 u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state)
 {
     if((state) == state_battery) {
@@ -342,13 +326,29 @@ void motor_set_date_time(clock_t *clock, MOTOR_MASK_E mask)
     queue_param.mask = mask;
     motor_params_enqueue(&queue_param);
 }
-static void motor_test_mode_reboot_handler(u16 id)
+static void motor_run_test_reboot_handler(u16 id)
 {
     if(motor_manager.run_test_mode == 0) {
 		system_pre_reboot_handler(adapter_ctrl.reboot_type);
         return;
     }
-    timer_event(100, motor_test_mode_reboot_handler);
+    timer_event(100, motor_run_test_reboot_handler);
+}
+static void reboot_handler(u16 id)
+{
+    static u8 wait_cnt = 0;
+    
+    if((motor_check_idle() != 0) && (wait_cnt < 50)) { // max waiting time: 5 second
+        wait_cnt++;
+        timer_event(100, reboot_handler);
+        return;
+    }
+
+    if(adapter_ctrl.reboot_type == REBOOT_TYPE_BUTTON) {
+        Panic(0);
+    } else if(adapter_ctrl.reboot_type == REBOOT_TYPE_OTA) {
+        OtaReset();
+    }
 }
 void system_pre_reboot_handler(reboot_type_t type)
 {
@@ -358,7 +358,7 @@ void system_pre_reboot_handler(reboot_type_t type)
     adapter_ctrl.reboot_type = type;
     if(motor_manager.run_test_mode == 1) {
         adapter.cb(KEY_A_B_M_LONG_PRESS, NULL);
-        timer_event(100, motor_test_mode_reboot_handler);
+        motor_run_test_reboot_handler(0);
     } else {
         adapter_ctrl.system_reboot_lock = 1;
         APP_Move_Bonded(4);
@@ -366,7 +366,7 @@ void system_pre_reboot_handler(reboot_type_t type)
         nvm_write_motor_current_position((u16*)&adapter_ctrl.motor_dst, 0);
         MemCopy(queue_param.dest, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
         motor_params_enqueue(&queue_param);
-        timer_event(1, pre_reboot_handler);
+        reboot_handler(0);
     }
 }
 void system_post_reboot_handler(void)
@@ -385,9 +385,8 @@ void system_post_reboot_handler(void)
         MemCopy(queue_param.dest, adapter_ctrl.motor_zero, max_motor);
     }
     motor_params_enqueue(&queue_param);
+    motor_params_dequeue(0);
     adapter_ctrl.system_started = 1;
-    //timer_event(1, motor_queue_handler);
-    timer_event(1, motor_params_dequeue);
 }
 u8 state_machine_check(REPORT_E cb)
 {
