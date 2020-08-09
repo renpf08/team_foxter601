@@ -42,13 +42,17 @@ static void notify_swing_cb_handler(u16 id)
 
     swing_state = (swing_state == NOTIFY_NONE)?NOTIFY_COMMING_CALL:NOTIFY_NONE;
     queue_param.dest[SWING_MOTOR_NAME] = swing_state;
-
     if(minute != clock->minute) {
         minute = clock->minute;
-        queue_param.mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE);
-        motor_params_enqueue(&queue_param);
+        queue_param.dest[minute_motor] = clock->minute;
+        queue_param.dest[hour_motor] = clock->hour;
+        queue_param.dest[date_motor] = adapter_ctrl.date[clock->day];
+        queue_param.dest[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
+        queue_param.mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK);
+        queue_param.intervel = 10;
     }
     motor_params_enqueue(&queue_param);
+    
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
 }
 void pair_code_generate(void)
