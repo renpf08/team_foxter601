@@ -695,6 +695,11 @@ typedef struct {
     u8 num;
     u8 stage;
     u8 step;
+    u8 first_half;
+    u8 second_half;
+    u8 pos_step;
+    u8 neg_step;
+    u8 stop_cnt;
 } motor_run_info_t;
 typedef struct {
     motor_cb_ctrl_t cb[max_motor];

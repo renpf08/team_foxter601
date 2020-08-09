@@ -220,11 +220,17 @@ u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state)
 }
 void send_motor_run_info(void)
 {
-    u8 ble_log[5] = {0x5F, 0x05, 0,0,0};
-    ble_log[2] = motor_manager.motor_run_info.num;
-    ble_log[3] = motor_manager.motor_run_info.stage;
-    ble_log[4] = motor_manager.motor_run_info.step;
-    BLE_SEND_LOG(ble_log, 5);
+    u8 i = 2;
+    u8 ble_log[10] = {0x5F, 0x05, 0,0,0,0,0,0,0,0};
+    ble_log[i++] = motor_manager.motor_run_info.num;
+    ble_log[i++] = motor_manager.motor_run_info.stage;
+    ble_log[i++] = motor_manager.motor_run_info.step;
+    ble_log[i++] = motor_manager.motor_run_info.first_half;
+    ble_log[i++] = motor_manager.motor_run_info.second_half;
+    ble_log[i++] = motor_manager.motor_run_info.pos_step;
+    ble_log[i++] = motor_manager.motor_run_info.neg_step;
+    ble_log[i++] = motor_manager.motor_run_info.stop_cnt;
+    BLE_SEND_LOG(ble_log, i);
 }
 static void motor_set_position(motor_queue_t *queue_params)
 {

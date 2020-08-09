@@ -238,8 +238,8 @@ static u8 motor_check_continue(u8 motor_num)
             motor_manager.status[motor_num].run_direc = none;
             if(motor_queue.cur_user == QUEUE_USER_MOTOR_TRIG) {
                 send_motor_run_info();
-                motor_manager.motor_run_info.step = 0;
-            motor_manager.motor_run_info.stage++;
+                MemSet(&motor_manager.motor_run_info, 0, sizeof(motor_run_info_t));   
+                motor_manager.motor_run_info.stage++;
             }
             return MOTOR_RUN_OVER;
     	}
@@ -258,6 +258,18 @@ void motor_check_run(u16 id)
             if((motor_manager.status[i].run_flag == 0) || (motor_manager.run_state_self[i] != motor_manager.run_state_main)) {
                 continue;
             }
+            if(motor_queue.cur_user == QUEUE_USER_MOTOR_TRIG) {
+                if(motor_manager.run_state_self[i] == FIRST_HALF) {
+                    motor_manager.motor_run_info.first_half++;
+                } else if(motor_manager.run_state_self[i] == SECOND_HALF) {
+                    motor_manager.motor_run_info.second_half++;
+                }
+                if(motor_manager.status[i].run_direc == pos) {
+                    motor_manager.motor_run_info.pos_step++;
+                } else {
+                    motor_manager.motor_run_info.neg_step++;
+                }
+            }
             motor_manager.cb[i].motor_run_half[motor_manager.run_state_self[i]][motor_manager.status[i].run_direc](NULL);
             motor_manager.run_state_self[i] = (motor_manager.run_state_self[i]==FIRST_HALF)?RECOVER:STOP;
         }
@@ -267,6 +279,9 @@ void motor_check_run(u16 id)
         for(i = 0; i < max_motor; i++) {
             if(motor_manager.status[i].run_flag == 0) {
                 continue;
+            }
+            if(motor_queue.cur_user == QUEUE_USER_MOTOR_TRIG) {
+                motor_manager.motor_run_info.stop_cnt++;
             }
             motor_manager.cb[i].motor_stop(NULL);
             motor_manager.run_state_self[i] = (motor_manager.run_state_self[i]==RECOVER)?SECOND_HALF:FIRST_HALF;
