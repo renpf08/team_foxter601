@@ -20,6 +20,7 @@ static business_t business = {
 
 static state_t state[] = {
 	STATE_FILL(CLOCK,               CLOCK_1_MINUTE,     	CLOCK,                  state_clock),
+	STATE_FILL(CLOCK,               KEY_A_SHORT_PRESS,     	CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               SET_TIME,               CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               REFRESH_STEPS,          CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               READ_HISDAYS,           CLOCK,                  state_clock),

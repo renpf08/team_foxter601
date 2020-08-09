@@ -103,6 +103,7 @@ static u8 state_check(REPORT_E cb)
         cb = READ_SYS_PARAMS;
     }
     #endif
+    u8 cmd_buf[2] = {0x02, 0x00};
     switch(cb) {
     case READ_CURDATA:
         read_current_step();
@@ -121,6 +122,9 @@ static u8 state_check(REPORT_E cb)
         break;
     case SET_TIME:
         sync_time();
+        break;
+    case KEY_A_SHORT_PRESS:
+        BLE_SEND_DATA(cmd_buf, 2);
         break;
     default:
         return 0;
