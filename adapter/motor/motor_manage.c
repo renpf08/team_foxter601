@@ -255,7 +255,8 @@ void motor_check_run(u16 id)
 
     if((motor_manager.run_state_main == FIRST_HALF) || (motor_manager.run_state_main == SECOND_HALF)) {
         for(i = 0; i < max_motor; i++) {
-            if((motor_manager.status[i].run_flag == 0) || (motor_manager.run_state_self[i] != motor_manager.run_state_main)) {
+            //if((motor_manager.status[i].run_flag == 0) || (motor_manager.run_state_self[i] != motor_manager.run_state_main)) {
+            if(motor_manager.status[i].run_flag == 0) {
                 continue;
             }
             if(motor_queue.cur_user == QUEUE_USER_MOTOR_TRIG) {
