@@ -675,6 +675,7 @@ typedef enum {
 }queue_user_t;
 typedef struct {
     queue_user_t user;
+    u8 index;
     u8 intervel;
     MOTOR_MASK_E mask;
     u8 dest[max_motor];
@@ -682,6 +683,7 @@ typedef struct {
 typedef struct {
 	motor_queue_t queue_params[MOTOR_QUEUE_SIZE];
     queue_user_t cur_user;
+    u8 cur_index;
     u8 motor_name;
     u8 handle_name;
     u16 write_cnt;
@@ -700,6 +702,7 @@ typedef struct {
     u8 pos_step;
     u8 neg_step;
     u8 stop_cnt;
+    u8 index;
 } motor_run_info_t;
 typedef struct {
     motor_cb_ctrl_t cb[max_motor];

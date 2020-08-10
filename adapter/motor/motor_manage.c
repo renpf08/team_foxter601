@@ -237,6 +237,7 @@ static u8 motor_check_continue(u8 motor_num)
             motor_manager.run_next[motor_num] = 0;
             motor_manager.status[motor_num].run_direc = none;
             if(motor_queue.cur_user == QUEUE_USER_MOTOR_TRIG) {
+                motor_manager.motor_run_info.index = motor_queue.cur_index;
                 send_motor_run_info();
                 MemSet(&motor_manager.motor_run_info, 0, sizeof(motor_run_info_t));   
                 motor_manager.motor_run_info.stage++;

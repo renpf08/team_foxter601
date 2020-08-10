@@ -14,6 +14,7 @@ typedef struct {
 
 static void motor_trig_handler(void)
 {
+    static u8 index = 0;
     motor_queue_t queue_param = {.user = QUEUE_USER_MOTOR_TRIG};
     trig_range_t trig_range[max_motor] = {
             [hour_motor]            = {10, HOUR0_0,        HOUR0_2},
@@ -29,8 +30,10 @@ static void motor_trig_handler(void)
     queue_param.intervel = trig_range[adapter_ctrl.current_motor.num].rotate_speed;
     queue_param.mask = (1<<adapter_ctrl.current_motor.num);
     queue_param.dest[adapter_ctrl.current_motor.num] = trig_range[adapter_ctrl.current_motor.num].forward_pos;
+    queue_param.index = index++;
     motor_params_enqueue(&queue_param);
     queue_param.dest[adapter_ctrl.current_motor.num] = trig_range[adapter_ctrl.current_motor.num].backward_pos;
+    queue_param.index = index++;
     motor_params_enqueue(&queue_param);
 }
 s16 state_zero_adjust(REPORT_E cb, void *args)

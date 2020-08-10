@@ -221,7 +221,7 @@ u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state)
 void send_motor_run_info(void)
 {
     u8 i = 2;
-    u8 ble_log[10] = {0x5F, 0x05, 0,0,0,0,0,0,0,0};
+    u8 ble_log[20] = {0x5F, 0x05, 0,0,0,0,0,0,0,0,0};
     ble_log[i++] = motor_manager.motor_run_info.num;
     ble_log[i++] = motor_manager.motor_run_info.stage;
     ble_log[i++] = motor_manager.motor_run_info.step;
@@ -230,6 +230,7 @@ void send_motor_run_info(void)
     ble_log[i++] = motor_manager.motor_run_info.pos_step;
     ble_log[i++] = motor_manager.motor_run_info.neg_step;
     ble_log[i++] = motor_manager.motor_run_info.stop_cnt;
+    ble_log[i++] = motor_manager.motor_run_info.index;
     BLE_SEND_LOG(ble_log, i);
 }
 static void motor_set_position(motor_queue_t *queue_params)
@@ -315,6 +316,7 @@ void motor_params_dequeue(u16 id)
     if(motor_manager.motor_running == 0) {
         if(motor_queue.tail != motor_queue.head) {
             motor_queue.cur_user = motor_queue.queue_params[motor_queue.tail].user; // for debug
+            motor_queue.cur_index = motor_queue.queue_params[motor_queue.tail].index;
             motor_set_position(&motor_queue.queue_params[motor_queue.tail]);
             motor_queue.tail = (motor_queue.tail+1)%MOTOR_QUEUE_SIZE;
             motor_queue.read_cnt++;
