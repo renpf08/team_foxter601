@@ -10,7 +10,7 @@
 enum {
 	FIRST_HALF,
 	SECOND_HALF,
-	RECOVER,
+	RUN,
 	STOP,
 };
 
@@ -248,13 +248,53 @@ static u8 motor_check_continue(u8 motor_num)
 	}
     return MOTOR_RUN_NEXT_STEP;
 }
+#if 1
+void motor_check_run(u16 id)
+{
+    u8 i = 0;
+    u8 run_flag = 0;
 
+    if(motor_manager.run_state_main == FIRST_HALF) {
+		motor_manager.run_state_main = SECOND_HALF;
+        for(i = 0; i < max_motor; i++) {
+            if(motor_manager.status[i].run_flag == 0) {
+                continue;
+            }
+            motor_manager.cb[i].motor_run_half[motor_manager.run_state_self[i]][motor_manager.status[i].run_direc](NULL);
+            motor_manager.run_state_self[i] = (motor_manager.run_state_self[i]==FIRST_HALF)?SECOND_HALF:FIRST_HALF;
+            if(motor_manager.run_next[i] == 1) {
+                motor_check_continue(i);
+            } else {
+                //motor_manager.cb[i].motor_stop(NULL);
+                motor_manager.status[i].run_flag = 0;
+            }
+        }
+		timer_event(motor_manager.timer_interval, motor_check_run);
+    } else if(motor_manager.run_state_main == SECOND_HALF) {
+		motor_manager.run_state_main = FIRST_HALF;
+        for(i = 0; i < max_motor; i++) {
+            motor_manager.cb[i].motor_stop(NULL);
+            if(motor_manager.status[i].run_flag == 1) {
+                run_flag++;
+            }
+        }
+        if(run_flag == 0) {
+            motor_manager.motor_running = 0;
+            if(motor_manager.queue_cb != NULL) {
+                motor_manager.queue_cb(NULL);
+            }
+            return;
+        }
+        timer_event(motor_manager.timer_interval, motor_check_run);
+    }
+}
+#else
 void motor_check_run(u16 id)
 {
     u8 i = 0;
     u16 run_continue = 0;
 
-    if((motor_manager.run_state_main == FIRST_HALF) || (motor_manager.run_state_main == SECOND_HALF)) {
+    if(motor_manager.run_state_main == RUN) {
         for(i = 0; i < max_motor; i++) {
             //if((motor_manager.status[i].run_flag == 0) || (motor_manager.run_state_self[i] != motor_manager.run_state_main)) {
             if(motor_manager.status[i].run_flag == 0) {
@@ -281,11 +321,11 @@ void motor_check_run(u16 id)
                 }
             }
             motor_manager.cb[i].motor_run_half[motor_manager.run_state_self[i]][motor_manager.status[i].run_direc](NULL);
-            motor_manager.run_state_self[i] = (motor_manager.run_state_self[i]==FIRST_HALF)?RECOVER:STOP;
+            motor_manager.run_state_self[i] = (motor_manager.run_state_self[i]==FIRST_HALF)?SECOND_HALF:FIRST_HALF;
         }
-		motor_manager.run_state_main = (motor_manager.run_state_main==FIRST_HALF)?RECOVER:STOP;
+		motor_manager.run_state_main = STOP;
 		timer_event(motor_manager.timer_interval, motor_check_run);
-    }else if((motor_manager.run_state_main == RECOVER) || (motor_manager.run_state_main == STOP)) {
+    }else if(motor_manager.run_state_main == STOP) {
         for(i = 0; i < max_motor; i++) {
             if(motor_manager.status[i].run_flag == 0) {
                 continue;
@@ -294,14 +334,13 @@ void motor_check_run(u16 id)
                 motor_manager.motor_run_info.stop_cnt++;
             }
             motor_manager.cb[i].motor_stop(NULL);
-            motor_manager.run_state_self[i] = (motor_manager.run_state_self[i]==RECOVER)?SECOND_HALF:FIRST_HALF;
             if(motor_manager.run_next[i] == 1) {
                 run_continue += motor_check_continue(i);
             } else {
                 motor_manager.status[i].run_flag = 0;
             }
         }
-		motor_manager.run_state_main = (motor_manager.run_state_main==RECOVER)?SECOND_HALF:FIRST_HALF;
+		motor_manager.run_state_main = RUN;
         if(run_continue > 0) {
             timer_event(motor_manager.timer_interval, motor_check_run);
         } else {
@@ -313,12 +352,14 @@ void motor_check_run(u16 id)
         }
     }
 }
-void motor_run_one_unit(u8 timer_intervel)
+#endif
+u8 motor_run_one_unit(motor_queue_t *queue_params)
 {
 	u8 i = 0;
     u8 run_cnt = 0;
 
-    motor_manager.timer_interval = timer_intervel;
+    motor_manager.timer_interval = queue_params->intervel;
+    motor_manager.queue_cb = queue_params->cb;
     run_cnt = 0;
 	for(i = 0; i < max_motor; i++) {
 		if(motor_manager.status[i].run_flag == 1) {
@@ -341,16 +382,25 @@ void motor_run_one_unit(u8 timer_intervel)
     if(run_cnt > 0) {
         motor_manager.motor_running = 1;
         motor_check_run(0);
+    } else if(motor_manager.queue_cb != NULL) {
+        motor_manager.queue_cb(NULL);
     }
-}
 
+    return run_cnt;
+}
 void motor_run_one_step(u8 motor_num, u8 direction)
 {
     //MemSet(motor_manager.motor_runnig, 0, max_motor*sizeof(u8));
     motor_manager.status[motor_num].run_flag = 1;
     motor_manager.status[motor_num].run_direc = direction;
     motor_manager.timer_interval = 10;
-    timer_event(1, motor_check_run);
+    motor_check_run(0);
+}
+void motor_run_test(motor_queue_t *queue_params)
+{
+    motor_manager.timer_interval = queue_params->intervel;
+    motor_manager.queue_cb = queue_params->cb;
+    motor_check_run(0);
 }
 
 /*only for zero adjust mode*/

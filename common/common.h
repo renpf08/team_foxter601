@@ -269,15 +269,16 @@ typedef enum {
 }STATE_BATTERY_WEEK_E;
 
 typedef enum {
-    MOTOR_MASK_NONE     = 0x00,
-    MOTOR_MASK_MINUTE   = 0x01,
-    MOTOR_MASK_HOUR     = 0x02,
-    MOTOR_MASK_ACTIVITY = 0x04,
-    MOTOR_MASK_DATE     = 0x08,
-    MOTOR_MASK_BAT_WEEK = 0x10,
-    MOTOR_MASK_NOTIFY   = 0x20,
-    MOTOR_MASK_ALL      = 0x40,
-    MOTOR_MASK_TRIG     = 0x80,
+    MOTOR_MASK_NONE     = 0x0000,
+    MOTOR_MASK_MINUTE   = 0x0001,
+    MOTOR_MASK_HOUR     = 0x0002,
+    MOTOR_MASK_ACTIVITY = 0x0004,
+    MOTOR_MASK_DATE     = 0x0008,
+    MOTOR_MASK_BAT_WEEK = 0x0010,
+    MOTOR_MASK_NOTIFY   = 0x0020,
+    MOTOR_MASK_ALL      = 0x0040,
+    MOTOR_MASK_TRIG     = 0x0080,
+    MOTOR_MASK_RUN_TEST = 0x0100,
 } MOTOR_MASK_E;
 
 typedef struct {
@@ -583,6 +584,8 @@ typedef s16 (*state_func)(REPORT_E cb, void *args);
 typedef s16 (*motor_set_handler)(void);
 typedef s16 (*motor_cb_handler)(void *args);
 
+typedef s16 (*queue_cb_handler)(void *args);
+
 enum {
 	minute_motor = 0,
 	hour_motor = 1,
@@ -679,6 +682,7 @@ typedef struct {
     u8 intervel;
     MOTOR_MASK_E mask;
     u8 dest[max_motor];
+    queue_cb_handler cb;
 } motor_queue_t;
 typedef struct {
 	motor_queue_t queue_params[MOTOR_QUEUE_SIZE];
@@ -719,6 +723,7 @@ typedef struct {
     u8 timer_interval;
     u8 run_test_mode;
     u8 motor_running;
+    queue_cb_handler queue_cb;
     motor_queue_t queue_params; 
     motor_run_info_t  motor_run_info;
 } motor_manager_t;

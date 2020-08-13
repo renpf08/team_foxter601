@@ -276,8 +276,12 @@ static void motor_set_position(motor_queue_t *queue_params)
         motor_queue.handle_name |= (set_result<<notify_motor);
         motor_queue.motor_name |= (1<<notify_motor);
     }
-    if(set_cnt > 0) {
-        motor_run_one_unit(queue_params->intervel);
+    if(queue_params->mask & MOTOR_MASK_RUN_TEST) {
+        motor_run_test(queue_params);
+    } else if(set_cnt > 0) {
+        motor_run_one_unit(queue_params);
+    } else if(queue_params->cb != NULL) {
+        queue_params->cb(NULL);
     }
     
     u8 ble_log[7] = {0x5F, 0x04, 0,0,0,0,0};
@@ -288,29 +292,6 @@ static void motor_set_position(motor_queue_t *queue_params)
     ble_log[6] = motor_queue.handle_name;
     BLE_SEND_LOG(ble_log, 7);
 }
-//static void motor_queue_handler(u16 id)
-//{
-//    if(motor_check_idle() != 0) {
-//        timer_event(100, motor_queue_handler);
-//    }
-//    //if(motor_queue.tail != motor_queue.head) {
-//        timer_event(100, motor_params_dequeue);
-//    //}
-//}
-//static u8 poling_flag = 0;
-//static void motor_poling_queue(u16 id)
-//{
-//    poling_flag = 1;
-////    if(motor_check_idle() != 0) {
-////        timer_event(100, motor_poling_queue);
-////        return;
-////    }
-//    if((motor_queue.tail != motor_queue.head) && (motor_manager.motor_running == 0)) {
-//        timer_event(1, motor_queue_handler);
-//    }
-//    timer_event(100, motor_poling_queue);
-//    poling_flag = 0;
-//}
 void motor_params_dequeue(u16 id)
 {
     if(motor_manager.motor_running == 0) {
@@ -322,7 +303,7 @@ void motor_params_dequeue(u16 id)
             motor_queue.read_cnt++;
         }
     }
-    timer_event(100, motor_params_dequeue);
+    timer_event(10, motor_params_dequeue);
 }
 void motor_params_enqueue(motor_queue_t *queue_params)
 {
@@ -334,9 +315,6 @@ void motor_params_enqueue(motor_queue_t *queue_params)
     MemCopy(&motor_queue.queue_params[motor_queue.head], queue_params, sizeof(motor_queue_t));
     motor_queue.head = (motor_queue.head+1)%MOTOR_QUEUE_SIZE;
     motor_queue.write_cnt++;
-//    if(poling_flag == 0) {
-//        timer_event(1, motor_poling_queue);
-//    }
 }
 void motor_set_date_time(clock_t *clock, MOTOR_MASK_E mask, queue_user_t user)
 {
@@ -357,31 +335,25 @@ static void motor_run_test_reboot_handler(u16 id)
     }
     timer_event(100, motor_run_test_reboot_handler);
 }
-static void reboot_handler(u16 id)
+static s16 reboot_handler(void *queue_args)
 {
-    static u8 wait_cnt = 0;
-    
-    if((motor_check_idle() != 0) && (wait_cnt < 50)) { // max waiting time: 5 second
-        wait_cnt++;
-        timer_event(100, reboot_handler);
-        return;
-    }
-
     if(adapter_ctrl.reboot_type == REBOOT_TYPE_BUTTON) {
         Panic(0);
     } else if(adapter_ctrl.reboot_type == REBOOT_TYPE_OTA) {
         OtaReset();
     }
+
+    return 0;
 }
 void system_pre_reboot_handler(reboot_type_t type)
 {
     clock_t* clock = clock_get();
-    motor_queue_t queue_param = {.user = QUEUE_USER_PRE_REBOOT, .intervel = 10, .mask = MOTOR_MASK_ALL};
+    motor_queue_t queue_param = {.user = QUEUE_USER_PRE_REBOOT, .intervel = 10, .mask = MOTOR_MASK_ALL, .cb = reboot_handler};
 
     adapter_ctrl.reboot_type = type;
     if(motor_manager.run_test_mode == 1) {
         adapter.cb(KEY_A_B_M_LONG_PRESS, NULL);
-        motor_run_test_reboot_handler(0);
+        timer_event(1, motor_run_test_reboot_handler);
     } else {
         adapter_ctrl.system_reboot_lock = 1;
         APP_Move_Bonded(4);
@@ -389,7 +361,6 @@ void system_pre_reboot_handler(reboot_type_t type)
         nvm_write_motor_current_position((u16*)&adapter_ctrl.motor_dst, 0);
         MemCopy(queue_param.dest, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
         motor_params_enqueue(&queue_param);
-        reboot_handler(0);
     }
 }
 void system_post_reboot_handler(void)

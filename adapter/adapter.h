@@ -37,6 +37,7 @@ clock_t *clock_get(void);
 
 s16 motor_manager_init(void);
 void motor_run_one_step(u8 motor_num, u8 direction);
+void motor_run_test(motor_queue_t *queue_params);
 void motor_check_run(u16 id);
 s16 motor_hour_to_position(u8 dst_pos);
 s16 motor_minute_to_position(u8 dst_pos);
@@ -45,7 +46,7 @@ s16 motor_notify_to_position(u8 dst_pos);
 s16 motor_battery_week_to_position(u8 dst_pos);
 s16 motor_activity_to_position(u8 dst_pos);
 
-void motor_run_one_unit(u8 timer_intervel);
+u8 motor_run_one_unit(motor_queue_t *queue_params);
 u16 motor_check_idle(void);
 
 s16 battery_init(adapter_callback cb);
