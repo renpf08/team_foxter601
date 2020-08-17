@@ -67,7 +67,7 @@ static void motor_run_state_calc(u8 motor_num)
 static void state_run_test_handler(u16 id)
 {
     u8 i = 0;
-    motor_queue_t queue_param = {.user = QUEUE_USER_RUN_HANDLER, .intervel = 10, .mask = MOTOR_MASK_ALL, .cb = motor_recover};
+    motor_queue_t queue_param = {.user = QUEUE_USER_RUN_HANDLER, .intervel = 10, .mask = MOTOR_MASK_ALL, .cb_func = motor_recover};
 
     if(motor_check_idle() == 0) {
         for(i = 0; i < max_motor; i++) {
@@ -90,7 +90,7 @@ static void state_run_test_handler(u16 id)
         } else {
             queue_param.intervel = 5;
             queue_param.mask = MOTOR_MASK_RUN_TEST;
-            queue_param.cb = motor_check;
+            queue_param.cb_func = motor_check;
             motor_params_enqueue(&queue_param);
         }
     }
@@ -98,7 +98,7 @@ static void state_run_test_handler(u16 id)
 s16 state_run_test(REPORT_E cb, void *args)
 {
     state = args;
-    motor_queue_t queue_param = {.user = QUEUE_USER_RUN_TEST, .intervel = 10, .mask = MOTOR_MASK_ALL, .cb = motor_run};
+    motor_queue_t queue_param = {.user = QUEUE_USER_RUN_TEST, .intervel = 10, .mask = MOTOR_MASK_ALL, .cb_func = motor_run};
 
     if(run_enable == 0) {
         run_enable = 1;

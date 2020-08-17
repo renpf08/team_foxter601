@@ -12,7 +12,7 @@
 #define VAL_GET(num)        PioGet(num)
 
 #define QUEUE_BUFFER        64
-#define MOTOR_QUEUE_SIZE    255
+#define MOTOR_QUEUE_SIZE    128
 
 typedef struct {
 	u8 x_l;
@@ -269,16 +269,17 @@ typedef enum {
 }STATE_BATTERY_WEEK_E;
 
 typedef enum {
-    MOTOR_MASK_NONE     = 0x0000,
-    MOTOR_MASK_MINUTE   = 0x0001,
-    MOTOR_MASK_HOUR     = 0x0002,
-    MOTOR_MASK_ACTIVITY = 0x0004,
-    MOTOR_MASK_DATE     = 0x0008,
-    MOTOR_MASK_BAT_WEEK = 0x0010,
-    MOTOR_MASK_NOTIFY   = 0x0020,
-    MOTOR_MASK_ALL      = 0x0040,
-    MOTOR_MASK_TRIG     = 0x0080,
-    MOTOR_MASK_RUN_TEST = 0x0100,
+    MOTOR_MASK_NONE         = 0x0000,
+    MOTOR_MASK_MINUTE       = 0x0001,
+    MOTOR_MASK_HOUR         = 0x0002,
+    MOTOR_MASK_ACTIVITY     = 0x0004,
+    MOTOR_MASK_DATE         = 0x0008,
+    MOTOR_MASK_BAT_WEEK     = 0x0010,
+    MOTOR_MASK_NOTIFY       = 0x0020,
+    MOTOR_MASK_ALL          = 0x0040,
+    MOTOR_MASK_TRIG         = 0x0080,
+    MOTOR_MASK_RUN_TEST     = 0x0100,
+    MOTOR_MASK_ZERO_ADJUST  = 0x0200,
 } MOTOR_MASK_E;
 
 typedef struct {
@@ -611,9 +612,9 @@ typedef struct {
     u8 trig_pos;
 } motor_trig_t;
 typedef struct {
-    u8 num;
-    u8 pos;
-} motor_asjust_t;
+    u8 motor_num;
+    u8 motor_pos;
+} zero_adjust_t;
 typedef struct {
     #if USE_CMD_TEST_LOG_TYPE_EN
     u8 log_type_en[LOG_SEND_MAX];
@@ -621,7 +622,6 @@ typedef struct {
     u8 system_started;
     u8 system_reboot_lock;
     u8 activity_pos;
-    motor_asjust_t current_motor;
     u8 current_bat_week_sta;
     reboot_type_t reboot_type;
     u8 motor_dst[max_motor];
@@ -682,7 +682,8 @@ typedef struct {
     u8 intervel;
     MOTOR_MASK_E mask;
     u8 dest[max_motor];
-    queue_cb_handler cb;
+    queue_cb_handler cb_func;
+    u16 cb_params[8];
 } motor_queue_t;
 typedef struct {
 	motor_queue_t queue_params[MOTOR_QUEUE_SIZE];

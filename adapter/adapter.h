@@ -36,8 +36,9 @@ void timer_event(u16 ms, timer_cb cb);
 clock_t *clock_get(void);
 
 s16 motor_manager_init(void);
-void motor_run_one_step(u8 motor_num, u8 direction);
+void motor_run_one_step(motor_queue_t *queue_params);
 void motor_run_test(motor_queue_t *queue_params);
+void motor_pre_handler(motor_queue_t *queue_params, u8 instance);
 void motor_check_run(u16 id);
 s16 motor_hour_to_position(u8 dst_pos);
 s16 motor_minute_to_position(u8 dst_pos);

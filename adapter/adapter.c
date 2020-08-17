@@ -26,7 +26,6 @@ adapter_ctrl_t adapter_ctrl = {
     .system_started = 0,
     .system_reboot_lock = 0,
     .activity_pos = 0,
-    .current_motor = {0, 0},
     .current_bat_week_sta = state_battery,
     .reboot_type = REBOOT_TYPE_BUTTON,
     .motor_dst = {0, 0, 0, 0, 0, 0},
@@ -236,61 +235,47 @@ void send_motor_run_info(void)
 static void motor_set_position(motor_queue_t *queue_params)
 {
     u8 set_result = 0;
-    u8 set_cnt = 0;
+    u8 instance = 0;
 
     motor_queue.motor_name = 0;
     motor_queue.handle_name = 0;
     if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_MINUTE)) {
         set_result = motor_minute_to_position(queue_params->dest[minute_motor]);
-        set_cnt += set_result;
+        instance += set_result;
         motor_queue.handle_name |= (set_result<<minute_motor);
         motor_queue.motor_name |= (1<<minute_motor);
     }
     if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_HOUR)) {
         set_result = motor_hour_to_position(queue_params->dest[hour_motor]);
-        set_cnt += set_result;
+        instance += set_result;
         motor_queue.handle_name |= (set_result<<hour_motor);
         motor_queue.motor_name |= (1<<hour_motor);
     }
     if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_ACTIVITY)) {
         set_result = motor_activity_to_position(queue_params->dest[activity_motor]);
-        set_cnt += set_result;
+        instance += set_result;
         motor_queue.handle_name |= (set_result<<activity_motor);
         motor_queue.motor_name |= (1<<activity_motor);
     }
     if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_DATE)) {
         set_result = motor_date_to_position(queue_params->dest[date_motor]);
-        set_cnt += set_result;
+        instance += set_result;
         motor_queue.handle_name |= (set_result<<date_motor);
         motor_queue.motor_name |= (1<<date_motor);
     }
     if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_BAT_WEEK)) {
         set_result = motor_battery_week_to_position(queue_params->dest[battery_week_motor]);
-        set_cnt += set_result;
+        instance += set_result;
         motor_queue.handle_name |= (set_result<<battery_week_motor);
         motor_queue.motor_name |= (1<<battery_week_motor);
     }
     if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_NOTIFY)) {
         set_result = motor_notify_to_position(queue_params->dest[notify_motor]);
-        set_cnt += set_result;
+        instance += set_result;
         motor_queue.handle_name |= (set_result<<notify_motor);
         motor_queue.motor_name |= (1<<notify_motor);
     }
-    if(queue_params->mask & MOTOR_MASK_RUN_TEST) {
-        motor_run_test(queue_params);
-    } else if(set_cnt > 0) {
-        motor_run_one_unit(queue_params);
-    } else if(queue_params->cb != NULL) {
-        queue_params->cb(NULL);
-    }
-    
-    u8 ble_log[7] = {0x5F, 0x04, 0,0,0,0,0};
-    ble_log[2] = motor_queue.tail;
-    ble_log[3] = motor_queue.head;
-    ble_log[4] = motor_queue.cur_user;
-    ble_log[5] = motor_queue.motor_name;
-    ble_log[6] = motor_queue.handle_name;
-    BLE_SEND_LOG(ble_log, 7);
+    motor_pre_handler(queue_params, instance);
 }
 void motor_params_dequeue(u16 id)
 {
@@ -348,7 +333,7 @@ static s16 reboot_handler(void *queue_args)
 void system_pre_reboot_handler(reboot_type_t type)
 {
     clock_t* clock = clock_get();
-    motor_queue_t queue_param = {.user = QUEUE_USER_PRE_REBOOT, .intervel = 10, .mask = MOTOR_MASK_ALL, .cb = reboot_handler};
+    motor_queue_t queue_param = {.user = QUEUE_USER_PRE_REBOOT, .intervel = 10, .mask = MOTOR_MASK_ALL, .cb_func = reboot_handler};
 
     adapter_ctrl.reboot_type = type;
     if(motor_manager.run_test_mode == 1) {
