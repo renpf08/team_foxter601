@@ -684,9 +684,9 @@ typedef struct {
     u8 dest[max_motor];
     queue_cb_handler cb_func;
     u16 cb_params[8];
-} motor_queue_t;
+} motor_ctrl_queue_t;
 typedef struct {
-	motor_queue_t queue_params[MOTOR_QUEUE_SIZE];
+	motor_ctrl_queue_t ctrl_params[MOTOR_QUEUE_SIZE];
     queue_user_t cur_user;
     u8 cur_index;
     u8 motor_name;
@@ -725,7 +725,7 @@ typedef struct {
     u8 run_test_mode;
     u8 motor_running;
     queue_cb_handler queue_cb;
-    motor_queue_t queue_params; 
+    motor_ctrl_queue_t ctrl_params; 
     motor_run_info_t  motor_run_info;
 } motor_manager_t;
 

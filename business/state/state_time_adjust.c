@@ -97,7 +97,7 @@ static void state_time_adjust_motor_run(u8 motor_num, u8 direction)
 		default:
 			return;
 	}
-    //motor_params_enqueue(10, mask);
+    //motor_ctrl_enqueue(10, mask);
 }
 
 s16 state_time_adjust(REPORT_E cb, void *args)
@@ -125,7 +125,7 @@ s16 state_time_adjust(REPORT_E cb, void *args)
 			state_time_adj.motor_num = 0;
 		}else if(battery_week_motor == time_adj_motor[state_time_adj.motor_num]) {
 		    adapter_ctrl.motor_dst[battery_week_motor] = state_time_adj.clk->week;
-            //motor_params_enqueue(10, MOTOR_MASK_BAT_WEEK);
+            //motor_ctrl_enqueue(10, MOTOR_MASK_BAT_WEEK);
 		}
 	}else if(KEY_A_SHORT_PRESS == cb) {
 		/*motor run positive one unit*/

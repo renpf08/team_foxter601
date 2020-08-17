@@ -26,7 +26,7 @@ static void notify_swing_cb_handler(u16 id)
     clock_t *clock = clock_get();
     static u8 minute = 0;
     static u8 swing_state = NOTIFY_NONE;
-    motor_queue_t queue_param = {.user = QUEUE_USER_BLE_SWING, .intervel = 40, .mask = SWING_MOTOR_MASK};
+    motor_ctrl_queue_t queue_param = {.user = QUEUE_USER_BLE_SWING, .intervel = 40, .mask = SWING_MOTOR_MASK};
 
 //    if(motor_check_idle() != 0) {
 //        timer_event(100, notify_swing_cb_handler);
@@ -35,7 +35,7 @@ static void notify_swing_cb_handler(u16 id)
     swing_ongoing = 0;
     if(ble_state_get() != app_advertising) {
         queue_param.dest[SWING_MOTOR_NAME] = NOTIFY_NONE;
-        motor_params_enqueue(&queue_param);
+        motor_ctrl_enqueue(&queue_param);
         return;
     }
     swing_ongoing = 1;
@@ -51,7 +51,7 @@ static void notify_swing_cb_handler(u16 id)
         queue_param.mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK);
         queue_param.intervel = 10;
     }
-    motor_params_enqueue(&queue_param);
+    motor_ctrl_enqueue(&queue_param);
     
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
 }
@@ -60,7 +60,7 @@ void pair_code_generate(void)
     u16 old_pair_code = 0;
     u8 hour;
     u8 minute;
-    motor_queue_t queue_param = {.user = QUEUE_USER_PAIR_CODE, .intervel = 10, .mask = (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_NOTIFY)};
+    motor_ctrl_queue_t queue_param = {.user = QUEUE_USER_PAIR_CODE, .intervel = 10, .mask = (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_NOTIFY)};
     
     while(1) {
         old_pair_code = pair_code.pair_code;
@@ -90,7 +90,7 @@ void pair_code_generate(void)
 	
     queue_param.dest[minute_motor] = minute;
     queue_param.dest[hour_motor] = hour;
-    motor_params_enqueue(&queue_param);
+    motor_ctrl_enqueue(&queue_param);
 }
 static s16 ble_pair(void *args)
 {
@@ -132,7 +132,7 @@ static u16 ble_change(void *args)
 {
     STATE_E *state_mc = (STATE_E *)args;
     app_state state_ble = ble_state_get();
-    motor_queue_t queue_param = {.user = QUEUE_USER_BLE_CHANGE, .intervel = 40, .mask = SWING_MOTOR_MASK};
+    motor_ctrl_queue_t queue_param = {.user = QUEUE_USER_BLE_CHANGE, .intervel = 40, .mask = SWING_MOTOR_MASK};
     
     queue_param.dest[SWING_MOTOR_NAME] = NOTIFY_NONE;
     if(state_ble == app_advertising) { // advertising start
@@ -141,7 +141,7 @@ static u16 ble_change(void *args)
     } else if((state_ble == app_idle) || (state_ble == app_connected)){ // advertising stop & connected
         if(swing_ongoing == 1) {
             swing_ongoing = 0;
-            motor_params_enqueue(&queue_param);
+            motor_ctrl_enqueue(&queue_param);
         }
     } else { // disconnected
     }

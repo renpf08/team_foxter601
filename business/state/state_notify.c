@@ -71,7 +71,7 @@ s16 state_notify(REPORT_E cb, void *args)
     u8 *en = cmd_get()->notify_switch.en;
     u32 msg_en = 0;
     u8 log[6] = {0x5F, 0x03, 0, 0, 0, 0};
-    motor_queue_t queue_param = {.user = QUEUE_USER_NOTIFY_RCVD, .intervel = 40, .mask = MOTOR_MASK_NOTIFY};
+    motor_ctrl_queue_t queue_param = {.user = QUEUE_USER_NOTIFY_RCVD, .intervel = 40, .mask = MOTOR_MASK_NOTIFY};
 
     for(i = 0; i < 4; i++) {
         msg_en  <<= 8;
@@ -108,7 +108,7 @@ s16 state_notify(REPORT_E cb, void *args)
         queue_param.dest[notify_motor] = NOTIFY_NONE;
 	}
     if(queue_param.dest[notify_motor] < NOTIFY_DONE) {
-        motor_params_enqueue(&queue_param);
+        motor_ctrl_enqueue(&queue_param);
     }
     log[2] = ancs_msg->sta;
     log[3] = ancs_msg->level;

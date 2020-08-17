@@ -19,8 +19,8 @@ void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
 u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state);
 void send_motor_run_info(void);
-void motor_params_dequeue(u16 id);
-void motor_params_enqueue(motor_queue_t *queue_params);
+void motor_ctrl_dequeue(u16 id);
+void motor_ctrl_enqueue(motor_ctrl_queue_t *ctrl_params);
 void motor_set_date_time(clock_t *clock, MOTOR_MASK_E mask, queue_user_t user);
 void system_pre_reboot_handler(reboot_type_t type);
 void system_post_reboot_handler(void);
@@ -36,9 +36,9 @@ void timer_event(u16 ms, timer_cb cb);
 clock_t *clock_get(void);
 
 s16 motor_manager_init(void);
-void motor_run_one_step(motor_queue_t *queue_params);
-void motor_run_test(motor_queue_t *queue_params);
-void motor_pre_handler(motor_queue_t *queue_params, u8 instance);
+void motor_run_one_step(motor_ctrl_queue_t *ctrl_params);
+void motor_run_test(motor_ctrl_queue_t *ctrl_params);
+void motor_pre_handler(motor_ctrl_queue_t *ctrl_params, u8 instance);
 void motor_check_run(u16 id);
 s16 motor_hour_to_position(u8 dst_pos);
 s16 motor_minute_to_position(u8 dst_pos);
@@ -47,7 +47,7 @@ s16 motor_notify_to_position(u8 dst_pos);
 s16 motor_battery_week_to_position(u8 dst_pos);
 s16 motor_activity_to_position(u8 dst_pos);
 
-u8 motor_run_one_unit(motor_queue_t *queue_params);
+u8 motor_run_one_unit(motor_ctrl_queue_t *ctrl_params);
 u16 motor_check_idle(void);
 
 s16 battery_init(adapter_callback cb);

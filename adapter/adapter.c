@@ -152,7 +152,7 @@ static void activity_handler(u16 id)
 {
     u32 target_steps = cmd_get()->user_info.target_steps;
     u32 current_steps = step_get();
-    motor_queue_t queue_param = {.user = QUEUE_USER_ACTIVITY_CALC, .intervel = 25, .mask = MOTOR_MASK_ACTIVITY};
+    motor_ctrl_queue_t queue_param = {.user = QUEUE_USER_ACTIVITY_CALC, .intervel = 25, .mask = MOTOR_MASK_ACTIVITY};
 
     if(current_steps > target_steps) {
         queue_param.dest[activity_motor] = 40; // total 40 grids
@@ -161,7 +161,7 @@ static void activity_handler(u16 id)
     } else if(target_steps == 0) {
         queue_param.dest[activity_motor] = 0;
     }
-    motor_params_enqueue(&queue_param);
+    motor_ctrl_enqueue(&queue_param);
     
     u16 length = 0; 
     u8 rsp_buf[20];
@@ -232,85 +232,85 @@ void send_motor_run_info(void)
     ble_log[i++] = motor_manager.motor_run_info.index;
     BLE_SEND_LOG(ble_log, i);
 }
-static void motor_set_position(motor_queue_t *queue_params)
+static void motor_set_position(motor_ctrl_queue_t *ctrl_params)
 {
     u8 set_result = 0;
     u8 instance = 0;
 
     motor_queue.motor_name = 0;
     motor_queue.handle_name = 0;
-    if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_MINUTE)) {
-        set_result = motor_minute_to_position(queue_params->dest[minute_motor]);
+    if(ctrl_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_MINUTE)) {
+        set_result = motor_minute_to_position(ctrl_params->dest[minute_motor]);
         instance += set_result;
         motor_queue.handle_name |= (set_result<<minute_motor);
         motor_queue.motor_name |= (1<<minute_motor);
     }
-    if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_HOUR)) {
-        set_result = motor_hour_to_position(queue_params->dest[hour_motor]);
+    if(ctrl_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_HOUR)) {
+        set_result = motor_hour_to_position(ctrl_params->dest[hour_motor]);
         instance += set_result;
         motor_queue.handle_name |= (set_result<<hour_motor);
         motor_queue.motor_name |= (1<<hour_motor);
     }
-    if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_ACTIVITY)) {
-        set_result = motor_activity_to_position(queue_params->dest[activity_motor]);
+    if(ctrl_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_ACTIVITY)) {
+        set_result = motor_activity_to_position(ctrl_params->dest[activity_motor]);
         instance += set_result;
         motor_queue.handle_name |= (set_result<<activity_motor);
         motor_queue.motor_name |= (1<<activity_motor);
     }
-    if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_DATE)) {
-        set_result = motor_date_to_position(queue_params->dest[date_motor]);
+    if(ctrl_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_DATE)) {
+        set_result = motor_date_to_position(ctrl_params->dest[date_motor]);
         instance += set_result;
         motor_queue.handle_name |= (set_result<<date_motor);
         motor_queue.motor_name |= (1<<date_motor);
     }
-    if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_BAT_WEEK)) {
-        set_result = motor_battery_week_to_position(queue_params->dest[battery_week_motor]);
+    if(ctrl_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_BAT_WEEK)) {
+        set_result = motor_battery_week_to_position(ctrl_params->dest[battery_week_motor]);
         instance += set_result;
         motor_queue.handle_name |= (set_result<<battery_week_motor);
         motor_queue.motor_name |= (1<<battery_week_motor);
     }
-    if(queue_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_NOTIFY)) {
-        set_result = motor_notify_to_position(queue_params->dest[notify_motor]);
+    if(ctrl_params->mask & (MOTOR_MASK_ALL|MOTOR_MASK_NOTIFY)) {
+        set_result = motor_notify_to_position(ctrl_params->dest[notify_motor]);
         instance += set_result;
         motor_queue.handle_name |= (set_result<<notify_motor);
         motor_queue.motor_name |= (1<<notify_motor);
     }
-    motor_pre_handler(queue_params, instance);
+    motor_pre_handler(ctrl_params, instance);
 }
-void motor_params_dequeue(u16 id)
+void motor_ctrl_dequeue(u16 id)
 {
     if(motor_manager.motor_running == 0) {
         if(motor_queue.tail != motor_queue.head) {
-            motor_queue.cur_user = motor_queue.queue_params[motor_queue.tail].user; // for debug
-            motor_queue.cur_index = motor_queue.queue_params[motor_queue.tail].index;
-            motor_set_position(&motor_queue.queue_params[motor_queue.tail]);
+            motor_queue.cur_user = motor_queue.ctrl_params[motor_queue.tail].user; // for debug
+            motor_queue.cur_index = motor_queue.ctrl_params[motor_queue.tail].index;
+            motor_set_position(&motor_queue.ctrl_params[motor_queue.tail]);
             motor_queue.tail = (motor_queue.tail+1)%MOTOR_QUEUE_SIZE;
             motor_queue.read_cnt++;
         }
     }
-    timer_event(10, motor_params_dequeue);
+    timer_event(10, motor_ctrl_dequeue);
 }
-void motor_params_enqueue(motor_queue_t *queue_params)
+void motor_ctrl_enqueue(motor_ctrl_queue_t *ctrl_params)
 {
     /** queue is fulled, discard the oldest one */
     if(motor_queue.tail == (motor_queue.head+1)%MOTOR_QUEUE_SIZE) {
         motor_queue.tail = (motor_queue.tail+1)%MOTOR_QUEUE_SIZE;
         motor_queue.drop_cnt++;
     }
-    MemCopy(&motor_queue.queue_params[motor_queue.head], queue_params, sizeof(motor_queue_t));
+    MemCopy(&motor_queue.ctrl_params[motor_queue.head], ctrl_params, sizeof(motor_ctrl_queue_t));
     motor_queue.head = (motor_queue.head+1)%MOTOR_QUEUE_SIZE;
     motor_queue.write_cnt++;
 }
 void motor_set_date_time(clock_t *clock, MOTOR_MASK_E mask, queue_user_t user)
 {
-    motor_queue_t queue_param = {.user = user, .intervel = 10};
+    motor_ctrl_queue_t queue_param = {.user = user, .intervel = 10};
     
     queue_param.dest[minute_motor] = clock->minute;
     queue_param.dest[hour_motor] = clock->hour;
     queue_param.dest[date_motor] = adapter_ctrl.date[clock->day];
     queue_param.dest[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
     queue_param.mask = mask;
-    motor_params_enqueue(&queue_param);
+    motor_ctrl_enqueue(&queue_param);
 }
 static void motor_run_test_reboot_handler(u16 id)
 {
@@ -333,7 +333,7 @@ static s16 reboot_handler(void *queue_args)
 void system_pre_reboot_handler(reboot_type_t type)
 {
     clock_t* clock = clock_get();
-    motor_queue_t queue_param = {.user = QUEUE_USER_PRE_REBOOT, .intervel = 10, .mask = MOTOR_MASK_ALL, .cb_func = reboot_handler};
+    motor_ctrl_queue_t queue_param = {.user = QUEUE_USER_PRE_REBOOT, .intervel = 10, .mask = MOTOR_MASK_ALL, .cb_func = reboot_handler};
 
     adapter_ctrl.reboot_type = type;
     if(motor_manager.run_test_mode == 1) {
@@ -345,13 +345,13 @@ void system_pre_reboot_handler(reboot_type_t type)
         nvm_write_date_time((u16*)clock, 0);
         nvm_write_motor_current_position((u16*)&adapter_ctrl.motor_dst, 0);
         MemCopy(queue_param.dest, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
-        motor_params_enqueue(&queue_param);
+        motor_ctrl_enqueue(&queue_param);
     }
 }
 void system_post_reboot_handler(void)
 {
     clock_t* clock = clock_get();
-    motor_queue_t queue_param = {.user = QUEUE_USER_POST_REBOOT, .intervel = 10, .mask = MOTOR_MASK_ALL};;
+    motor_ctrl_queue_t queue_param = {.user = QUEUE_USER_POST_REBOOT, .intervel = 10, .mask = MOTOR_MASK_ALL};;
     
     if(nvm_read_motor_init_flag() == 0) {
         nvm_read_motor_current_position((u16*)queue_param.dest, 0);
@@ -363,8 +363,8 @@ void system_post_reboot_handler(void)
     } else {
         MemCopy(queue_param.dest, adapter_ctrl.motor_zero, max_motor);
     }
-    motor_params_enqueue(&queue_param);
-    motor_params_dequeue(0);
+    motor_ctrl_enqueue(&queue_param);
+    motor_ctrl_dequeue(0);
     adapter_ctrl.system_started = 1;
 }
 u8 state_machine_check(REPORT_E cb)

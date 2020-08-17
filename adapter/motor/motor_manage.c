@@ -347,19 +347,19 @@ void motor_check_run(u16 id)
             motor_manager.motor_running = 0;
 //            if(motor_check_idle() == 0) {
 ////                motor_manager.motor_running = 0;
-//                timer_event(1, motor_params_dequeue);
+//                timer_event(1, motor_ctrl_dequeue);
 //            }
         }
     }
 }
 #endif
-u8 motor_run_one_unit(motor_queue_t *queue_params)
+u8 motor_run_one_unit(motor_ctrl_queue_t *ctrl_params)
 {
 	u8 i = 0;
     u8 run_cnt = 0;
 
-    motor_manager.timer_interval = queue_params->intervel;
-    motor_manager.queue_cb = queue_params->cb_func;
+    motor_manager.timer_interval = ctrl_params->intervel;
+    motor_manager.queue_cb = ctrl_params->cb_func;
     run_cnt = 0;
 	for(i = 0; i < max_motor; i++) {
 		if(motor_manager.status[i].run_flag == 1) {
@@ -388,31 +388,31 @@ u8 motor_run_one_unit(motor_queue_t *queue_params)
 
     return run_cnt;
 }
-void motor_run_one_step(motor_queue_t *queue_params)
+void motor_run_one_step(motor_ctrl_queue_t *ctrl_params)
 {
-    volatile zero_adjust_t zero_adjust = {.motor_num=queue_params->cb_params[0], .motor_pos=queue_params->cb_params[1]};
+    volatile zero_adjust_t zero_adjust = {.motor_num=ctrl_params->cb_params[0], .motor_pos=ctrl_params->cb_params[1]};
     motor_manager.status[zero_adjust.motor_num].run_direc = zero_adjust.motor_pos;
-    motor_manager.timer_interval = queue_params->intervel;
+    motor_manager.timer_interval = ctrl_params->intervel;
     motor_manager.status[zero_adjust.motor_num].run_flag = 1;
     motor_manager.run_next[zero_adjust.motor_num] = 0;
     motor_check_run(0);
 }
-void motor_run_test(motor_queue_t *queue_params)
+void motor_run_test(motor_ctrl_queue_t *ctrl_params)
 {
-    motor_manager.timer_interval = queue_params->intervel;
-    motor_manager.queue_cb = queue_params->cb_func;
+    motor_manager.timer_interval = ctrl_params->intervel;
+    motor_manager.queue_cb = ctrl_params->cb_func;
     motor_check_run(0);
 }
-void motor_pre_handler(motor_queue_t *queue_params, u8 instance)
+void motor_pre_handler(motor_ctrl_queue_t *ctrl_params, u8 instance)
 {
-    if(queue_params->mask == MOTOR_MASK_RUN_TEST) {
-        motor_run_test(queue_params);
-    } else if (queue_params->mask == MOTOR_MASK_ZERO_ADJUST) {
-        motor_run_one_step(queue_params);
+    if(ctrl_params->mask == MOTOR_MASK_RUN_TEST) {
+        motor_run_test(ctrl_params);
+    } else if (ctrl_params->mask == MOTOR_MASK_ZERO_ADJUST) {
+        motor_run_one_step(ctrl_params);
     } else if (instance > 0) {
-        motor_run_one_unit(queue_params);
-    } else if(queue_params->cb_func != NULL) {
-        queue_params->cb_func(NULL);
+        motor_run_one_unit(ctrl_params);
+    } else if(ctrl_params->cb_func != NULL) {
+        ctrl_params->cb_func(NULL);
     }
     
     u8 ble_log[7] = {0x5F, 0x04, 0,0,0,0,0};
