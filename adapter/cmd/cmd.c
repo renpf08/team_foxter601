@@ -103,14 +103,17 @@ static const CMDENTRY cmd_list[] =
 *   AF 04 00 xx // send pair code
 *   AF 04 01 xx // send state machine
 *   AF 04 02 xx // send zero adjut jump
+*   CMD_GET_SYSTEM_RUNNIG_TIME
+*   AF 05 // get system running time
 */
 typedef void (* cmd_test_handler)(u8 *buffer, u8 length);
 typedef enum{
-    CMD_TEST_NVM_ACCESS     = 0x00,
-    CMD_TEST_ZERO_ADJUST    = 0x01,
-    CMD_TEST_STEP_COUNT     = 0x02,
-    CMD_TEST_SYS_REBOOT     = 0x03,
-    CMD_TEST_LOG_TYPE_EN    = 0x04,
+    CMD_TEST_NVM_ACCESS         = 0x00,
+    CMD_TEST_ZERO_ADJUST        = 0x01,
+    CMD_TEST_STEP_COUNT         = 0x02,
+    CMD_TEST_SYS_REBOOT         = 0x03,
+    CMD_TEST_LOG_TYPE_EN        = 0x04,
+    CMD_GET_SYSTEM_RUNNIG_TIME  = 0x05,
     
     CMD_TEST_NONE,
 }cmt_test_enum_t;
@@ -133,6 +136,9 @@ static void cmd_test_sys_reboot(u8 *buffer, u8 length);
 #if USE_CMD_TEST_LOG_TYPE_EN
 static void cmd_test_log_type_en(u8 *buffer, u8 length);
 #endif
+#if USE_CMD_GET_SYSTEM_RUNNIG_TIME
+static void cmd_test_get_system_running_time(u8 *buffer, u8 length);
+#endif
 static const cmd_test_entry_t cmd_test_list[] =
 {
     #if USE_CMD_TEST_NVM_ACCESS
@@ -149,6 +155,9 @@ static const cmd_test_entry_t cmd_test_list[] =
     #endif
     #if USE_CMD_TEST_LOG_TYPE_EN
     {CMD_TEST_LOG_TYPE_EN, cmd_test_log_type_en},
+    #endif
+    #if USE_CMD_GET_SYSTEM_RUNNIG_TIME
+    {CMD_GET_SYSTEM_RUNNIG_TIME, cmd_test_get_system_running_time},
     #endif
     
 	{CMD_TEST_NONE,         0}
@@ -223,6 +232,22 @@ static void cmd_test_log_type_en(u8 *buffer, u8 length)
     typedef struct{u8 head; u8 cmd; u8 type; u8 en;}cmd_test_log_type_en_t;
     cmd_test_log_type_en_t* log = (cmd_test_log_type_en_t*)buffer;
     adapter_ctrl.log_type_en[log->type] = log->en;
+}
+#endif
+#if USE_CMD_GET_SYSTEM_RUNNIG_TIME
+static void cmd_test_get_system_running_time(u8 *buffer, u8 length)
+{
+    u8 rsp_buf[20];
+    u8 *tmp_buf = rsp_buf;
+
+    BufWriteUint16((uint8 **)&tmp_buf, cmd_params.clock->year);
+    BufWriteUint8((uint8 **)&tmp_buf, cmd_params.clock->month);
+    BufWriteUint8((uint8 **)&tmp_buf, cmd_params.clock->day);
+    BufWriteUint8((uint8 **)&tmp_buf, cmd_params.clock->hour);
+    BufWriteUint8((uint8 **)&tmp_buf, cmd_params.clock->minute);
+    BufWriteUint8((uint8 **)&tmp_buf, cmd_params.clock->second);
+    length = tmp_buf - rsp_buf;
+    BLE_SEND_DATA(rsp_buf, (tmp_buf-rsp_buf));
 }
 #endif
 static s16 cmd_test(u8 *buffer, u8 length)
