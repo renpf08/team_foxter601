@@ -237,17 +237,13 @@ static void cmd_test_log_type_en(u8 *buffer, u8 length)
 #if USE_CMD_GET_SYSTEM_RUNNIG_TIME
 static void cmd_test_get_system_running_time(u8 *buffer, u8 length)
 {
-    u8 rsp_buf[20];
-    u8 *tmp_buf = rsp_buf;
+    u8 buf[4] = {0,0,0,0};
 
-    BufWriteUint16((uint8 **)&tmp_buf, cmd_params.clock->year);
-    BufWriteUint8((uint8 **)&tmp_buf, cmd_params.clock->month);
-    BufWriteUint8((uint8 **)&tmp_buf, cmd_params.clock->day);
-    BufWriteUint8((uint8 **)&tmp_buf, cmd_params.clock->hour);
-    BufWriteUint8((uint8 **)&tmp_buf, cmd_params.clock->minute);
-    BufWriteUint8((uint8 **)&tmp_buf, cmd_params.clock->second);
-    length = tmp_buf - rsp_buf;
-    BLE_SEND_DATA(rsp_buf, (tmp_buf-rsp_buf));
+    buf[0] = (cmd_params.lifetime>>24)&0x000000FF;
+    buf[1] = (cmd_params.lifetime>>16)&0x000000FF;
+    buf[2] = (cmd_params.lifetime>>8)&0x000000FF;
+    buf[3] = cmd_params.lifetime&0x000000FF;
+    BLE_SEND_DATA(buf, 4);
 }
 #endif
 static s16 cmd_test(u8 *buffer, u8 length)

@@ -553,6 +553,9 @@ typedef struct {
     his_data_t *data;
     u32 steps;
     s16 days;
+    #if USE_CMD_GET_SYSTEM_RUNNIG_TIME
+    u32 lifetime;
+    #endif
 } cmd_params_t;
 typedef struct {
     u8 press;

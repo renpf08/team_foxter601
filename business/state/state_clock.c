@@ -37,6 +37,7 @@ static void minutely_check(REPORT_E cb)
     }
     params->steps = step_get();
     params->clock = clock;
+    params->lifetime++;
     alarm_clock_check(clock);
 }
 static void read_current_step(void)
