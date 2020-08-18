@@ -18,8 +18,11 @@ static motor_cfg_t csr_motor_hour_cfg = {
 	},
 };
 
-static s16 csr_motor_hour_positive_first_half(void *args)
+static s16 csr_motor_hour_run(void *args)
 {
+    static u8 step[none] = {0, 0};
+    u8 dir = (u8)args;
+
 	PioSetDir(csr_motor_hour_cfg.pos.num, PIO_DIR_OUTPUT);
 	PioSetDir(csr_motor_hour_cfg.neg.num, PIO_DIR_OUTPUT);
 
@@ -28,51 +31,24 @@ static s16 csr_motor_hour_positive_first_half(void *args)
 			BIT_MASK(csr_motor_hour_cfg.neg.num),
 			0x00UL);
 
-	POS_HIGH(csr_motor_hour_cfg.pos.num);
-	return 0;
-}
-
-static s16 csr_motor_hour_positive_second_half(void *args)
-{
-	PioSetDir(csr_motor_hour_cfg.pos.num, PIO_DIR_OUTPUT);
-	PioSetDir(csr_motor_hour_cfg.neg.num, PIO_DIR_OUTPUT);
-
-	PioSets(BIT_MASK(csr_motor_hour_cfg.pos.num)| \
-			BIT_MASK(csr_motor_hour_cfg.com.num)| \
-			BIT_MASK(csr_motor_hour_cfg.neg.num),
-			0x00UL);
-
-	COM_HIGH(csr_motor_hour_cfg.com.num);
-	NEG_HIGH(csr_motor_hour_cfg.neg.num);	
-	return 0;
-}
-
-static s16 csr_motor_hour_negtive_first_half(void *args)
-{
-	PioSetDir(csr_motor_hour_cfg.pos.num, PIO_DIR_OUTPUT);
-	PioSetDir(csr_motor_hour_cfg.neg.num, PIO_DIR_OUTPUT);
-
-	PioSets(BIT_MASK(csr_motor_hour_cfg.pos.num)| \
-			BIT_MASK(csr_motor_hour_cfg.com.num)| \
-			BIT_MASK(csr_motor_hour_cfg.neg.num),
-			0x00UL);
-
-	NEG_HIGH(csr_motor_hour_cfg.neg.num);
-	return 0;
-}
-
-static s16 csr_motor_hour_negtive_second_half(void *args)
-{
-	PioSetDir(csr_motor_hour_cfg.pos.num, PIO_DIR_OUTPUT);
-	PioSetDir(csr_motor_hour_cfg.neg.num, PIO_DIR_OUTPUT);
-
-	PioSets(BIT_MASK(csr_motor_hour_cfg.pos.num)| \
-			BIT_MASK(csr_motor_hour_cfg.com.num)| \
-			BIT_MASK(csr_motor_hour_cfg.neg.num),
-			0x00UL);
-
-	POS_HIGH(csr_motor_hour_cfg.pos.num);
-	COM_HIGH(csr_motor_hour_cfg.com.num);
+    if(dir == pos) {
+        if(step[dir] == 0) {
+    	    POS_HIGH(csr_motor_hour_cfg.pos.num);
+        } else {
+        	COM_HIGH(csr_motor_hour_cfg.com.num);
+        	NEG_HIGH(csr_motor_hour_cfg.neg.num);	
+        }
+        step[dir] = (step[dir]==0)?1:0;
+    } else if(dir == neg) {
+        if(step[dir] == 0) {
+    	    NEG_HIGH(csr_motor_hour_cfg.neg.num);
+        } else {
+        	POS_HIGH(csr_motor_hour_cfg.pos.num);
+        	COM_HIGH(csr_motor_hour_cfg.com.num);
+        }
+        step[dir] = (step[dir]==0)?1:0;
+    }
+    
 	return 0;
 }
 
@@ -120,9 +96,6 @@ static s16 csr_motor_hour_init(cfg_t *args, event_callback cb)
 
 motor_t csr_motor_hour = {
 	.motor_init = csr_motor_hour_init,
-	.motor_positive_first_half = csr_motor_hour_positive_first_half,
-	.motor_positive_second_half = csr_motor_hour_positive_second_half,	
 	.motor_stop = csr_motor_hour_stop,
-	.motor_negtive_first_half = csr_motor_hour_negtive_first_half,
-	.motor_negtive_second_half = csr_motor_hour_negtive_second_half,
+	.motor_run = csr_motor_hour_run,
 };

@@ -52,11 +52,8 @@ typedef struct {
 
 typedef struct {
 	init			motor_init;
-	positive        motor_positive_first_half;
-	positive        motor_positive_second_half;	
 	stop			motor_stop;
-	negtive         motor_negtive_first_half;	
-	negtive         motor_negtive_second_half;
+	move            motor_run;	
 }motor_t;
 
 typedef struct {

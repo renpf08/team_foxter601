@@ -574,8 +574,7 @@ typedef s16 (*write)(u8 *buf, u16 num);
 typedef s16 (*on)(void *args);
 typedef s16 (*off)(void *args);
 
-typedef s16 (*positive)(void *args);
-typedef s16 (*negtive)(void *args);
+typedef s16 (*move)(void *args);
 typedef s16 (*stop)(void *args);
 
 typedef s16 (*fread)(u16 *buffer, u16 length, u16 offset);
@@ -648,10 +647,6 @@ typedef struct {
     u8 max;
 } motor_range_t;
 typedef struct {
-    motor_cb_handler motor_run_half[2][2];
-    motor_cb_handler motor_stop;
-} motor_cb_ctrl_t;
-typedef struct {
 	u8 cur_pos;
 	u8 dst_pos;
 	u8 run_flag;
@@ -711,10 +706,8 @@ typedef struct {
     u8 target_pos;
 } motor_run_info_t;
 typedef struct {
-    motor_cb_ctrl_t cb[max_motor];
     motor_run_status_t status[max_motor];
     u8 run_next[max_motor];
-    u8 run_state_self[max_motor];
     u8 run_state_main;
     u8 skip_total[max_motor];
     u8 skip_cnt[max_motor];

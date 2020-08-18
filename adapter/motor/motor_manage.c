@@ -19,7 +19,8 @@ enum {
     MOTOR_RUN_NEXT_STEP,
     MOTOR_RUN_NEXT_UNIT,
 };
-
+    
+motor_t motor_run_ctrl[max_motor];
 motor_manager_t motor_manager = {
 	.status = {
      // motor                     cur               dst flag    unit_step             steps direc range              
@@ -31,7 +32,6 @@ motor_manager_t motor_manager = {
 		[notify_motor]          = {NOTIFY_NONE,     0,  0,      1,                    0,    none, {0, NOTIFY_DONE}},
 	 },
     .run_next = {0,0,0,0,0,0},
-    .run_state_self = {FIRST_HALF,FIRST_HALF,FIRST_HALF,FIRST_HALF,FIRST_HALF,FIRST_HALF},
     .run_state_main = FIRST_HALF,
     .skip_total = {0,0,1,0,0,1},
     .skip_cnt = {0,0,0,0,0,0},
@@ -260,8 +260,7 @@ void motor_check_run(u16 id)
             if(motor_manager.status[i].run_flag == 0) {
                 continue;
             }
-            motor_manager.cb[i].motor_run_half[motor_manager.run_state_self[i]][motor_manager.status[i].run_direc](NULL);
-            motor_manager.run_state_self[i] = (motor_manager.run_state_self[i]==FIRST_HALF)?SECOND_HALF:FIRST_HALF;
+            motor_run_ctrl[i].motor_run((void*)motor_manager.status[i].run_direc);
             if(motor_manager.run_next[i] == 1) {
                 motor_check_continue(i);
             } else {
@@ -273,7 +272,7 @@ void motor_check_run(u16 id)
     } else if(motor_manager.run_state_main == SECOND_HALF) {
 		motor_manager.run_state_main = FIRST_HALF;
         for(i = 0; i < max_motor; i++) {
-            motor_manager.cb[i].motor_stop(NULL);
+            motor_run_ctrl[i].motor_stop(NULL);
             if(motor_manager.status[i].run_flag == 1) {
                 run_flag++;
             }
@@ -437,52 +436,12 @@ I      5号Motor为消息显示60格*/
 s16 motor_manager_init(void)
 {
 	driver_t *driver = get_driver();
-
-    motor_cb_ctrl_t motor_cb_ctrl[max_motor] = {
-        [hour_motor] = {
-            .motor_run_half = {
-                [FIRST_HALF] = {driver->motor_hour->motor_positive_first_half, driver->motor_hour->motor_negtive_first_half},
-                [SECOND_HALF] = {driver->motor_hour->motor_positive_second_half, driver->motor_hour->motor_negtive_second_half},
-            },
-            .motor_stop = driver->motor_hour->motor_stop,
-        },
-        [minute_motor] = {
-            .motor_run_half = {
-                [FIRST_HALF] = {driver->motor_minute->motor_positive_first_half, driver->motor_minute->motor_negtive_first_half},
-                [SECOND_HALF] = {driver->motor_minute->motor_positive_second_half, driver->motor_minute->motor_negtive_second_half},
-            },
-            .motor_stop = driver->motor_minute->motor_stop,
-        },
-        [activity_motor] = {
-            .motor_run_half = {
-                [FIRST_HALF] = {driver->motor_activity->motor_positive_first_half, driver->motor_activity->motor_negtive_first_half},
-                [SECOND_HALF] = {driver->motor_activity->motor_positive_second_half, driver->motor_activity->motor_negtive_second_half},
-            },
-            .motor_stop = driver->motor_activity->motor_stop,
-        },
-        [date_motor] = {
-            .motor_run_half = {
-                [FIRST_HALF] = {driver->motor_date->motor_positive_first_half, driver->motor_date->motor_negtive_first_half},
-                [SECOND_HALF] = {driver->motor_date->motor_positive_second_half, driver->motor_date->motor_negtive_second_half},
-            },
-            .motor_stop = driver->motor_date->motor_stop,
-        },
-        [battery_week_motor] = {
-            .motor_run_half = {
-                [FIRST_HALF] = {driver->motor_battery_week->motor_positive_first_half, driver->motor_battery_week->motor_negtive_first_half},
-                [SECOND_HALF] = {driver->motor_battery_week->motor_positive_second_half, driver->motor_battery_week->motor_negtive_second_half},
-            },
-            .motor_stop = driver->motor_battery_week->motor_stop,
-        },
-        [notify_motor] = {
-            .motor_run_half = {
-                [FIRST_HALF] = {driver->motor_notify->motor_positive_first_half, driver->motor_notify->motor_negtive_first_half},
-                [SECOND_HALF] = {driver->motor_notify->motor_positive_second_half, driver->motor_notify->motor_negtive_second_half},
-            },
-            .motor_stop = driver->motor_notify->motor_stop,
-        },
-    };
-    MemCopy(&motor_manager.cb, &motor_cb_ctrl, max_motor*sizeof(motor_cb_ctrl_t));
+    MemCopy(&motor_run_ctrl[hour_motor], driver->motor_hour, sizeof(motor_t));
+    MemCopy(&motor_run_ctrl[minute_motor], driver->motor_minute, sizeof(motor_t));
+    MemCopy(&motor_run_ctrl[activity_motor], driver->motor_activity, sizeof(motor_t));
+    MemCopy(&motor_run_ctrl[date_motor], driver->motor_date, sizeof(motor_t));
+    MemCopy(&motor_run_ctrl[battery_week_motor], driver->motor_battery_week, sizeof(motor_t));
+    MemCopy(&motor_run_ctrl[notify_motor], driver->motor_notify, sizeof(motor_t));
 
     system_post_reboot_handler();
 	return 0;
