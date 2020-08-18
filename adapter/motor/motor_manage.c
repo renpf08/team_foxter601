@@ -263,7 +263,6 @@ void motor_check_run(u16 id)
             if(motor_manager.run_next[i] == 1) {
                 motor_check_continue(i);
             } else {
-                //motor_manager.cb[i].motor_stop(NULL);
                 motor_manager.status[i].run_flag = 0;
             }
         }
