@@ -7,6 +7,7 @@
 #include "state.h"
 
 static u8 motor_num = 0;
+static u8 motor_tmp_pos[max_motor] = {0,0,0,0,0,0};
 typedef struct {
     u8 rotate_speed;
     u8 backward_pos;
@@ -45,28 +46,32 @@ s16 state_zero_adjust(REPORT_E cb, void *args)
 {
     motor_ctrl_queue_t queue_param = {.user = QUEUE_USER_ZERO_ADJUST, .intervel = 10, .mask = MOTOR_MASK_ALL};
     static u8 turn = 0;
-	clock_t *clock = clock_get();
+//	clock_t *clock = clock_get();
     STATE_E *state = args;
 
 	if(KEY_A_B_LONG_PRESS == cb) {
         if(turn == 0) {
     		motor_num = minute_motor;
+            MemCopy(motor_tmp_pos, adapter_ctrl.motor_dst, max_motor*sizeof(u8));
             MemCopy(queue_param.dest, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
-            queue_param.cb_func = motor_ctrl_swing;
+            //queue_param.cb_func = motor_ctrl_swing;
+            motor_ctrl_swing(NULL);
         } else {
             *state = CLOCK;
-            queue_param.dest[minute_motor] = clock->minute;
-            queue_param.dest[hour_motor] = clock->hour;
-            queue_param.dest[date_motor] = adapter_ctrl.date[clock->day];
-            queue_param.dest[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
-            queue_param.dest[activity_motor] = adapter_ctrl.activity;
-            queue_param.dest[notify_motor] = NOTIFY_NONE;
+            MemCopy(queue_param.dest, motor_tmp_pos, max_motor*sizeof(u8));
+//            queue_param.dest[minute_motor] = clock->minute;
+//            queue_param.dest[hour_motor] = clock->hour;
+//            queue_param.dest[date_motor] = adapter_ctrl.date[clock->day];
+//            queue_param.dest[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
+//            queue_param.dest[activity_motor] = adapter_ctrl.activity;
+//            queue_param.dest[notify_motor] = NOTIFY_NONE;
         }
         turn = (turn==0)?1:0;
 	}else if(KEY_M_SHORT_PRESS == cb) {
 		motor_num = (motor_num+1)%max_motor;
         queue_param.mask = MOTOR_MASK_TRIG_SWING;
-        queue_param.cb_func = motor_ctrl_swing;
+        //queue_param.cb_func = motor_ctrl_swing;
+        motor_ctrl_swing(NULL);
 	}else if((KEY_A_SHORT_PRESS == cb) || (KEY_B_SHORT_PRESS == cb)) {
         queue_param.mask = MOTOR_MASK_ZERO_ADJUST;
         queue_param.cb_params[0] = motor_num;

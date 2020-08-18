@@ -129,7 +129,7 @@ s16 state_clock(REPORT_E cb, void *args)
     if(state_check(cb) != 0) {
         return 0;
     }
-    motor_set_date_time(clock, mask, QUEUE_USER_EXIT_ADJUST);
+    motor_ctrl_refresh(clock, mask, QUEUE_USER_EXIT_ADJUST, NULL);
     minutely_check(cb);
 
 	return 0;

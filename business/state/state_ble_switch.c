@@ -28,10 +28,6 @@ static void notify_swing_cb_handler(u16 id)
     static u8 swing_state = NOTIFY_NONE;
     motor_ctrl_queue_t queue_param = {.user = QUEUE_USER_BLE_SWING, .intervel = 40, .mask = SWING_MOTOR_MASK};
 
-//    if(motor_check_idle() != 0) {
-//        timer_event(100, notify_swing_cb_handler);
-//        return;
-//    }
     swing_ongoing = 0;
     if(ble_state_get() != app_advertising) {
         queue_param.dest[SWING_MOTOR_NAME] = NOTIFY_NONE;
@@ -42,16 +38,11 @@ static void notify_swing_cb_handler(u16 id)
 
     swing_state = (swing_state == NOTIFY_NONE)?NOTIFY_COMMING_CALL:NOTIFY_NONE;
     queue_param.dest[SWING_MOTOR_NAME] = swing_state;
+    motor_ctrl_enqueue(&queue_param);
     if(minute != clock->minute) {
         minute = clock->minute;
-        queue_param.dest[minute_motor] = clock->minute;
-        queue_param.dest[hour_motor] = clock->hour;
-        queue_param.dest[date_motor] = adapter_ctrl.date[clock->day];
-        queue_param.dest[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
-        queue_param.mask |= (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK);
-        queue_param.intervel = 10;
+        motor_ctrl_refresh(clock, (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK), QUEUE_USER_BLE_SWING, NULL);
     }
-    motor_ctrl_enqueue(&queue_param);
     
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
 }

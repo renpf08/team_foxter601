@@ -208,7 +208,7 @@ void sync_time(void)
 
     BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
     refresh_step();
-    motor_set_date_time(clock, (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK), QUEUE_USER_SYNC_DATETIME);
+    motor_ctrl_refresh(clock, (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK), QUEUE_USER_SYNC_DATETIME, NULL);
 }
 u8 get_battery_week_pos(STATE_BATTERY_WEEK_E state)
 {
@@ -232,6 +232,31 @@ void send_motor_run_info(void)
     ble_log[i++] = motor_manager.motor_run_info.stop_cnt;
     ble_log[i++] = motor_manager.motor_run_info.index;
     BLE_SEND_LOG(ble_log, i);
+}
+void motor_ctrl_refresh(clock_t *clock, MOTOR_MASK_E mask, queue_user_t user, u8* params)
+{
+    motor_ctrl_queue_t queue_param = {.user = user, .intervel = 10};
+
+    if(mask & MOTOR_MASK_MINUTE) {
+        queue_param.dest[minute_motor] = clock->minute;
+    }
+    if(mask & MOTOR_MASK_HOUR) {
+        queue_param.dest[hour_motor] = clock->hour;
+    }
+    if(mask & MOTOR_MASK_ACTIVITY) {
+        queue_param.dest[activity_motor] = adapter_ctrl.activity;
+    }
+    if(mask & MOTOR_MASK_DATE) {
+        queue_param.dest[date_motor] = adapter_ctrl.date[clock->day];
+    }
+    if(mask & MOTOR_MASK_BAT_WEEK) {
+        queue_param.dest[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
+    }
+    if(mask & MOTOR_MASK_NOTIFY) {
+        queue_param.dest[notify_motor] = params[0];
+    }
+    queue_param.mask = mask;
+    motor_ctrl_enqueue(&queue_param);
 }
 static void motor_ctrl_check(motor_ctrl_queue_t *ctrl_params)
 {
@@ -301,17 +326,6 @@ void motor_ctrl_enqueue(motor_ctrl_queue_t *ctrl_params)
     MemCopy(&motor_queue.ctrl_params[motor_queue.head], ctrl_params, sizeof(motor_ctrl_queue_t));
     motor_queue.head = (motor_queue.head+1)%MOTOR_QUEUE_SIZE;
     motor_queue.write_cnt++;
-}
-void motor_set_date_time(clock_t *clock, MOTOR_MASK_E mask, queue_user_t user)
-{
-    motor_ctrl_queue_t queue_param = {.user = user, .intervel = 10};
-    
-    queue_param.dest[minute_motor] = clock->minute;
-    queue_param.dest[hour_motor] = clock->hour;
-    queue_param.dest[date_motor] = adapter_ctrl.date[clock->day];
-    queue_param.dest[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
-    queue_param.mask = mask;
-    motor_ctrl_enqueue(&queue_param);
 }
 static void motor_run_test_reboot_handler(u16 id)
 {

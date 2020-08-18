@@ -67,6 +67,7 @@ static void clock_cb_handler(u16 id)
 {
 	clock_cfg.drv->timer->timer_start(1000, clock_cb_handler);
 	clock_cfg.clock.second++;
+	//clock_cfg.clock.second = 60;
 	clock_timer_increase();
 }
 

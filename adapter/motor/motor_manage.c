@@ -279,10 +279,10 @@ void motor_check_run(u16 id)
             }
         }
         if(run_flag == 0) {
-            motor_manager.motor_running = 0;
             if(motor_manager.queue_cb != NULL) {
                 motor_manager.queue_cb(NULL);
             }
+            motor_manager.motor_running = 0;
             return;
         }
         timer_event(motor_manager.timer_interval, motor_check_run);
