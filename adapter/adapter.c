@@ -103,18 +103,7 @@ static s16 driver_init(void)
 	adapter.drv->magnetometer->magnetometer_init(&args, csr_event_callback);
 
 	//motor init and off
-	adapter.drv->motor_hour->motor_init(&args, NULL);
-	adapter.drv->motor_hour->motor_stop(NULL);
-	adapter.drv->motor_minute->motor_init(&args, NULL);
-	adapter.drv->motor_minute->motor_stop(NULL);
-	adapter.drv->motor_activity->motor_init(&args, NULL);
-	adapter.drv->motor_activity->motor_stop(NULL);
-	adapter.drv->motor_date->motor_init(&args, NULL);
-	adapter.drv->motor_date->motor_stop(NULL);
-	adapter.drv->motor_battery_week->motor_init(&args, NULL);
-	adapter.drv->motor_battery_week->motor_stop(NULL);
-	adapter.drv->motor_notify->motor_init(&args, NULL);
-	adapter.drv->motor_notify->motor_stop(NULL);
+    adapter.drv->motor_ctrl->motor_init(&args, NULL);
 
 	return 0;
 }

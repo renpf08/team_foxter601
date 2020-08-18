@@ -574,8 +574,8 @@ typedef s16 (*write)(u8 *buf, u16 num);
 typedef s16 (*on)(void *args);
 typedef s16 (*off)(void *args);
 
-typedef s16 (*move)(void *args);
-typedef s16 (*stop)(void *args);
+typedef s16 (*move)(u8 motor, u8 dir);
+typedef s16 (*stop)(u8 motor);
 
 typedef s16 (*fread)(u16 *buffer, u16 length, u16 offset);
 typedef s16 (*fwrite)(u16 *buffer, u16 length, u16 offset);

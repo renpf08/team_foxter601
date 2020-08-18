@@ -51,10 +51,10 @@ typedef struct {
 }magnetometer_t;
 
 typedef struct {
-	init			motor_init;
-	stop			motor_stop;
+	init            motor_init;
+	stop            motor_stop;
 	move            motor_run;	
-}motor_t;
+}motor_ctrl_t;
 
 typedef struct {
     #if USE_UART_PRINT
@@ -69,12 +69,7 @@ typedef struct {
 	vibrator_t  *vibrator;
 	gsensor_t   *gsensor;
 	magnetometer_t *magnetometer;
-	motor_t		*motor_hour;
-	motor_t		*motor_minute;
-	motor_t		*motor_activity;
-	motor_t		*motor_date;
-	motor_t		*motor_battery_week;
-	motor_t		*motor_notify;
+    motor_ctrl_t *motor_ctrl;
 }driver_t;
 
 void timer_create(uint32 timeout, timer_callback_arg handler);

@@ -20,7 +20,7 @@ enum {
     MOTOR_RUN_NEXT_UNIT,
 };
     
-motor_t motor_run_ctrl[max_motor];
+motor_ctrl_t *motor_ctrl;
 motor_manager_t motor_manager = {
 	.status = {
      // motor                     cur               dst flag    unit_step             steps direc range              
@@ -260,7 +260,7 @@ void motor_check_run(u16 id)
             if(motor_manager.status[i].run_flag == 0) {
                 continue;
             }
-            motor_run_ctrl[i].motor_run((void*)motor_manager.status[i].run_direc);
+            motor_ctrl->motor_run(i, motor_manager.status[i].run_direc);
             if(motor_manager.run_next[i] == 1) {
                 motor_check_continue(i);
             } else {
@@ -272,7 +272,7 @@ void motor_check_run(u16 id)
     } else if(motor_manager.run_state_main == SECOND_HALF) {
 		motor_manager.run_state_main = FIRST_HALF;
         for(i = 0; i < max_motor; i++) {
-            motor_run_ctrl[i].motor_stop(NULL);
+            motor_ctrl->motor_stop(i);
             if(motor_manager.status[i].run_flag == 1) {
                 run_flag++;
             }
@@ -435,14 +435,7 @@ I      4号Motor为运动百分比，60格，5%为3格
 I      5号Motor为消息显示60格*/
 s16 motor_manager_init(void)
 {
-	driver_t *driver = get_driver();
-    MemCopy(&motor_run_ctrl[hour_motor], driver->motor_hour, sizeof(motor_t));
-    MemCopy(&motor_run_ctrl[minute_motor], driver->motor_minute, sizeof(motor_t));
-    MemCopy(&motor_run_ctrl[activity_motor], driver->motor_activity, sizeof(motor_t));
-    MemCopy(&motor_run_ctrl[date_motor], driver->motor_date, sizeof(motor_t));
-    MemCopy(&motor_run_ctrl[battery_week_motor], driver->motor_battery_week, sizeof(motor_t));
-    MemCopy(&motor_run_ctrl[notify_motor], driver->motor_notify, sizeof(motor_t));
-
+    motor_ctrl = get_driver()->motor_ctrl;
     system_post_reboot_handler();
 	return 0;
 }
