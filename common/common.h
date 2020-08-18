@@ -277,7 +277,7 @@ typedef enum {
     MOTOR_MASK_BAT_WEEK     = 0x0010,
     MOTOR_MASK_NOTIFY       = 0x0020,
     MOTOR_MASK_ALL          = 0x0040,
-    MOTOR_MASK_TRIG         = 0x0080,
+    MOTOR_MASK_TRIG_SWING   = 0x0080,
     MOTOR_MASK_RUN_TEST     = 0x0100,
     MOTOR_MASK_ZERO_ADJUST  = 0x0200,
 } MOTOR_MASK_E;
@@ -372,6 +372,7 @@ typedef enum{
     LOG_SEND_ZERO_ADJUST_JUMP,
     LOG_SEND_QUEUE,
     LOG_SEND_RUN_INFO,
+    LOG_SEND_CUR_POS,
     
     LOG_SEND_MAX,
 }log_type_t;
@@ -615,16 +616,12 @@ typedef struct {
     u8 trig_pos;
 } motor_trig_t;
 typedef struct {
-    u8 motor_num;
-    u8 motor_pos;
-} zero_adjust_t;
-typedef struct {
     #if USE_CMD_TEST_LOG_TYPE_EN
     u8 log_type_en[LOG_SEND_MAX];
     #endif
     u8 system_started;
     u8 system_reboot_lock;
-    u8 activity_pos;
+    u8 activity;
     u8 current_bat_week_sta;
     reboot_type_t reboot_type;
     u8 motor_dst[max_motor];
@@ -711,6 +708,7 @@ typedef struct {
     u8 neg_step;
     u8 stop_cnt;
     u8 index;
+    u8 target_pos;
 } motor_run_info_t;
 typedef struct {
     motor_cb_ctrl_t cb[max_motor];

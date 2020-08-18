@@ -88,7 +88,7 @@ static void state_run_test_handler(u16 id)
             motor_ctrl_enqueue(&queue_param);
             return; // all motor has back to zero position
         } else {
-            queue_param.intervel = 5;
+            queue_param.intervel = 25;
             queue_param.mask = MOTOR_MASK_RUN_TEST;
             queue_param.cb_func = motor_check;
             motor_ctrl_enqueue(&queue_param);

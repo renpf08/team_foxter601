@@ -6,12 +6,14 @@
 #include "../../adapter/adapter.h"
 #include "state.h"
 
+static u8 motor_num = 0;
 typedef struct {
     u8 rotate_speed;
     u8 backward_pos;
     u8 forward_pos;
 } trig_range_t;
-static void motor_trig_handler(zero_adjust_t *zero_adjust)
+
+static s16 motor_ctrl_swing(void *args)
 {
     static u8 index = 0;
     motor_ctrl_queue_t queue_param = {.user = QUEUE_USER_MOTOR_TRIG};
@@ -25,42 +27,52 @@ static void motor_trig_handler(zero_adjust_t *zero_adjust)
     };
             
     MemSet(&motor_manager.motor_run_info, 0, sizeof(motor_run_info_t));    
-    motor_manager.motor_run_info.num = zero_adjust->motor_num;
-    queue_param.intervel = trig_range[zero_adjust->motor_num].rotate_speed;
-    queue_param.mask = (1<<zero_adjust->motor_num);
-    queue_param.dest[zero_adjust->motor_num] = trig_range[zero_adjust->motor_num].forward_pos;
+    motor_manager.motor_run_info.num = motor_num;
+    queue_param.intervel = trig_range[motor_num].rotate_speed;
+    queue_param.mask = (1<<motor_num);
+    queue_param.dest[motor_num] = trig_range[motor_num].forward_pos;
     queue_param.index = index++;
+    motor_manager.motor_run_info.target_pos = trig_range[motor_num].forward_pos;
     motor_ctrl_enqueue(&queue_param);
-    queue_param.dest[zero_adjust->motor_num] = trig_range[zero_adjust->motor_num].backward_pos;
+    queue_param.dest[motor_num] = trig_range[motor_num].backward_pos;
     queue_param.index = index++;
+    motor_manager.motor_run_info.target_pos = trig_range[motor_num].backward_pos;
     motor_ctrl_enqueue(&queue_param);
+
+    return 0;
 }
 s16 state_zero_adjust(REPORT_E cb, void *args)
 {
     motor_ctrl_queue_t queue_param = {.user = QUEUE_USER_ZERO_ADJUST, .intervel = 10, .mask = MOTOR_MASK_ALL};
-    static zero_adjust_t zero_adjust = {0,0};
+    static u8 turn = 0;
+	clock_t *clock = clock_get();
+    STATE_E *state = args;
 
 	if(KEY_A_B_LONG_PRESS == cb) {
-		zero_adjust.motor_num = minute_motor;
-        MemCopy(queue_param.dest, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
-        motor_ctrl_enqueue(&queue_param);
+        if(turn == 0) {
+    		motor_num = minute_motor;
+            MemCopy(queue_param.dest, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
+            queue_param.cb_func = motor_ctrl_swing;
+        } else {
+            *state = CLOCK;
+            queue_param.dest[minute_motor] = clock->minute;
+            queue_param.dest[hour_motor] = clock->hour;
+            queue_param.dest[date_motor] = adapter_ctrl.date[clock->day];
+            queue_param.dest[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
+            queue_param.dest[activity_motor] = adapter_ctrl.activity;
+            queue_param.dest[notify_motor] = NOTIFY_NONE;
+        }
+        turn = (turn==0)?1:0;
 	}else if(KEY_M_SHORT_PRESS == cb) {
-		/*motor switcch:hour -> minute -> activity -> date -> battery_week ->notify -> hour*/
-		zero_adjust.motor_num = (zero_adjust.motor_num+1)%max_motor;
-	}else if(KEY_A_SHORT_PRESS == cb) {
-        zero_adjust.motor_pos = pos;
-	}else if(KEY_B_SHORT_PRESS == cb){
-        zero_adjust.motor_pos = neg;
-	}
-
-    if((KEY_A_B_LONG_PRESS == cb) || (KEY_M_SHORT_PRESS == cb)) {
-        motor_trig_handler(&zero_adjust);
-    } else if((KEY_A_SHORT_PRESS == cb) || (KEY_B_SHORT_PRESS == cb)) {
+		motor_num = (motor_num+1)%max_motor;
+        queue_param.mask = MOTOR_MASK_TRIG_SWING;
+        queue_param.cb_func = motor_ctrl_swing;
+	}else if((KEY_A_SHORT_PRESS == cb) || (KEY_B_SHORT_PRESS == cb)) {
         queue_param.mask = MOTOR_MASK_ZERO_ADJUST;
-        queue_param.cb_params[0] = zero_adjust.motor_num;
-        queue_param.cb_params[1] = zero_adjust.motor_pos;
-        motor_ctrl_enqueue(&queue_param);
+        queue_param.cb_params[0] = motor_num;
+        queue_param.cb_params[1] = (cb==KEY_A_SHORT_PRESS)?pos:neg;
     }
+    motor_ctrl_enqueue(&queue_param);
 	
 	return 0;
 }

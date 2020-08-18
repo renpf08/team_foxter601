@@ -390,6 +390,7 @@ u8 motor_run_one_unit(motor_ctrl_queue_t *ctrl_params)
 }
 void motor_run_one_step(motor_ctrl_queue_t *ctrl_params)
 {
+    typedef struct {u8 motor_num;u8 motor_pos;} zero_adjust_t;
     volatile zero_adjust_t zero_adjust = {.motor_num=ctrl_params->cb_params[0], .motor_pos=ctrl_params->cb_params[1]};
     motor_manager.status[zero_adjust.motor_num].run_direc = zero_adjust.motor_pos;
     motor_manager.timer_interval = ctrl_params->intervel;
@@ -415,13 +416,13 @@ void motor_pre_handler(motor_ctrl_queue_t *ctrl_params, u8 instance)
         ctrl_params->cb_func(NULL);
     }
     
-    u8 ble_log[7] = {0x5F, 0x04, 0,0,0,0,0};
-    ble_log[2] = motor_queue.tail;
-    ble_log[3] = motor_queue.head;
-    ble_log[4] = motor_queue.cur_user;
-    ble_log[5] = motor_queue.motor_name;
-    ble_log[6] = motor_queue.handle_name;
-    BLE_SEND_LOG(ble_log, 7);
+//    u8 ble_log[7] = {0x5F, 0x04, 0,0,0,0,0};
+//    ble_log[2] = motor_queue.tail;
+//    ble_log[3] = motor_queue.head;
+//    ble_log[4] = motor_queue.cur_user;
+//    ble_log[5] = motor_queue.motor_name;
+//    ble_log[6] = motor_queue.handle_name;
+//    BLE_SEND_LOG(ble_log, 7);
 }
 
 /*only for zero adjust mode*/

@@ -21,11 +21,11 @@ static adapter_t adapter = {
 motor_queue_buffer_t motor_queue;
 adapter_ctrl_t adapter_ctrl = {
     #if USE_CMD_TEST_LOG_TYPE_EN
-    .log_type_en = {1, 1, 1, 1, 1},
+    .log_type_en = {1, 1, 1, 1, 1, 1},
     #endif
     .system_started = 0,
     .system_reboot_lock = 0,
-    .activity_pos = 0,
+    .activity = 0,
     .current_bat_week_sta = state_battery,
     .reboot_type = REBOOT_TYPE_BUTTON,
     .motor_dst = {0, 0, 0, 0, 0, 0},
@@ -155,12 +155,13 @@ static void activity_handler(u16 id)
     motor_ctrl_queue_t queue_param = {.user = QUEUE_USER_ACTIVITY_CALC, .intervel = 25, .mask = MOTOR_MASK_ACTIVITY};
 
     if(current_steps > target_steps) {
-        queue_param.dest[activity_motor] = 40; // total 40 grids
+        adapter_ctrl.activity = 40; // total 40 grids
     } else if(current_steps <= target_steps) {
-        queue_param.dest[activity_motor] = (current_steps*40)/target_steps;
+        adapter_ctrl.activity = (current_steps*40)/target_steps;
     } else if(target_steps == 0) {
-        queue_param.dest[activity_motor] = 0;
+        adapter_ctrl.activity = 0;
     }
+    queue_param.dest[activity_motor] = adapter_ctrl.activity;
     motor_ctrl_enqueue(&queue_param);
     
     u16 length = 0; 
@@ -232,7 +233,7 @@ void send_motor_run_info(void)
     ble_log[i++] = motor_manager.motor_run_info.index;
     BLE_SEND_LOG(ble_log, i);
 }
-static void motor_set_position(motor_ctrl_queue_t *ctrl_params)
+static void motor_ctrl_check(motor_ctrl_queue_t *ctrl_params)
 {
     u8 set_result = 0;
     u8 instance = 0;
@@ -283,12 +284,12 @@ void motor_ctrl_dequeue(u16 id)
         if(motor_queue.tail != motor_queue.head) {
             motor_queue.cur_user = motor_queue.ctrl_params[motor_queue.tail].user; // for debug
             motor_queue.cur_index = motor_queue.ctrl_params[motor_queue.tail].index;
-            motor_set_position(&motor_queue.ctrl_params[motor_queue.tail]);
+            motor_ctrl_check(&motor_queue.ctrl_params[motor_queue.tail]);
             motor_queue.tail = (motor_queue.tail+1)%MOTOR_QUEUE_SIZE;
             motor_queue.read_cnt++;
         }
     }
-    timer_event(10, motor_ctrl_dequeue);
+    timer_event(5, motor_ctrl_dequeue);
 }
 void motor_ctrl_enqueue(motor_ctrl_queue_t *ctrl_params)
 {

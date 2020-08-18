@@ -358,6 +358,11 @@ extern bool ble_send_data(uint8 *data, uint16 size)
 *         cc:motor cur position
 *         dd:motor dst position
 *         ee:motor run steps
+*	5F 06 aa bb cc dd // motor run info
+*         aa:motor num
+*         bb:motor target position
+*         cc:motor dst position
+*         dd:motor cur position
 */
 extern bool ble_send_log(uint8 *data, uint16 size)
 {

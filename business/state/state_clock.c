@@ -123,16 +123,11 @@ static u8 state_check(REPORT_E cb)
 }
 s16 state_clock(REPORT_E cb, void *args)
 {
-    MOTOR_MASK_E mask = MOTOR_MASK_NONE;
+    MOTOR_MASK_E mask = (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK);
 	clock_t *clock = clock_get();
 
     if(state_check(cb) != 0) {
         return 0;
-    }
-    if(cb == KEY_A_B_LONG_PRESS) {
-        mask = (MOTOR_MASK_ALL);
-    } else {
-        mask = (MOTOR_MASK_HOUR|MOTOR_MASK_MINUTE|MOTOR_MASK_DATE|MOTOR_MASK_BAT_WEEK);
     }
     motor_set_date_time(clock, mask, QUEUE_USER_EXIT_ADJUST);
     minutely_check(cb);
