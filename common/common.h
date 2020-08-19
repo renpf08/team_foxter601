@@ -708,7 +708,7 @@ typedef struct {
 typedef struct {
     motor_run_status_t status[max_motor];
     u8 run_next[max_motor];
-    u8 run_state_main;
+    u8 run_state;
     u8 skip_total[max_motor];
     u8 skip_cnt[max_motor];
     u8 step_cnt[max_motor];

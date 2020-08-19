@@ -8,8 +8,6 @@
 #define WEEK_INTERVAL_STEP 5
 
 enum {
-	FIRST_HALF,
-	SECOND_HALF,
 	RUN,
 	STOP,
 };
@@ -32,7 +30,7 @@ motor_manager_t motor_manager = {
 		[notify_motor]          = {NOTIFY_NONE,     0,  0,      1,                    0,    none, {0, NOTIFY_DONE}},
 	 },
     .run_next = {0,0,0,0,0,0},
-    .run_state_main = FIRST_HALF,
+    .run_state = RUN,
     .skip_total = {0,0,1,0,0,1},
     .skip_cnt = {0,0,0,0,0,0},
     .step_cnt = {0,0,0,0,0,0},
@@ -252,27 +250,20 @@ void motor_check_run(u16 id)
 {
     u8 i = 0;
     u8 run_flag = 0;
+    static u8 run_motor[max_motor] = {0,0,0,0,0,0};
 
-    if(motor_manager.run_state_main == FIRST_HALF) {
-		motor_manager.run_state_main = SECOND_HALF;
+    if(motor_manager.run_state == RUN) {
         for(i = 0; i < max_motor; i++) {
             if(motor_manager.status[i].run_flag == 0) {
                 continue;
             }
+            run_flag++;
+            run_motor[i] = 1;
             motor_ctrl->motor_run(i, motor_manager.status[i].run_direc);
             if(motor_manager.run_next[i] == 1) {
                 motor_check_continue(i);
             } else {
                 motor_manager.status[i].run_flag = 0;
-            }
-        }
-		timer_event(motor_manager.timer_interval, motor_check_run);
-    } else if(motor_manager.run_state_main == SECOND_HALF) {
-		motor_manager.run_state_main = FIRST_HALF;
-        for(i = 0; i < max_motor; i++) {
-            motor_ctrl->motor_stop(i);
-            if(motor_manager.status[i].run_flag == 1) {
-                run_flag++;
             }
         }
         if(run_flag == 0) {
@@ -282,8 +273,17 @@ void motor_check_run(u16 id)
             motor_manager.motor_running = 0;
             return;
         }
+		timer_event(15, motor_check_run);
+    } else {
+        for(i = 0; i < max_motor; i++) {
+            if(run_motor[i] == 1) {
+                run_motor[i] = 0;
+                motor_ctrl->motor_stop(i);
+            }
+        }
         timer_event(motor_manager.timer_interval, motor_check_run);
     }
+    motor_manager.run_state = (motor_manager.run_state==RUN)?STOP:RUN;
 }
 u8 motor_run_one_unit(motor_ctrl_queue_t *ctrl_params)
 {

@@ -68,7 +68,7 @@ s16 state_zero_adjust(REPORT_E cb, void *args)
         }
         turn = (turn==0)?1:0;
 	}else if(KEY_M_SHORT_PRESS == cb) {
-		motor_num = (motor_num+1)%max_motor;
+		//motor_num = (motor_num+1)%max_motor;
         queue_param.mask = MOTOR_MASK_TRIG_SWING;
         //queue_param.cb_func = motor_ctrl_swing;
         motor_ctrl_swing(NULL);
