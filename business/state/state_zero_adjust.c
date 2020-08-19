@@ -54,7 +54,6 @@ s16 state_zero_adjust(REPORT_E cb, void *args)
     		motor_num = minute_motor;
             MemCopy(motor_tmp_pos, adapter_ctrl.motor_dst, max_motor*sizeof(u8));
             MemCopy(queue_param.dest, adapter_ctrl.motor_zero, max_motor*sizeof(u8));
-            //queue_param.cb_func = motor_ctrl_swing;
             motor_ctrl_swing(NULL);
         } else {
             *state = CLOCK;
@@ -68,9 +67,8 @@ s16 state_zero_adjust(REPORT_E cb, void *args)
         }
         turn = (turn==0)?1:0;
 	}else if(KEY_M_SHORT_PRESS == cb) {
-		//motor_num = (motor_num+1)%max_motor;
+		motor_num = (motor_num+1)%max_motor;
         queue_param.mask = MOTOR_MASK_TRIG_SWING;
-        //queue_param.cb_func = motor_ctrl_swing;
         motor_ctrl_swing(NULL);
 	}else if((KEY_A_SHORT_PRESS == cb) || (KEY_B_SHORT_PRESS == cb)) {
         queue_param.mask = MOTOR_MASK_ZERO_ADJUST;

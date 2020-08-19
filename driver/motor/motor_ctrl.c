@@ -5,39 +5,12 @@
 #include "../driver.h"
 
 static motor_cfg_t csr_motor_cfg[max_motor];
-
-static s16 csr_motor_run(u8 motor, u8 dir)
-{
-    static u8 step[none] = {0, 0};
-    
-	PioSetDir(csr_motor_cfg[motor].pos.num, PIO_DIR_OUTPUT);
-	PioSetDir(csr_motor_cfg[motor].neg.num, PIO_DIR_OUTPUT);
-
-	PioSets(BIT_MASK(csr_motor_cfg[motor].pos.num)| \
-			BIT_MASK(csr_motor_cfg[motor].com.num)| \
-			BIT_MASK(csr_motor_cfg[motor].neg.num),
-			0x00UL);
-
-    if(dir == pos) {
-        if(step[dir] == 0) {
-    	    POS_HIGH(csr_motor_cfg[motor].pos.num);
-        } else {
-        	COM_HIGH(csr_motor_cfg[motor].com.num);
-        	NEG_HIGH(csr_motor_cfg[motor].neg.num);	
-        }
-        step[dir] = (step[dir]==0)?1:0;
-    } else if(dir == neg) {
-        if(step[dir] == 0) {
-    	    NEG_HIGH(csr_motor_cfg[motor].neg.num);
-        } else {
-        	POS_HIGH(csr_motor_cfg[motor].pos.num);
-        	COM_HIGH(csr_motor_cfg[motor].com.num);
-        }
-        step[dir] = (step[dir]==0)?1:0;
-    }
-    
-	return 0;
-}
+typedef enum {
+    FIRST_HALF_ROUND,
+    SECOND_HALF_ROUND,
+} step_t;
+static step_t run_step[max_motor] = {FIRST_HALF_ROUND, FIRST_HALF_ROUND, FIRST_HALF_ROUND, FIRST_HALF_ROUND, FIRST_HALF_ROUND, FIRST_HALF_ROUND};
+//static u8 run_dir[max_motor] = {pos, pos, pos, pos, pos, pos};
 
 static s16 csr_motor_stop(u8 motor)
 {
@@ -48,6 +21,41 @@ static s16 csr_motor_stop(u8 motor)
 			
 	PioSetDir(csr_motor_cfg[motor].pos.num, PIO_DIR_INPUT);
 	PioSetDir(csr_motor_cfg[motor].neg.num, PIO_DIR_INPUT);
+	return 0;
+}
+
+static s16 csr_motor_run(u8 motor, u8 dir)
+{
+	PioSetDir(csr_motor_cfg[motor].pos.num, PIO_DIR_OUTPUT);
+	PioSetDir(csr_motor_cfg[motor].neg.num, PIO_DIR_OUTPUT);
+
+	PioSets(BIT_MASK(csr_motor_cfg[motor].pos.num)| \
+			BIT_MASK(csr_motor_cfg[motor].com.num)| \
+			BIT_MASK(csr_motor_cfg[motor].neg.num),
+			0x00UL);
+
+//    if(run_dir[motor] != dir) {
+//        run_dir[motor] = dir;
+//        run_step[motor] = FIRST_HALF_ROUND;
+//        csr_motor_stop(motor);
+//    }
+    if(dir == pos) {
+        if(run_step[motor] == FIRST_HALF_ROUND) {
+    	    POS_HIGH(csr_motor_cfg[motor].pos.num);
+        } else if(run_step[motor] == SECOND_HALF_ROUND) {
+        	COM_HIGH(csr_motor_cfg[motor].com.num);
+        	NEG_HIGH(csr_motor_cfg[motor].neg.num);	
+        }
+    } else if(dir == neg) {
+        if(run_step[motor] == FIRST_HALF_ROUND) {
+    	    NEG_HIGH(csr_motor_cfg[motor].neg.num);
+        } else if(run_step[motor] == SECOND_HALF_ROUND) {
+        	POS_HIGH(csr_motor_cfg[motor].pos.num);
+        	COM_HIGH(csr_motor_cfg[motor].com.num);
+        }
+    }
+    run_step[motor] = (run_step[motor]==FIRST_HALF_ROUND)?SECOND_HALF_ROUND:FIRST_HALF_ROUND;
+    
 	return 0;
 }
 
