@@ -212,121 +212,26 @@ s16 motor_activity_to_position(u8 dst_pos)
 
 static u8 motor_check_continue(u8 motor_num)
 {
-    if(motor_queue.cur_user == QUEUE_USER_MOTOR_TRIG) {
-        motor_manager.motor_run_info.step++;
-    }
 	motor_manager.status[motor_num].unit_step_num++;
 	if(motor_manager.status[motor_num].unit_step_num >= motor_manager.status[motor_num].unit_interval_step) {
 		motor_manager.status[motor_num].unit_step_num = 0;
-
-        //motor_check_direction(motor_num);
-    	if(motor_manager.status[motor_num].dst_pos > motor_manager.status[motor_num].cur_pos) {
+    	if(motor_manager.status[motor_num].cur_pos < motor_manager.status[motor_num].dst_pos) {
     		motor_manager.status[motor_num].run_direc = pos;
 			motor_manager.status[motor_num].cur_pos++;
-    	}else if(motor_manager.status[motor_num].dst_pos < motor_manager.status[motor_num].cur_pos) {
+    	}else if(motor_manager.status[motor_num].cur_pos > motor_manager.status[motor_num].dst_pos) {
     		motor_manager.status[motor_num].run_direc = neg;
-            if(motor_manager.status[motor_num].cur_pos == 0) {
-                motor_manager.status[motor_num].cur_pos = 1;
-            }
-			motor_manager.status[motor_num].cur_pos--;
+            motor_manager.status[motor_num].cur_pos--;
     	}
         if(motor_manager.status[motor_num].dst_pos == motor_manager.status[motor_num].cur_pos) {
             motor_manager.status[motor_num].run_flag = 0;
             motor_manager.run_next[motor_num] = 0;
             motor_manager.status[motor_num].run_direc = none;
-            if(motor_queue.cur_user == QUEUE_USER_MOTOR_TRIG) {
-                motor_manager.motor_run_info.index = motor_queue.cur_index;
-                send_motor_run_info();
-                MemSet(&motor_manager.motor_run_info, 0, sizeof(motor_run_info_t));   
-                motor_manager.motor_run_info.stage++;
-            }
             return MOTOR_RUN_OVER;
     	}
         return MOTOR_RUN_NEXT_UNIT;
 	}
     return MOTOR_RUN_NEXT_STEP;
 }
-//void motor_check_run(u16 id)
-//{
-//    u8 i = 0;
-//    u8 run_flag = 0;
-//    static u8 run_motor[max_motor] = {0,0,0,0,0,0};
-//
-//    if(motor_manager.run_state == RUN) {
-//        for(i = 0; i < max_motor; i++) {
-//            if(motor_manager.status[i].run_flag == 0) {
-//                continue;
-//            }
-//            run_flag++;
-//            run_motor[i] = 1;
-//            motor_ctrl->motor_run(i, motor_manager.status[i].run_direc);
-//            if(motor_manager.run_next[i] == 1) {
-//                motor_check_continue(i);
-//            } else {
-//                motor_manager.status[i].run_flag = 0;
-//            }
-//        }
-//        if(run_flag == 0) {
-//            if(motor_manager.queue_cb != NULL) {
-//                motor_manager.queue_cb(NULL);
-//            }
-//            motor_manager.motor_running = 0;
-//            return;
-//        }
-//		timer_event(15, motor_check_run);
-//    } else {
-//        for(i = 0; i < max_motor; i++) {
-//            if(run_motor[i] == 1) {
-//                run_motor[i] = 0;
-//                motor_ctrl->motor_stop(i);
-//            }
-//        }
-//        timer_event(motor_manager.timer_interval, motor_check_run);
-//    }
-//    motor_manager.run_state = (motor_manager.run_state==RUN)?STOP:RUN;
-//}
-//void motor_check_run(u16 id)
-//{
-//    u8 i = 0;
-//    u8 run_flag = 0;
-//    static u8 run_motor[max_motor] = {0,0,0,0,0,0};
-//
-//    if(motor_manager.run_state == RUN) {
-//		motor_manager.run_state = STOP;
-//        for(i = 0; i < max_motor; i++) {
-//            if(motor_manager.status[i].run_flag == 0) {
-//                continue;
-//            }
-//            run_motor[i] = 1;
-//            motor_ctrl->motor_run(i, motor_manager.status[i].run_direc);
-//            if(motor_manager.run_next[i] == 1) {
-//                motor_check_continue(i);
-//            } else {
-//                motor_manager.status[i].run_flag = 0;
-//            }
-//        }
-//		timer_event(motor_manager.timer_interval, motor_check_run);
-//    } else if(motor_manager.run_state == STOP) {
-//		motor_manager.run_state = RUN;
-//        for(i = 0; i < max_motor; i++) {
-//            if(run_motor[i] == 1) {
-//                run_motor[i] = 0;
-//                motor_ctrl->motor_stop(i);
-//            }
-//            if(motor_manager.status[i].run_flag == 1) {
-//                run_flag++;
-//            }
-//        }
-//        if(run_flag == 0) {
-//            if(motor_manager.queue_cb != NULL) {
-//                motor_manager.queue_cb(NULL);
-//            }
-//            motor_manager.motor_running = 0;
-//            return;
-//        }
-//        timer_event(motor_manager.timer_interval, motor_check_run);
-//    }
-//}
 static u8 run_motor[max_motor] = {0,0,0,0,0,0};
 static void motor_check_stop(u16 id)
 {
@@ -348,7 +253,7 @@ static void motor_check_stop(u16 id)
         }
         motor_manager.motor_running = 0;
     } else {
-        timer_event(motor_manager.timer_interval, motor_check_run);
+        timer_event(1, motor_check_run);
     }
 }
 void motor_check_run(u16 id)
