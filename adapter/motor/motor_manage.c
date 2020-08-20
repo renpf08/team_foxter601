@@ -60,10 +60,13 @@ u8 hour_list[] = {
 
 s16 motor_hour_to_position(u8 dst_pos)
 {
+    static u8 offset = 0;
     adapter_ctrl.motor_dst[hour_motor] = dst_pos;
     
 	/*hour dst position configuration*/
-	u8 hour_offset = motor_manager.status[minute_motor].dst_pos/12;
+    offset += 12;
+	u8 hour_offset = offset/12;
+	//u8 hour_offset = motor_manager.status[minute_motor].dst_pos/12;
 
 	if(dst_pos >= 12) {
 		dst_pos -= 12;
@@ -266,6 +269,7 @@ void motor_check_run(u16 id)
         }
         run_motor[i] = 1;
         motor_ctrl->motor_run(i, motor_manager.status[i].run_direc);
+        TimeDelayUSec(MILLISECOND*10);
         if(motor_manager.run_next[i] == 1) {
             motor_check_continue(i);
         } else {

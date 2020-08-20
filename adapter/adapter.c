@@ -222,6 +222,7 @@ void send_motor_run_info(void)
     ble_log[i++] = motor_manager.motor_run_info.index;
     BLE_SEND_LOG(ble_log, i);
 }
+#if 0
 void motor_ctrl_refresh(clock_t *clock, MOTOR_MASK_E mask, queue_user_t user, u8* params)
 {
     motor_ctrl_queue_t queue_param = {.user = user, .intervel = 10};
@@ -259,6 +260,34 @@ void motor_ctrl_refresh(clock_t *clock, MOTOR_MASK_E mask, queue_user_t user, u8
 //    queue_param.mask = mask;
 //    motor_ctrl_enqueue(&queue_param);
 }
+#else
+void motor_ctrl_refresh(clock_t *clock, MOTOR_MASK_E mask, queue_user_t user, u8* params)
+{
+    motor_ctrl_queue_t queue_param = {.user = user, .intervel = 10};
+
+    if(mask & MOTOR_MASK_MINUTE) {
+        queue_param.dest[minute_motor] = clock->minute;
+    }
+    if(mask & MOTOR_MASK_HOUR) {
+        queue_param.dest[hour_motor] = clock->hour;
+    }
+    if(mask & MOTOR_MASK_ACTIVITY) {
+        queue_param.dest[activity_motor] = adapter_ctrl.activity;
+    }
+    if(mask & MOTOR_MASK_DATE) {
+        queue_param.dest[date_motor] = adapter_ctrl.date[clock->day];
+    }
+    if(mask & MOTOR_MASK_BAT_WEEK) {
+        queue_param.dest[battery_week_motor] = get_battery_week_pos(adapter_ctrl.current_bat_week_sta);
+    }
+    if(mask & MOTOR_MASK_NOTIFY) {
+        queue_param.dest[notify_motor] = params[0];
+    }
+    queue_param.mask = mask;
+    motor_ctrl_enqueue(&queue_param);
+}
+
+#endif
 static void motor_ctrl_check(motor_ctrl_queue_t *ctrl_params)
 {
     u8 set_result = 0;
