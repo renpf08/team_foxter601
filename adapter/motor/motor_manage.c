@@ -269,7 +269,6 @@ void motor_check_run(u16 id)
         }
         run_motor[i] = 1;
         motor_ctrl->motor_run(i, motor_manager.status[i].run_direc);
-        TimeDelayUSec(MILLISECOND*10);
         if(motor_manager.run_next[i] == 1) {
             motor_check_continue(i);
         } else {
