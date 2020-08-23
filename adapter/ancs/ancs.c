@@ -100,6 +100,8 @@ s16 ancs_init(adapter_callback cb);
 void ancs_business_handle(packing_msg_t* pack_msg)
 {
     u8 i = 0;
+    u8 ble_log[20] = {CMD_TEST_SEND, BLE_LOG_ANCS_APP_ID, 0,0,1,1,1};
+    u8 app_id_len = 0;
     
     while(app_msg_list[i].app_id[0] != 0)
     {
@@ -117,8 +119,10 @@ void ancs_business_handle(packing_msg_t* pack_msg)
     {
         ancs_msg.level = 255; //! invalid if proMst.msgType = 255
         ancs_msg.type = 255; //! indicated unknown message
-        
-        BLE_SEND_LOG((u8*)&pack_msg->attr_id_app_id, StrLen((char*)pack_msg->attr_id_app_id));
+
+        app_id_len = StrLen((char*)pack_msg->attr_id_app_id);
+        app_id_len = (app_id_len>18)?18:app_id_len;
+        MemCopy((u8*)ble_log[2], pack_msg->attr_id_app_id, app_id_len);
     }
     else
     {

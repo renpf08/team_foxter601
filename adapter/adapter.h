@@ -124,7 +124,7 @@ extern zero_adjust_lock_t zero_adjust_mode;
 extern u8 stete_battery_week;
 extern const u8 date[];
 #if USE_CMD_TEST_LOG_TYPE_EN
-extern u8 log_type_en[LOG_SEND_MAX];
+extern ble_log_type_t ble_log_type[BLE_LOG_MAX];
 #endif
 
 #endif

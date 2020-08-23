@@ -210,12 +210,12 @@ static void cmd_test_sys_reboot(u8 *buffer, u8 length)
 }
 #endif
 #if USE_CMD_TEST_LOG_TYPE_EN
-u8 log_type_en[LOG_SEND_MAX];
+ble_log_type_t ble_log_type[BLE_LOG_MAX];
 static void cmd_test_log_type_en(u8 *buffer, u8 length)
 {
     typedef struct{u8 head; u8 cmd; u8 type; u8 en;}cmd_test_log_type_en_t;
     cmd_test_log_type_en_t* log = (cmd_test_log_type_en_t*)buffer;
-    log_type_en[log->type] = log->en;
+    ble_log_type[log->type] = log->en;
 }
 #endif
 static s16 cmd_test(u8 *buffer, u8 length)
@@ -523,7 +523,7 @@ s16 cmd_init(adapter_callback cb)
     cmd_group.user_info.target_steps = DEFAULT_TARGET_STEPCOUNTS;
     #endif
     #if USE_CMD_TEST_LOG_TYPE_EN
-    MemSet(log_type_en, 1, LOG_SEND_MAX);
+    MemSet(ble_log_type, 1, BLE_LOG_MAX);
     #endif
     
 	return 0;

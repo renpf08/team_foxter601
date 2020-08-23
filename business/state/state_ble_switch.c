@@ -30,18 +30,30 @@ static void notify_swing_cb_handler(u16 id)
     if(cur_state != app_advertising) {
         if(notify_swing_start == TRUE) {
             notify_swing_start = FALSE;
+            #if USE_ACTIVITY_NOTIFY
+            motor_activity_to_position(NOTIFY_NONE);
+            #else
             motor_notify_to_position(NOTIFY_NONE);
+            #endif
         }
         return;
     }
 
     if(notify_swing_start == FALSE) {
         notify_swing_start = TRUE;
+        #if USE_ACTIVITY_NOTIFY
+        motor_activity_to_position(NOTIFY_COMMING_CALL);
+        #else
         motor_notify_to_position(NOTIFY_COMMING_CALL);
+        #endif
         //print((u8*)&"forward", 7);
     } else {
         notify_swing_start = FALSE;
+        #if USE_ACTIVITY_NOTIFY
+        motor_activity_to_position(NOTIFY_NONE);
+        #else
         motor_notify_to_position(NOTIFY_NONE);
+        #endif
         //print((u8*)&"backward", 8);
     }
     
@@ -157,7 +169,11 @@ static u16 ble_change(void *args)
         #if USE_UART_PRINT
         print((u8*)&"adv stop", 8);
         #endif
+        #if USE_ACTIVITY_NOTIFY
+        motor_activity_to_position(NOTIFY_NONE);
+        #else
         motor_notify_to_position(NOTIFY_NONE);
+        #endif
     } else if(state_ble == app_connected){ // connected
         #if USE_UART_PRINT
         print((u8*)&"connect", 7);
@@ -165,7 +181,11 @@ static u16 ble_change(void *args)
         #if USE_NO_SWING
         if(swing_en == FALSE) swing_en = TRUE;
         #endif
+        #if USE_ACTIVITY_NOTIFY
+        motor_activity_to_position(NOTIFY_NONE);
+        #else
         motor_notify_to_position(NOTIFY_NONE);
+        #endif
     } else { // disconnected
         #if USE_UART_PRINT
         print((u8*)&"disconect", 9);
