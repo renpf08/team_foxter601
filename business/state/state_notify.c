@@ -52,7 +52,7 @@ s16 state_notify(REPORT_E cb, void *args)
     u8 i = 0;
     u8 *en = cmd_get()->notify_switch.en;
     u32 msg_en = 0;
-    u8 ble_log[7] = {CMD_TEST_SEND, BLE_LOG_NOTIFY_TYPE, 0,0,1,1,1};
+    u8 ble_log[5] = {CMD_TEST_SEND, BLE_LOG_NOTIFY_TYPE, 0,0,0};
 
     for(i = 0; i < 4; i++) {
         msg_en  <<= 8;
@@ -73,19 +73,20 @@ s16 state_notify(REPORT_E cb, void *args)
         }
         i++;
     }
+    ble_log[3] = notif_convert_list[i].disp_msg; // bb: msg type
     if(notif_convert_list[i].disp_msg >= NOTIFY_DONE) { // notify not use or out of range
         ancs_msg->sta = NOTIFY_RESERVE;
-        ble_log[4] = 0; // cc
+        ble_log[4] = 0xE1; // cc:notify not use or out of range
     } else if((msg_en & (1UL<<i)) == 0) { // notify switch off
         ancs_msg->sta = NOTIFY_RESERVE;
-        ble_log[5] = 0; // dd
+        ble_log[4] = 0xE2; // cc:notify switch off
     }
     if(ancs_msg->sta == NOTIFY_RESERVE) {
     	*state = CLOCK;
-        ble_log[6] = 0; // ee
-        BLE_SEND_LOG(ble_log, 7);
+        BLE_SEND_LOG(ble_log, 5);
     	return 0;
     }
+    ble_log[4] = 0x01; // cc:notify OK
 	if(NOTIFY_ADD == ancs_msg->sta) {
 		if(ancs_msg->type < NOTIFY_DONE) {
             #if USE_UART_PRINT
@@ -104,8 +105,7 @@ s16 state_notify(REPORT_E cb, void *args)
 		motor_notify_to_position(NOTIFY_NONE);
         #endif
 	}
-    ble_log[3] = i; // bb: msg type
-    BLE_SEND_LOG(ble_log, 7);
+    BLE_SEND_LOG(ble_log, 5);
 
 	*state = CLOCK;
 	return 0;

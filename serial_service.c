@@ -345,9 +345,9 @@ extern bool ble_send_data(uint8 *data, uint16 size)
 *	5F 03 aa bb cc dd ee // notify type
 *         aa:0x12-ANCS notify, 13-ANDROID notify
 *         bb:notify type, look appMsgList[] of APP_ID_STRING_xxx's index for details
-*         cc:1-notify in range, 0-out of range
-*         dd:notify switch
-*         ee:1-notify handle ok, 0-handle faild
+*         cc:0x00-notify ok, 0xE1-notify out of range, 0xE2-notify switch off
+*	5F 04 xx... // xx...:ANCS notify app id
+*         xx...:ANCS notify app id
 */
 extern bool ble_send_log(uint8 *data, uint16 size)
 {

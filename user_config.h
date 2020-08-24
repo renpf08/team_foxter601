@@ -33,7 +33,7 @@ FO601
 #define USE_PARAM_STORE     0
 #define USE_UART_PRINT      0
 #define USE_PANIC_PRINT     0
-#define USE_WHITELIST_ADV   1 
+#define USE_WHITELIST_ADV   0 
 #define USE_ADV_DATA        1  
 #define USE_NEW_DAV_NAME    1
 #define USE_PAIR_CODE_0000  1 // test mode, use pair code of 0x0000 as a bypass code 

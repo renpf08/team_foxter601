@@ -100,8 +100,10 @@ s16 ancs_init(adapter_callback cb);
 void ancs_business_handle(packing_msg_t* pack_msg)
 {
     u8 i = 0;
-    u8 ble_log[20] = {CMD_TEST_SEND, BLE_LOG_ANCS_APP_ID, 0,0,1,1,1};
+    u8 ble_log[20] = {CMD_TEST_SEND, BLE_LOG_ANCS_APP_ID};
     u8 app_id_len = 0;
+    u8 app_id_start_pos = 3;
+    u8 app_id_max_len = (20-app_id_start_pos);
     
     while(app_msg_list[i].app_id[0] != 0)
     {
@@ -119,19 +121,28 @@ void ancs_business_handle(packing_msg_t* pack_msg)
     {
         ancs_msg.level = 255; //! invalid if proMst.msgType = 255
         ancs_msg.type = 255; //! indicated unknown message
+        ble_log[2] = 0x00; // app id not recognized
 
-        app_id_len = StrLen((char*)pack_msg->attr_id_app_id);
-        app_id_len = (app_id_len>18)?18:app_id_len;
-        MemCopy((u8*)ble_log[2], pack_msg->attr_id_app_id, app_id_len);
     }
     else
     {
         ancs_msg.level = app_msg_list[i].msg_level;
         ancs_msg.type = app_msg_list[i].app_index;
+        ble_log[2] = 0x01; // app id recognized
     }
     
     ancs_msg.sta = pack_msg->evt_id;
     ancs_msg.cnt = pack_msg->cat_cnt;
+    app_id_len = StrLen((char*)pack_msg->attr_id_app_id);
+    if(app_id_len > app_id_max_len) {
+        MemCopy(&ble_log[app_id_start_pos], pack_msg->attr_id_app_id, app_id_max_len);
+        BLE_SEND_LOG(ble_log, 20);
+        MemCopy(&ble_log[app_id_start_pos], &pack_msg->attr_id_app_id[app_id_max_len], (app_id_len-app_id_max_len)); // assume the remain bytes less then 18
+        BLE_SEND_LOG(ble_log, (app_id_len-app_id_max_len));
+    } else {
+        MemCopy(&ble_log[app_id_start_pos], pack_msg->attr_id_app_id, app_id_len);
+        BLE_SEND_LOG(ble_log, app_id_len);
+    }
     if(NULL != ancs_cb) {
 		ancs_cb(ANCS_NOTIFY_INCOMING, NULL);
     }
