@@ -33,11 +33,11 @@ FO601
 #define USE_PARAM_STORE     0
 #define USE_UART_PRINT      0
 #define USE_PANIC_PRINT     0
-#define USE_WHITELIST_ADV   1 
+#define USE_WHITELIST_ADV   0 
 #define USE_ADV_DATA        1  
-#define USE_NEW_DAV_NAME    0
+#define USE_NEW_DAV_NAME    1
 #define USE_PAIR_CODE_0000  1 // test mode, use pair code of 0x0000 as a bypass code 
-#define USE_NO_SWING        0
+#define USE_ACTIVITY_NOTIFY 0
 
 #define USE_CMD_TEST        1
 #if USE_CMD_TEST
@@ -66,7 +66,8 @@ FO601
 #define SHORT_BUTTON_PRESS_TIMER                  (2 * SECOND)
 
 #if USE_NEW_DAV_NAME
-#define BLE_ADVERTISING_NAME    "foxter01"
+//#define BLE_ADVERTISING_NAME    "foxter01"
+#define BLE_ADVERTISING_NAME    "FOXTER"
 #else
 #define BLE_ADVERTISING_NAME    "FOXTER"
 #endif

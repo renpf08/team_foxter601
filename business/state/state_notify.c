@@ -52,6 +52,7 @@ s16 state_notify(REPORT_E cb, void *args)
     u8 i = 0;
     u8 *en = cmd_get()->notify_switch.en;
     u32 msg_en = 0;
+    u8 ble_log[5] = {CMD_TEST_SEND, BLE_LOG_NOTIFY_TYPE, 0,0,0};
 
     for(i = 0; i < 4; i++) {
         msg_en  <<= 8;
@@ -64,6 +65,7 @@ s16 state_notify(REPORT_E cb, void *args)
         if(ancs_msg->type >= NOTIFY_MAX) ancs_msg->type = 0xFF;
         else ancs_msg->type = (u16)notif_convert_list[ancs_msg->type].disp_msg;
     }
+    ble_log[2] = cb; // aa
     i = 0;
     while(notif_convert_list[i].disp_msg != 0xFF) {
         if(notif_convert_list[i].disp_msg == ancs_msg->type) {
@@ -71,29 +73,39 @@ s16 state_notify(REPORT_E cb, void *args)
         }
         i++;
     }
+    ble_log[3] = notif_convert_list[i].disp_msg; // bb: msg type
     if(notif_convert_list[i].disp_msg >= NOTIFY_DONE) { // notify not use or out of range
-        BLE_SEND_LOG((u8*)&"\x00\x00\xFF", 3);
         ancs_msg->sta = NOTIFY_RESERVE;
+        ble_log[4] = 0xE1; // cc:notify not use or out of range
     } else if((msg_en & (1UL<<i)) == 0) { // notify switch off
-        BLE_SEND_LOG((u8*)&"\x00\x00\x00", 3);
         ancs_msg->sta = NOTIFY_RESERVE;
+        ble_log[4] = 0xE2; // cc:notify switch off
     }
     if(ancs_msg->sta == NOTIFY_RESERVE) {
     	*state = CLOCK;
+        BLE_SEND_LOG(ble_log, 5);
     	return 0;
     }
+    ble_log[4] = 0x01; // cc:notify OK
 	if(NOTIFY_ADD == ancs_msg->sta) {
 		if(ancs_msg->type < NOTIFY_DONE) {
             #if USE_UART_PRINT
 			print((u8 *)&ancs_msg->type, 1);
             #endif
+			#if USE_ACTIVITY_NOTIFY
+            motor_activity_to_position(ancs_msg->type);
+            #else
 			motor_notify_to_position(ancs_msg->type);
+            #endif
 		}
 	}else if(NOTIFY_REMOVE == ancs_msg->sta) {
+		#if USE_ACTIVITY_NOTIFY
+        motor_activity_to_position(NOTIFY_NONE);
+        #else
 		motor_notify_to_position(NOTIFY_NONE);
+        #endif
 	}
-    ancs_msg->type = i; // set msg type to protocol specified value
-    BLE_SEND_LOG((u8*)ancs_msg, sizeof(app_msg_t));
+    BLE_SEND_LOG(ble_log, 5);
 
 	*state = CLOCK;
 	return 0;

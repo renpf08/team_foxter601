@@ -342,6 +342,12 @@ extern bool ble_send_data(uint8 *data, uint16 size)
 *         dd:1-executed,0-not executed
 *	5F 02 xx // zero adjust jump empty
 *         xx=1:press lock; xx=2:run lock
+*	5F 03 aa bb cc dd ee // notify type
+*         aa:0x12-ANCS notify, 13-ANDROID notify
+*         bb:notify type, look appMsgList[] of APP_ID_STRING_xxx's index for details
+*         cc:0x00-notify ok, 0xE1-notify out of range, 0xE2-notify switch off
+*	5F 04 xx... // xx...:ANCS notify app id
+*         xx...:ANCS notify app id
 */
 extern bool ble_send_log(uint8 *data, uint16 size)
 {
@@ -352,7 +358,7 @@ extern bool ble_send_log(uint8 *data, uint16 size)
     if(log->head != CMD_TEST_SEND) {
         return false;
     }
-    if(log_type_en[log->type] == 0) {
+    if(ble_log_type[log->type] == 0) {
         return false;
     }    
     #endif

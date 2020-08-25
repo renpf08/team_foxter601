@@ -351,12 +351,14 @@ typedef app_msg_t cmd_recv_notify_t;
 
 #if USE_CMD_TEST_LOG_TYPE_EN
 typedef enum{
-    LOG_SEND_PAIR_CODE,
-    LOG_SEND_STATE_MACHINE,
-    LOG_SEND_ZERO_ADJUST_JUMP,
+    BLE_LOG_PAIR_CODE           = 0x00,
+    BLE_LOG_STATE_MACHINE       = 0x01,
+    BLE_LOG_ZERO_ADJUST_JUMP    = 0x02,
+    BLE_LOG_NOTIFY_TYPE         = 0x03,
+    BLE_LOG_ANCS_APP_ID         = 0x04,
     
-    LOG_SEND_MAX,
-}log_type_t;
+    BLE_LOG_MAX,
+}ble_log_type_t;
 #endif
 
 typedef enum {

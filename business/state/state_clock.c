@@ -126,6 +126,13 @@ static u8 state_check(REPORT_E cb)
     case KEY_A_SHORT_PRESS:
         BLE_SEND_DATA(cmd_buf, 2);
         break;
+    case KEY_M_SHORT_PRESS:
+        #if USE_ACTIVITY_NOTIFY
+        motor_activity_to_position(NOTIFY_NONE);
+        #else
+        motor_notify_to_position(NOTIFY_NONE);
+        #endif
+        break;
     default:
         return 0;
         break;

@@ -16,9 +16,6 @@ typedef struct {
 } pair_ctrl_t;
 
 pair_ctrl_t pair_code = {0, 0};
-#if USE_NO_SWING
-static bool swing_en = FALSE;
-#endif
 
 static void notify_swing_cb_handler(u16 id)
 {
@@ -30,18 +27,30 @@ static void notify_swing_cb_handler(u16 id)
     if(cur_state != app_advertising) {
         if(notify_swing_start == TRUE) {
             notify_swing_start = FALSE;
+            #if USE_ACTIVITY_NOTIFY
+            motor_activity_to_position(NOTIFY_NONE);
+            #else
             motor_notify_to_position(NOTIFY_NONE);
+            #endif
         }
         return;
     }
 
     if(notify_swing_start == FALSE) {
         notify_swing_start = TRUE;
+        #if USE_ACTIVITY_NOTIFY
+        motor_activity_to_position(NOTIFY_COMMING_CALL);
+        #else
         motor_notify_to_position(NOTIFY_COMMING_CALL);
+        #endif
         //print((u8*)&"forward", 7);
     } else {
         notify_swing_start = FALSE;
+        #if USE_ACTIVITY_NOTIFY
+        motor_activity_to_position(NOTIFY_NONE);
+        #else
         motor_notify_to_position(NOTIFY_NONE);
+        #endif
         //print((u8*)&"backward", 8);
     }
     
@@ -134,38 +143,29 @@ static u16 ble_change(void *args)
     app_state state_ble = ble_state_get();
     
     if(state_ble == app_advertising) { // advertising start
-        #if USE_NO_SWING
-        if(swing_en == TRUE) {
-            #if USE_UART_PRINT
-            print((u8*)&"adv swing", 9);
-            #endif
-            timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
-            return 0;
-        } else {
-            #if USE_UART_PRINT
-            print((u8*)&"adv start", 9);
-            #endif
-        }
-        #else//USE_NO_SWING
         #if USE_UART_PRINT
         print((u8*)&"adv swing", 9);
         #endif
         timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
         return 0;
-        #endif//USE_NO_SWING
     } else if(state_ble == app_idle){ // advertising stop
         #if USE_UART_PRINT
         print((u8*)&"adv stop", 8);
         #endif
+        #if USE_ACTIVITY_NOTIFY
+        motor_activity_to_position(NOTIFY_NONE);
+        #else
         motor_notify_to_position(NOTIFY_NONE);
+        #endif
     } else if(state_ble == app_connected){ // connected
-        #if USE_UART_PRINT
-        print((u8*)&"connect", 7);
-        #endif
-        #if USE_NO_SWING
-        if(swing_en == FALSE) swing_en = TRUE;
-        #endif
-        motor_notify_to_position(NOTIFY_NONE);
+//        #if USE_UART_PRINT
+//        print((u8*)&"connect", 7);
+//        #endif
+//        #if USE_ACTIVITY_NOTIFY
+//        motor_activity_to_position(NOTIFY_NONE);
+//        #else
+//        motor_notify_to_position(NOTIFY_NONE);
+//        #endif
     } else { // disconnected
         #if USE_UART_PRINT
         print((u8*)&"disconect", 9);
@@ -178,19 +178,6 @@ static u16 ble_change(void *args)
 static u16 ble_switch(void *args)
 {
     app_state cur_state = ble_state_get();
-    #if USE_NO_SWING
-    if(swing_en == FALSE) { // first KEY_M_LONG_PRESS
-        swing_en = TRUE;
-		timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
-		return 0;
-		#if 0
-        if(cur_state == app_advertising) {
-            ble_change(NULL);
-            return 0;
-        }
-		#endif
-    }
-    #endif
     if((cur_state == app_advertising) || 
         (cur_state == app_connected) || 
         (cur_state == app_pairing) || 
