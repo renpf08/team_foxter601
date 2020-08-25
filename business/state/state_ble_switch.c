@@ -158,14 +158,14 @@ static u16 ble_change(void *args)
         motor_notify_to_position(NOTIFY_NONE);
         #endif
     } else if(state_ble == app_connected){ // connected
-        #if USE_UART_PRINT
-        print((u8*)&"connect", 7);
-        #endif
-        #if USE_ACTIVITY_NOTIFY
-        motor_activity_to_position(NOTIFY_NONE);
-        #else
-        motor_notify_to_position(NOTIFY_NONE);
-        #endif
+//        #if USE_UART_PRINT
+//        print((u8*)&"connect", 7);
+//        #endif
+//        #if USE_ACTIVITY_NOTIFY
+//        motor_activity_to_position(NOTIFY_NONE);
+//        #else
+//        motor_notify_to_position(NOTIFY_NONE);
+//        #endif
     } else { // disconnected
         #if USE_UART_PRINT
         print((u8*)&"disconect", 9);
