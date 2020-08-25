@@ -342,6 +342,9 @@ static s16 cmd_find_watch(u8 *buffer, u8 length)
 static s16 cmd_set_ancs_bond_req(u8 *buffer, u8 length)
 {
     if(buffer[1] == 0xAA) {
+        if(g_app_data.remote_gatt_handles_present == TRUE) {
+            APP_Move_Bonded(1);
+        }
         DiscoverServices();
     }
     //MemCopy(&cmd_group.set_ancs_bond, buffer, sizeof(cmd_set_ancs_bond_req_t));  
