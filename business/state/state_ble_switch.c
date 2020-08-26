@@ -16,6 +16,7 @@ typedef struct {
 } pair_ctrl_t;
 
 pair_ctrl_t pair_code = {0, 0};
+static u8 swing_ongoing = 0;
 
 static void notify_swing_cb_handler(u16 id)
 {
@@ -33,8 +34,10 @@ static void notify_swing_cb_handler(u16 id)
             motor_notify_to_position(NOTIFY_NONE);
             #endif
         }
+        swing_ongoing = 0;
         return;
     }
+    swing_ongoing = 1;
 
     if(notify_swing_start == FALSE) {
         notify_swing_start = TRUE;
@@ -146,7 +149,11 @@ static u16 ble_change(void *args)
         #if USE_UART_PRINT
         print((u8*)&"adv swing", 9);
         #endif
-        timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
+        if(swing_ongoing == 0) 
+        {
+            swing_ongoing = 1;
+            timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
+        }
         return 0;
     } else if(state_ble == app_idle){ // advertising stop
         #if USE_UART_PRINT
