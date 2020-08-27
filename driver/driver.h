@@ -51,12 +51,12 @@ typedef struct {
 }magnetometer_t;
 
 typedef struct {
-	init			motor_init;
-	positive        motor_positive_first_half;
-	positive        motor_positive_second_half;	
-	stop			motor_stop;
-	negtive         motor_negtive_first_half;	
-	negtive         motor_negtive_second_half;
+	minit			motor_init;
+	mpositive       motor_positive_first_half;
+	mpositive       motor_positive_second_half;
+	mstop			motor_stop;
+	mnegtive        motor_negtive_first_half;
+	mnegtive        motor_negtive_second_half;
 }motor_t;
 
 typedef struct {
@@ -72,12 +72,7 @@ typedef struct {
 	vibrator_t  *vibrator;
 	gsensor_t   *gsensor;
 	magnetometer_t *magnetometer;
-	motor_t		*motor_hour;
-	motor_t		*motor_minute;
-	motor_t		*motor_activity;
-	motor_t		*motor_date;
-	motor_t		*motor_battery_week;
-	motor_t		*motor_notify;
+	motor_t		*motor_item;
 }driver_t;
 
 void timer_create(uint32 timeout, timer_callback_arg handler);
