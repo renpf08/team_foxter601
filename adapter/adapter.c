@@ -129,6 +129,14 @@ s16 adapter_init(adapter_callback cb)
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num)
 {
+//	u8 rn[2] = {0x0d, 0x0a};
+//	if(NULL != adapter.drv) {
+//		adapter.drv->uart->uart_write(buf, num);
+//		adapter.drv->uart->uart_write(rn, 2);
+//	}
+}
+void trace(u8 *buf, u16 num)
+{
 	u8 rn[2] = {0x0d, 0x0a};
 	if(NULL != adapter.drv) {
 		adapter.drv->uart->uart_write(buf, num);

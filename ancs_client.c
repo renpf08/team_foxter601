@@ -634,7 +634,7 @@ static void handleBondingChanceTimerExpiry(timer_id tid)
         /* The bonding chance timer has expired. This means the remote has not
          * encrypted the link using old keys. Disconnect the link.
          */
-        AppSetState(app_disconnecting);
+        AppSetState(app_disconnecting, 0x01);
     }/* else it may be due to some race condition. Ignore it. */
 }
 
@@ -673,7 +673,7 @@ static void handleSignalGattCancelConnectCfm(GATT_CANCEL_CONNECT_CFM_T
         }
         else
         {
-            AppSetState(app_fast_advertising);
+            AppSetState(app_fast_advertising, 0x02);
         }
     }
     else
@@ -686,12 +686,12 @@ static void handleSignalGattCancelConnectCfm(GATT_CANCEL_CONNECT_CFM_T
              */
             case app_fast_advertising:
             {
-                AppSetState(app_slow_advertising);
+                AppSetState(app_slow_advertising, 0x03);
             }
             break;
             case app_slow_advertising:
             {
-                AppSetState(app_fast_advertising); //! AppSetState(app_idle, 0x04);
+                AppSetState(app_fast_advertising, 0x04); //! AppSetState(app_idle, 0x04);
             }
             break; 
             /** add by mlw, 20200328 20:39 */
@@ -759,7 +759,7 @@ static void handleSignalLmDisconnectComplete(
                 appDataInit();
 
                 /* Restart advertising */
-                AppSetState(app_fast_advertising);
+                AppSetState(app_fast_advertising, 0x05);
             }
             break;
             default:
@@ -801,7 +801,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                 /* Store received UCID */
                 g_app_data.st_ucid = p_event_data->cid;
 
-                AppSetState(app_connected);
+                AppSetState(app_connected, 0x06);
       
 
                 if(g_app_data.bonded == TRUE && 
@@ -863,7 +863,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
                 /* Else wait for user activity before we start advertising 
                  * again
                  */
-                AppSetState(app_fast_advertising); //! AppSetState(app_idle, 0x08);
+                AppSetState(app_fast_advertising, 0x07); //! AppSetState(app_idle, 0x08);
             }
         }
         break;
@@ -1213,7 +1213,7 @@ static void handleSignalSmSimplePairingCompleteInd(
                  */
                  if(p_event_data->status == sm_status_repeated_attempts)
                  {
-                    AppSetState(app_disconnecting);
+                    AppSetState(app_disconnecting, 0x08);
                  }
                  else if(g_app_data.bonded)
                  {
@@ -1338,7 +1338,7 @@ static void handleSignalGattDbCfm(GATT_ADD_DB_CFM_T *p_event_data)
             {
                  /* Database is set up. So start advertising */
                 /**original advertise mode: fast adv 30s -> slow adv 60s -> idle*/
-                AppSetState(app_fast_advertising);
+                AppSetState(app_fast_advertising, 0x09);
                 
                 /** new advertise mode: slow adv mode with no fast adv or idle*/
                 /*AppSetState(app_slow_advertising);*/
@@ -1515,7 +1515,7 @@ static void handleGattReadCharValCfm(GATT_READ_CHAR_VAL_CFM_T *p_event_data)
            when we receive disconnect indication */
 
         /* Something went wrong. We can't recover, so disconnect */
-        AppSetState(app_disconnecting);
+        AppSetState(app_disconnecting, 0x0A);
     }
 }
 
@@ -1586,7 +1586,7 @@ static void handleGattWriteCharValCfm(GATT_WRITE_CHAR_VAL_CFM_T *p_event_data)
         }
         else
         {
-            AppSetState(app_disconnecting);
+            AppSetState(app_disconnecting, 0x0B);
         }
     }
 }
@@ -1685,7 +1685,7 @@ extern void OtaTimerHandler(timer_id tid)
         /* The remote device does not support anything interesting.
          * Disconnect and wait for some one else to connect.
          */
-        AppSetState(app_disconnecting);
+        AppSetState(app_disconnecting, 0x0C);
 
     }
 }
@@ -1880,7 +1880,7 @@ extern void HandlePairingRemoval(void)
                  * and services data related to bonding status will get 
                  * updated while exiting disconnecting state
                  */
-                AppSetState(app_disconnecting);
+                AppSetState(app_disconnecting, 0x0D);
 
                 /* Reset and clear the whitelist */
                 LsResetWhiteList();
@@ -1925,7 +1925,7 @@ extern void HandlePairingRemoval(void)
                 LsResetWhiteList();
 
                 /* Start fast undirected advertisements. */
-                AppSetState(app_fast_advertising);
+                AppSetState(app_fast_advertising, 0x0E);
             }
             break;
 
@@ -1933,7 +1933,13 @@ extern void HandlePairingRemoval(void)
 }
 
 
-
+static void ble_stop_handler(u16 id)
+{
+    #if USE_UART_PRINT
+    trace((u8*)&"dly_idle", 8);
+    #endif
+    AppSetState(app_idle, 0x15);
+}
 
 /*----------------------------------------------------------------------------*
  *  NAME
@@ -1946,23 +1952,24 @@ extern void HandlePairingRemoval(void)
  *      Nothing.
  *
  *----------------------------------------------------------------------------*/
-void AppSetState(app_state new_state)
+void AppSetState(app_state new_state, unsigned char caller)
 {
     app_state old_state = g_app_data.state;
-//    u8 test_hts_table[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-//    u8 test_caller[29] = {"blesta new:x,old:x,caller:xx\0"};
+    #if USE_UART_PRINT
+    u8 test_hts_table[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    u8 test_caller[29] = {"blesta new:x,old:x,caller:xx\0"};
+    test_caller[11] = test_hts_table[new_state];
+    test_caller[17] = test_hts_table[old_state];
+    test_caller[26] = test_hts_table[(caller>>4)&0x0F];
+    test_caller[27] = test_hts_table[caller&0x0F];
+    trace(test_caller, 28);
+    #endif
 
     /* Check if the new state to be set is not the same as the present state
      * of the application. 
      */
     if (old_state != new_state)
     {
-//        test_caller[11] = test_hts_table[new_state];
-//        test_caller[17] = test_hts_table[old_state];
-//        test_caller[26] = test_hts_table[(caller>>4)&0x0F];
-//        test_caller[27] = test_hts_table[caller&0x0F];
-//        print(test_caller, 28);
-        
         /* Handle exiting old state */
         switch (old_state)
         {
@@ -1978,14 +1985,6 @@ void AppSetState(app_state new_state)
                  * app_disconnecting state.
                  */
                 appDataInit();
-                
-                /** 
-                  when device is connect state, we press button to disconnect it,
-                  than, device woulde enter advertising mode, actually, we need
-                  the device to enter idle mode, so we force it to be...
-                  add by mlw, 20200328 21:14 
-                */
-                new_state = app_idle;
             }
             break;
 
@@ -2034,8 +2033,31 @@ void AppSetState(app_state new_state)
 
             case app_idle:
             {
-                /* Sound long beep to indicate non connectable mode*/
-                GattStopAdverts();
+                if(old_state == app_connected) {
+                    g_app_data.state = app_disconnecting;
+                    if(g_app_data.auth_failure)
+                    {
+                        /* Disconnect with an error - Authentication Failure */
+                        GattDisconnectReasonReq(g_app_data.st_ucid, 
+                              ls_err_authentication);
+                    }
+                    else
+                    {
+                        /* Disconnect with the default error */
+                        GattDisconnectReq(g_app_data.st_ucid);
+                    }
+                    #if USE_UART_PRINT
+                    trace((u8*)&"sta_discon", 10);
+                    #endif
+                    timer_event(100, ble_stop_handler);
+                    return;
+                } else {
+                    #if USE_UART_PRINT
+                    trace((u8*)&"sta_idle", 8);
+                    #endif
+                    /* Sound long beep to indicate non connectable mode*/
+                    GattStopAdverts();
+                }
             }
             break;
 
@@ -2241,7 +2263,7 @@ void AppInit(sleep_state last_sleep_state)
     m_devname_init(devName);
 	
     #if USE_UART_PRINT
-    print(devName, StrLen((char*)devName));
+    trace(devName, StrLen((char*)devName));
     #endif
 
     /* Tell Security Manager module about the value it needs to initialise it's
@@ -2523,7 +2545,7 @@ void HandleConnectReq(void)
     /* Start advertising */
     if(g_app_data.state == app_idle)
     {
-        AppSetState(app_fast_advertising);
+        AppSetState(app_fast_advertising, 0x0F);
     }
 }
 
@@ -2543,7 +2565,7 @@ void HandleDisconnectReq(void)
    if(app_connected == AppGetState())
     {
         /* Initiate a disconnect */
-        AppSetState(app_disconnecting);
+        AppSetState(app_disconnecting, 0x10);
     }
 }
 

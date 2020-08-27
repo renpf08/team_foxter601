@@ -147,7 +147,7 @@ static u16 ble_change(void *args)
     
     if(state_ble == app_advertising) { // advertising start
         #if USE_UART_PRINT
-        print((u8*)&"adv swing", 9);
+        trace((u8*)&"adv swing", 9);
         #endif
         if(swing_ongoing == 0) 
         {
@@ -157,17 +157,17 @@ static u16 ble_change(void *args)
         return 0;
     } else if(state_ble == app_idle){ // advertising stop
         #if USE_UART_PRINT
-        print((u8*)&"adv stop", 8);
+        trace((u8*)&"adv stop", 8);
         #endif
-        #if USE_ACTIVITY_NOTIFY
-        motor_activity_to_position(NOTIFY_NONE);
-        #else
-        motor_notify_to_position(NOTIFY_NONE);
-        #endif
-    } else if(state_ble == app_connected){ // connected
-//        #if USE_UART_PRINT
-//        print((u8*)&"connect", 7);
+//        #if USE_ACTIVITY_NOTIFY
+//        motor_activity_to_position(NOTIFY_NONE);
+//        #else
+//        motor_notify_to_position(NOTIFY_NONE);
 //        #endif
+    } else if(state_ble == app_connected){ // connected
+        #if USE_UART_PRINT
+        trace((u8*)&"connect", 7);
+        #endif
 //        #if USE_ACTIVITY_NOTIFY
 //        motor_activity_to_position(NOTIFY_NONE);
 //        #else
@@ -175,7 +175,7 @@ static u16 ble_change(void *args)
 //        #endif
     } else { // disconnected
         #if USE_UART_PRINT
-        print((u8*)&"disconect", 9);
+        trace((u8*)&"disconect", 9);
         #endif
     }
     *state_mc = CLOCK;
