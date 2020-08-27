@@ -23,6 +23,7 @@ void sync_time(void);
 void motor_restore_position(REPORT_E cb);
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num);
+void trace(u8 *buf, u16 num);
 #endif
 void timer_event(u16 ms, timer_cb cb);
 

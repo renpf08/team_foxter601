@@ -9,23 +9,33 @@ s16 ble_switch_init(adapter_callback cb);
 
 void ble_switch_on(void)
 {
-    if((g_app_data.state != app_connected) && 
-       (g_app_data.state != app_fast_advertising) && 
-       (g_app_data.state != app_slow_advertising)) {
-        AppSetState(app_fast_advertising);
-    } else {
+//    if((g_app_data.state != app_connected) && 
+//       (g_app_data.state != app_fast_advertising) && 
+//       (g_app_data.state != app_slow_advertising) && 
+//       (g_app_data.state != app_advertising) && 
+//       (g_app_data.state != app_pairing) && 
+//       (g_app_data.state != app_pairing_ok)) {
+//        AppSetState(app_fast_advertising, 0x11);
+//    } else {
+//    }
+    if(g_app_data.state == app_idle) {
+        AppSetState(app_fast_advertising, 0x11);
     }
 }
 
 void ble_switch_off(void)
 {
-    if(g_app_data.state == app_connected) {
-        g_app_data.pairing_remove_button_pressed = FALSE;
-        AppSetState(app_disconnecting);
-    } else if((g_app_data.state != app_fast_advertising) || (g_app_data.state != app_slow_advertising)) {
-        g_app_data.pairing_remove_button_pressed = FALSE;
-        AppSetState(app_idle);
+//    if(g_app_data.state == app_connected) {
+//        g_app_data.pairing_remove_button_pressed = FALSE;
+//        AppSetState(app_disconnecting, 0x12);
+//    } else if((g_app_data.state != app_fast_advertising) || (g_app_data.state != app_slow_advertising)) {
+//        g_app_data.pairing_remove_button_pressed = FALSE;
+//        AppSetState(app_idle, 0x13);
+//    }
+    if(g_app_data.state != app_idle) {
+        AppSetState(app_idle, 0x13);
     }
+
 }
 
 void ble_state_set(app_state cur_state)

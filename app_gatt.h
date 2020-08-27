@@ -246,24 +246,24 @@ typedef enum app_state_tag
     app_init = 0,
 
     /* Fast undirected advertisements configured */
-    app_fast_advertising,
+    app_fast_advertising = 1,
 
     /* Slow undirected advertisements configured */
-    app_slow_advertising,
+    app_slow_advertising = 2,
 
      /* Enters when application is in connected state */
-    app_connected,
+    app_connected = 3,
 
     /* Enters when disconnect is initiated by the application */
-    app_disconnecting,
+    app_disconnecting = 4,
 
     /** add by mlw, 20200528 11:21 */
-    app_pairing,
-    app_pairing_ok,
-    app_advertising,
+    app_pairing = 5,
+    app_pairing_ok = 6,
+    app_advertising = 7,
 	
     /* Idle state */
-    app_idle,
+    app_idle = 8,
 
     /* Unknown state */
     app_state_unknown
