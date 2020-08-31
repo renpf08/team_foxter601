@@ -1,5 +1,6 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
+#include <timer.h>          /* Chip timer functions */
 #include "../adapter.h"
 
 s16 clock_init(adapter_callback cb);
@@ -8,6 +9,7 @@ typedef struct {
 	driver_t *drv;
 	clock_t clock;
 	adapter_callback cb;
+	s16 tid;
 }clock_cfg_t;
 
 static clock_cfg_t clock_cfg = {
@@ -22,6 +24,7 @@ static clock_cfg_t clock_cfg = {
 		.second = 0,
 	},
 	.cb = NULL,
+	.tid = TIMER_INVALID,
 };
 
 static void clock_timer_increase(void)
@@ -73,9 +76,10 @@ static void clock_timer_increase(void)
 
 static void clock_cb_handler(u16 id)
 {
-	clock_cfg.drv->timer->timer_start(1000, clock_cb_handler);
+	clock_cfg.tid = TIMER_INVALID;
 	clock_cfg.clock.second++;
-	clock_timer_increase();
+	clock_timer_increase();	
+	clock_cfg.tid = clock_cfg.drv->timer->timer_start(1000, clock_cb_handler);
 }
 
 s16 clock_init(adapter_callback cb)

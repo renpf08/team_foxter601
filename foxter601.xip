@@ -17,6 +17,9 @@
    <file path="business/business.h" />
   </folder>
   <folder name="adapter" >
+   <folder name="vibrator" >
+    <file path="adapter/vibrator/vib.c" />
+   </folder>
    <folder name="ble" >
     <file path="adapter/ble/ble.c" />
    </folder>

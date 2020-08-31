@@ -25,7 +25,7 @@ void motor_restore_position(REPORT_E cb);
 void print(u8 *buf, u16 num);
 void trace(u8 *buf, u16 num);
 #endif
-void timer_event(u16 ms, timer_cb cb);
+s16 timer_event(u16 ms, timer_cb cb);
 
 clock_t *clock_get(void);
 
@@ -112,6 +112,9 @@ void ble_switch_on(void);
 void ble_switch_off(void);
 void ble_state_set(app_state cur_state);
 app_state ble_state_get(void);
+
+s16 vib_stop(void);
+s16 vib_run(u8 step_count);
 
 //int sprintf(char *buf, const char * sFormat, ...);
 //int printf(const char * sFormat, ...);

@@ -10,10 +10,19 @@
 
 static uint16 app_timers[SIZEOF_APP_TIMER * MAX_TIMERS];
 
+static s16 csr_timer_delete(s16 tid)
+{
+	if(tid != TIMER_INVALID) {
+		TimerDelete(tid);
+	}
+	return 0;
+}
+
 static s16 csr_timer_start(u16 ms, timer_cb cb)
 {
-	timer_create(ms*MILLISECOND, cb);
-    return 0;
+	s16 tid = TIMER_INVALID;
+	tid = timer_create(ms*MILLISECOND, cb);
+    return tid;
 }
 
 static s16 csr_timer_init(cfg_t *args, event_callback cb)
@@ -25,4 +34,5 @@ static s16 csr_timer_init(cfg_t *args, event_callback cb)
 timer_t csr_timer = {
 	.timer_init = csr_timer_init,
 	.timer_start = csr_timer_start,
+	.timer_del = csr_timer_delete,
 };

@@ -17,6 +17,7 @@ typedef struct {
 typedef struct {
 	init             timer_init;
 	timer_start_func timer_start;
+	timer_delete	 timer_del;
 }timer_t;
 
 typedef struct {
@@ -80,7 +81,7 @@ typedef struct {
 	motor_t		*motor_notify;
 }driver_t;
 
-void timer_create(uint32 timeout, timer_callback_arg handler);
+s16 timer_create(uint32 timeout, timer_callback_arg handler);
 s16 csr_keya_event_handler(u32 key_num, u32 key_status);
 s16 csr_keyb_event_handler(u32 key_num, u32 key_status);
 s16 csr_keym_event_handler(u32 key_num, u32 key_status);
