@@ -113,6 +113,9 @@ void ble_switch_off(void);
 void ble_state_set(app_state cur_state);
 app_state ble_state_get(void);
 
+s16 vib_stop(void);
+s16 vib_run(u8 step_count);
+
 //int sprintf(char *buf, const char * sFormat, ...);
 //int printf(const char * sFormat, ...);
 //void print_str_hex(u8 *buf, u16 hex_num);
