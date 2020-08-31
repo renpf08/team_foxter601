@@ -44,7 +44,7 @@ driver_t *get_driver(void)
 	return &csr_driver;
 }
 
-void timer_create(uint32 timeout, timer_callback_arg handler)
+s16 timer_create(uint32 timeout, timer_callback_arg handler)
 {
     const timer_id tId = TimerCreate(timeout, TRUE, handler);
     
@@ -59,4 +59,5 @@ void timer_create(uint32 timeout, timer_callback_arg handler)
         //Panic(0xfe);
         #endif
     }
+	return tId;
 }

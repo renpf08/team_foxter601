@@ -63,6 +63,7 @@ s16 csr_event_callback(EVENT_E ev)
 	
 	return 0;
 }
+
 static s16 driver_init(void)
 {
 	//u8 test[25] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xAA,0xBB,0xCC,0xDD,0xEE,0xFF};
@@ -138,6 +139,7 @@ void print(u8 *buf, u16 num)
 //		adapter.drv->uart->uart_write(rn, 2);
 //	}
 }
+
 void trace(u8 *buf, u16 num)
 {
 	u8 rn[2] = {0x0d, 0x0a};
@@ -147,6 +149,7 @@ void trace(u8 *buf, u16 num)
 	}
 }
 #endif
+
 void system_reboot(u8 reboot_type)
 {
     if(reboot_type == 0) {
@@ -154,6 +157,7 @@ void system_reboot(u8 reboot_type)
     }
     Panic(0x5AFF);
 }
+
 static void activity_handler(u16 id)
 {
     u32 target_steps = cmd_get()->user_info.target_steps;
@@ -189,6 +193,7 @@ static void activity_handler(u16 id)
     length = tmp_buf - rsp_buf;
     BLE_SEND_DATA(rsp_buf, length);
 }
+
 void refresh_step(void)
 {
     clock_t *clock = clock_get();
@@ -197,6 +202,7 @@ void refresh_step(void)
     params->clock = clock;
     timer_event(10, activity_handler);
 }
+
 void sync_time(void)
 {
 	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
@@ -216,6 +222,7 @@ void sync_time(void)
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
 }
+
 void motor_restore_position(REPORT_E cb)
 {
     u8 position = 0;
@@ -230,7 +237,8 @@ void motor_restore_position(REPORT_E cb)
         motor_activity_to_position(activity_percent);
     }
 }
-void timer_event(u16 ms, timer_cb cb)
+
+s16 timer_event(u16 ms, timer_cb cb)
 {
-	adapter.drv->timer->timer_start(ms, cb);
+	return adapter.drv->timer->timer_start(ms, cb);
 }
