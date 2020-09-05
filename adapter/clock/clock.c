@@ -27,9 +27,13 @@ static clock_cfg_t clock_cfg = {
 	.tid = TIMER_INVALID,
 };
 
+/*use external variables to save more space than internal variables*/
+u8 day[13] = {0, 31,28,31,30,31,30,31,31,30,31,30,31};
 static void clock_timer_increase(void)
 {
-	if(60 == clock_cfg.clock.second) {
+    day[2] = (((clock_cfg.clock.year%4==0) && (clock_cfg.clock.year%100!=0))||(clock_cfg.clock.year%400==0))?29:28;
+    
+	if(clock_cfg.clock.second > 59) {
 		clock_cfg.clock.second = 0;
 		clock_cfg.clock.minute++;
 		if(NULL != clock_cfg.cb) {
@@ -37,12 +41,12 @@ static void clock_timer_increase(void)
 		}
 	}
 
-	if(60 == clock_cfg.clock.minute) {
+	if(clock_cfg.clock.minute > 59) {
 		clock_cfg.clock.minute = 0;
 		clock_cfg.clock.hour++;
 	}
 
-	if(24 == clock_cfg.clock.hour) {
+	if(clock_cfg.clock.hour > 23) {
 		clock_cfg.clock.hour = 0;
 		clock_cfg.clock.day++;
 		clock_cfg.clock.week++;
@@ -51,12 +55,12 @@ static void clock_timer_increase(void)
 		}
 	}
 
-	if(31 == clock_cfg.clock.day) {
+	if(clock_cfg.clock.day > day[clock_cfg.clock.month]) {
 		clock_cfg.clock.day = 1;
 		clock_cfg.clock.month++;
 	}
 
-	if(13 == clock_cfg.clock.month) {
+	if(clock_cfg.clock.month > 12) {
 		clock_cfg.clock.month = 1;
 		clock_cfg.clock.year++;
 	}
