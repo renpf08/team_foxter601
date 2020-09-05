@@ -29,19 +29,19 @@ static void vib_cb_handler(u16 id)
 	if(run == vib_cfg.status) {
 		vib_cfg.drv->vibrator->vibrator_on(NULL);
 		vib_cfg.status = idle;
+	    vib_cfg.drv->timer->timer_start(200, vib_cb_handler);
 	}else {		
 		vib_cfg.drv->vibrator->vibrator_off(NULL);
 		//if run complete, then exit without have timer start again
-		if(0 != --vib_cfg.step_count) {
+		if(0 == --vib_cfg.step_count) {
 			vib_cfg.run_flag = 0;
 			vib_cfg.status = idle;
 			return;
 		}else {
 			vib_cfg.status = run;
+	        vib_cfg.drv->timer->timer_start(800, vib_cb_handler);
 		}
 	}
-
-	vib_cfg.drv->timer->timer_start(1000, vib_cb_handler);
 }
 
 s16 vib_stop(void)
@@ -59,7 +59,7 @@ s16 vib_run(u8 step_count)
 	vib_cfg.run_flag = 1;
 	vib_cfg.step_count = step_count;	
 	vib_cfg.drv->vibrator->vibrator_on(NULL);
-	return 0;
+	//return 0;
 	if(vib_cfg.step_count > 0) {
 		vib_cfg.drv->timer->timer_start(10, vib_cb_handler);
 	}
