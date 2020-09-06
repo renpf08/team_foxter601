@@ -19,21 +19,6 @@ enum {
 };
 
 typedef struct {
-	/*record motor pointer*/
-	motor_t *motor_ptr;
-	/*record current position*/
-	u8 cur_pos;
-	/*record the motor dst position*/
-	u8 dst_pos;
-	/*run flag*/
-	u8 run_flag;
-	/*unit interval steps*/
-	u8 unit_interval_step;
-	/*run step state*/
-	u8 run_step_state;
-}motor_run_status_t;
-
-typedef struct {
 	/*get driver layer*/
 	driver_t *drv;
 
@@ -505,6 +490,11 @@ s16 motor_manager_init(void)
 
 	motor_manager.drv->timer->timer_start(motor_manager.run_interval_ms, motor_run_handler);
 	return 0;
+}
+
+motor_run_status_t *motor_get_status(void)
+{
+	return &motor_manager.motor_status[0];
 }
 
 #if 0
