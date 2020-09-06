@@ -11,6 +11,10 @@ cfg_t args = {
 				.num = 1,
 			},
 		},
+		.charge_cfg = {
+			.group = 0,
+			.num = 1,
+		},
 		.keya_cfg = {
 			.group = 0,
 			.num = 3,

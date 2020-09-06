@@ -4,6 +4,7 @@
 extern timer_t csr_timer;
 extern uart_t csr_uart;
 extern battery_t csr_battery;
+extern charge_t csr_charge;
 extern key_t csr_keya;
 extern key_t csr_keym;
 extern key_t csr_keyb;
@@ -24,6 +25,7 @@ static driver_t csr_driver = {
 	.uart = &csr_uart,
 	#endif
 	.battery = &csr_battery,
+	.charge = &csr_charge,
 	.keya = &csr_keya,
 	.keyb = &csr_keyb,
 	.keym = &csr_keym,

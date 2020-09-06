@@ -17,6 +17,9 @@
    <file path="business/business.h" />
   </folder>
   <folder name="adapter" >
+   <folder name="charge" >
+    <file path="adapter/charge/charge_status.c" />
+   </folder>
    <folder name="vibrator" >
     <file path="adapter/vibrator/vib.c" />
    </folder>
@@ -59,6 +62,9 @@
    <file path="common/typedef.h" />
   </folder>
   <folder name="driver" >
+   <folder name="charge" >
+    <file path="driver/charge/charge.c" />
+   </folder>
    <folder name="motor" >
     <file path="driver/motor/motor_activity.c" />
     <file path="driver/motor/motor_battery_week.c" />
