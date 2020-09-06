@@ -41,6 +41,7 @@ s16 mag_cb_handler(void *args)
 
 u8 calculate_angle(int16 x_val,int16 y_val,int16 z_val)
 {
+    return 0;
 	u16 tan_table[45]={2,5,9,12,16,19,23,27,31,34,38,42,47,51,55,60,65,70,75,81,87,93,100,107,115,123,133,143,154,166,180,196,214,236,261,290,327,373,433,514,631,814,1143,1908,5729};/*jim magnetism*/
     u8 temp_angle=0,i=0;
     u16 x_temp=0xFF,y_temp=0xFF;
@@ -113,6 +114,7 @@ u8 calculate_angle(int16 x_val,int16 y_val,int16 z_val)
 
 void mag_get_measure_val(void)
 {
+    return;
     u8 temp_flag=0;/*X_Temp,Y_Temp,Z_Temp;*/
     s16 temp_val_x=0x00,temp_val_y=0x00,temp_val_z=0x00;
     u16 Temp=0,Temp1=0;
