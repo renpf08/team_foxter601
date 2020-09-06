@@ -6,6 +6,21 @@
 #include "../common/common.h"
 #include "../driver/driver.h"
 
+typedef struct {
+	/*record motor pointer*/
+	motor_t *motor_ptr;
+	/*record current position*/
+	u8 cur_pos;
+	/*record the motor dst position*/
+	u8 dst_pos;
+	/*run flag*/
+	u8 run_flag;
+	/*unit interval steps*/
+	u8 unit_interval_step;
+	/*run step state*/
+	u8 run_step_state;
+}motor_run_status_t;
+
 extern bool ble_send_data(uint8 *data, uint16 size);
 #define BLE_SEND_DATA(data, size)   ble_send_data(data, size)
 #if USE_BLE_LOG
@@ -30,6 +45,7 @@ s16 timer_event(u16 ms, timer_cb cb);
 clock_t *clock_get(void);
 
 s16 motor_manager_init(void);
+motor_run_status_t *motor_get_status(void);
 void motor_run_one_step(u8 motor_num, u8 direction);
 #if 0
 void motor_time_adjust_mode_on(void);
