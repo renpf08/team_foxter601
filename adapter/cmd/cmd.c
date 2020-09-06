@@ -98,6 +98,9 @@ static const CMDENTRY cmd_list[] =
 *   AF 02 xx // xx simulate steps
 *   CMD_TEST_SYS_REBOOT
 *   AF 03 	 // set system reboot
+*   CMD_TEST_VIBRATION
+*   AF 05 00    // set vibration off
+*   AF 05 01 xx // set vibration on, xx: vib step
 */
 typedef void (* cmd_test_handler)(u8 *buffer, u8 length);
 typedef enum{
@@ -106,6 +109,7 @@ typedef enum{
     CMD_TEST_STEP_COUNT     = 0x02,
     CMD_TEST_SYS_REBOOT     = 0x03,
     CMD_TEST_LOG_TYPE_EN    = 0x04,
+    CMD_TEST_VIBRATION      = 0x05,
     
     CMD_TEST_NONE,
 }cmt_test_enum_t;
@@ -128,6 +132,9 @@ static void cmd_test_sys_reboot(u8 *buffer, u8 length);
 #if USE_CMD_TEST_LOG_TYPE_EN
 static void cmd_test_log_type_en(u8 *buffer, u8 length);
 #endif
+#if USE_CMD_TEST_VIBRATION
+static void cmd_test_vibration(u8 *buffer, u8 length);
+#endif
 static const cmd_test_entry_t cmd_test_list[] =
 {
     #if USE_CMD_TEST_NVM_ACCESS
@@ -144,6 +151,9 @@ static const cmd_test_entry_t cmd_test_list[] =
     #endif
     #if USE_CMD_TEST_LOG_TYPE_EN
     {CMD_TEST_LOG_TYPE_EN, cmd_test_log_type_en},
+    #endif
+    #if USE_CMD_TEST_VIBRATION
+    {CMD_TEST_VIBRATION, cmd_test_vibration},
     #endif
     
 	{CMD_TEST_NONE,         0}
@@ -216,6 +226,19 @@ static void cmd_test_log_type_en(u8 *buffer, u8 length)
     typedef struct{u8 head; u8 cmd; u8 type; u8 en;}cmd_test_log_type_en_t;
     cmd_test_log_type_en_t* log = (cmd_test_log_type_en_t*)buffer;
     ble_log_type[log->type] = log->en;
+}
+#endif
+#if USE_CMD_TEST_VIBRATION
+static void cmd_test_vibration(u8 *buffer, u8 length)
+{
+    typedef struct{u8 head; u8 cmd; u8 type; u8 step;}cmd_test_vib_t;
+    cmd_test_vib_t* vib = (cmd_test_vib_t*)buffer;
+
+    if(vib->type == 0) {
+        vib_stop();
+    } else if(vib->type == 1) {
+        vib_run(vib->step);
+    }
 }
 #endif
 static s16 cmd_test(u8 *buffer, u8 length)

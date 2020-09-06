@@ -132,6 +132,7 @@ static u8 state_check(REPORT_E cb)
         #else
         motor_notify_to_position(NOTIFY_NONE);
         #endif
+        vib_stop();
         break;
     default:
         return 0;
