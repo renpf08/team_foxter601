@@ -216,7 +216,7 @@ static void cmd_test_step_count(u8 *buffer, u8 length)
 #if USE_CMD_TEST_SYS_REBOOT
 static void cmd_test_sys_reboot(u8 *buffer, u8 length)
 {
-    Panic(0);
+    system_pre_reboot_handler(REBOOT_TYPE_CMD);
 }
 #endif
 #if USE_CMD_TEST_LOG_TYPE_EN

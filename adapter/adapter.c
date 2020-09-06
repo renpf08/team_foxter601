@@ -149,7 +149,10 @@ void system_pre_reboot_handler(reboot_type_t type)
     if(type == REBOOT_TYPE_BUTTON) {
         APP_Move_Bonded(4);
         Panic(0);
-    } else if(type == REBOOT_TYPE_OTA) {
+    } else if (type == REBOOT_TYPE_CMD) {
+        APP_Move_Bonded(4);
+        Panic(0);
+    } else if (type == REBOOT_TYPE_OTA) {
         OtaReset();
     }
 }

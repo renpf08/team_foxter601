@@ -391,6 +391,7 @@ typedef enum {
     CMD_WATCH_NONE          = 0xFF
 } cmd_watch_send_t;
 typedef enum {
+    REBOOT_TYPE_CMD,
     REBOOT_TYPE_BUTTON,
     REBOOT_TYPE_OTA,
 } reboot_type_t;
