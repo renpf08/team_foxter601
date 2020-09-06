@@ -292,6 +292,11 @@ enum{
 	idle,
 };
 
+enum {
+	incharge,
+	not_incharge,
+};
+
 typedef struct {
 	u8 group;
 	u8 num;
@@ -324,7 +329,8 @@ typedef struct {
 }motor_cfg_t;
 
 typedef struct {
-	uart_cfg_t uart_cfg;
+	uart_cfg_t uart_cfg;	
+	pin_t      charge_cfg;
 	pin_t      keya_cfg;
 	pin_t      keym_cfg;
 	pin_t      keyb_cfg;
