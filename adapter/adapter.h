@@ -32,6 +32,8 @@ extern bool ble_send_log(uint8 *data, uint16 size);
 
 void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
+void system_pre_reboot_handler(reboot_type_t type);
+void system_post_reboot_handler(void);
 void system_reboot(u8 reboot_type);
 void refresh_step(void);
 void sync_time(void);

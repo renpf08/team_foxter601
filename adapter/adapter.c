@@ -6,6 +6,7 @@
 #include "adapter.h"
 #include <panic.h>
 #include <buf_utils.h>
+#include <csr_ota.h>
 
 u8 stete_battery_week = state_battery;
 u8 activity_percent = 0;
@@ -127,9 +128,45 @@ s16 adapter_init(adapter_callback cb)
     ble_switch_init(cb);
     nvm_storage_init(cb);
 	vib_init(cb);
+    
+    system_post_reboot_handler();
 	return 0;
 }
+void system_pre_reboot_handler(reboot_type_t type)
+{
+    u8 motor_cur_pos[max_motor] = {0,0,0,0,0,0};
+    motor_run_status_t *motor_sta = motor_get_status();
 
+    motor_cur_pos[minute_motor] = motor_sta[minute_motor].cur_pos;
+    motor_cur_pos[hour_motor] = motor_sta[hour_motor].cur_pos;
+    motor_cur_pos[activity_motor] = motor_sta[activity_motor].cur_pos;
+    motor_cur_pos[date_motor] = motor_sta[date_motor].cur_pos;
+    motor_cur_pos[battery_week_motor] = motor_sta[battery_week_motor].cur_pos;
+    motor_cur_pos[notify_motor] = motor_sta[notify_motor].cur_pos;    
+
+    motor_notify_to_position(NOTIFY_NONE);
+    nvm_write_motor_current_position((u16*)motor_cur_pos, 0);
+    if(type == REBOOT_TYPE_BUTTON) {
+        APP_Move_Bonded(4);
+        Panic(0);
+    } else if(type == REBOOT_TYPE_OTA) {
+        OtaReset();
+    }
+}
+void system_post_reboot_handler(void)
+{
+    u8 motor_cur_pos[max_motor] = {0,0,0,0,0,0};
+    motor_run_status_t *motor_sta = motor_get_status();
+    
+    nvm_read_motor_current_position((u16*)motor_cur_pos, 0);
+
+    motor_sta[minute_motor].cur_pos = motor_cur_pos[minute_motor];
+    motor_sta[hour_motor].cur_pos = motor_cur_pos[hour_motor];
+    motor_sta[activity_motor].cur_pos = motor_cur_pos[activity_motor];
+    motor_sta[date_motor].cur_pos = motor_cur_pos[date_motor];
+    motor_sta[battery_week_motor].cur_pos = motor_cur_pos[battery_week_motor];
+    motor_sta[notify_motor].cur_pos = motor_cur_pos[notify_motor];
+}
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num)
 {
