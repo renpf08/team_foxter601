@@ -136,6 +136,7 @@ void system_pre_reboot_handler(reboot_type_t type)
 {
     u8 motor_cur_pos[max_motor] = {0,0,0,0,0,0};
     motor_run_status_t *motor_sta = motor_get_status();
+    clock_t* clock = clock_get();
 
     motor_cur_pos[minute_motor] = motor_sta[minute_motor].cur_pos;
     motor_cur_pos[hour_motor] = motor_sta[hour_motor].cur_pos;
@@ -145,6 +146,7 @@ void system_pre_reboot_handler(reboot_type_t type)
     motor_cur_pos[notify_motor] = motor_sta[notify_motor].cur_pos;    
 
     nvm_write_motor_current_position((u16*)motor_cur_pos, 0);
+    nvm_write_date_time((u16*)clock, 0);
     nvm_write_motor_init_flag();
     if(type == REBOOT_TYPE_BUTTON) {
         APP_Move_Bonded(4);
@@ -160,25 +162,25 @@ void system_post_reboot_handler(void)
 {
     u8 motor_cur_pos[max_motor] = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE};
     motor_run_status_t *motor_sta = motor_get_status();
+    clock_t* clock = clock_get();
 
-    do {
-        if(nvm_read_motor_init_flag() == 0) {
-            nvm_read_motor_current_position((u16*)motor_cur_pos, 0);
-        }
-        motor_sta[minute_motor].cur_pos = motor_cur_pos[minute_motor];
-        motor_sta[hour_motor].cur_pos = motor_cur_pos[hour_motor];
-        motor_sta[activity_motor].cur_pos = motor_cur_pos[activity_motor];
-        motor_sta[date_motor].cur_pos = motor_cur_pos[date_motor];
-        motor_sta[battery_week_motor].cur_pos = motor_cur_pos[battery_week_motor];
-        motor_sta[notify_motor].cur_pos = motor_cur_pos[notify_motor];
-        
-        motor_sta[minute_motor].dst_pos = motor_cur_pos[minute_motor];
-        motor_sta[hour_motor].dst_pos = motor_cur_pos[hour_motor];
-        motor_sta[activity_motor].dst_pos = motor_cur_pos[activity_motor];
-        motor_sta[date_motor].dst_pos = motor_cur_pos[date_motor];
-        motor_sta[battery_week_motor].dst_pos = motor_cur_pos[battery_week_motor];
-        motor_sta[notify_motor].dst_pos = motor_cur_pos[notify_motor];
-        } while(0);
+    if(nvm_read_motor_init_flag() == 0) {
+        nvm_read_motor_current_position((u16*)motor_cur_pos, 0);
+        nvm_read_date_time((u16*)clock, 0);
+    }
+    motor_sta[minute_motor].cur_pos = motor_cur_pos[minute_motor];
+    motor_sta[hour_motor].cur_pos = motor_cur_pos[hour_motor];
+    motor_sta[activity_motor].cur_pos = motor_cur_pos[activity_motor];
+    motor_sta[date_motor].cur_pos = motor_cur_pos[date_motor];
+    motor_sta[battery_week_motor].cur_pos = motor_cur_pos[battery_week_motor];
+    motor_sta[notify_motor].cur_pos = motor_cur_pos[notify_motor];
+    
+    motor_sta[minute_motor].dst_pos = motor_cur_pos[minute_motor];
+    motor_sta[hour_motor].dst_pos = motor_cur_pos[hour_motor];
+    motor_sta[activity_motor].dst_pos = motor_cur_pos[activity_motor];
+    motor_sta[date_motor].dst_pos = motor_cur_pos[date_motor];
+    motor_sta[battery_week_motor].dst_pos = motor_cur_pos[battery_week_motor];
+    motor_sta[notify_motor].dst_pos = motor_cur_pos[notify_motor];
 }
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num)
