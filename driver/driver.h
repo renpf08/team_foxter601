@@ -26,6 +26,11 @@ typedef struct {
 }battery_t;
 
 typedef struct {
+	init             charge_init;
+	read			 charge_status_read;
+}charge_t;
+
+typedef struct {
 	init			key_init;
 }key_t;
 
@@ -66,6 +71,7 @@ typedef struct {
     #endif
 	timer_t 	*timer;
 	battery_t 	*battery;
+	charge_t    *charge;
 	key_t     	*keya;
 	key_t     	*keyb;
 	key_t     	*keym;	

@@ -136,6 +136,8 @@ app_state ble_state_get(void);
 s16 vib_stop(void);
 s16 vib_run(u8 step_count);
 
+s16 charge_status_get(void);
+
 //int sprintf(char *buf, const char * sFormat, ...);
 //int printf(const char * sFormat, ...);
 //void print_str_hex(u8 *buf, u16 hex_num);
