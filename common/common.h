@@ -356,6 +356,7 @@ typedef enum{
     BLE_LOG_ZERO_ADJUST_JUMP    = 0x02,
     BLE_LOG_NOTIFY_TYPE         = 0x03,
     BLE_LOG_ANCS_APP_ID         = 0x04,
+    BLE_LOG_CHARGE_STATE        = 0x05,
     
     BLE_LOG_MAX,
 }ble_log_type_t;
