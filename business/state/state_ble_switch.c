@@ -21,19 +21,28 @@ static u8 swing_ongoing = 0;
 static void notify_swing_cb_handler(u16 id)
 {
     static bool notify_swing_start = FALSE;	
-
     app_state cur_state = ble_state_get();
     clock_t *clock = clock_get();
     
+//    #if USE_UART_PRINT
+//    motor_run_status_t *motor_sta = motor_get_status();
+//    u8 motor_cur_pos[max_motor] = {0,0,0,0,0,0};
+//    motor_cur_pos[minute_motor] = motor_sta[minute_motor].run_flag+'0';
+//    motor_cur_pos[hour_motor] = motor_sta[hour_motor].run_flag+'0';
+//    motor_cur_pos[activity_motor] = motor_sta[activity_motor].run_flag+'0';
+//    motor_cur_pos[date_motor] = motor_sta[date_motor].run_flag+'0';
+//    motor_cur_pos[battery_week_motor] = motor_sta[battery_week_motor].run_flag+'0';
+//    motor_cur_pos[notify_motor] = motor_sta[notify_motor].run_flag+'0';  
+//    trace((u8*)motor_cur_pos, 6);
+//    #endif
+    
     if(cur_state != app_advertising) {
-        if(notify_swing_start == TRUE) {
-            notify_swing_start = FALSE;
-            #if USE_ACTIVITY_NOTIFY
-            motor_activity_to_position(NOTIFY_NONE);
-            #else
-            motor_notify_to_position(NOTIFY_NONE);
-            #endif
-        }
+        notify_swing_start = FALSE;
+        #if USE_ACTIVITY_NOTIFY
+        motor_activity_to_position(NOTIFY_NONE);
+        #else
+        motor_notify_to_position(NOTIFY_NONE);
+        #endif
         swing_ongoing = 0;
         return;
     }
@@ -144,16 +153,16 @@ static u16 ble_change(void *args)
 {
     STATE_E *state_mc = (STATE_E *)args;
     app_state state_ble = ble_state_get();
-//    static app_state last_state_ble = app_idle;
-//    
-//    if((last_state_ble == app_connected) && (state_ble != app_connected)) {
-//        #if USE_UART_PRINT
-//        trace((u8*)&"vibration", 9);
-//        #endif
-//        vib_stop();
-//        vib_run(5);
-//    }
-//    last_state_ble = state_ble;    
+    static app_state last_state_ble = app_idle;
+    
+    if((last_state_ble == app_connected) && (state_ble != app_connected)) {
+        #if USE_UART_PRINT
+        trace((u8*)&"vibration", 9);
+        #endif
+        vib_stop();
+        vib_run(5);
+    }
+    last_state_ble = state_ble;    
     if(state_ble == app_advertising) { // advertising start
         #if USE_UART_PRINT
         trace((u8*)&"adv swing", 9);

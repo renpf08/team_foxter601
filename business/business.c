@@ -21,7 +21,7 @@ static business_t business = {
 static state_t state[] = {
 	STATE_FILL(CLOCK,               CLOCK_1_MINUTE,     	CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               KEY_A_SHORT_PRESS,     	CLOCK,                  state_clock),
-	STATE_FILL(CLOCK,               KEY_M_SHORT_PRESS,     	CLOCK,                  state_clock),
+	//STATE_FILL(CLOCK,               KEY_M_SHORT_PRESS,     	CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               SET_TIME,               CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               REFRESH_STEPS,          CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               READ_HISDAYS,           CLOCK,                  state_clock),
@@ -54,6 +54,7 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               ANDROID_NOTIFY,         NOTIFY_COMING,          state_notify),
 	/*battery & week switch*/
 	STATE_FILL(CLOCK,               KEY_M_SHORT_PRESS,      BATTERY_WEEK_SWITCH,    state_battery_week_switch),
+	STATE_FILL(BLE_SWITCH,          KEY_M_SHORT_PRESS,      BATTERY_WEEK_SWITCH,    state_battery_week_switch),
 	/*time adjust*/
 	STATE_FILL(CLOCK,               KEY_B_M_LONG_PRESS,   	TIME_ADJUST,            state_time_adjust),
 	STATE_FILL(TIME_ADJUST,         KEY_A_SHORT_PRESS,   	TIME_ADJUST,            state_time_adjust),	
