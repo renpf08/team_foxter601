@@ -144,7 +144,16 @@ static u16 ble_change(void *args)
 {
     STATE_E *state_mc = (STATE_E *)args;
     app_state state_ble = ble_state_get();
-    
+//    static app_state last_state_ble = app_idle;
+//    
+//    if((last_state_ble == app_connected) && (state_ble != app_connected)) {
+//        #if USE_UART_PRINT
+//        trace((u8*)&"vibration", 9);
+//        #endif
+//        vib_stop();
+//        vib_run(5);
+//    }
+//    last_state_ble = state_ble;    
     if(state_ble == app_advertising) { // advertising start
         #if USE_UART_PRINT
         trace((u8*)&"adv swing", 9);
@@ -159,20 +168,10 @@ static u16 ble_change(void *args)
         #if USE_UART_PRINT
         trace((u8*)&"adv stop", 8);
         #endif
-//        #if USE_ACTIVITY_NOTIFY
-//        motor_activity_to_position(NOTIFY_NONE);
-//        #else
-//        motor_notify_to_position(NOTIFY_NONE);
-//        #endif
     } else if(state_ble == app_connected){ // connected
         #if USE_UART_PRINT
         trace((u8*)&"connect", 7);
         #endif
-//        #if USE_ACTIVITY_NOTIFY
-//        motor_activity_to_position(NOTIFY_NONE);
-//        #else
-//        motor_notify_to_position(NOTIFY_NONE);
-//        #endif
     } else { // disconnected
         #if USE_UART_PRINT
         trace((u8*)&"disconect", 9);
