@@ -67,7 +67,6 @@ u8 battery_percent_read(void)
 
 static void bat_cb_handler(u16 id)
 {
-    u8 ble_log[4] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0, 0};
 	/*start another loop*/
 	bat_cfg.drv->timer->timer_start(3000, bat_cb_handler);
 
@@ -84,10 +83,6 @@ static void bat_cb_handler(u16 id)
 		//bat_cfg.cb(bat_cfg.cur_status, NULL);
 	}
 
-    ble_log[2] = bat_cfg.cur_status;
-    ble_log[3] = bat_cfg.old_status;
-    BLE_SEND_LOG(ble_log, 4);
-    
 	/*current status copy to the old status*/
 	bat_cfg.old_status = bat_cfg.cur_status;
 }

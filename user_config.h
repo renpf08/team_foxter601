@@ -37,7 +37,7 @@ FO601
 #define USE_ADV_DATA        1  
 #define USE_NEW_DAV_NAME    1
 #define USE_PAIR_CODE_0000  1 // test mode, use pair code of 0x0000 as a bypass code 
-#define USE_ACTIVITY_NOTIFY 1
+#define USE_ACTIVITY_NOTIFY 0
 
 #define USE_CMD_TEST        1
 #if USE_CMD_TEST
@@ -46,6 +46,7 @@ FO601
 #define USE_CMD_TEST_ZERO_ADJUST    1
 #define USE_CMD_TEST_SYS_REBOOT     1
 #define USE_CMD_TEST_LOG_TYPE_EN    1
+#define USE_CMD_TEST_GET_CHARGE_STA 1
 #define USE_CMD_TEST_VIBRATION      1
 #else
 #define USE_CMD_TEST_NVM_ACCESS     0
@@ -53,6 +54,7 @@ FO601
 #define USE_CMD_TEST_ZERO_ADJUST    0
 #define USE_CMD_TEST_SYS_REBOOT     0
 #define USE_CMD_TEST_LOG_TYPE_EN    0
+#define USE_CMD_TEST_GET_CHARGE_STA 0
 #define USE_CMD_TEST_VIBRATION      0
 #endif
 
