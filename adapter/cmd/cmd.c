@@ -106,6 +106,9 @@ static const CMDENTRY cmd_list[] =
 *   CMD_TEST_VIBRATION
 *   AF 06 00    // set vibration off
 *   AF 06 01 xx // set vibration on, xx: vib step
+*   CMD_TEST_CHARGE_SWING
+*   AF 07 00    // test charge begin and swing
+*   AF 07 01    // test charge stop
 */
 typedef void (* cmd_test_handler)(u8 *buffer, u8 length);
 typedef enum{
@@ -116,6 +119,7 @@ typedef enum{
     CMD_TEST_LOG_TYPE_EN    = 0x04,
     CMD_TEST_GET_CHARGE_STA = 0x05,
     CMD_TEST_VIBRATION      = 0x06,
+    CMD_TEST_CHARGE_SWING   = 0x07,
     
     CMD_TEST_NONE,
 }cmt_test_enum_t;
@@ -144,6 +148,9 @@ static void cmd_test_get_charger_sta(u8 *buffer, u8 length);
 #if USE_CMD_TEST_VIBRATION
 static void cmd_test_vibration(u8 *buffer, u8 length);
 #endif
+#if USE_CMD_TEST_CHARGE_SWING
+static void cmd_test_charge_swing(u8 *buffer, u8 length);
+#endif
 static const cmd_test_entry_t cmd_test_list[] =
 {
     #if USE_CMD_TEST_NVM_ACCESS
@@ -166,6 +173,9 @@ static const cmd_test_entry_t cmd_test_list[] =
     #endif
     #if USE_CMD_TEST_VIBRATION
     {CMD_TEST_VIBRATION, cmd_test_vibration},
+    #endif
+    #if USE_CMD_TEST_CHARGE_SWING
+    {CMD_TEST_CHARGE_SWING, cmd_test_charge_swing},
     #endif
     
 	{CMD_TEST_NONE,         0}
@@ -259,6 +269,20 @@ static void cmd_test_vibration(u8 *buffer, u8 length)
         vib_stop();
     } else if(vib->type == 1) {
         vib_run(vib->step);
+    }
+}
+#endif
+#if USE_CMD_TEST_CHARGE_SWING
+static void cmd_test_charge_swing(u8 *buffer, u8 length)
+{
+    typedef struct{u8 head; u8 cmd; u8 act;}cmd_test_chg_t;
+    cmd_test_chg_t* chg = (cmd_test_chg_t*)buffer;
+
+    if(chg->act == 0) {
+        cmd_cb(CHARGE_SWING, NULL);
+    } else if(chg->act == 1) {
+        cmd_cb(CHARGE_STOP, NULL);
+//        cmd_cb(KEY_M_SHORT_PRESS, NULL);
     }
 }
 #endif

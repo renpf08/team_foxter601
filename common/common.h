@@ -87,8 +87,8 @@ typedef enum {
     #if USE_PARAM_STORE
     READ_SYS_PARAMS = 40,
     #endif
-    CHARGING_SWING = 41,
-    CHARGING_STOP = 42,
+    CHARGE_SWING = 41,
+    CHARGE_STOP = 42,
 	REPORT_MAX,
 }REPORT_E;
 
@@ -261,6 +261,7 @@ typedef enum {
 	SET_DATE_TIME = 10,
 	NVM_ACCESS = 11,
 	SYSTEM_REBOOT = 12,
+	CHARGE_SWITCH = 13,
 	STATE_MAX,
 }STATE_E;
 

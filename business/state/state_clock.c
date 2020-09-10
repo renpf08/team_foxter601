@@ -104,6 +104,8 @@ static u8 state_check(REPORT_E cb)
     }
     #endif
     u8 cmd_buf[2] = {0x02, 0x00};
+//    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
+    
     switch(cb) {
     case READ_CURDATA:
         read_current_step();
@@ -126,8 +128,9 @@ static u8 state_check(REPORT_E cb)
     case KEY_A_SHORT_PRESS:
         BLE_SEND_DATA(cmd_buf, 2);
         break;
-    case CHARGING_SWING:
-        break;
+    case CHARGE_SWING:
+    case CHARGE_STOP:
+        charge_check(cb);
     default:
         return 0;
         break;

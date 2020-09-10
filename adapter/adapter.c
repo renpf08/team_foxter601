@@ -11,6 +11,8 @@
 u8 stete_battery_week = state_battery;
 u8 activity_percent = 0;
 zero_adjust_lock_t zero_adjust_mode = {0, 0};
+static u8 charge_start = 0;
+static u8 swing_state = 0;
 
 const u8 date[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
@@ -141,18 +143,21 @@ static void system_polling_handler(u16 id)
 {
     static s16 last_status = not_incharge;
     s16 now_status = charge_status_get();
-    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
+//    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
     
 	if((last_status == not_incharge) && (now_status == incharge)) {
-        ble_log[2] = 0;
-        BLE_SEND_LOG(ble_log, 3);
-        adapter.cb(CHARGING_SWING, NULL);
+//        ble_log[2] = 0;
+//        BLE_SEND_LOG(ble_log, 3);
+        adapter.cb(CHARGE_SWING, NULL);
 	} else if((last_status == incharge) && (now_status == not_incharge)) {
-        ble_log[2] = 1;
-        BLE_SEND_LOG(ble_log, 3);
-	    adapter.cb(CHARGING_STOP, NULL);
+//        ble_log[2] = 1;
+//        BLE_SEND_LOG(ble_log, 3);
+	    adapter.cb(CHARGE_STOP, NULL);
+//        adapter.cb(KEY_M_SHORT_PRESS, NULL);
 	}
     last_status = now_status;
+//    ble_log[2] = 2;
+//    BLE_SEND_LOG(ble_log, 3);
     timer_event(1000, system_polling_handler);
 }
 void system_pre_reboot_handler(reboot_type_t type)
@@ -208,6 +213,35 @@ void system_post_reboot_handler(void)
     motor_sta[date_motor].dst_pos = motor_cur_pos[date_motor];
     motor_sta[battery_week_motor].dst_pos = motor_cur_pos[battery_week_motor];
     motor_sta[notify_motor].dst_pos = motor_cur_pos[notify_motor];
+}
+static void clock_charge_swing(u16 id)
+{
+	u8 battery_level = BAT_PECENT_0;
+    if(charge_start == 0) {
+        swing_state = 0;
+		battery_level = battery_percent_read();
+		motor_battery_week_to_position(battery_level);
+        return;
+    }
+    if(swing_state == 0) {
+        swing_state = 1;
+        motor_battery_week_to_position(BAT_PECENT_0);
+    } else {
+        swing_state = 0;
+        motor_battery_week_to_position(BAT_PECENT_100);
+    }
+    timer_event(1500, clock_charge_swing);
+}
+void charge_check(REPORT_E cb)
+{
+    if(cb == CHARGE_SWING) {
+        if(charge_start == 0) {
+            timer_event(1, clock_charge_swing);
+        }
+        charge_start = 1;
+    } else if(cb == CHARGE_STOP) {
+        charge_start = 0;
+    }
 }
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num)

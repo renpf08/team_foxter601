@@ -31,6 +31,8 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               WRITE_USER_INFO,        CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               WRITE_ALARM_CLOCK,      CLOCK,                  state_clock),
 	#endif
+	STATE_FILL(CLOCK,               CHARGE_SWING,           CLOCK,                  state_clock),
+	STATE_FILL(CLOCK,               CHARGE_STOP,            CLOCK,                  state_clock),
 	/*battery mode*/
 	//STATE_FILL(CLOCK,       BATTERY_LOW,        	LOW_VOLTAGE, 	state_low_voltage),
 	//STATE_FILL(LOW_VOLTAGE, BATTERY_NORMAL,     	CLOCK,       	state_clock),
@@ -49,6 +51,8 @@ static state_t state[] = {
 	STATE_FILL(BLE_SWITCH,          BLE_PAIR,               BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(BLE_SWITCH,          SET_TIME,               BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(BLE_SWITCH,          REFRESH_STEPS,          BLE_SWITCH,             state_ble_switch),
+	STATE_FILL(BLE_SWITCH,          CHARGE_SWING,           BLE_SWITCH,             state_ble_switch),
+	STATE_FILL(BLE_SWITCH,          CHARGE_STOP,            BLE_SWITCH,             state_ble_switch),
 	/*notify*/
 	STATE_FILL(CLOCK,               ANCS_NOTIFY_INCOMING,   NOTIFY_COMING,          state_notify),
 	STATE_FILL(CLOCK,               ANDROID_NOTIFY,         NOTIFY_COMING,          state_notify),
@@ -64,13 +68,18 @@ static state_t state[] = {
 	/*run test*/
 	STATE_FILL(CLOCK,       		KEY_A_B_M_LONG_PRESS,   RUN_TEST,  				state_run_test),
 	STATE_FILL(RUN_TEST,    		KEY_A_B_M_LONG_PRESS,   RUN_TEST,  				state_run_test),
+	/*charging swing*/
+//	STATE_FILL(CLOCK,               CHARGE_SWING,           CHARGE_SWITCH,          state_charge),
+//	STATE_FILL(CLOCK,               CHARGE_STOP,            CHARGE_SWITCH,          state_charge),
+//	STATE_FILL(BLE_SWITCH,          CHARGE_SWING,           CHARGE_SWITCH,          state_charge),
+//	STATE_FILL(BLE_SWITCH,          CHARGE_STOP,            CHARGE_SWITCH,          state_charge),
 };
 
 static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
     s16 res = 0;
-    u8 st_cb[6] = {CMD_TEST_SEND, 01, business.state_now, cb, 0, 0};
+    u8 st_cb[6] = {CMD_TEST_SEND, BLE_LOG_STATE_MACHINE, business.state_now, cb, 0, 0};
 
 	//return 0;
     #if USE_UART_PRINT
