@@ -87,6 +87,8 @@ typedef enum {
     #if USE_PARAM_STORE
     READ_SYS_PARAMS = 40,
     #endif
+    CHARGING_SWING = 41,
+    CHARGING_STOP = 42,
 	REPORT_MAX,
 }REPORT_E;
 
