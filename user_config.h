@@ -57,7 +57,7 @@ FO601
 #define USE_CMD_TEST_LOG_TYPE_EN    0
 #define USE_CMD_TEST_GET_CHARGE_STA 0
 #define USE_CMD_TEST_VIBRATION      0
-#define USE_CMD_TEST_CHARGE_SWING   1
+#define USE_CMD_TEST_CHARGE_SWING   0
 #endif
 
 /* Timer value for starting the Discovery Procedure once the connection is

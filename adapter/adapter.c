@@ -139,25 +139,29 @@ s16 adapter_init(adapter_callback cb)
     timer_event(1000, system_polling_handler);
 	return 0;
 }
-static void system_polling_handler(u16 id)
+static void charge_polling_check(void)
 {
     static s16 last_status = not_incharge;
     s16 now_status = charge_status_get();
-//    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
+    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
     
 	if((last_status == not_incharge) && (now_status == incharge)) {
-//        ble_log[2] = 0;
-//        BLE_SEND_LOG(ble_log, 3);
+        ble_log[2] = 0;
+        BLE_SEND_LOG(ble_log, 3);
         adapter.cb(CHARGE_SWING, NULL);
 	} else if((last_status == incharge) && (now_status == not_incharge)) {
-//        ble_log[2] = 1;
-//        BLE_SEND_LOG(ble_log, 3);
+        ble_log[2] = 1;
+        BLE_SEND_LOG(ble_log, 3);
 	    adapter.cb(CHARGE_STOP, NULL);
-//        adapter.cb(KEY_M_SHORT_PRESS, NULL);
 	}
     last_status = now_status;
-//    ble_log[2] = 2;
-//    BLE_SEND_LOG(ble_log, 3);
+    ble_log[2] = 2;
+    BLE_SEND_LOG(ble_log, 3);
+}
+static void system_polling_handler(u16 id)
+{
+    charge_polling_check();
+    
     timer_event(1000, system_polling_handler);
 }
 void system_pre_reboot_handler(reboot_type_t type)
