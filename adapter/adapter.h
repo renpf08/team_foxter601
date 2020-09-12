@@ -10,9 +10,9 @@ typedef struct {
 	/*record motor pointer*/
 	motor_t *motor_ptr;
 	/*record current position*/
-	u8 cur_pos;
+	volatile u8 cur_pos;
 	/*record the motor dst position*/
-	u8 dst_pos;
+	volatile u8 dst_pos;
 	/*run flag*/
 	u8 run_flag;
 	/*unit interval steps*/
@@ -32,6 +32,9 @@ extern bool ble_send_log(uint8 *data, uint16 size);
 
 void APP_Move_Bonded(uint8 caller);
 s16 adapter_init(adapter_callback cb);
+void system_pre_reboot_handler(reboot_type_t type);
+void system_post_reboot_handler(void);
+void charge_check(REPORT_E cb);
 void system_reboot(u8 reboot_type);
 void refresh_step(void);
 void sync_time(void);
@@ -70,6 +73,8 @@ u8 battery_percent_read(void);
 
 s16 nvm_storage_init(adapter_callback cb);
 #if USE_PARAM_STORE
+s16 nvm_read_motor_init_flag(void);
+s16 nvm_write_motor_init_flag(void);
 s16 nvm_read_motor_current_position(u16 *buffer, u8 index);
 s16 nvm_write_motor_current_position(u16 *buffer, u8 index);
 s16 nvm_read_zero_position_polarity(u16 *buffer, u8 index);

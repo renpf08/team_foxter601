@@ -235,6 +235,32 @@ s16 motor_minute_one_step(u8 minute_step)
 	return 0;
 }
 
+//static void motor_check_border(u8 motor_num, u8* cur_pos, u8* dst_pos)
+//{
+//    u8 motor_up_border[max_motor] = {
+//            [minute_motor] = MINUTE_60,
+//            [hour_motor] = HOUR12_0,
+//            [activity_motor] = ACTIVITY_100,
+//            [date_motor] = DAY_0,
+//            [battery_week_motor] = BAT_PECENT_0,
+//            [notify_motor] = NOTIFY_COMMING_CALL};
+//    u8 motor_low_border[max_motor] = {
+//            [minute_motor] = MINUTE_0,
+//            [hour_motor] = HOUR0_0,
+//            [activity_motor] = ACTIVITY_0,
+//            [date_motor] = DAY_31,
+//            [battery_week_motor] = MONDAY,
+//            [notify_motor] = NOTIFY_NONE};
+//    if(*cur_pos >= motor_up_border[motor_num]) {
+//        *cur_pos = motor_low_border[motor_num];
+//        *dst_pos = motor_low_border[motor_num];
+//    }
+//    if(*dst_pos >= motor_up_border[motor_num]) {
+//        *cur_pos = motor_low_border[motor_num];
+//        *dst_pos = motor_low_border[motor_num];
+//    }
+//}
+
 static void motor_run_continue_check(void)
 {
 	motor_manager.run_step_num++;

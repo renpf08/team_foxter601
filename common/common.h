@@ -87,6 +87,8 @@ typedef enum {
     #if USE_PARAM_STORE
     READ_SYS_PARAMS = 40,
     #endif
+    CHARGE_SWING = 41,
+    CHARGE_STOP = 42,
 	REPORT_MAX,
 }REPORT_E;
 
@@ -259,6 +261,7 @@ typedef enum {
 	SET_DATE_TIME = 10,
 	NVM_ACCESS = 11,
 	SYSTEM_REBOOT = 12,
+	CHARGE_SWITCH = 13,
 	STATE_MAX,
 }STATE_E;
 
@@ -362,6 +365,7 @@ typedef enum{
     BLE_LOG_ZERO_ADJUST_JUMP    = 0x02,
     BLE_LOG_NOTIFY_TYPE         = 0x03,
     BLE_LOG_ANCS_APP_ID         = 0x04,
+    BLE_LOG_CHARGE_STATE        = 0x05,
     
     BLE_LOG_MAX,
 }ble_log_type_t;
@@ -396,6 +400,11 @@ typedef enum {
     
     CMD_WATCH_NONE          = 0xFF
 } cmd_watch_send_t;
+typedef enum {
+    REBOOT_TYPE_CMD,
+    REBOOT_TYPE_BUTTON,
+    REBOOT_TYPE_OTA,
+} reboot_type_t;
 typedef struct {
     u8 cmd; 
     u8 code[2];

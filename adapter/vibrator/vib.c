@@ -51,6 +51,7 @@ static void vib_cb_handler(u16 id)
 s16 vib_stop(void)
 {
     vib_cfg.drv->timer->timer_del(vib_cfg.tid);
+    vib_cfg.tid = TIMER_INVALID;
 	vib_cfg.status = idle;
 	vib_cfg.run_flag = 0;
 	vib_cfg.step_count = 0;

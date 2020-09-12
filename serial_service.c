@@ -348,6 +348,9 @@ extern bool ble_send_data(uint8 *data, uint16 size)
 *         cc:0x00-notify ok, 0xE1-notify out of range, 0xE2-notify switch off
 *	5F 04 xx... // xx...:ANCS notify app id
 *         xx...:ANCS notify app id
+*	5F 05 aa bb // battery charging state
+*         aa:current state
+*         bb:last state
 */
 extern bool ble_send_log(uint8 *data, uint16 size)
 {

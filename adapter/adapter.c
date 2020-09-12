@@ -6,10 +6,13 @@
 #include "adapter.h"
 #include <panic.h>
 #include <buf_utils.h>
+#include <csr_ota.h>
 
 u8 stete_battery_week = state_battery;
 u8 activity_percent = 0;
 zero_adjust_lock_t zero_adjust_mode = {0, 0};
+static u8 charge_start = 0;
+static u8 swing_state = 0;
 
 const u8 date[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
@@ -36,6 +39,7 @@ extern s16 charge_status_init(adapter_callback cb);
 
 s16 csr_event_callback(EVENT_E ev);
 void driver_uninit(void);
+static void system_polling_handler(u16 id);
 
 typedef struct {
 	driver_t *drv;
@@ -130,10 +134,119 @@ s16 adapter_init(adapter_callback cb)
     nvm_storage_init(cb);
 	vib_init(cb);
 	charge_status_init(cb);
-	
+    system_post_reboot_handler();
+
+    timer_event(1000, system_polling_handler);
 	return 0;
 }
+static void charge_polling_check(void)
+{
+    static s16 last_status = not_incharge;
+    s16 now_status = charge_status_get();
+    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
+    
+	if((last_status == not_incharge) && (now_status == incharge)) {
+        ble_log[2] = 0;
+        BLE_SEND_LOG(ble_log, 3);
+        adapter.cb(CHARGE_SWING, NULL);
+	} else if((last_status == incharge) && (now_status == not_incharge)) {
+        ble_log[2] = 1;
+        BLE_SEND_LOG(ble_log, 3);
+	    adapter.cb(CHARGE_STOP, NULL);
+	}
+    last_status = now_status;
+    ble_log[2] = 2;
+    BLE_SEND_LOG(ble_log, 3);
+}
+static void system_polling_handler(u16 id)
+{
+    charge_polling_check();
+    
+    timer_event(1000, system_polling_handler);
+}
+void system_pre_reboot_handler(reboot_type_t type)
+{
+    u8 motor_cur_pos[max_motor] = {0,0,0,0,0,0};
+    motor_run_status_t *motor_sta = motor_get_status();
 
+    motor_cur_pos[minute_motor] = motor_sta[minute_motor].cur_pos;
+    motor_cur_pos[hour_motor] = motor_sta[hour_motor].cur_pos;
+    motor_cur_pos[activity_motor] = motor_sta[activity_motor].cur_pos;
+    motor_cur_pos[date_motor] = motor_sta[date_motor].cur_pos;
+    motor_cur_pos[battery_week_motor] = motor_sta[battery_week_motor].cur_pos;
+    motor_cur_pos[notify_motor] = motor_sta[notify_motor].cur_pos;    
+
+    #if USE_PARAM_STORE
+    clock_t* clock = clock_get();
+    nvm_write_motor_current_position((u16*)motor_cur_pos, 0);
+    nvm_write_date_time((u16*)clock, 0);
+    nvm_write_motor_init_flag();
+    #endif
+    if(type == REBOOT_TYPE_BUTTON) {
+        APP_Move_Bonded(4);
+        Panic(0);
+    } else if (type == REBOOT_TYPE_CMD) {
+        APP_Move_Bonded(4);
+        Panic(0);
+    } else if (type == REBOOT_TYPE_OTA) {
+        OtaReset();
+    }
+}
+void system_post_reboot_handler(void)
+{
+    u8 motor_cur_pos[max_motor] = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE};
+    motor_run_status_t *motor_sta = motor_get_status();
+
+    #if USE_PARAM_STORE
+    clock_t* clock = clock_get();
+    if(nvm_read_motor_init_flag() == 0) {
+        nvm_read_motor_current_position((u16*)motor_cur_pos, 0);
+        nvm_read_date_time((u16*)clock, 0);
+    }
+    #endif
+    motor_sta[minute_motor].cur_pos = motor_cur_pos[minute_motor];
+    motor_sta[hour_motor].cur_pos = motor_cur_pos[hour_motor];
+    motor_sta[activity_motor].cur_pos = motor_cur_pos[activity_motor];
+    motor_sta[date_motor].cur_pos = motor_cur_pos[date_motor];
+    motor_sta[battery_week_motor].cur_pos = motor_cur_pos[battery_week_motor];
+    motor_sta[notify_motor].cur_pos = motor_cur_pos[notify_motor];
+    
+    motor_sta[minute_motor].dst_pos = motor_cur_pos[minute_motor];
+    motor_sta[hour_motor].dst_pos = motor_cur_pos[hour_motor];
+    motor_sta[activity_motor].dst_pos = motor_cur_pos[activity_motor];
+    motor_sta[date_motor].dst_pos = motor_cur_pos[date_motor];
+    motor_sta[battery_week_motor].dst_pos = motor_cur_pos[battery_week_motor];
+    motor_sta[notify_motor].dst_pos = motor_cur_pos[notify_motor];
+}
+static void clock_charge_swing(u16 id)
+{
+	u8 battery_level = BAT_PECENT_0;
+    if(charge_start == 0) {
+        swing_state = 0;
+		battery_level = battery_percent_read();
+		motor_battery_week_to_position(battery_level);
+        return;
+    }
+    if(swing_state == 0) {
+        swing_state = 1;
+        motor_battery_week_to_position(BAT_PECENT_0);
+    } else {
+        swing_state = 0;
+        motor_battery_week_to_position(BAT_PECENT_100);
+    }
+    timer_event(1500, clock_charge_swing);
+}
+void charge_check(REPORT_E cb)
+{
+    if(cb == CHARGE_SWING) {
+        if(charge_start == 0) {
+            timer_event(1, clock_charge_swing);
+        }
+        charge_start = 1;
+    } else if(cb == CHARGE_STOP) {
+        charge_start = 0;
+    }
+}
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num)
 {

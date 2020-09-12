@@ -12,6 +12,7 @@
     <file path="business/state/state_battery_week_switch.c" />
     <file path="business/state/state_run_test.c" />
     <file path="business/state/state_time_adjust.c" />
+    <file path="business/state/state_charge.c" />
    </folder>
    <file path="business/business.c" />
    <file path="business/business.h" />

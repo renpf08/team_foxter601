@@ -98,9 +98,17 @@ static const CMDENTRY cmd_list[] =
 *   AF 02 xx // xx simulate steps
 *   CMD_TEST_SYS_REBOOT
 *   AF 03 	 // set system reboot
+*   CMD_TEST_LOG_TYPE_EN
+*   AF 04 ... 	 // set ble log en
+*   ...
+*   CMD_TEST_GET_CHARGE_STA
+*   AF 05 	 // get charge state
 *   CMD_TEST_VIBRATION
-*   AF 05 00    // set vibration off
-*   AF 05 01 xx // set vibration on, xx: vib step
+*   AF 06 00    // set vibration off
+*   AF 06 01 xx // set vibration on, xx: vib step
+*   CMD_TEST_CHARGE_SWING
+*   AF 07 00    // test charge begin and swing
+*   AF 07 01    // test charge stop
 */
 typedef void (* cmd_test_handler)(u8 *buffer, u8 length);
 typedef enum{
@@ -109,7 +117,9 @@ typedef enum{
     CMD_TEST_STEP_COUNT     = 0x02,
     CMD_TEST_SYS_REBOOT     = 0x03,
     CMD_TEST_LOG_TYPE_EN    = 0x04,
-    CMD_TEST_VIBRATION      = 0x05,
+    CMD_TEST_GET_CHARGE_STA = 0x05,
+    CMD_TEST_VIBRATION      = 0x06,
+    CMD_TEST_CHARGE_SWING   = 0x07,
     
     CMD_TEST_NONE,
 }cmt_test_enum_t;
@@ -132,8 +142,14 @@ static void cmd_test_sys_reboot(u8 *buffer, u8 length);
 #if USE_CMD_TEST_LOG_TYPE_EN
 static void cmd_test_log_type_en(u8 *buffer, u8 length);
 #endif
+#if USE_CMD_TEST_GET_CHARGE_STA
+static void cmd_test_get_charger_sta(u8 *buffer, u8 length);
+#endif
 #if USE_CMD_TEST_VIBRATION
 static void cmd_test_vibration(u8 *buffer, u8 length);
+#endif
+#if USE_CMD_TEST_CHARGE_SWING
+static void cmd_test_charge_swing(u8 *buffer, u8 length);
 #endif
 static const cmd_test_entry_t cmd_test_list[] =
 {
@@ -152,8 +168,14 @@ static const cmd_test_entry_t cmd_test_list[] =
     #if USE_CMD_TEST_LOG_TYPE_EN
     {CMD_TEST_LOG_TYPE_EN, cmd_test_log_type_en},
     #endif
+    #if USE_CMD_TEST_GET_CHARGE_STA
+    {CMD_TEST_GET_CHARGE_STA, cmd_test_get_charger_sta},
+    #endif
     #if USE_CMD_TEST_VIBRATION
     {CMD_TEST_VIBRATION, cmd_test_vibration},
+    #endif
+    #if USE_CMD_TEST_CHARGE_SWING
+    {CMD_TEST_CHARGE_SWING, cmd_test_charge_swing},
     #endif
     
 	{CMD_TEST_NONE,         0}
@@ -216,7 +238,7 @@ static void cmd_test_step_count(u8 *buffer, u8 length)
 #if USE_CMD_TEST_SYS_REBOOT
 static void cmd_test_sys_reboot(u8 *buffer, u8 length)
 {
-    Panic(0);
+    system_pre_reboot_handler(REBOOT_TYPE_CMD);
 }
 #endif
 #if USE_CMD_TEST_LOG_TYPE_EN
@@ -226,6 +248,15 @@ static void cmd_test_log_type_en(u8 *buffer, u8 length)
     typedef struct{u8 head; u8 cmd; u8 type; u8 en;}cmd_test_log_type_en_t;
     cmd_test_log_type_en_t* log = (cmd_test_log_type_en_t*)buffer;
     ble_log_type[log->type] = log->en;
+}
+#endif
+#if USE_CMD_TEST_GET_CHARGE_STA
+static void cmd_test_get_charger_sta(u8 *buffer, u8 length)
+{
+    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
+    ble_log[2] = charge_status_get();
+    
+    BLE_SEND_LOG(ble_log, 3);
 }
 #endif
 #if USE_CMD_TEST_VIBRATION
@@ -238,6 +269,20 @@ static void cmd_test_vibration(u8 *buffer, u8 length)
         vib_stop();
     } else if(vib->type == 1) {
         vib_run(vib->step);
+    }
+}
+#endif
+#if USE_CMD_TEST_CHARGE_SWING
+static void cmd_test_charge_swing(u8 *buffer, u8 length)
+{
+    typedef struct{u8 head; u8 cmd; u8 act;}cmd_test_chg_t;
+    cmd_test_chg_t* chg = (cmd_test_chg_t*)buffer;
+
+    if(chg->act == 0) {
+        cmd_cb(CHARGE_SWING, NULL);
+    } else if(chg->act == 1) {
+        cmd_cb(CHARGE_STOP, NULL);
+//        cmd_cb(KEY_M_SHORT_PRESS, NULL);
     }
 }
 #endif
