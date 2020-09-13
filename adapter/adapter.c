@@ -8,12 +8,6 @@
 #include <buf_utils.h>
 #include <csr_ota.h>
 
-typedef struct {
-    u8 double_click_event;
-    u8 compass_state;
-} key_m_ctrl_t;
-static s16 m_click_tid = TIMER_INVALID;
-static s16 compass_tid = TIMER_INVALID;
 static key_m_ctrl_t key_m_ctrl = {0, 0};
 u8 stete_battery_week = state_battery;
 u8 activity_percent = 0;
@@ -68,6 +62,9 @@ s16 csr_event_callback(EVENT_E ev)
         if(combo_event < REPORT_MAX) {     // sure the button released
         	adapter.cb(combo_event, NULL);
     	    //adapter.drv->uart->uart_write((u8 *)&combo_event, 1);
+        }
+        if(combo_event == KEY_M_SHORT_PRESS) {
+        	adapter.cb(COMPASS, NULL);
         }
 	} else if(ev == MAGNETOMETER_READY) {
 	    mag_cb_handler((void*)ev);
@@ -252,68 +249,6 @@ void charge_check(REPORT_E cb)
         charge_start = 1;
     } else if(cb == CHARGE_STOP) {
         charge_start = 0;
-    }
-}
-static void compass_end_handler(u16 id)
-{
-    m_click_tid = TIMER_INVALID;
-    key_m_ctrl.double_click_event = 0;
-}
-static void compass_begin_handler(u16 id)
-{
-    //static u8 motor_dst_pos[max_motor] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    //motor_run_status_t *motor_sta = motor_get_status();
-    //static u8 compass_standby = 0;
-    static u8 last_angle = 0;
-    u8 angle = angle_get();
-    clock_t* clock = clock_get();
-    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_MAG_SAMPLE, 0};
-    
-    compass_tid = TIMER_INVALID;
-//    if((motor_dst_pos[minute_motor] == 0xFF) || (motor_dst_pos[hour_motor] == 0xFF)) {
-//        motor_dst_pos[minute_motor] = motor_sta[minute_motor].dst_pos;
-//        motor_dst_pos[hour_motor] = motor_sta[hour_motor].dst_pos;
-//    }
-    if(key_m_ctrl.compass_state == 0) {
-//        motor_sta[minute_motor].dst_pos = motor_dst_pos[minute_motor];
-//        motor_sta[hour_motor].dst_pos = motor_dst_pos[hour_motor];
-//        motor_dst_pos[minute_motor] = 0xFF;
-//        motor_dst_pos[hour_motor] = 0xFF;
-//    	motor_minute_to_position(motor_dst_pos[minute_motor]);
-//    	motor_hour_to_position(motor_dst_pos[hour_motor]);
-    	motor_minute_to_position(clock->minute);
-    	motor_hour_to_position(clock->hour);
-        return;
-    }
-    if(angle != last_angle) {
-        ble_log[2] = angle;
-        BLE_SEND_LOG(ble_log, 3);
-    	motor_minute_to_position(angle%MINUTE_60);
-    	motor_hour_to_position(angle%HOUR12_0);
-    }
-    last_angle = angle;
-    timer_event(500, compass_begin_handler);
-}
-void key_click_handler(EVENT_E key_event)
-{
-    if(key_event == KEY_M_DOWN) {
-        if(key_m_ctrl.compass_state == 1) {
-            key_m_ctrl.compass_state = 0;
-            return;
-        } else if (key_m_ctrl.double_click_event == 1) {
-            key_m_ctrl.double_click_event = 0;
-            key_m_ctrl.compass_state = 1;
-            adapter.drv->timer->timer_del(m_click_tid);
-            m_click_tid = TIMER_INVALID;
-            adapter.drv->timer->timer_del(compass_tid);
-            compass_tid = TIMER_INVALID;
-            compass_tid = timer_event(1, compass_begin_handler);
-            return;
-        }
-        key_m_ctrl.double_click_event = 1;
-        adapter.drv->timer->timer_del(m_click_tid);
-        m_click_tid = TIMER_INVALID;
-        m_click_tid = timer_event(1000, compass_end_handler);
     }
 }
 #if USE_UART_PRINT
