@@ -160,6 +160,7 @@ u16 GetXYZ_Acce_Data(void)
 }
 static void StepCountProce(void)
 {
+    return;
     uint8 i=0,StepFlag=0;
     uint16 Temp=0xFFFF;    
     if(Step_Count_data.Pro_Step==PRO_STEP_START)
