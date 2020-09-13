@@ -114,6 +114,7 @@ typedef enum {
 	BAT_PECENT_20,
 	BAT_PECENT_10,
 	BAT_PECENT_0,
+	BATTERY_WEEK_MAX,
 }BATTERY_WEEK_E;
 
 typedef enum{
