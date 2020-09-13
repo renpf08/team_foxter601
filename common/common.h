@@ -89,6 +89,7 @@ typedef enum {
     #endif
     CHARGE_SWING = 41,
     CHARGE_STOP = 42,
+    COMPASS = 43,
 	REPORT_MAX,
 }REPORT_E;
 
@@ -262,6 +263,7 @@ typedef enum {
 	NVM_ACCESS = 11,
 	SYSTEM_REBOOT = 12,
 	CHARGE_SWITCH = 13,
+	STATE_COMPASS = 14,
 	STATE_MAX,
 }STATE_E;
 
@@ -366,6 +368,7 @@ typedef enum{
     BLE_LOG_NOTIFY_TYPE         = 0x03,
     BLE_LOG_ANCS_APP_ID         = 0x04,
     BLE_LOG_CHARGE_STATE        = 0x05,
+    BLE_LOG_MAG_SAMPLE          = 0x06,
     
     BLE_LOG_MAX,
 }ble_log_type_t;

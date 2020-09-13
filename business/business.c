@@ -68,6 +68,9 @@ static state_t state[] = {
 	/*run test*/
 	STATE_FILL(CLOCK,       		KEY_A_B_M_LONG_PRESS,   RUN_TEST,  				state_run_test),
 	STATE_FILL(RUN_TEST,    		KEY_A_B_M_LONG_PRESS,   RUN_TEST,  				state_run_test),
+	/*run compass*/
+	STATE_FILL(CLOCK,       		COMPASS,                STATE_COMPASS,  	    state_compass),
+	STATE_FILL(BLE_SWITCH,    		COMPASS,                STATE_COMPASS,  	    state_compass),
 	/*charging swing*/
 //	STATE_FILL(CLOCK,               CHARGE_SWING,           CHARGE_SWITCH,          state_charge),
 //	STATE_FILL(CLOCK,               CHARGE_STOP,            CHARGE_SWITCH,          state_charge),

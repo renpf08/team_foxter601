@@ -6,10 +6,10 @@
 #include "../../adapter/adapter.h"
 #include "state.h"
 
-s16 state_charge(REPORT_E cb, void *args)
+s16 state_compass(REPORT_E cb, void *args)
 {
-    STATE_E *state = (STATE_E *)args;
-
-    *state = CLOCK;
+	//STATE_E *state = (STATE_E *)args;
+    
 	return 0;
 }
+
