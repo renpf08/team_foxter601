@@ -8,7 +8,6 @@
 #include <buf_utils.h>
 #include <csr_ota.h>
 
-static key_m_ctrl_t key_m_ctrl = {0, 0};
 u8 stete_battery_week = state_battery;
 u8 activity_percent = 0;
 zero_adjust_lock_t zero_adjust_mode = {0, 0};
@@ -145,6 +144,7 @@ s16 adapter_init(adapter_callback cb)
 }
 static void charge_polling_check(void)
 {
+    return;
     static s16 last_status = not_incharge;
     s16 now_status = charge_status_get();
     u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
@@ -159,8 +159,6 @@ static void charge_polling_check(void)
 	    adapter.cb(CHARGE_STOP, NULL);
 	}
     last_status = now_status;
-    ble_log[2] = 2;
-    BLE_SEND_LOG(ble_log, 3);
 }
 static void system_polling_handler(u16 id)
 {
@@ -338,10 +336,8 @@ void sync_time(void)
 
     BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
     refresh_step();
-    if(get_compass_stete() == 0) {
-    	motor_minute_to_position(clock->minute);
-    	motor_hour_to_position(clock->hour);
-    }
+	motor_minute_to_position(clock->minute);
+	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
 }
 
@@ -360,9 +356,14 @@ void motor_restore_position(REPORT_E cb)
     }
 }
 
-u8 get_compass_stete(void)
+//u8 get_compass_stete(void)
+//{
+//    return key_m_ctrl.compass_state;
+//}
+
+s16 timer_remove(s16 tid)
 {
-    return key_m_ctrl.compass_state;
+	return adapter.drv->timer->timer_del(tid);
 }
 
 s16 timer_event(u16 ms, timer_cb cb)

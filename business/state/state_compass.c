@@ -10,6 +10,7 @@ typedef struct {
     u8 double_click_event;
     u8 compass_state;
 } key_m_ctrl_t;
+static key_m_ctrl_t key_m_ctrl = {0, 0};
 static s16 m_click_tid = TIMER_INVALID;
 static s16 compass_tid = TIMER_INVALID;
 
@@ -20,26 +21,13 @@ static void compass_end_handler(u16 id)
 }
 static void compass_begin_handler(u16 id)
 {
-    //static u8 motor_dst_pos[max_motor] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    //motor_run_status_t *motor_sta = motor_get_status();
-    //static u8 compass_standby = 0;
     static u8 last_angle = 0;
     u8 angle = angle_get();
     clock_t* clock = clock_get();
     u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_MAG_SAMPLE, 0};
     
     compass_tid = TIMER_INVALID;
-//    if((motor_dst_pos[minute_motor] == 0xFF) || (motor_dst_pos[hour_motor] == 0xFF)) {
-//        motor_dst_pos[minute_motor] = motor_sta[minute_motor].dst_pos;
-//        motor_dst_pos[hour_motor] = motor_sta[hour_motor].dst_pos;
-//    }
     if(key_m_ctrl.compass_state == 0) {
-//        motor_sta[minute_motor].dst_pos = motor_dst_pos[minute_motor];
-//        motor_sta[hour_motor].dst_pos = motor_dst_pos[hour_motor];
-//        motor_dst_pos[minute_motor] = 0xFF;
-//        motor_dst_pos[hour_motor] = 0xFF;
-//    	motor_minute_to_position(motor_dst_pos[minute_motor]);
-//    	motor_hour_to_position(motor_dst_pos[hour_motor]);
     	motor_minute_to_position(clock->minute);
     	motor_hour_to_position(clock->hour);
         return;
@@ -53,48 +41,26 @@ static void compass_begin_handler(u16 id)
     last_angle = angle;
     timer_event(500, compass_begin_handler);
 }
-//void key_click_handler(EVENT_E key_event)
-//{
-//    if(key_event == KEY_M_DOWN) {
-//        if(key_m_ctrl.compass_state == 1) {
-//            key_m_ctrl.compass_state = 0;
-//            return;
-//        } else if (key_m_ctrl.double_click_event == 1) {
-//            key_m_ctrl.double_click_event = 0;
-//            key_m_ctrl.compass_state = 1;
-//            adapter.drv->timer->timer_del(m_click_tid);
-//            m_click_tid = TIMER_INVALID;
-//            adapter.drv->timer->timer_del(compass_tid);
-//            compass_tid = TIMER_INVALID;
-//            compass_tid = timer_event(1, compass_begin_handler);
-//            return;
-//        }
-//        key_m_ctrl.double_click_event = 1;
-//        adapter.drv->timer->timer_del(m_click_tid);
-//        m_click_tid = TIMER_INVALID;
-//        m_click_tid = timer_event(1000, compass_end_handler);
-//    }
-//}
-
 s16 state_compass(REPORT_E cb, void *args)
 {
-	STATE_E *state = (STATE_E *)args;
+    STATE_E *state = (STATE_E *)args;
     
-    if(key_m_ctrl.compass_state == 1) {
+    if(key_m_ctrl.compass_state == 1) { // 03 exit compass mode
         key_m_ctrl.compass_state = 0;
-        return;
-    } else if (key_m_ctrl.double_click_event == 1) {
+        *state = CLOCK;
+        return 0;
+    } else if (key_m_ctrl.double_click_event == 1) { // 02 double click worked, enter compass mode
         key_m_ctrl.double_click_event = 0;
         key_m_ctrl.compass_state = 1;
-        adapter.drv->timer->timer_del(m_click_tid);
+        timer_remove(m_click_tid);
         m_click_tid = TIMER_INVALID;
-        adapter.drv->timer->timer_del(compass_tid);
+        timer_remove(compass_tid);
         compass_tid = TIMER_INVALID;
         compass_tid = timer_event(1, compass_begin_handler);
-        return;
+        return 0;
     }
-    key_m_ctrl.double_click_event = 1;
-    adapter.drv->timer->timer_del(m_click_tid);
+    key_m_ctrl.double_click_event = 1; // 01 first click
+    timer_remove(m_click_tid);
     m_click_tid = TIMER_INVALID;
     m_click_tid = timer_event(1000, compass_end_handler);
     

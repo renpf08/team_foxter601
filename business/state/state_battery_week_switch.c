@@ -45,7 +45,7 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 	    *state = CLOCK;
     }
     vib_stop();
-    key_click_handler(KEY_M_DOWN);
+//    key_click_handler(KEY_M_DOWN);
 
 	return 0;
 }

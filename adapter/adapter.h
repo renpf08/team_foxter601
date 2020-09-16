@@ -43,6 +43,7 @@ void motor_restore_position(REPORT_E cb);
 void print(u8 *buf, u16 num);
 void trace(u8 *buf, u16 num);
 #endif
+s16 timer_remove(s16 tid);
 s16 timer_event(u16 ms, timer_cb cb);
 
 clock_t *clock_get(void);
@@ -73,8 +74,8 @@ u8 battery_percent_read(void);
 
 s16 nvm_storage_init(adapter_callback cb);
 
-void key_click_handler(EVENT_E key_event);
-u8 get_compass_stete(void);
+//void key_click_handler(EVENT_E key_event);
+//u8 get_compass_stete(void);
 #if USE_PARAM_STORE
 s16 nvm_read_motor_init_flag(void);
 s16 nvm_write_motor_init_flag(void);
