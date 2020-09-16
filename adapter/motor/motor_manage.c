@@ -83,24 +83,28 @@ u8 hour_list[] = {
 
 s16 motor_hour_to_position(u8 hour)
 {
-	/*hour dst position configuration*/
-	u8 minute_pos = (motor_manager.motor_status[minute_motor].dst_pos == MINUTE_60) ? \
-						MINUTE_0 : motor_manager.motor_status[minute_motor].dst_pos;
+    if(key_m_ctrl.compass_state == 0) {
+    	/*hour dst position configuration*/
+    	u8 minute_pos = (motor_manager.motor_status[minute_motor].dst_pos == MINUTE_60) ? \
+    						MINUTE_0 : motor_manager.motor_status[minute_motor].dst_pos;
 
-	if(hour >= 12) {
-		hour -= 12;
-	}
+    	if(hour >= 12) {
+    		hour -= 12;
+    	}
 
-	motor_manager.motor_status[hour_motor].dst_pos = hour_list[hour] + minute_pos/12;
-	if((HOUR11_8 == motor_manager.motor_status[hour_motor].cur_pos) &&
-	   (HOUR0_0 == motor_manager.motor_status[hour_motor].dst_pos) ){
-		motor_manager.motor_status[hour_motor].dst_pos = HOUR12_0;
-	}
+    	motor_manager.motor_status[hour_motor].dst_pos = hour_list[hour] + minute_pos/12;
+    	if((HOUR11_8 == motor_manager.motor_status[hour_motor].cur_pos) &&
+    	   (HOUR0_0 == motor_manager.motor_status[hour_motor].dst_pos) ){
+    		motor_manager.motor_status[hour_motor].dst_pos = HOUR12_0;
+    	}
 
-	/*hour cur pos configuration*/
-	if(HOUR12_0 == motor_manager.motor_status[hour_motor].cur_pos) {
-		motor_manager.motor_status[hour_motor].cur_pos = HOUR0_0;
-	}
+    	/*hour cur pos configuration*/
+    	if(HOUR12_0 == motor_manager.motor_status[hour_motor].cur_pos) {
+    		motor_manager.motor_status[hour_motor].cur_pos = HOUR0_0;
+    	}
+    } else {
+        motor_manager.motor_status[hour_motor].dst_pos = hour;
+    }
 	   
 	if(motor_manager.motor_status[hour_motor].dst_pos != 
 	   motor_manager.motor_status[hour_motor].cur_pos) {

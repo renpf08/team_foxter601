@@ -6,11 +6,6 @@
 #include "../../adapter/adapter.h"
 #include "state.h"
 
-typedef struct {
-    u8 double_click_event;
-    u8 compass_state;
-} key_m_ctrl_t;
-static key_m_ctrl_t key_m_ctrl = {0, 0};
 static s16 m_click_tid = TIMER_INVALID;
 static s16 compass_tid = TIMER_INVALID;
 
@@ -24,7 +19,10 @@ static void compass_begin_handler(u16 id)
     static u8 last_angle = 0;
     u8 angle = angle_get();
     clock_t* clock = clock_get();
-    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_MAG_SAMPLE, 0};
+    volatile u16 minute_angle = 0;
+    volatile u16 hour_angle = 0;
+    motor_run_status_t *motor_sta = motor_get_status();
+    u8 ble_log[4] = {CMD_TEST_SEND, BLE_LOG_MAG_SAMPLE, 0, 0};
     
     compass_tid = TIMER_INVALID;
     if(key_m_ctrl.compass_state == 0) {
@@ -32,11 +30,14 @@ static void compass_begin_handler(u16 id)
     	motor_hour_to_position(clock->hour);
         return;
     }
-    if(angle != last_angle) {
-        ble_log[2] = angle;
-        BLE_SEND_LOG(ble_log, 3);
-    	motor_minute_to_position(angle%MINUTE_60);
-    	motor_hour_to_position(angle%HOUR12_0);
+    if((angle != last_angle) && (!motor_sta[minute_motor].run_flag) && (!motor_sta[hour_motor].run_flag)) {
+        minute_angle = (angle%MINUTE_60);
+        hour_angle = (minute_angle+30)%HOUR12_0;
+    	motor_minute_to_position(minute_angle);
+    	motor_hour_to_position(hour_angle);
+        ble_log[2] = minute_angle;
+        ble_log[3] = hour_angle;
+        BLE_SEND_LOG(ble_log, 4);
     }
     last_angle = angle;
     timer_event(500, compass_begin_handler);

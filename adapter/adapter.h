@@ -151,6 +151,7 @@ s16 charge_status_get(void);
 //u8 bcd_to_hex(u8 bcd_data);
 //u32 hex_to_bcd(u8 hex_data);
 
+extern key_m_ctrl_t key_m_ctrl;
 extern zero_adjust_lock_t zero_adjust_mode;
 extern u8 stete_battery_week;
 extern const u8 date[];
