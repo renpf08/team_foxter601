@@ -21,8 +21,7 @@ static void compass_begin_handler(u16 id)
     clock_t* clock = clock_get();
     volatile u16 minute_angle = 0;
     volatile u16 hour_angle = 0;
-    motor_run_status_t *motor_sta = motor_get_status();
-    u8 ble_log[4] = {CMD_TEST_SEND, BLE_LOG_MAG_SAMPLE, 0, 0};
+    u8 ble_log[5] = {CMD_TEST_SEND, BLE_LOG_MAG_SAMPLE, 0, 0, 0};
     
     compass_tid = TIMER_INVALID;
     if(key_m_ctrl.compass_state == 0) {
@@ -30,14 +29,17 @@ static void compass_begin_handler(u16 id)
     	motor_hour_to_position(clock->hour);
         return;
     }
-    if((angle != last_angle) && (!motor_sta[minute_motor].run_flag) && (!motor_sta[hour_motor].run_flag)) {
-        minute_angle = (angle%MINUTE_60);
-        hour_angle = (minute_angle+30)%HOUR12_0;
+    if(angle != last_angle) {
+        hour_angle = angle/3;
+        while(hour_angle>60) hour_angle-=60;
+        minute_angle = hour_angle+30;
+        while(minute_angle>60) minute_angle-=60;
     	motor_minute_to_position(minute_angle);
     	motor_hour_to_position(hour_angle);
-        ble_log[2] = minute_angle;
-        ble_log[3] = hour_angle;
-        BLE_SEND_LOG(ble_log, 4);
+        ble_log[2] = angle;
+        ble_log[3] = minute_angle;
+        ble_log[4] = hour_angle;
+        BLE_SEND_LOG(ble_log, 5);
     }
     last_angle = angle;
     timer_event(500, compass_begin_handler);
