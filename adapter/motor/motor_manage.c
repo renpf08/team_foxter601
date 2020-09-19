@@ -83,7 +83,7 @@ u8 hour_list[] = {
 
 s16 motor_hour_to_position(u8 hour)
 {
-    if(key_m_ctrl.compass_state == 0) {
+    if((key_m_ctrl.compass_state == 0) && (key_m_ctrl.compass_adj_state == 0)) {
     	/*hour dst position configuration*/
     	u8 minute_pos = (motor_manager.motor_status[minute_motor].dst_pos == MINUTE_60) ? \
     						MINUTE_0 : motor_manager.motor_status[minute_motor].dst_pos;

@@ -14,7 +14,7 @@ zero_adjust_lock_t zero_adjust_mode = {0, 0};
 static u8 charge_start = 0;
 static u8 swing_state = 0;
 
-key_m_ctrl_t key_m_ctrl = {0, 0};
+key_m_ctrl_t key_m_ctrl = {0, 0, 0};
 
 const u8 date[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,

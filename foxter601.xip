@@ -13,6 +13,7 @@
     <file path="business/state/state_run_test.c" />
     <file path="business/state/state_time_adjust.c" />
     <file path="business/state/state_compass.c" />
+    <file path="business/state/state_compass_adjust.c" />
    </folder>
    <file path="business/business.c" />
    <file path="business/business.h" />

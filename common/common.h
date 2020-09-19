@@ -264,6 +264,7 @@ typedef enum {
 	SYSTEM_REBOOT = 12,         /* 0x0C */
 	CHARGE_SWITCH = 13,         /* 0x0D */
 	STATE_COMPASS = 14,         /* 0x0E */
+	STATE_COMPASS_ADJ = 15,     /* 0x0F */
 	STATE_MAX,                  
 }STATE_E;
 
@@ -618,6 +619,7 @@ typedef struct {
 typedef struct {
     u8 double_click_event;
     u8 compass_state;
+    u8 compass_adj_state;
 } key_m_ctrl_t;
 
 #define POS_HIGH(num) PioSet((num), 1UL)
