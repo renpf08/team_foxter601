@@ -73,6 +73,7 @@
     <file path="driver/motor/motor_hour.c" />
     <file path="driver/motor/motor_minute.c" />
     <file path="driver/motor/motor_notify.c" />
+    <file path="driver/motor/motor_item.c" />
    </folder>
    <folder name="magnetometer" >
     <file path="driver/magnetometer/magnetometer.c" />

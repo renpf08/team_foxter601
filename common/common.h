@@ -301,6 +301,16 @@ enum {
 	not_incharge,
 };
 
+enum {
+	minute_motor = 0,
+	hour_motor = 1,
+	activity_motor = 2,
+	date_motor = 3,
+	battery_week_motor = 4,
+	notify_motor = 5,
+	max_motor,
+};
+
 typedef struct {
 	u8 group;
 	u8 num;
@@ -333,7 +343,7 @@ typedef struct {
 }motor_cfg_t;
 
 typedef struct {
-	uart_cfg_t uart_cfg;	
+	uart_cfg_t uart_cfg;
 	pin_t      charge_cfg;
 	pin_t      keya_cfg;
 	pin_t      keym_cfg;
@@ -341,12 +351,16 @@ typedef struct {
 	pin_t      vibrator_cfg;
 	gsensor_cfg_t gsensor_cfg;
 	magnetometer_cfg_t magnetometer_cfg;
+	#if 0
 	motor_cfg_t motor_hour_cfg;
 	motor_cfg_t motor_minute_cfg;
 	motor_cfg_t motor_activity_cfg;	
 	motor_cfg_t motor_date_cfg;
 	motor_cfg_t motor_battery_week_cfg;	
 	motor_cfg_t motor_notify_cfg;
+	#else
+	motor_cfg_t *motor_item_cfg;
+	#endif
 }cfg_t;
 
 typedef struct
@@ -578,16 +592,6 @@ typedef s16 (*timer_start_func)(u16 ms, timer_cb cb);
 typedef s16 (*timer_delete)(s16 tid);
 
 typedef s16 (*state_func)(REPORT_E cb, void *args);
-
-enum {
-	minute_motor = 0,
-	hour_motor = 1,
-	activity_motor = 2,
-	date_motor = 3,
-	battery_week_motor = 4,
-	notify_motor = 5,
-	max_motor,
-};
 
 /* enum for event id */
 typedef enum 
