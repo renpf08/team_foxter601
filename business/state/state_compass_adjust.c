@@ -7,6 +7,7 @@
 #include "state.h"
 
 static s16 compass_adj_tid = TIMER_INVALID;
+static u8 adjust_chk[9] = {0,0,0,0,0,0,0,0,0};
 
 static void compass_adjust_handler(u16 id)
 {
@@ -14,6 +15,8 @@ static void compass_adjust_handler(u16 id)
     u8 angle = angle_get();
     volatile u16 angle_to_pos = 0;
     u8 tmp_angle = 0;
+    u16 adjust_buf[9] = {10,30,50,70,90,110,130,150,170};
+    u8 i = 0;
     u8 ble_log[6] = {CMD_TEST_SEND, BLE_LOG_COMPASS_ADJ, 0, 0, 0, 0};
 
     if(key_m_ctrl.compass_adj_state == 0) {
@@ -25,6 +28,23 @@ static void compass_adjust_handler(u16 id)
         while(angle_to_pos>60) angle_to_pos-=60;
     	motor_minute_to_position(angle_to_pos);
     	motor_hour_to_position(angle_to_pos);
+
+        for(i = 0; i < sizeof(adjust_chk); i++) {
+            if(adjust_chk[i] != 1) {
+                break;
+            }
+        }
+        if(i >= sizeof(sizeof(adjust_chk))) { // compass adjust done!
+            MemSet(adjust_chk, 0, sizeof(adjust_chk));
+            vib_stop();
+            vib_run(1, 4);
+        }
+        for(i = 0; i < sizeof(adjust_chk); i++) {
+            if(angle == adjust_buf[i]) {
+            if((angle > (adjust_buf[i]-3)) && (angle < (adjust_buf[i]+3)))
+                adjust_chk[i] = 1;
+            }
+        }
 
         tmp_angle = angle;
         ble_log[2] = tmp_angle;
@@ -38,7 +58,7 @@ static void compass_adjust_handler(u16 id)
     }
     last_angle = angle;
     compass_adj_tid = TIMER_INVALID;
-    timer_event(500, compass_adjust_handler);
+    timer_event(28, compass_adjust_handler);
 }
 s16 state_compass_adjust(REPORT_E cb, void *args)
 {
@@ -51,6 +71,7 @@ s16 state_compass_adjust(REPORT_E cb, void *args)
     if(key_m_ctrl.compass_adj_state == 1) {
         hour_pos = motor_sta[minute_motor].dst_pos;
     	motor_hour_to_position(hour_pos);
+        MemSet(adjust_chk, 0, sizeof(adjust_chk));
         compass_adj_tid = timer_event(1, compass_adjust_handler);
     } else {
     	motor_minute_to_position(clock->minute);

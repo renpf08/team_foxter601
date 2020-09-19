@@ -42,7 +42,7 @@ static void compass_begin_handler(u16 id)
         BLE_SEND_LOG(ble_log, 5);
     }
     last_angle = angle;
-    timer_event(500, compass_begin_handler);
+    timer_event(28, compass_begin_handler);
 }
 s16 state_compass(REPORT_E cb, void *args)
 {
