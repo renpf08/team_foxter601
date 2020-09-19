@@ -3,6 +3,31 @@
 
 #include"../common/common.h"
 
+#define MOTOR_CFG_INIT(motor_num, pos_num, com_num, neg_num) \
+	[motor_num] = { \
+		.pos = { \
+			.group = 0, \
+			.num = pos_num, \
+		}, \
+		.com = { \
+			.group = 0, \
+			.num = com_num, \
+		}, \
+		.neg = { \
+			.group = 0, \
+			.num = neg_num, \
+		}, \
+	}
+
+static motor_cfg_t moter_item_config[max_motor] = {
+	MOTOR_CFG_INIT(hour_motor, 26, 14, 24),
+	MOTOR_CFG_INIT(minute_motor, 28, 14, 27),
+	MOTOR_CFG_INIT(activity_motor, 30, 14, 29),
+	MOTOR_CFG_INIT(date_motor, 23, 14, 22),
+	MOTOR_CFG_INIT(battery_week_motor, 21, 14, 19),
+	MOTOR_CFG_INIT(notify_motor, 18, 14, 16),
+};
+
 //pin config here
 cfg_t args = {
 		.uart_cfg = {
@@ -71,6 +96,7 @@ cfg_t args = {
 				.num = 0,
 			},
 		},
+		#if 0
 		.motor_hour_cfg = {
 			.pos = {
 				.group = 0,
@@ -155,6 +181,9 @@ cfg_t args = {
 				.num = 16,
 			},
 		},
+		#else
+		.motor_item_cfg = &moter_item_config[0],
+		#endif
 };
 	
 #endif
