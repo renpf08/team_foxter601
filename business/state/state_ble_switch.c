@@ -17,6 +17,7 @@ typedef struct {
 
 pair_ctrl_t pair_code = {0, 0};
 static u8 swing_ongoing = 0;
+static s16 discon_vib_timer_id = TIMER_INVALID;
 
 static void notify_swing_cb_handler(u16 id)
 {
@@ -149,18 +150,25 @@ static s16 ble_pair(void *args)
 
 	return res;
 }
+static void disconect_vib_handler(u16 id)
+{
+    //discon_vib_timer_id = TIMER_INVALID;
+    #if USE_UART_PRINT
+    trace((u8*)&"vibration", 9);
+    #endif
+    vib_stop();
+    vib_run(5);
+}
 static u16 ble_change(void *args)
 {
     STATE_E *state_mc = (STATE_E *)args;
     app_state state_ble = ble_state_get();
     static app_state last_state_ble = app_idle;
     
+    timer_remove(discon_vib_timer_id);
+    discon_vib_timer_id = TIMER_INVALID;
     if((last_state_ble == app_connected) && (state_ble != app_connected)) {
-        #if USE_UART_PRINT
-        trace((u8*)&"vibration", 9);
-        #endif
-        vib_stop();
-        vib_run(5);
+        discon_vib_timer_id = timer_event(3000, disconect_vib_handler);
     }
     last_state_ble = state_ble;    
     if(state_ble == app_advertising) { // advertising start
