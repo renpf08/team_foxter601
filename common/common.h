@@ -370,6 +370,7 @@ typedef enum{
     BLE_LOG_ANCS_APP_ID         = 0x04,
     BLE_LOG_CHARGE_STATE        = 0x05,
     BLE_LOG_MAG_SAMPLE          = 0x06,
+    BLE_LOG_COMPASS_ADJ         = 0x07,
     
     BLE_LOG_MAX,
 }ble_log_type_t;
