@@ -139,7 +139,7 @@ void ble_state_set(app_state cur_state);
 app_state ble_state_get(void);
 
 s16 vib_stop(void);
-s16 vib_run(u8 step_count);
+s16 vib_run(u8 step_count, u8 caller);
 
 s16 charge_status_get(void);
 

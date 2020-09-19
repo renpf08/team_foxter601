@@ -153,6 +153,6 @@ s16 business_init(void)
 	business.state_now = CLOCK;
 	//state_clock(CLOCK_1_MINUTE, NULL);
     vib_stop();
-    vib_run(1);
+    vib_run(1, 0x00);
 	return 0;
 }

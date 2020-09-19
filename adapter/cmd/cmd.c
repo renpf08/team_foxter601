@@ -268,7 +268,7 @@ static void cmd_test_vibration(u8 *buffer, u8 length)
     if(vib->type == 0) {
         vib_stop();
     } else if(vib->type == 1) {
-        vib_run(vib->step);
+        vib_run(vib->step, 0x01);
     }
 }
 #endif

@@ -107,7 +107,7 @@ s16 state_notify(REPORT_E cb, void *args)
 	}
     BLE_SEND_LOG(ble_log, 5);
     vib_stop();
-    vib_run(5);
+    vib_run(5, 0x03);
 
 	*state = CLOCK;
 	return 0;

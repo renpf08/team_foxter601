@@ -184,14 +184,26 @@ static void mag_sample_handler(u16 id)
 {
     mag_get_measure_val();
 
-    #if 0
-    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_MAG_SAMPLE, 0};
+    #if 1
+    u8 ble_log[5] = {CMD_TEST_SEND, BLE_LOG_MAG_SAMPLE, 0};
     static u8 angle = 0;
+    volatile u8 cur = mag.angle_value;
     if(angle != mag.angle_value)
     {
+        //cur = mag.angle_value*2;
         ble_log[2] = mag.angle_value;
-        BLE_SEND_LOG(ble_log, 3);
+        ble_log[3] = cur/100;
+        cur = cur%100;
+        ble_log[4] = (cur/10<<4)&0xF0;
+        cur = cur%10;
+        ble_log[4] |= cur&0x0F;
+        BLE_SEND_LOG(ble_log, 5);
     }
+//    if(angle != mag.angle_value)
+//    {
+//        ble_log[2] = mag.angle_value;
+//        BLE_SEND_LOG(ble_log, 3);
+//    }
     angle = mag.angle_value;
     #endif
     

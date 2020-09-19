@@ -157,7 +157,7 @@ static void disconect_vib_handler(u16 id)
     trace((u8*)&"vibration", 9);
     #endif
     vib_stop();
-    vib_run(5);
+    vib_run(5, 0x02);
 }
 static u16 ble_change(void *args)
 {
