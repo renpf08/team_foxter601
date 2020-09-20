@@ -33,7 +33,8 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 	}
     stete_battery_week = state_battery_week.cur_state;
     
-    *state = CLOCK;
+    //*state = CLOCK;
+    *state = get_last_state();
 	return 0;
 }
 

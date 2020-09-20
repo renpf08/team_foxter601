@@ -43,6 +43,8 @@ void motor_restore_position(REPORT_E cb);
 void print(u8 *buf, u16 num);
 void trace(u8 *buf, u16 num);
 #endif
+STATE_E get_last_state(void);
+void set_last_state(STATE_E state);
 s16 timer_remove(s16 tid);
 s16 timer_event(u16 ms, timer_cb cb);
 

@@ -13,6 +13,7 @@ u8 activity_percent = 0;
 zero_adjust_lock_t zero_adjust_mode = {0, 0};
 static u8 charge_start = 0;
 static u8 swing_state = 0;
+static STATE_E state_last = INIT;
 
 key_m_ctrl_t key_m_ctrl = {0, 0, 0};
 
@@ -387,10 +388,15 @@ void motor_restore_position(REPORT_E cb)
     }
 }
 
-//u8 get_compass_stete(void)
-//{
-//    return key_m_ctrl.compass_state;
-//}
+STATE_E get_last_state(void)
+{
+    return state_last;
+}
+
+void set_last_state(STATE_E state)
+{
+    state_last = state;
+}
 
 s16 timer_remove(s16 tid)
 {

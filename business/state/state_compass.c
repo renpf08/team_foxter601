@@ -47,10 +47,16 @@ static void compass_begin_handler(u16 id)
 s16 state_compass(REPORT_E cb, void *args)
 {
     STATE_E *state = (STATE_E *)args;
+    static STATE_E pre_state = INIT;
+    
+    if(get_last_state() != STATE_COMPASS) {
+        pre_state = get_last_state(); // auto detect to return to CLOCK state or BLE_CHANGE state
+    }
+    //STATE_E *state = (STATE_E *)args;
     
     if(key_m_ctrl.compass_state == 1) { // 03 exit compass mode
         key_m_ctrl.compass_state = 0;
-        *state = CLOCK;
+        *state = pre_state;
         return 0;
     } else if (key_m_ctrl.double_click_event == 1) { // 02 double click worked, enter compass mode
         key_m_ctrl.double_click_event = 0;
@@ -66,6 +72,7 @@ s16 state_compass(REPORT_E cb, void *args)
     timer_remove(m_click_tid);
     m_click_tid = TIMER_INVALID;
     m_click_tid = timer_event(1000, compass_end_handler);
+    *state = pre_state;
     
 	return 0;
 }

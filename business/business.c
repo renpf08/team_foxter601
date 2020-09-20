@@ -98,10 +98,11 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
     } else if(cb == REPORT_MAX) {
         return 0;
     }
-    
+
 	for(i = 0; i < sizeof(state)/sizeof(state_t); i++) {
 		if((state[i].init_state == business.state_now) && 
 			(state[i].ev == cb)) {
+			set_last_state(business.state_now);
 			business.state_now = state[i].next_state;
 			res = state[i].func(cb, &business.state_now);
             st_cb[5] = 1;
