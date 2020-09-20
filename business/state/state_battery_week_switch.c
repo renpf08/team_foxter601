@@ -18,7 +18,12 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 	clock_t * clk = NULL;
 	u8 battery_level = BAT_PECENT_0;
 	STATE_E *state = (STATE_E *)args;
-    
+
+    if(vib_state() == 1) {
+        vib_stop();
+        *state = get_last_state();
+        return 0;
+    }
 	//print((u8 *)&"battery_week", 12);
 	if(state_week == state_battery_week.cur_state) {
 		state_battery_week.cur_state = state_battery;

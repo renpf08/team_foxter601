@@ -57,8 +57,12 @@ static u8 button_event_check(u16 button_event)
 {
     motor_run_status_t *motor_sta = motor_get_status();
     app_state state_ble = ble_state_get();
-
-    vib_stop();
+//    u8 vib_run_state = vib_state();
+//
+//    vib_stop();
+//    if(vib_run_state == 1) {
+//        return 1;
+//    }
     if(button_event != KEY_M_SHORT_PRESS) {
         return 0;
     }

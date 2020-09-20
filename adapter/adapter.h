@@ -143,6 +143,7 @@ app_state ble_state_get(void);
 
 s16 vib_stop(void);
 s16 vib_run(u8 step_count, u8 caller);
+u8 vib_state(void);
 
 s16 charge_status_get(void);
 
