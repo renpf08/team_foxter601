@@ -63,6 +63,12 @@ static void compass_adjust_handler(u16 id)
 s16 state_compass_adjust(REPORT_E cb, void *args)
 {
     STATE_E *state = (STATE_E *)args;
+    static STATE_E pre_state = INIT;
+    
+    if(get_last_state() != STATE_COMPASS_ADJ) {
+        pre_state = get_last_state(); // auto detect to return to CLOCK state or BLE_CHANGE state
+    }
+    
     motor_run_status_t *motor_sta = motor_get_status();
     clock_t* clock = clock_get();
     u8 hour_pos;
@@ -76,7 +82,7 @@ s16 state_compass_adjust(REPORT_E cb, void *args)
     } else {
     	motor_minute_to_position(clock->minute);
     	motor_hour_to_position(clock->hour);
-        *state = CLOCK;
+        *state = pre_state;
     }
     
 	return 0;

@@ -52,7 +52,6 @@ s16 state_compass(REPORT_E cb, void *args)
     if(get_last_state() != STATE_COMPASS) {
         pre_state = get_last_state(); // auto detect to return to CLOCK state or BLE_CHANGE state
     }
-    //STATE_E *state = (STATE_E *)args;
     
     if(key_m_ctrl.compass_state == 1) { // 03 exit compass mode
         key_m_ctrl.compass_state = 0;

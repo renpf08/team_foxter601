@@ -74,6 +74,7 @@ static state_t state[] = {
 	STATE_FILL(STATE_COMPASS,    	COMPASS,                STATE_COMPASS,  	    state_compass),
 	/*compass adjust*/
 	STATE_FILL(CLOCK,       		KEY_B_LONG_PRESS,       STATE_COMPASS_ADJ,  	state_compass_adjust),
+	STATE_FILL(BLE_SWITCH,          KEY_B_LONG_PRESS,       STATE_COMPASS_ADJ,  	state_compass_adjust),
 	STATE_FILL(STATE_COMPASS_ADJ,   KEY_B_LONG_PRESS,       STATE_COMPASS_ADJ,  	state_compass_adjust),
 	/*charging swing*/
 //	STATE_FILL(CLOCK,               CHARGE_SWING,           CHARGE_SWITCH,          state_charge),
