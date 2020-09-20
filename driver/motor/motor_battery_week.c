@@ -3,119 +3,41 @@
 #include <timer.h>
 #include "../driver.h"
 
-static motor_cfg_t csr_motor_battery_week_cfg = {
-	.pos = {
-		.group = 0,
-		.num = 0,
-	},
-	.com = {
-		.group = 0,
-		.num = 0,
-	},
-	.neg = {
-		.group = 0,
-		.num = 0,
-	},
-};
+extern s16 csr_motor_item_init(u16 motor_num, cfg_t *args, event_callback cb);
+extern s16 csr_motor_item_positive_first_half(u16 motor_num, void *args);
+extern s16 csr_motor_item_positive_second_half(u16 motor_num, void *args);
+extern s16 csr_motor_item_negtive_first_half(u16 motor_num, void *args);
+extern s16 csr_motor_item_negtive_second_half(u16 motor_num, void *args);
+extern s16 csr_motor_item_stop(u16 motor_num, void *args);
 
 static s16 csr_motor_battery_week_positive_first_half(void *args)
 {
-	PioSetDir(csr_motor_battery_week_cfg.pos.num, PIO_DIR_OUTPUT);
-	PioSetDir(csr_motor_battery_week_cfg.neg.num, PIO_DIR_OUTPUT);
-
-	PioSets(BIT_MASK(csr_motor_battery_week_cfg.pos.num)| \
-			BIT_MASK(csr_motor_battery_week_cfg.com.num)| \
-			BIT_MASK(csr_motor_battery_week_cfg.neg.num),
-			0x00UL);
-
-	POS_HIGH(csr_motor_battery_week_cfg.pos.num);
-	return 0;
+	return csr_motor_item_positive_first_half(battery_week_motor, NULL);
 }
 
 static s16 csr_motor_battery_week_positive_second_half(void *args)
 {
-	PioSetDir(csr_motor_battery_week_cfg.pos.num, PIO_DIR_OUTPUT);
-	PioSetDir(csr_motor_battery_week_cfg.neg.num, PIO_DIR_OUTPUT);
-
-	PioSets(BIT_MASK(csr_motor_battery_week_cfg.pos.num)| \
-			BIT_MASK(csr_motor_battery_week_cfg.com.num)| \
-			BIT_MASK(csr_motor_battery_week_cfg.neg.num),
-			0x00UL);
-
-	COM_HIGH(csr_motor_battery_week_cfg.com.num);
-	NEG_HIGH(csr_motor_battery_week_cfg.neg.num);	
-	return 0;
+	return csr_motor_item_positive_second_half(battery_week_motor, NULL);
 }
 
 static s16 csr_motor_battery_week_negtive_first_half(void *args)
 {
-	PioSetDir(csr_motor_battery_week_cfg.pos.num, PIO_DIR_OUTPUT);
-	PioSetDir(csr_motor_battery_week_cfg.neg.num, PIO_DIR_OUTPUT);
-
-	PioSets(BIT_MASK(csr_motor_battery_week_cfg.pos.num)| \
-			BIT_MASK(csr_motor_battery_week_cfg.com.num)| \
-			BIT_MASK(csr_motor_battery_week_cfg.neg.num),
-			0x00UL);
-
-	NEG_HIGH(csr_motor_battery_week_cfg.neg.num);
-	return 0;
+	return csr_motor_item_negtive_first_half(battery_week_motor, NULL);
 }
 
 static s16 csr_motor_battery_week_negtive_second_half(void *args)
 {
-	PioSetDir(csr_motor_battery_week_cfg.pos.num, PIO_DIR_OUTPUT);
-	PioSetDir(csr_motor_battery_week_cfg.neg.num, PIO_DIR_OUTPUT);
-
-	PioSets(BIT_MASK(csr_motor_battery_week_cfg.pos.num)| \
-			BIT_MASK(csr_motor_battery_week_cfg.com.num)| \
-			BIT_MASK(csr_motor_battery_week_cfg.neg.num),
-			0x00UL);
-
-	POS_HIGH(csr_motor_battery_week_cfg.pos.num);
-	COM_HIGH(csr_motor_battery_week_cfg.com.num);
-	return 0;
+	return csr_motor_item_negtive_second_half(battery_week_motor, NULL);
 }
 
 static s16 csr_motor_battery_week_stop(void *args)
 {
-	PioSets(BIT_MASK(csr_motor_battery_week_cfg.pos.num)| \
-			BIT_MASK(csr_motor_battery_week_cfg.com.num)| \
-			BIT_MASK(csr_motor_battery_week_cfg.neg.num),
-			0x0000UL);
-			
-	PioSetDir(csr_motor_battery_week_cfg.pos.num, PIO_DIR_INPUT);
-	PioSetDir(csr_motor_battery_week_cfg.neg.num, PIO_DIR_INPUT);
-	return 0;
+	return csr_motor_item_stop(battery_week_motor, NULL);
 }
 
 static s16 csr_motor_battery_week_init(cfg_t *args, event_callback cb)
 {
-	csr_motor_battery_week_cfg.pos.group = args->motor_battery_week_cfg.pos.group;
-	csr_motor_battery_week_cfg.pos.num = args->motor_battery_week_cfg.pos.num;
-
-	csr_motor_battery_week_cfg.com.group = args->motor_battery_week_cfg.com.group;
-	csr_motor_battery_week_cfg.com.num = args->motor_battery_week_cfg.com.num;
-
-	csr_motor_battery_week_cfg.neg.group = args->motor_battery_week_cfg.neg.group;
-	csr_motor_battery_week_cfg.neg.num = args->motor_battery_week_cfg.neg.num;
-
-	//wait for complete
-	PioSetModes(BIT_MASK(csr_motor_battery_week_cfg.pos.num)| \
-				BIT_MASK(csr_motor_battery_week_cfg.com.num)| \
-				BIT_MASK(csr_motor_battery_week_cfg.neg.num),
-				pio_mode_user);
-	
-	PioSetDir(csr_motor_battery_week_cfg.pos.num, PIO_DIR_INPUT);
-	PioSetDir(csr_motor_battery_week_cfg.com.num, PIO_DIR_OUTPUT);
-	PioSetDir(csr_motor_battery_week_cfg.neg.num, PIO_DIR_INPUT);
-	
-	PioSetPullModes(BIT_MASK(csr_motor_battery_week_cfg.pos.num)| \
-					BIT_MASK(csr_motor_battery_week_cfg.com.num)| \
-					BIT_MASK(csr_motor_battery_week_cfg.neg.num),
-					pio_mode_no_pulls);
-
-	PioSets(BIT_MASK(csr_motor_battery_week_cfg.com.num), 0x0000UL);
-	return 0;
+	return csr_motor_item_init(battery_week_motor, args, cb);
 }
 
 motor_t csr_motor_battery_week = {

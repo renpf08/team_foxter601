@@ -10,7 +10,6 @@
 
 u8 stete_battery_week = state_battery;
 u8 activity_percent = 0;
-zero_adjust_lock_t zero_adjust_mode = {0, 0};
 static u8 charge_start = 0;
 static u8 swing_state = 0;
 static STATE_E state_last = INIT;
