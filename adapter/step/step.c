@@ -71,7 +71,6 @@ s16 step_sample_init(adapter_callback cb);
 /*????′?·?o?μ?8±èì???êyμ???·?*/
 u16 CaculateAsbSquare(u8 Temp)
 {
-    return 0;
     u16  ReturnVal=0,TempVal=0;
         if(Temp&0x80)
         {
@@ -87,7 +86,6 @@ u16 CaculateAsbSquare(u8 Temp)
 /*初始化数据缓冲区*/
 void InitVal(u16 *ValS,u16 Val, u8 Length)
 {
-    return;
     u8 i;
     for(i=0;i<Length;i++)
     {
@@ -97,7 +95,6 @@ void InitVal(u16 *ValS,u16 Val, u8 Length)
 /*求某数组的几个数平均值*/
 u16 AverageVal(u16 *Val,u8 Num)
 {
-    return 0;
     u32 ReturnVal;
     u8 i;
     ReturnVal=0;/**/
@@ -114,7 +111,6 @@ u16 AverageVal(u16 *Val,u8 Num)
 /*求前4个采样值的平均值，把新的数据推入缓冲区*/
 u16 AverageValPro(u16 *Val,u16 New,u8 Num)
 {
-    return 0;
     u32 ReturnVal,MaxVal,MinVal;
     u8 i;
     ReturnVal=0;/**/
@@ -142,7 +138,6 @@ u16 AverageValPro(u16 *Val,u16 New,u8 Num)
 }
 u16 GetXYZ_Acce_Data(void)
 {
-    return 0;
     u32  Return=0xFFFF;
     static u8 err_cnt = 0;
 	gsensor_data_t data = {0,0,0,0,0,0};
@@ -165,7 +160,6 @@ u16 GetXYZ_Acce_Data(void)
 }
 static void StepCountProce(void)
 {
-    return;
     uint8 i=0,StepFlag=0;
     uint16 Temp=0xFFFF;    
     if(Step_Count_data.Pro_Step==PRO_STEP_START)
@@ -334,7 +328,6 @@ static void StepCountProce(void)
 }
 static void step_sample_handler(u16 id)
 {
-    return;
     static u32 step_count = 0;
 
     StepCountProce();
@@ -347,7 +340,6 @@ static void step_sample_handler(u16 id)
 }
 s16 step_sample_init(adapter_callback cb)
 {
-    return 0;
 	timer_event(280, step_sample_handler); 
 
     Step_Count_data.Pro_Step=PRO_STEP_START;  

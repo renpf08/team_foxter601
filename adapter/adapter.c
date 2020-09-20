@@ -175,9 +175,37 @@ s16 adapter_init(adapter_callback cb)
     timer_event(1000, system_polling_handler);
 	return 0;
 }
+static void clock_charge_swing(u16 id)
+{
+	u8 battery_level = BAT_PECENT_0;
+    if(charge_start == 0) {
+        swing_state = 0;
+		battery_level = battery_percent_read();
+		motor_battery_week_to_position(battery_level);
+        return;
+    }
+    if(swing_state == 0) {
+        swing_state = 1;
+        motor_battery_week_to_position(BAT_PECENT_0);
+    } else {
+        swing_state = 0;
+        motor_battery_week_to_position(BAT_PECENT_100);
+    }
+    timer_event(1500, clock_charge_swing);
+}
+void charge_check(REPORT_E cb)
+{
+    if(cb == CHARGE_SWING) {
+        if(charge_start == 0) {
+            timer_event(1, clock_charge_swing);
+        }
+        charge_start = 1;
+    } else if(cb == CHARGE_STOP) {
+        charge_start = 0;
+    }
+}
 static void charge_polling_check(void)
 {
-    return;
     static s16 last_status = not_incharge;
     s16 now_status = charge_status_get();
     u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
@@ -254,35 +282,6 @@ void system_post_reboot_handler(void)
     motor_sta[date_motor].dst_pos = motor_cur_pos[date_motor];
     motor_sta[battery_week_motor].dst_pos = motor_cur_pos[battery_week_motor];
     motor_sta[notify_motor].dst_pos = motor_cur_pos[notify_motor];
-}
-static void clock_charge_swing(u16 id)
-{
-	u8 battery_level = BAT_PECENT_0;
-    if(charge_start == 0) {
-        swing_state = 0;
-		battery_level = battery_percent_read();
-		motor_battery_week_to_position(battery_level);
-        return;
-    }
-    if(swing_state == 0) {
-        swing_state = 1;
-        motor_battery_week_to_position(BAT_PECENT_0);
-    } else {
-        swing_state = 0;
-        motor_battery_week_to_position(BAT_PECENT_100);
-    }
-    timer_event(1500, clock_charge_swing);
-}
-void charge_check(REPORT_E cb)
-{
-    if(cb == CHARGE_SWING) {
-        if(charge_start == 0) {
-            timer_event(1, clock_charge_swing);
-        }
-        charge_start = 1;
-    } else if(cb == CHARGE_STOP) {
-        charge_start = 0;
-    }
 }
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num)
@@ -399,6 +398,11 @@ STATE_E get_last_state(void)
 void set_last_state(STATE_E state)
 {
     state_last = state;
+}
+
+void compass_adjust_init(void)
+{
+    adapter.drv->magnetometer->magnetometer_init(&args, csr_event_callback);
 }
 
 s16 timer_remove(s16 tid)

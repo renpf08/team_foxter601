@@ -39,7 +39,7 @@ FO601
 #define USE_PAIR_CODE_0000  1 // test mode, use pair code of 0x0000 as a bypass code 
 #define USE_ACTIVITY_NOTIFY 0
 
-#define USE_CMD_TEST        0
+#define USE_CMD_TEST        1
 #if USE_CMD_TEST
 #define USE_CMD_TEST_NVM_ACCESS     1
 #define USE_CMD_TEST_STEP_COUNT     1
