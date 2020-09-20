@@ -273,7 +273,7 @@ static void mag_sample_handler(u16 id)
     mag_get_measure_val();
     #endif
 
-    #if 1
+    #if 0
     u8 ble_log[5] = {CMD_TEST_SEND, BLE_LOG_MAG_SAMPLE, 0};
     static u8 angle = 0;
     volatile u8 cur = mag.angle_value;

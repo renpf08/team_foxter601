@@ -24,19 +24,7 @@ static void notify_swing_cb_handler(u16 id)
     static bool notify_swing_start = FALSE;	
     app_state cur_state = ble_state_get();
     clock_t *clock = clock_get();
-    
-//    #if USE_UART_PRINT
-//    motor_run_status_t *motor_sta = motor_get_status();
-//    u8 motor_cur_pos[max_motor] = {0,0,0,0,0,0};
-//    motor_cur_pos[minute_motor] = motor_sta[minute_motor].run_flag+'0';
-//    motor_cur_pos[hour_motor] = motor_sta[hour_motor].run_flag+'0';
-//    motor_cur_pos[activity_motor] = motor_sta[activity_motor].run_flag+'0';
-//    motor_cur_pos[date_motor] = motor_sta[date_motor].run_flag+'0';
-//    motor_cur_pos[battery_week_motor] = motor_sta[battery_week_motor].run_flag+'0';
-//    motor_cur_pos[notify_motor] = motor_sta[notify_motor].run_flag+'0';  
-//    trace((u8*)motor_cur_pos, 6);
-//    #endif
-    
+
     if(cur_state != app_advertising) {
         notify_swing_start = FALSE;
         #if USE_ACTIVITY_NOTIFY
@@ -48,28 +36,37 @@ static void notify_swing_cb_handler(u16 id)
         return;
     }
     swing_ongoing = 1;
-
-    if(notify_swing_start == FALSE) {
-        notify_swing_start = TRUE;
-        #if USE_ACTIVITY_NOTIFY
-        motor_activity_to_position(NOTIFY_COMMING_CALL);
-        #else
-        motor_notify_to_position(NOTIFY_COMMING_CALL);
-        #endif
-        //print((u8*)&"forward", 7);
-    } else {
+        
+    if((key_m_ctrl.compass_adj_state == 0) && (key_m_ctrl.compass_state == 0)) {
+        if(notify_swing_start == FALSE) {
+            notify_swing_start = TRUE;
+            #if USE_ACTIVITY_NOTIFY
+            motor_activity_to_position(NOTIFY_COMMING_CALL);
+            #else
+            motor_notify_to_position(NOTIFY_COMMING_CALL);
+            #endif
+            //print((u8*)&"forward", 7);
+        } else {
+            notify_swing_start = FALSE;
+            #if USE_ACTIVITY_NOTIFY
+            motor_activity_to_position(NOTIFY_NONE);
+            #else
+            motor_notify_to_position(NOTIFY_NONE);
+            #endif
+            //print((u8*)&"backward", 8);
+        }
+        
+    	motor_minute_to_position(clock->minute);
+    	motor_hour_to_position(clock->hour);
+        motor_date_to_position(date[clock->day]);
+    } else if(notify_swing_start == TRUE) {
         notify_swing_start = FALSE;
         #if USE_ACTIVITY_NOTIFY
         motor_activity_to_position(NOTIFY_NONE);
         #else
         motor_notify_to_position(NOTIFY_NONE);
         #endif
-        //print((u8*)&"backward", 8);
     }
-    
-	motor_minute_to_position(clock->minute);
-	motor_hour_to_position(clock->hour);
-    motor_date_to_position(date[clock->day]);
 
     timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
 }
