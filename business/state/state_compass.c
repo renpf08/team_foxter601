@@ -70,7 +70,7 @@ s16 state_compass(REPORT_E cb, void *args)
     key_m_ctrl.double_click_event = 1; // 01 first click
     timer_remove(m_click_tid);
     m_click_tid = TIMER_INVALID;
-    m_click_tid = timer_event(1000, compass_end_handler);
+    m_click_tid = timer_event(500, compass_end_handler);
     *state = pre_state;
     
 	return 0;

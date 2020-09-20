@@ -16,8 +16,8 @@ typedef struct {
 } pair_ctrl_t;
 
 pair_ctrl_t pair_code = {0, 0};
-static u8 swing_ongoing = 0;
 static s16 discon_vib_timer_id = TIMER_INVALID;
+static s16 swing_timer_id = TIMER_INVALID;
 
 static void notify_swing_cb_handler(u16 id)
 {
@@ -25,6 +25,7 @@ static void notify_swing_cb_handler(u16 id)
     app_state cur_state = ble_state_get();
     clock_t *clock = clock_get();
 
+    swing_timer_id = TIMER_INVALID;
     if(cur_state != app_advertising) {
         notify_swing_start = FALSE;
         #if USE_ACTIVITY_NOTIFY
@@ -32,10 +33,8 @@ static void notify_swing_cb_handler(u16 id)
         #else
         motor_notify_to_position(NOTIFY_NONE);
         #endif
-        swing_ongoing = 0;
         return;
     }
-    swing_ongoing = 1;
         
     if((key_m_ctrl.compass_adj_state == 0) && (key_m_ctrl.compass_state == 0)) {
         if(notify_swing_start == FALSE) {
@@ -68,7 +67,7 @@ static void notify_swing_cb_handler(u16 id)
         #endif
     }
 
-    timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
+    swing_timer_id = timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
 }
 void pair_code_generate(void)
 {
@@ -149,7 +148,7 @@ static s16 ble_pair(void *args)
 }
 static void disconect_vib_handler(u16 id)
 {
-    //discon_vib_timer_id = TIMER_INVALID;
+    discon_vib_timer_id = TIMER_INVALID;
     #if USE_UART_PRINT
     trace((u8*)&"vibration", 9);
     #endif
@@ -165,18 +164,16 @@ static u16 ble_change(void *args)
     timer_remove(discon_vib_timer_id);
     discon_vib_timer_id = TIMER_INVALID;
     if((last_state_ble == app_connected) && (state_ble != app_connected)) {
-        discon_vib_timer_id = timer_event(3000, disconect_vib_handler);
+        discon_vib_timer_id = timer_event(NOTIFY_SWING_INTERVAL*3, disconect_vib_handler);
     }
     last_state_ble = state_ble;    
     if(state_ble == app_advertising) { // advertising start
         #if USE_UART_PRINT
         trace((u8*)&"adv swing", 9);
         #endif
-        if(swing_ongoing == 0) 
-        {
-            swing_ongoing = 1;
-            timer_event(NOTIFY_SWING_INTERVAL, notify_swing_cb_handler);
-        }
+        timer_remove(swing_timer_id);
+        swing_timer_id = TIMER_INVALID;
+        swing_timer_id =timer_event(NOTIFY_SWING_INTERVAL*3, notify_swing_cb_handler);
         return 0;
     } else if(state_ble == app_idle){ // advertising stop
         #if USE_UART_PRINT
