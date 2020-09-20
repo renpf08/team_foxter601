@@ -18,7 +18,6 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 	clock_t * clk = NULL;
 	u8 battery_level = BAT_PECENT_0;
 	STATE_E *state = (STATE_E *)args;
-    app_state state_ble = ble_state_get();
     
 	//print((u8 *)&"battery_week", 12);
 	if(state_week == state_battery_week.cur_state) {
@@ -33,20 +32,8 @@ s16 state_battery_week_switch(REPORT_E cb, void *args)
 		motor_battery_week_to_position(clk->week);
 	}
     stete_battery_week = state_battery_week.cur_state;
-
-    if(state_ble != app_advertising) {
-    #if USE_ACTIVITY_NOTIFY
-        motor_activity_to_position(NOTIFY_NONE);
-    #else
-        motor_notify_to_position(NOTIFY_NONE);
-    #endif
-	    *state = BLE_SWITCH;
-    } else {
-	    *state = CLOCK;
-    }
-    vib_stop();
-//    key_click_handler(KEY_M_DOWN);
-
+    
+    *state = CLOCK;
 	return 0;
 }
 

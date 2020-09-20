@@ -216,6 +216,13 @@ s16 nvm_storage_init(adapter_callback cb)
 
     return 0;
 }
+s16 nvm_storage_reset(void)
+{
+    u16 init_flag = 0xFFFF;
+
+    nvm_write((u16*)&init_flag, USER_STORATE_INIT_FLAG_LENGTH, USER_STORATE_INIT_FLAG_OFFSET);
+    return 0;
+}
 #if USE_PARAM_STORE
 s16 nvm_read_motor_init_flag(void)
 {

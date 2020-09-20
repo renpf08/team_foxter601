@@ -73,6 +73,7 @@ s16 battery_init(adapter_callback cb);
 u8 battery_percent_read(void);
 
 s16 nvm_storage_init(adapter_callback cb);
+s16 nvm_storage_reset(void);
 
 //void key_click_handler(EVENT_E key_event);
 //u8 get_compass_stete(void);

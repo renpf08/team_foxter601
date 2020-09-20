@@ -53,6 +53,31 @@ static adapter_t adapter = {
 	.cb = NULL,
 };
 
+static u8 button_event_check(u16 button_event)
+{
+    motor_run_status_t *motor_sta = motor_get_status();
+    app_state state_ble = ble_state_get();
+
+    vib_stop();
+    if(button_event != KEY_M_SHORT_PRESS) {
+        return 0;
+    }
+    if(state_ble == app_advertising) {
+        return 0;
+    }
+    #if USE_ACTIVITY_NOTIFY
+    if(motor_sta[activity_motor].cur_pos != 0) {
+        motor_activity_to_position(NOTIFY_NONE);
+        return 1;
+    }
+    #else
+    if(motor_sta[notify_motor].cur_pos != 0) {
+		motor_notify_to_position(NOTIFY_NONE);
+        return 1;
+    }
+    #endif
+    return 0;
+}
 s16 csr_event_callback(EVENT_E ev)
 {
 	if(ev >= EVENT_MAX) {
@@ -60,9 +85,11 @@ s16 csr_event_callback(EVENT_E ev)
 	}else if(ev < MAGNETOMETER_READY){
 		//print((u8 *)&ev, 1);
 		u16 combo_event = button_cb_handler((void*)ev);
+        if(button_event_check(combo_event) == 1) {
+            return 0;
+        }
         if(combo_event < REPORT_MAX) {     // sure the button released
         	adapter.cb(combo_event, NULL);
-    	    //adapter.drv->uart->uart_write((u8 *)&combo_event, 1);
         }
         if(combo_event == KEY_M_SHORT_PRESS) {
         	adapter.cb(COMPASS, NULL);
@@ -187,9 +214,11 @@ void system_pre_reboot_handler(reboot_type_t type)
     nvm_write_motor_init_flag();
     #endif
     if(type == REBOOT_TYPE_BUTTON) {
+        nvm_storage_reset();
         APP_Move_Bonded(4);
         Panic(0);
     } else if (type == REBOOT_TYPE_CMD) {
+        nvm_storage_reset();
         APP_Move_Bonded(4);
         Panic(0);
     } else if (type == REBOOT_TYPE_OTA) {
