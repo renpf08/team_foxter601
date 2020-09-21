@@ -263,12 +263,18 @@ void system_post_reboot_handler(void)
 {
     u8 motor_cur_pos[max_motor] = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE};
     motor_run_status_t *motor_sta = motor_get_status();
+    cmd_group_t *value = cmd_get();
 
     #if USE_PARAM_STORE
     clock_t* clock = clock_get();
     if(nvm_read_motor_init_flag() == 0) {
         nvm_read_motor_current_position((u16*)motor_cur_pos, 0);
         nvm_read_date_time((u16*)clock, 0);
+    
+        nvm_read_alarm_clock((u16*)&value->set_alarm_clock, 0);
+        nvm_read_pairing_code((u16*)&value->pair_code, 0);
+        nvm_read_personal_info((u16*)&value->user_info, 0);
+        cmd_check(value);
     }
     #endif
     motor_sta[minute_motor].cur_pos = motor_cur_pos[minute_motor];
@@ -361,6 +367,15 @@ void sync_time(void)
 {
 	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
     clock_t* clock = clock_get();
+//    u8 ble_log[10] = {CMD_TEST_SEND, BLE_LOG_SYNC_TIME, 0, 0, 0, 0, 0, 0, 0, 0};
+//    ble_log[2] = time->year[1];
+//    ble_log[3] = time->year[0];
+//    ble_log[4] = time->month;
+//    ble_log[5] = time->day;
+//    ble_log[6] = time->hour;
+//    ble_log[7] = time->minute;
+//    ble_log[8] = time->second;
+//    ble_log[9] = time->week;
 
     clock->year = time->year[1]<<8 | time->year[0];
     clock->month = time->month;
@@ -370,7 +385,7 @@ void sync_time(void)
     clock->minute = time->minute;
     clock->second = time->second;
 
-    BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
+//    BLE_SEND_LOG(ble_log, 10);
     refresh_step();
 	motor_minute_to_position(clock->minute);
 	motor_hour_to_position(clock->hour);
