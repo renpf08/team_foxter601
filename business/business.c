@@ -38,10 +38,11 @@ static state_t state[] = {
 	//STATE_FILL(LOW_VOLTAGE, BATTERY_NORMAL,     	CLOCK,       	state_clock),
 	/*zero adjust mode*/
 	STATE_FILL(CLOCK,               KEY_A_B_LONG_PRESS, 	ZERO_ADJUST,            state_zero_adjust),
+	STATE_FILL(BLE_SWITCH,          KEY_A_B_LONG_PRESS, 	ZERO_ADJUST,            state_zero_adjust),
 	STATE_FILL(ZERO_ADJUST,         KEY_A_SHORT_PRESS,  	ZERO_ADJUST,            state_zero_adjust),
 	STATE_FILL(ZERO_ADJUST,         KEY_B_SHORT_PRESS,  	ZERO_ADJUST,            state_zero_adjust),
 	STATE_FILL(ZERO_ADJUST,         KEY_M_SHORT_PRESS,		ZERO_ADJUST,            state_zero_adjust),
-	STATE_FILL(ZERO_ADJUST,         KEY_A_B_LONG_PRESS, 	CLOCK,                  state_clock),
+	STATE_FILL(ZERO_ADJUST,         KEY_A_B_LONG_PRESS, 	ZERO_ADJUST,            state_zero_adjust),
 	/*ble switch open*/	
 	STATE_FILL(CLOCK,               KEY_M_LONG_PRESS,   	BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(CLOCK,               BLE_CHANGE,   	        BLE_SWITCH,             state_ble_switch),

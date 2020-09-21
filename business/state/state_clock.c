@@ -160,7 +160,6 @@ s16 state_clock(REPORT_E cb, void *args)
 	motor_minute_to_position(clk->minute);
 	motor_hour_to_position(clk->hour);
     motor_date_to_position(date[clk->day]);
-    motor_restore_position(cb);
     minutely_check(cb);
 	#else
 	clk.minute++;

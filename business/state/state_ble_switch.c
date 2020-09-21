@@ -36,7 +36,7 @@ static void notify_swing_cb_handler(u16 id)
         return;
     }
         
-    if((key_m_ctrl.compass_adj_state == 0) && (key_m_ctrl.compass_state == 0)) {
+    if((key_sta_ctrl.ab_long_press == 0) && (key_sta_ctrl.compass_state == 0)) {
         if(notify_swing_start == FALSE) {
             notify_swing_start = TRUE;
             #if USE_ACTIVITY_NOTIFY

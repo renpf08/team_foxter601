@@ -155,7 +155,7 @@ s16 charge_status_get(void);
 //u8 bcd_to_hex(u8 bcd_data);
 //u32 hex_to_bcd(u8 hex_data);
 
-extern key_m_ctrl_t key_m_ctrl;
+extern key_sta_ctrl_t key_sta_ctrl;
 extern u8 stete_battery_week;
 extern const u8 date[];
 #if USE_CMD_TEST_LOG_TYPE_EN

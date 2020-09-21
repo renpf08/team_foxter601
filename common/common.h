@@ -623,10 +623,11 @@ typedef struct {
 }csr_key_cfg_t;
 
 typedef struct {
-    u8 double_click_event;
+    u8 ab_long_press;
+    u8 m_double_click;
     u8 compass_state;
-    u8 compass_adj_state;
-} key_m_ctrl_t;
+    //u8 compass_adj_state;
+} key_sta_ctrl_t;
 
 #define POS_HIGH(num) PioSet((num), 1UL)
 #define POS_LOW(num) PioSet((num), 0UL)

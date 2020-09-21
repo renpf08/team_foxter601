@@ -23,7 +23,7 @@ static void compass_adjust_handler(u16 id)
     u8 i = 0;
     u8 ble_log[7] = {CMD_TEST_SEND, BLE_LOG_COMPASS_ADJ, 0, 0, 0, 0, 0};
 
-    if(key_m_ctrl.compass_adj_state == 0) {
+    if(key_sta_ctrl.compass_adj_state == 0) {
         return;
     }
 
@@ -72,8 +72,8 @@ s16 state_compass_adjust(REPORT_E cb, void *args)
     clock_t* clock = clock_get();
     u8 hour_pos;
 
-    key_m_ctrl.compass_adj_state = (key_m_ctrl.compass_adj_state==0)?1:0;
-    if(key_m_ctrl.compass_adj_state == 1) {
+    key_sta_ctrl.compass_adj_state = (key_sta_ctrl.compass_adj_state==0)?1:0;
+    if(key_sta_ctrl.compass_adj_state == 1) {
         hour_pos = motor_sta[minute_motor].dst_pos;
     	motor_hour_to_position(hour_pos);
         adjust_flag = 0;

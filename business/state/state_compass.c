@@ -12,7 +12,7 @@ static s16 compass_tid = TIMER_INVALID;
 static void compass_end_handler(u16 id)
 {
     m_click_tid = TIMER_INVALID;
-    key_m_ctrl.double_click_event = 0;
+    key_sta_ctrl.m_double_click = 0;
 }
 static void compass_begin_handler(u16 id)
 {
@@ -24,7 +24,7 @@ static void compass_begin_handler(u16 id)
     u8 ble_log[5] = {CMD_TEST_SEND, BLE_LOG_MAG_SAMPLE, 0, 0, 0};
     
     compass_tid = TIMER_INVALID;
-    if(key_m_ctrl.compass_state == 0) {
+    if(key_sta_ctrl.compass_state == 0) {
     	motor_minute_to_position(clock->minute);
     	motor_hour_to_position(clock->hour);
         return;
@@ -53,13 +53,13 @@ s16 state_compass(REPORT_E cb, void *args)
         pre_state = get_last_state(); // auto detect to return to CLOCK state or BLE_CHANGE state
     }
     
-    if(key_m_ctrl.compass_state == 1) { // 03 exit compass mode
-        key_m_ctrl.compass_state = 0;
+    if(key_sta_ctrl.compass_state == 1) { // 03 exit compass mode
+        key_sta_ctrl.compass_state = 0;
         *state = pre_state;
         return 0;
-    } else if (key_m_ctrl.double_click_event == 1) { // 02 double click worked, enter compass mode
-        key_m_ctrl.double_click_event = 0;
-        key_m_ctrl.compass_state = 1;
+    } else if (key_sta_ctrl.m_double_click == 1) { // 02 double click worked, enter compass mode
+        key_sta_ctrl.m_double_click = 0;
+        key_sta_ctrl.compass_state = 1;
         timer_remove(m_click_tid);
         m_click_tid = TIMER_INVALID;
         timer_remove(compass_tid);
@@ -67,7 +67,7 @@ s16 state_compass(REPORT_E cb, void *args)
         compass_tid = timer_event(1, compass_begin_handler);
         return 0;
     }
-    key_m_ctrl.double_click_event = 1; // 01 first click
+    key_sta_ctrl.m_double_click = 1; // 01 first click
     timer_remove(m_click_tid);
     m_click_tid = TIMER_INVALID;
     m_click_tid = timer_event(500, compass_end_handler);

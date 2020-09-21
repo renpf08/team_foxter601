@@ -41,10 +41,24 @@ static s16 state_zero_adjust_motor_back_zero(u8 motor_num)
 
 s16 state_zero_adjust(REPORT_E cb, void *args)
 {
+    STATE_E *state = (STATE_E *)args;
+    static STATE_E pre_state = INIT;
+    
+    if(get_last_state() != ZERO_ADJUST) {
+        pre_state = get_last_state(); // auto detect to return to CLOCK state or BLE_CHANGE state
+    }
+    
 	if(KEY_A_B_LONG_PRESS == cb) {
-		/*hour back to zero position*/
-		state_zero.motor_num = minute_motor;
-		state_zero_adjust_motor_back_zero(state_zero.motor_num);
+        if(key_sta_ctrl.ab_long_press == 0) {
+            key_sta_ctrl.ab_long_press = 1;
+    		/*hour back to zero position*/
+    		state_zero.motor_num = minute_motor;
+    		state_zero_adjust_motor_back_zero(state_zero.motor_num);
+        } else if(key_sta_ctrl.ab_long_press == 1) {
+            key_sta_ctrl.ab_long_press = 0;
+            *state = pre_state;
+            motor_restore_position(cb);
+        }
 	}else if(KEY_M_SHORT_PRESS == cb) {
 		/*motor switcch:hour -> minute -> activity -> date -> battery_week ->notify -> hour*/
 		state_zero.motor_num++;
