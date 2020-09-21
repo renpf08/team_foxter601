@@ -210,6 +210,7 @@ static void activity_polling_check(void)
     u32 target_steps = cmd_get()->user_info.target_steps;
     u32 current_steps = step_get();
     static u32 last_steps = 0;
+    static u8 refresh_cnt = 0;
 
     if((target_steps <= 0) || (target_steps >= 50000)) {
         target_steps = 1000;
@@ -222,9 +223,12 @@ static void activity_polling_check(void)
         activity_percent = 0;
     }
 
-    if(last_steps != current_steps) {
+    if((last_steps != current_steps) || (refresh_cnt >= 30)) {
+        refresh_cnt = 0;
         motor_activity_to_position(activity_percent);
         upload_current_steps();
+    } else {
+        refresh_cnt++;
     }
     last_steps = current_steps;
 }
@@ -383,15 +387,15 @@ void sync_time(void)
 {
 	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
     clock_t* clock = clock_get();
-//    u8 ble_log[10] = {CMD_TEST_SEND, BLE_LOG_SYNC_TIME, 0, 0, 0, 0, 0, 0, 0, 0};
-//    ble_log[2] = time->year[1];
-//    ble_log[3] = time->year[0];
-//    ble_log[4] = time->month;
-//    ble_log[5] = time->day;
-//    ble_log[6] = time->hour;
-//    ble_log[7] = time->minute;
-//    ble_log[8] = time->second;
-//    ble_log[9] = time->week;
+    u8 ble_log[10] = {CMD_TEST_SEND, BLE_LOG_SYNC_TIME, 0, 0, 0, 0, 0, 0, 0, 0};
+    ble_log[2] = time->year[1];
+    ble_log[3] = time->year[0];
+    ble_log[4] = time->month;
+    ble_log[5] = time->day;
+    ble_log[6] = time->hour;
+    ble_log[7] = time->minute;
+    ble_log[8] = time->second;
+    ble_log[9] = time->week;
 
     clock->year = time->year[1]<<8 | time->year[0];
     clock->month = time->month;
@@ -401,7 +405,7 @@ void sync_time(void)
     clock->minute = time->minute;
     clock->second = time->second;
 
-//    BLE_SEND_LOG(ble_log, 10);
+    BLE_SEND_LOG(ble_log, 10);
 //    refresh_step();
 	motor_minute_to_position(clock->minute);
 	motor_hour_to_position(clock->hour);
