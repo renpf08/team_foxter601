@@ -623,6 +623,7 @@ typedef struct {
 }csr_key_cfg_t;
 
 typedef struct {
+    u8 pair_code_disp;
     u8 ab_long_press;
     u8 m_double_click;
     u8 compass_state;

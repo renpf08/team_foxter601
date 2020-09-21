@@ -10,12 +10,7 @@
 
 #define NOTIFY_SWING_INTERVAL   1000
 
-typedef struct {
-    u16 pair_code;
-    u8 pair_bgn;
-} pair_ctrl_t;
-
-pair_ctrl_t pair_code = {0, 0};
+static u16 pair_code = 0;
 static s16 discon_vib_timer_id = TIMER_INVALID;
 static s16 swing_timer_id = TIMER_INVALID;
 
@@ -76,13 +71,13 @@ void pair_code_generate(void)
     u8 minute;
     
     while(1) {
-        old_pair_code = pair_code.pair_code;
-        pair_code.pair_code = Random16();
-        while((pair_code.pair_code == 0) || (pair_code.pair_code == 0xFFFF)) {
-            pair_code.pair_code = Random16();
+        old_pair_code = pair_code;
+        pair_code = Random16();
+        while((pair_code == 0) || (pair_code == 0xFFFF)) {
+            pair_code = Random16();
         }
-        hour = (pair_code.pair_code>>8)&0x00FF;
-        minute = pair_code.pair_code&0x00FF;
+        hour = (pair_code>>8)&0x00FF;
+        minute = pair_code&0x00FF;
         while(hour >= 12) {
             hour %= 12;
         }
@@ -90,18 +85,18 @@ void pair_code_generate(void)
             minute %= 12;
         }
         minute *= 5;
-        pair_code.pair_code = (hour*100+minute);
-        if(pair_code.pair_code != old_pair_code) {
+        pair_code = (hour*100+minute);
+        if(pair_code != old_pair_code) {
             break;
         }
     }
 
-    u8 test_buf[4] = {CMD_TEST_SEND, 0, 0, 0};
+    u8 test_buf[4] = {CMD_TEST_SEND, BLE_LOG_PAIR_CODE, 0, 0};
     test_buf[2] = hour;
     test_buf[3] = minute;
     BLE_SEND_LOG((u8*)&test_buf, 4);
 	
-	motor_hour_to_position(hour);
+	motor_hour_to_position(hour*5);
 	motor_minute_to_position(minute);
 }
 static s16 ble_pair(void *args)
@@ -117,24 +112,24 @@ static s16 ble_pair(void *args)
 
     if(pairing_code == 0xFFFF) {
         //print((u8*)&"enter pair mode", 15);
-        pair_code.pair_bgn = 1;
+        key_sta_ctrl.pair_code_disp = 1;
         pair_code_generate();
         ble_state_set(app_pairing);
     #if USE_PAIR_CODE_0000
-    } else if((pairing_code == pair_code.pair_code) || 
+    } else if((pairing_code == pair_code) || 
               (pairing_code == 0x0000)) {
     #else
-    } else if(pairing_code == pair_code.pair_code) {
+    } else if(pairing_code == pair_code) {
     #endif
         BLE_SEND_LOG((u8*)&"pair matched", 12);
-        pair_code.pair_bgn = 0;
+        key_sta_ctrl.pair_code_disp = 0;
         ble_state_set(app_pairing_ok);
         #if USE_PARAM_STORE
         if(pairing_code != 0x0000) 
-            nvm_write_pairing_code((u16*)&pair_code.pair_code, 0);// 0x0000 is test pair code, no need to store in nvm
+            nvm_write_pairing_code((u16*)&pair_code, 0);// 0x0000 is test pair code, no need to store in nvm
         #endif
         *state = CLOCK;
-    } else if(pair_code.pair_bgn == 1) {
+    } else if(key_sta_ctrl.pair_code_disp == 1) {
         BLE_SEND_LOG((u8*)&"pair mis-match", 14);
         pair_code_generate();
         ble_state_set(app_pairing);
@@ -154,6 +149,7 @@ static void disconect_vib_handler(u16 id)
     #endif
     vib_stop();
     vib_run(5, 0x02);
+    key_sta_ctrl.pair_code_disp = 0;
 }
 static u16 ble_change(void *args)
 {
