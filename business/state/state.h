@@ -21,11 +21,7 @@ s16 state_run_test(REPORT_E cb, void *args);
 //void test_run_test(u16 id);
 
 s16 state_time_adjust(REPORT_E cb, void *args);
-s16 state_charge(REPORT_E cb, void *args);
 s16 state_compass(REPORT_E cb, void *args);
-#if USE_COMPASS_ADJUST
-s16 state_compass_adjust(REPORT_E cb, void *args);
-#endif
 void time_adjust_test(u16 id);
 
 #endif
