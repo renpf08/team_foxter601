@@ -177,6 +177,66 @@ s16 adapter_init(adapter_callback cb)
     timer_event(1000, system_polling_handler);
 	return 0;
 }
+
+static void upload_current_steps(void)
+{
+    u16 length = 0; 
+    u8 rsp_buf[20];
+    u8 *tmp_buf = rsp_buf;
+    clock_t *clock = clock_get();
+    cmd_params_t* params = cmd_get_params();
+    params->steps = step_get();
+    params->clock = clock;
+
+    BufWriteUint8((uint8 **)&tmp_buf, 0x01);
+    BufWriteUint8((uint8 **)&tmp_buf, 0x00);
+    BufWriteUint8((uint8 **)&tmp_buf, 0x00);
+    BufWriteUint16((uint8 **)&tmp_buf, params->clock->year);//SB100_data.AppApplyDateData.Year);
+    BufWriteUint8((uint8 **)&tmp_buf, params->clock->month);//SB100_data.AppApplyDateData.Month);
+    BufWriteUint8((uint8 **)&tmp_buf, params->clock->day);//SB100_data.AppApplyDateData.Date);
+    BufWriteUint16((uint8 **)&tmp_buf, params->steps);//(SB100_data.AppApplyData.StepCounts));
+    BufWriteUint8((uint8 **)&tmp_buf, params->steps>>16);//(SB100_data.AppApplyData.StepCounts>>16));
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->distance);//(SB100_data.AppApplyData.Distance));
+    BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->distance>>16);//(SB100_data.AppApplyData.Distance>>16));
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
+    BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
+    length = tmp_buf - rsp_buf;
+    BLE_SEND_DATA(rsp_buf, length);
+}
+static void activity_polling_check(void)
+{
+    u32 target_steps = cmd_get()->user_info.target_steps;
+    u32 current_steps = step_get();
+    static u32 last_steps = 0;
+
+    if((target_steps <= 0) || (target_steps >= 50000)) {
+        target_steps = 1000;
+    }
+    if(current_steps > target_steps) {
+        activity_percent = 40; // total 40 grids
+    } else if(current_steps <= target_steps) {
+        activity_percent = (current_steps*40)/target_steps;
+    } else if(target_steps == 0) {
+        activity_percent = 0;
+    }
+
+    if(last_steps != current_steps) {
+        motor_activity_to_position(activity_percent);
+        upload_current_steps();
+    }
+    last_steps = current_steps;
+}
+
+//void refresh_step(void)
+//{
+//    clock_t *clock = clock_get();
+//    cmd_params_t* params = cmd_get_params();
+//    params->steps = step_get();
+//    params->clock = clock;
+//    //timer_event(10, activity_handler);
+//}
 static void clock_charge_swing(u16 id)
 {
 	u8 battery_level = BAT_PECENT_0;
@@ -226,6 +286,7 @@ static void charge_polling_check(void)
 static void system_polling_handler(u16 id)
 {
     charge_polling_check();
+    activity_polling_check();
     
     timer_event(1000, system_polling_handler);
 }
@@ -318,51 +379,6 @@ void system_reboot(u8 reboot_type)
     }
     Panic(0x5AFF);
 }
-static void activity_handler(u16 id)
-{
-    u32 target_steps = cmd_get()->user_info.target_steps;
-    u32 current_steps = step_get();
-
-    if(current_steps > target_steps) {
-        activity_percent = 40; // total 40 grids
-    } else if(current_steps <= target_steps) {
-        activity_percent = (current_steps*40)/target_steps;
-    } else if(target_steps == 0) {
-        activity_percent = 0;
-    }
-    motor_activity_to_position(activity_percent);
-    
-    u16 length = 0; 
-    u8 rsp_buf[20];
-    u8 *tmp_buf = rsp_buf;
-    cmd_params_t* params = cmd_get_params();
-    BufWriteUint8((uint8 **)&tmp_buf, 0x01);
-    BufWriteUint8((uint8 **)&tmp_buf, 0x00);
-    BufWriteUint8((uint8 **)&tmp_buf, 0x00);
-    BufWriteUint16((uint8 **)&tmp_buf, params->clock->year);//SB100_data.AppApplyDateData.Year);
-    BufWriteUint8((uint8 **)&tmp_buf, params->clock->month);//SB100_data.AppApplyDateData.Month);
-    BufWriteUint8((uint8 **)&tmp_buf, params->clock->day);//SB100_data.AppApplyDateData.Date);
-    BufWriteUint16((uint8 **)&tmp_buf, params->steps);//(SB100_data.AppApplyData.StepCounts));
-    BufWriteUint8((uint8 **)&tmp_buf, params->steps>>16);//(SB100_data.AppApplyData.StepCounts>>16));
-    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->distance);//(SB100_data.AppApplyData.Distance));
-    BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->distance>>16);//(SB100_data.AppApplyData.Distance>>16));
-    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
-    BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
-    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
-    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
-    length = tmp_buf - rsp_buf;
-    BLE_SEND_DATA(rsp_buf, length);
-}
-
-void refresh_step(void)
-{
-    clock_t *clock = clock_get();
-    cmd_params_t* params = cmd_get_params();
-    params->steps = step_get();
-    params->clock = clock;
-    timer_event(10, activity_handler);
-}
-
 void sync_time(void)
 {
 	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
@@ -386,7 +402,7 @@ void sync_time(void)
     clock->second = time->second;
 
 //    BLE_SEND_LOG(ble_log, 10);
-    refresh_step();
+//    refresh_step();
 	motor_minute_to_position(clock->minute);
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);

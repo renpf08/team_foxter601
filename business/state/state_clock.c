@@ -119,9 +119,9 @@ static u8 state_check(REPORT_E cb)
     case WRITE_ALARM_CLOCK:
         nvm_access(cb);
         break;
-    case REFRESH_STEPS:
-        refresh_step();
-        break;
+//    case REFRESH_STEPS:
+//        refresh_step();
+//        break;
 //    case SET_TIME:
 //        sync_time();
 //        break;

@@ -36,7 +36,7 @@ void system_pre_reboot_handler(reboot_type_t type);
 void system_post_reboot_handler(void);
 void charge_check(REPORT_E cb);
 void system_reboot(u8 reboot_type);
-void refresh_step(void);
+//void refresh_step(void);
 void sync_time(void);
 void motor_restore_position(REPORT_E cb);
 #if USE_UART_PRINT

@@ -225,9 +225,9 @@ s16 state_ble_switch(REPORT_E cb, void *args)
     } else if(cb == BLE_PAIR) {
         //print((u8*)&"cmd pair", 8);
         res = ble_pair(args);
-    } else if(cb == REFRESH_STEPS) {
+    } /*else if(cb == REFRESH_STEPS) {
         refresh_step();
-    } else if(cb == SET_TIME) {
+    }*/ else if(cb == SET_TIME) {
         sync_time();
     } else if((cb == CHARGE_SWING) || (cb == CHARGE_STOP)) {
         charge_check(cb);
