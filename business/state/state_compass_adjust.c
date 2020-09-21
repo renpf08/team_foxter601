@@ -6,6 +6,7 @@
 #include "../../adapter/adapter.h"
 #include "state.h"
 
+#if USE_COMPASS_ADJUST
 static s16 compass_adj_tid = TIMER_INVALID;
 static u8 adjust_flag = 0;
 //static u8 adjust_chk[9] = {0,0,0,0,0,0,0,0,0};
@@ -85,4 +86,5 @@ s16 state_compass_adjust(REPORT_E cb, void *args)
     
 	return 0;
 }
+#endif
 

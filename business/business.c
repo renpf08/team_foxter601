@@ -72,10 +72,12 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,       		COMPASS,                STATE_COMPASS,  	    state_compass),
 	STATE_FILL(BLE_SWITCH,    		COMPASS,                STATE_COMPASS,  	    state_compass),
 	STATE_FILL(STATE_COMPASS,    	COMPASS,                STATE_COMPASS,  	    state_compass),
+	#if USE_COMPASS_ADJUST
 	/*compass adjust*/
 	STATE_FILL(CLOCK,       		KEY_B_LONG_PRESS,       STATE_COMPASS_ADJ,  	state_compass_adjust),
 	STATE_FILL(BLE_SWITCH,          KEY_B_LONG_PRESS,       STATE_COMPASS_ADJ,  	state_compass_adjust),
 	STATE_FILL(STATE_COMPASS_ADJ,   KEY_B_LONG_PRESS,       STATE_COMPASS_ADJ,  	state_compass_adjust),
+	#endif
 	/*charging swing*/
 //	STATE_FILL(CLOCK,               CHARGE_SWING,           CHARGE_SWITCH,          state_charge),
 //	STATE_FILL(CLOCK,               CHARGE_STOP,            CHARGE_SWITCH,          state_charge),
@@ -94,9 +96,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 	print((u8 *)&cb, 1);
     #endif
 
-    if(cb == KEY_M_ULTRA_LONG_PRESS) {
-        system_pre_reboot_handler(REBOOT_TYPE_BUTTON);
-    } else if(cb == REPORT_MAX) {
+    if(cb == REPORT_MAX) {
         return 0;
     }
 

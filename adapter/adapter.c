@@ -87,8 +87,10 @@ s16 csr_event_callback(EVENT_E ev)
 	if(ev >= EVENT_MAX) {
 		return -1;
 	}else if(ev < MAGNETOMETER_READY){
-		//print((u8 *)&ev, 1);
 		u16 combo_event = button_cb_handler((void*)ev);
+        if(combo_event == KEY_M_ULTRA_LONG_PRESS) {
+            system_pre_reboot_handler(REBOOT_TYPE_BUTTON);
+        }
         if(button_event_check(combo_event) == 1) {
             return 0;
         }
