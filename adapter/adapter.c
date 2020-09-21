@@ -402,11 +402,6 @@ void set_last_state(STATE_E state)
     state_last = state;
 }
 
-void compass_adjust_init(void)
-{
-    adapter.drv->magnetometer->magnetometer_init(&args, csr_event_callback);
-}
-
 s16 timer_remove(s16 tid)
 {
 	return adapter.drv->timer->timer_del(tid);

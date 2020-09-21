@@ -45,7 +45,6 @@ void trace(u8 *buf, u16 num);
 #endif
 STATE_E get_last_state(void);
 void set_last_state(STATE_E state);
-void compass_adjust_init(void);
 s16 timer_remove(s16 tid);
 s16 timer_event(u16 ms, timer_cb cb);
 

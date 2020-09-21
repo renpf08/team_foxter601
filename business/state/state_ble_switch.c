@@ -163,7 +163,7 @@ static u16 ble_change(void *args)
     
     timer_remove(discon_vib_timer_id);
     discon_vib_timer_id = TIMER_INVALID;
-    if((last_state_ble == app_connected) && (state_ble != app_connected)) {
+    if((last_state_ble == app_connected) && ((state_ble != app_connected) || (state_ble == app_idle))) {
         discon_vib_timer_id = timer_event(NOTIFY_SWING_INTERVAL*3, disconect_vib_handler);
     }
     last_state_ble = state_ble;    
