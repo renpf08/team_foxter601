@@ -1,6 +1,7 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
 #include <mem.h>
+#include <buf_utils.h>
 
 #include "../../common/common.h"
 #include "../../adapter/adapter.h"
@@ -21,6 +22,19 @@ static clock_t clk = {
 	.second = 0,
 };
 #endif
+
+static void send_run_time(void)
+{
+    static u32 run_time_cnt = 0;
+    u8 ble_log[6] = {CMD_TEST_SEND, BLE_LOG_RUN_TIME, 0, 0, 0, 0};
+    ble_log[2] = (run_time_cnt>>24) & 0x000000FF;
+    ble_log[3] = (run_time_cnt>>16) & 0x000000FF;
+    ble_log[4] = (run_time_cnt>>8) & 0x000000FF;
+    ble_log[5] = run_time_cnt & 0x000000FF;
+    run_time_cnt++;
+
+    BLE_SEND_LOG(ble_log, 6);
+}
 
 static void alarm_clock_check(clock_t *clock)
 {
@@ -53,6 +67,7 @@ static void minutely_check(REPORT_E cb)
     params->steps = step_get();
     params->clock = clock;
     alarm_clock_check(clock);
+    send_run_time();
 }
 static void read_current_step(void)
 {
