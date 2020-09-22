@@ -25,12 +25,12 @@ static clock_t clk = {
 
 static void send_run_time(void)
 {
-    static u32 run_time_cnt = 0;
+    static u16 run_time_cnt = 0;
     u8 ble_log[6] = {CMD_TEST_SEND, BLE_LOG_RUN_TIME, 0, 0, 0, 0};
-    ble_log[2] = (run_time_cnt>>24) & 0x000000FF;
-    ble_log[3] = (run_time_cnt>>16) & 0x000000FF;
-    ble_log[4] = (run_time_cnt>>8) & 0x000000FF;
-    ble_log[5] = run_time_cnt & 0x000000FF;
+    ble_log[2] = (run_time_cnt>>8) & 0x000FF;
+    ble_log[3] = run_time_cnt & 0x00FF;
+    ble_log[4] = key_sta_ctrl.ab_long_press;
+    ble_log[5] = key_sta_ctrl.compass_state;
     run_time_cnt++;
 
     BLE_SEND_LOG(ble_log, 6);
