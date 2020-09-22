@@ -59,7 +59,7 @@ s16 vib_stop(void)
 	return 0;
 }
 
-s16 vib_run(u8 step_count)
+s16 vib_run(u8 step_count, u8 caller)
 {
 	vib_cfg.status = run;
 	vib_cfg.run_flag = 1;
@@ -71,6 +71,11 @@ s16 vib_run(u8 step_count)
 	}
 	
 	return 0;
+}
+
+u8 vib_state(void)
+{
+    return vib_cfg.run_flag;
 }
 
 s16 vib_init(adapter_callback cb)

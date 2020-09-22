@@ -23,12 +23,12 @@ typedef struct {
 }gsensor_data_t;
 
 typedef struct {
-	u8 mag_xh;
-	u8 mag_xl;
-	u8 mag_yh;
-	u8 mag_yl;
-	u8 mag_zh;
-	u8 mag_zl;
+	s16 mag_xh;
+	s16 mag_xl;
+	s16 mag_yh;
+	s16 mag_yl;
+	s16 mag_zh;
+	s16 mag_zl;
 }mag_data_t;
 
 typedef enum {
@@ -44,51 +44,52 @@ typedef enum {
 }EVENT_E;
 
 typedef enum {
-	KEY_A_LONG_PRESS = 0,
-	KEY_A_SHORT_PRESS = 1,
-	KEY_B_LONG_PRESS = 2,
-	KEY_B_SHORT_PRESS = 3,
-	KEY_M_LONG_PRESS = 4,
-	KEY_M_SHORT_PRESS = 5,
-	KEY_A_B_LONG_PRESS = 6,
-	KEY_A_B_SHORT_PRESS = 7,
-	KEY_A_M_LONG_PRESS = 8,
-	KEY_A_M_SHORT_PRESS = 9,
-	KEY_B_M_LONG_PRESS = 10,
-	KEY_B_M_SHORT_PRESS = 11,
-	KEY_A_B_M_LONG_PRESS = 12,
-	KEY_A_B_M_SHORT_PRESS = 13,
-	KEY_M_ULTRA_LONG_PRESS = 14,
-	BATTERY_LOW = 15,
-	BATTERY_NORMAL = 16,
-	CLOCK_1_MINUTE = 17,
-	ANCS_NOTIFY_INCOMING = 18,
-	ANDROID_NOTIFY = 19,
-	BLE_CHANGE = 20,
-    BLE_PAIR = 21,
-    WRITE_USER_INFO = 22,
-    SET_TIME = 23,
-    WRITE_ALARM_CLOCK = 24,
-    NOTIFY_SWITCH = 25,
-    SYNC_DATA = 26,
-    APP_ACK = 27,
-    SEND_NOTIFY = 28,
-    SET_POINTERS = 29,
-    READ_VERSION = 30,
-    SET_CLOCK_POINTER = 31,
-    SET_VIBRATION = 32,
-    SET_FIND_WATCH = 33,
-    SET_ANCS_BOND_REQ = 34,
-    READ_STEPS_TARGET = 35,
-    READ_HISDAYS = 36,
-    READ_HISDATA = 37,
-    READ_CURDATA = 38,
-    REFRESH_STEPS = 39,
-    #if USE_PARAM_STORE
-    READ_SYS_PARAMS = 40,
+	KEY_A_LONG_PRESS = 0,               /* 0x00 */
+	KEY_A_SHORT_PRESS = 1,              /* 0x01 */
+	KEY_B_LONG_PRESS = 2,               /* 0x02 */
+	KEY_B_SHORT_PRESS = 3,              /* 0x03 */
+	KEY_M_LONG_PRESS = 4,               /* 0x04 */
+	KEY_M_SHORT_PRESS = 5,              /* 0x05 */
+	KEY_A_B_LONG_PRESS = 6,             /* 0x06 */
+	KEY_A_B_SHORT_PRESS = 7,            /* 0x07 */
+	KEY_A_M_LONG_PRESS = 8,             /* 0x08 */
+	KEY_A_M_SHORT_PRESS = 9,            /* 0x09 */
+	KEY_B_M_LONG_PRESS = 10,            /* 0x0A */
+	KEY_B_M_SHORT_PRESS = 11,           /* 0x0B */
+	KEY_A_B_M_LONG_PRESS = 12,          /* 0x0C */
+	KEY_A_B_M_SHORT_PRESS = 13,         /* 0x0D */
+	KEY_M_ULTRA_LONG_PRESS = 14,        /* 0x0E */
+	BATTERY_LOW = 15,                   /* 0x0F */
+	BATTERY_NORMAL = 16,                /* 0x10 */
+	CLOCK_1_MINUTE = 17,                /* 0x11 */
+	ANCS_NOTIFY_INCOMING = 18,          /* 0x12 */
+	ANDROID_NOTIFY = 19,                /* 0x13 */
+	BLE_CHANGE = 20,                    /* 0x14 */
+    BLE_PAIR = 21,                      /* 0x15 */
+    WRITE_USER_INFO = 22,               /* 0x16 */
+    SET_TIME = 23,                      /* 0x17 */
+    WRITE_ALARM_CLOCK = 24,             /* 0x18 */
+    NOTIFY_SWITCH = 25,                 /* 0x19 */
+    SYNC_DATA = 26,                     /* 0x1A */
+    APP_ACK = 27,                       /* 0x1B */
+    SEND_NOTIFY = 28,                   /* 0x1C */
+    SET_POINTERS = 29,                  /* 0x1D */
+    READ_VERSION = 30,                  /* 0x1E */
+    SET_CLOCK_POINTER = 31,             /* 0x1F */  
+    SET_VIBRATION = 32,                 /* 0x20 */
+    SET_FIND_WATCH = 33,                /* 0x21 */
+    SET_ANCS_BOND_REQ = 34,             /* 0x22 */
+    READ_STEPS_TARGET = 35,             /* 0x23 */
+    READ_HISDAYS = 36,                  /* 0x24 */
+    READ_HISDATA = 37,                  /* 0x25 */
+    READ_CURDATA = 38,                  /* 0x26 */
+//    REFRESH_STEPS = 39,                 /* 0x27 */
+    #if USE_PARAM_STORE                 
+    READ_SYS_PARAMS = 40,               /* 0x28 */
     #endif
-    CHARGE_SWING = 41,
-    CHARGE_STOP = 42,
+    CHARGE_SWING = 41,                  /* 0x29 */
+    CHARGE_STOP = 42,                   /* 0x2A */
+    COMPASS = 43,                       /* 0x2B */
 	REPORT_MAX,
 }REPORT_E;
 
@@ -249,21 +250,23 @@ typedef enum {
 }ACTIVITY_E;
 
 typedef enum {
-	INIT = 0,
-	CLOCK = 1,
-	ZERO_ADJUST = 2,
-	LOW_VOLTAGE = 3,
-	BLE_SWITCH = 4,
-	BLE_CHANGING = 5,
-	NOTIFY_COMING = 6,
-	BATTERY_WEEK_SWITCH = 7,
-	TIME_ADJUST = 8,
-	RUN_TEST = 9,
-	SET_DATE_TIME = 10,
-	NVM_ACCESS = 11,
-	SYSTEM_REBOOT = 12,
-	CHARGE_SWITCH = 13,
-	STATE_MAX,
+	INIT = 0,                   /* 0x00 */
+	CLOCK = 1,                  /* 0x01 */
+	ZERO_ADJUST = 2,            /* 0x02 */
+	LOW_VOLTAGE = 3,            /* 0x03 */
+	BLE_SWITCH = 4,             /* 0x04 */
+	BLE_CHANGING = 5,           /* 0x05 */
+	NOTIFY_COMING = 6,          /* 0x06 */
+	BATTERY_WEEK_SWITCH = 7,    /* 0x07 */
+	TIME_ADJUST = 8,            /* 0x08 */
+	RUN_TEST = 9,               /* 0x09 */
+	SET_DATE_TIME = 10,         /* 0x0A */
+	NVM_ACCESS = 11,            /* 0x0B */
+	SYSTEM_REBOOT = 12,         /* 0x0C */
+	CHARGE_SWITCH = 13,         /* 0x0D */
+	STATE_COMPASS = 14,         /* 0x0E */
+	STATE_COMPASS_ADJ = 15,     /* 0x0F */
+	STATE_MAX,                  
 }STATE_E;
 
 typedef enum {
@@ -373,7 +376,7 @@ typedef struct
 } app_msg_t;
 typedef app_msg_t cmd_recv_notify_t;
 
-#if USE_CMD_TEST_LOG_TYPE_EN
+//#if USE_CMD_TEST_LOG_TYPE_EN
 typedef enum{
     BLE_LOG_PAIR_CODE           = 0x00,
     BLE_LOG_STATE_MACHINE       = 0x01,
@@ -381,10 +384,13 @@ typedef enum{
     BLE_LOG_NOTIFY_TYPE         = 0x03,
     BLE_LOG_ANCS_APP_ID         = 0x04,
     BLE_LOG_CHARGE_STATE        = 0x05,
+    BLE_LOG_MAG_SAMPLE          = 0x06,
+    BLE_LOG_COMPASS_ADJ         = 0x07,
+    BLE_LOG_SYNC_TIME           = 0x08,
     
     BLE_LOG_MAX,
 }ble_log_type_t;
-#endif
+//#endif
 
 typedef enum {
     CMD_PAIRING_CODE        = 0x00,
@@ -616,6 +622,14 @@ typedef struct {
 	EVENT_E last_state;
 	EVENT_E now_state;
 }csr_key_cfg_t;
+
+typedef struct {
+    u8 pair_code_disp;
+    u8 ab_long_press;
+    u8 m_double_click;
+    u8 compass_state;
+    //u8 compass_adj_state;
+} key_sta_ctrl_t;
 
 #define POS_HIGH(num) PioSet((num), 1UL)
 #define POS_LOW(num) PioSet((num), 0UL)

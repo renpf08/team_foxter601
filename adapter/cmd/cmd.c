@@ -268,7 +268,7 @@ static void cmd_test_vibration(u8 *buffer, u8 length)
     if(vib->type == 0) {
         vib_stop();
     } else if(vib->type == 1) {
-        vib_run(vib->step);
+        vib_run(vib->step, 0x01);
     }
 }
 #endif
@@ -322,17 +322,33 @@ static s16 cmd_set_time(u8 *buffer, u8 length)
     u8 days[13] = {00,31,28,31,30,31,30,31,31,30,31,30,31};
     u16 year = 0;
     volatile cmd_set_time_t* set_time = (cmd_set_time_t*)buffer;
+    u8 res = 0;
+//    u8 ble_log[11] = {CMD_TEST_SEND, BLE_LOG_SYNC_TIME, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     year = (u16)((set_time->year[1]<<8 & 0xFF00) | set_time->year[0]);
     days[2] = (0 == (year % 400) || (0 == (year % 4) && (0 != (year % 100))))?29:28;
 
-    if((year > 2120) || (year < 2020)) return 1;
-    if(set_time->month > 12) return 2;
-    if(set_time->day > days[set_time->month]) return 3;
-    if(set_time->hour > 23) return 4;
-    if(set_time->minute > 59) return 5;
-    if(set_time->second > 59) return 6;
-    if(set_time->week > 07) return 7;
+//    ble_log[2] = (year>>8)&0x00FF;
+//    ble_log[3] = year&0x00FF;
+//    ble_log[4] = set_time->month;
+//    ble_log[5] = set_time->day;
+//    ble_log[6] = set_time->hour;
+//    ble_log[7] = set_time->minute;
+//    ble_log[8] = set_time->second;
+//    ble_log[9] = set_time->week;
+
+    if((year > 2120) || (year < 2020)) res = 1;
+    else if(set_time->month > 12) res = 2;
+    else if(set_time->day > days[set_time->month]) res = 3;
+    else if(set_time->hour > 23) res = 4;
+    else if(set_time->minute > 59) res = 5;
+    else if(set_time->second > 59) res = 6;
+    else if(set_time->week > 07) res = 7;
+//    ble_log[10] = res;
+//    BLE_SEND_LOG(ble_log, 11);
+    if(res != 0) {
+        return res;
+    }
     
     MemCopy(&cmd_group.set_time, buffer, sizeof(cmd_set_time_t));
     return 0;

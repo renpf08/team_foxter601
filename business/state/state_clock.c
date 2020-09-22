@@ -86,25 +86,25 @@ static void nvm_access(REPORT_E cb)
         nvm_write_alarm_clock((u16*)&value->set_alarm_clock, 0);
     } else if(cb == WRITE_USER_INFO) {
         nvm_write_personal_info((u16*)&value->user_info, 0);
-    } else if(cb == READ_SYS_PARAMS) {
-        nvm_read_alarm_clock((u16*)&value->set_alarm_clock, 0);
-        nvm_read_pairing_code((u16*)&value->pair_code, 0);
-        nvm_read_personal_info((u16*)&value->user_info, 0);
-        cmd_check(value);
-    }
+    } 
+//    else if(cb == READ_SYS_PARAMS) {
+//        nvm_read_alarm_clock((u16*)&value->set_alarm_clock, 0);
+//        nvm_read_pairing_code((u16*)&value->pair_code, 0);
+//        nvm_read_personal_info((u16*)&value->user_info, 0);
+//        cmd_check(value);
+//    }
     #endif
 }
 static u8 state_check(REPORT_E cb)
 {
-    #if USE_PARAM_STORE
-    static u8 flag = 0;
-
-    if(flag == 0) {
-        cb = READ_SYS_PARAMS;
-    }
-    #endif
     u8 cmd_buf[2] = {0x02, 0x00};
-//    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
+//    #if USE_PARAM_STORE
+//    static u8 flag = 0;
+//
+//    if(flag == 0) {
+//        cb = READ_SYS_PARAMS;
+//    }
+//    #endif
     
     switch(cb) {
     case READ_CURDATA:
@@ -113,18 +113,18 @@ static u8 state_check(REPORT_E cb)
     case READ_HISDAYS:
     case READ_HISDATA:
     #if USE_PARAM_STORE
-    case READ_SYS_PARAMS:
+//    case READ_SYS_PARAMS:
     #endif
     case WRITE_USER_INFO:
     case WRITE_ALARM_CLOCK:
         nvm_access(cb);
         break;
-    case REFRESH_STEPS:
-        refresh_step();
-        break;
-    case SET_TIME:
-        sync_time();
-        break;
+//    case REFRESH_STEPS:
+//        refresh_step();
+//        break;
+//    case SET_TIME:
+//        sync_time();
+//        break;
     case KEY_A_SHORT_PRESS:
         BLE_SEND_DATA(cmd_buf, 2);
         break;
@@ -136,12 +136,12 @@ static u8 state_check(REPORT_E cb)
         break;
     }
 
-    #if USE_PARAM_STORE
-    if(flag == 0) {
-        flag = 1;
-        return 0;
-    }
-    #endif
+//    #if USE_PARAM_STORE
+//    if(flag == 0) {
+//        flag = 1;
+//        return 0;
+//    }
+//    #endif
     return 1;
 }
 s16 state_clock(REPORT_E cb, void *args)
@@ -150,6 +150,10 @@ s16 state_clock(REPORT_E cb, void *args)
 	print((u8 *)&"clock", 5);
     #endif
 
+    if(cb == SET_TIME) {
+        sync_time();
+        return 0;
+    }
     if(state_check(cb) != 0) {
         return 0;
     }
@@ -160,7 +164,6 @@ s16 state_clock(REPORT_E cb, void *args)
 	motor_minute_to_position(clk->minute);
 	motor_hour_to_position(clk->hour);
     motor_date_to_position(date[clk->day]);
-    motor_restore_position(cb);
     minutely_check(cb);
 	#else
 	clk.minute++;

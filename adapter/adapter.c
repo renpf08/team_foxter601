@@ -12,6 +12,9 @@ u8 stete_battery_week = state_battery;
 u8 activity_percent = 0;
 static u8 charge_start = 0;
 static u8 swing_state = 0;
+static STATE_E state_last = INIT;
+
+key_sta_ctrl_t key_sta_ctrl = {0, 0, 0, 0};
 
 const u8 date[] = {DAY_0,
 	DAY_1, DAY_2, DAY_3, DAY_4, DAY_5,
@@ -50,16 +53,52 @@ static adapter_t adapter = {
 	.cb = NULL,
 };
 
+static u8 button_event_check(u16 button_event)
+{
+    motor_run_status_t *motor_sta = motor_get_status();
+    app_state state_ble = ble_state_get();
+//    u8 vib_run_state = vib_state();
+//
+//    vib_stop();
+//    if(vib_run_state == 1) {
+//        return 1;
+//    }
+    if(button_event != KEY_M_SHORT_PRESS) {
+        return 0;
+    }
+    if(state_ble == app_advertising) {
+        return 0;
+    }
+    #if USE_ACTIVITY_NOTIFY
+    if(motor_sta[activity_motor].cur_pos != 0) {
+        motor_activity_to_position(NOTIFY_NONE);
+        return 1;
+    }
+    #else
+    if(motor_sta[notify_motor].cur_pos != 0) {
+		motor_notify_to_position(NOTIFY_NONE);
+        return 1;
+    }
+    #endif
+    return 0;
+}
 s16 csr_event_callback(EVENT_E ev)
 {
 	if(ev >= EVENT_MAX) {
 		return -1;
 	}else if(ev < MAGNETOMETER_READY){
-		//print((u8 *)&ev, 1);
 		u16 combo_event = button_cb_handler((void*)ev);
+        if(combo_event == KEY_M_ULTRA_LONG_PRESS) {
+            system_pre_reboot_handler(REBOOT_TYPE_BUTTON);
+        }
+        if(button_event_check(combo_event) == 1) {
+            return 0;
+        }
         if(combo_event < REPORT_MAX) {     // sure the button released
         	adapter.cb(combo_event, NULL);
-    	    //adapter.drv->uart->uart_write((u8 *)&combo_event, 1);
+        }
+        if(combo_event == KEY_M_SHORT_PRESS) {
+        	adapter.cb(COMPASS, NULL);
         }
 	} else if(ev == MAGNETOMETER_READY) {
 	    mag_cb_handler((void*)ev);
@@ -138,85 +177,70 @@ s16 adapter_init(adapter_callback cb)
     timer_event(1000, system_polling_handler);
 	return 0;
 }
-static void charge_polling_check(void)
-{
-    static s16 last_status = not_incharge;
-    s16 now_status = charge_status_get();
-    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
-    
-	if((last_status == not_incharge) && (now_status == incharge)) {
-        ble_log[2] = 0;
-        BLE_SEND_LOG(ble_log, 3);
-        adapter.cb(CHARGE_SWING, NULL);
-	} else if((last_status == incharge) && (now_status == not_incharge)) {
-        ble_log[2] = 1;
-        BLE_SEND_LOG(ble_log, 3);
-	    adapter.cb(CHARGE_STOP, NULL);
-	}
-    last_status = now_status;
-    ble_log[2] = 2;
-    BLE_SEND_LOG(ble_log, 3);
-}
-static void system_polling_handler(u16 id)
-{
-    charge_polling_check();
-    
-    timer_event(1000, system_polling_handler);
-}
-void system_pre_reboot_handler(reboot_type_t type)
-{
-    u8 motor_cur_pos[max_motor] = {0,0,0,0,0,0};
-    motor_run_status_t *motor_sta = motor_get_status();
 
-    motor_cur_pos[minute_motor] = motor_sta[minute_motor].cur_pos;
-    motor_cur_pos[hour_motor] = motor_sta[hour_motor].cur_pos;
-    motor_cur_pos[activity_motor] = motor_sta[activity_motor].cur_pos;
-    motor_cur_pos[date_motor] = motor_sta[date_motor].cur_pos;
-    motor_cur_pos[battery_week_motor] = motor_sta[battery_week_motor].cur_pos;
-    motor_cur_pos[notify_motor] = motor_sta[notify_motor].cur_pos;    
+static void upload_current_steps(void)
+{
+    u16 length = 0; 
+    u8 rsp_buf[20];
+    u8 *tmp_buf = rsp_buf;
+    clock_t *clock = clock_get();
+    cmd_params_t* params = cmd_get_params();
+    params->steps = step_get();
+    params->clock = clock;
 
-    #if USE_PARAM_STORE
-    clock_t* clock = clock_get();
-    nvm_write_motor_current_position((u16*)motor_cur_pos, 0);
-    nvm_write_date_time((u16*)clock, 0);
-    nvm_write_motor_init_flag();
-    #endif
-    if(type == REBOOT_TYPE_BUTTON) {
-        APP_Move_Bonded(4);
-        Panic(0);
-    } else if (type == REBOOT_TYPE_CMD) {
-        APP_Move_Bonded(4);
-        Panic(0);
-    } else if (type == REBOOT_TYPE_OTA) {
-        OtaReset();
+    BufWriteUint8((uint8 **)&tmp_buf, 0x01);
+    BufWriteUint8((uint8 **)&tmp_buf, 0x00);
+    BufWriteUint8((uint8 **)&tmp_buf, 0x00);
+    BufWriteUint16((uint8 **)&tmp_buf, params->clock->year);//SB100_data.AppApplyDateData.Year);
+    BufWriteUint8((uint8 **)&tmp_buf, params->clock->month);//SB100_data.AppApplyDateData.Month);
+    BufWriteUint8((uint8 **)&tmp_buf, params->clock->day);//SB100_data.AppApplyDateData.Date);
+    BufWriteUint16((uint8 **)&tmp_buf, params->steps);//(SB100_data.AppApplyData.StepCounts));
+    BufWriteUint8((uint8 **)&tmp_buf, params->steps>>16);//(SB100_data.AppApplyData.StepCounts>>16));
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->distance);//(SB100_data.AppApplyData.Distance));
+    BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->distance>>16);//(SB100_data.AppApplyData.Distance>>16));
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
+    BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
+    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
+    length = tmp_buf - rsp_buf;
+    BLE_SEND_DATA(rsp_buf, length);
+}
+static void activity_polling_check(void)
+{
+    u32 target_steps = cmd_get()->user_info.target_steps;
+    u32 current_steps = step_get();
+    static u32 last_steps = 0;
+    static u8 refresh_cnt = 0;
+
+    if((target_steps <= 0) || (target_steps >= 50000)) {
+        target_steps = 1000;
     }
-}
-void system_post_reboot_handler(void)
-{
-    u8 motor_cur_pos[max_motor] = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE};
-    motor_run_status_t *motor_sta = motor_get_status();
-
-    #if USE_PARAM_STORE
-    clock_t* clock = clock_get();
-    if(nvm_read_motor_init_flag() == 0) {
-        nvm_read_motor_current_position((u16*)motor_cur_pos, 0);
-        nvm_read_date_time((u16*)clock, 0);
+    if(current_steps > target_steps) {
+        activity_percent = 40; // total 40 grids
+    } else if(current_steps <= target_steps) {
+        activity_percent = (current_steps*40)/target_steps;
+    } else if(target_steps == 0) {
+        activity_percent = 0;
     }
-    #endif
-    motor_sta[minute_motor].cur_pos = motor_cur_pos[minute_motor];
-    motor_sta[hour_motor].cur_pos = motor_cur_pos[hour_motor];
-    motor_sta[activity_motor].cur_pos = motor_cur_pos[activity_motor];
-    motor_sta[date_motor].cur_pos = motor_cur_pos[date_motor];
-    motor_sta[battery_week_motor].cur_pos = motor_cur_pos[battery_week_motor];
-    motor_sta[notify_motor].cur_pos = motor_cur_pos[notify_motor];
-    
-    motor_sta[minute_motor].dst_pos = motor_cur_pos[minute_motor];
-    motor_sta[hour_motor].dst_pos = motor_cur_pos[hour_motor];
-    motor_sta[activity_motor].dst_pos = motor_cur_pos[activity_motor];
-    motor_sta[date_motor].dst_pos = motor_cur_pos[date_motor];
-    motor_sta[battery_week_motor].dst_pos = motor_cur_pos[battery_week_motor];
-    motor_sta[notify_motor].dst_pos = motor_cur_pos[notify_motor];
+
+    if((last_steps != current_steps) || (refresh_cnt >= 30)) {
+        refresh_cnt = 0;
+        motor_activity_to_position(activity_percent);
+        upload_current_steps();
+    } else {
+        refresh_cnt++;
+    }
+    last_steps = current_steps;
 }
+
+//void refresh_step(void)
+//{
+//    clock_t *clock = clock_get();
+//    cmd_params_t* params = cmd_get_params();
+//    params->steps = step_get();
+//    params->clock = clock;
+//    //timer_event(10, activity_handler);
+//}
 static void clock_charge_swing(u16 id)
 {
 	u8 battery_level = BAT_PECENT_0;
@@ -246,6 +270,92 @@ void charge_check(REPORT_E cb)
         charge_start = 0;
     }
 }
+static void charge_polling_check(void)
+{
+    static s16 last_status = not_incharge;
+    s16 now_status = charge_status_get();
+    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
+    
+	if((last_status == not_incharge) && (now_status == incharge)) {
+        ble_log[2] = 0;
+        BLE_SEND_LOG(ble_log, 3);
+        adapter.cb(CHARGE_SWING, NULL);
+	} else if((last_status == incharge) && (now_status == not_incharge)) {
+        ble_log[2] = 1;
+        BLE_SEND_LOG(ble_log, 3);
+	    adapter.cb(CHARGE_STOP, NULL);
+	}
+    last_status = now_status;
+}
+static void system_polling_handler(u16 id)
+{
+    charge_polling_check();
+    activity_polling_check();
+    
+    timer_event(1000, system_polling_handler);
+}
+void system_pre_reboot_handler(reboot_type_t type)
+{
+    u8 motor_cur_pos[max_motor] = {0,0,0,0,0,0};
+    motor_run_status_t *motor_sta = motor_get_status();
+
+    motor_cur_pos[minute_motor] = motor_sta[minute_motor].cur_pos;
+    motor_cur_pos[hour_motor] = motor_sta[hour_motor].cur_pos;
+    motor_cur_pos[activity_motor] = motor_sta[activity_motor].cur_pos;
+    motor_cur_pos[date_motor] = motor_sta[date_motor].cur_pos;
+    motor_cur_pos[battery_week_motor] = motor_sta[battery_week_motor].cur_pos;
+    motor_cur_pos[notify_motor] = motor_sta[notify_motor].cur_pos;    
+
+    #if USE_PARAM_STORE
+    clock_t* clock = clock_get();
+    nvm_write_motor_current_position((u16*)motor_cur_pos, 0);
+    nvm_write_date_time((u16*)clock, 0);
+    nvm_write_motor_init_flag();
+    #endif
+    if(type == REBOOT_TYPE_BUTTON) {
+        nvm_storage_reset();
+        APP_Move_Bonded(4);
+        Panic(0);
+    } else if (type == REBOOT_TYPE_CMD) {
+        nvm_storage_reset();
+        APP_Move_Bonded(4);
+        Panic(0);
+    } else if (type == REBOOT_TYPE_OTA) {
+        OtaReset();
+    }
+}
+void system_post_reboot_handler(void)
+{
+    u8 motor_cur_pos[max_motor] = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE};
+    motor_run_status_t *motor_sta = motor_get_status();
+    cmd_group_t *value = cmd_get();
+
+    #if USE_PARAM_STORE
+    clock_t* clock = clock_get();
+    if(nvm_read_motor_init_flag() == 0) {
+        nvm_read_motor_current_position((u16*)motor_cur_pos, 0);
+        nvm_read_date_time((u16*)clock, 0);
+    
+        nvm_read_alarm_clock((u16*)&value->set_alarm_clock, 0);
+        nvm_read_pairing_code((u16*)&value->pair_code, 0);
+        nvm_read_personal_info((u16*)&value->user_info, 0);
+        cmd_check(value);
+    }
+    #endif
+    motor_sta[minute_motor].cur_pos = motor_cur_pos[minute_motor];
+    motor_sta[hour_motor].cur_pos = motor_cur_pos[hour_motor];
+    motor_sta[activity_motor].cur_pos = motor_cur_pos[activity_motor];
+    motor_sta[date_motor].cur_pos = motor_cur_pos[date_motor];
+    motor_sta[battery_week_motor].cur_pos = motor_cur_pos[battery_week_motor];
+    motor_sta[notify_motor].cur_pos = motor_cur_pos[notify_motor];
+    
+    motor_sta[minute_motor].dst_pos = motor_cur_pos[minute_motor];
+    motor_sta[hour_motor].dst_pos = motor_cur_pos[hour_motor];
+    motor_sta[activity_motor].dst_pos = motor_cur_pos[activity_motor];
+    motor_sta[date_motor].dst_pos = motor_cur_pos[date_motor];
+    motor_sta[battery_week_motor].dst_pos = motor_cur_pos[battery_week_motor];
+    motor_sta[notify_motor].dst_pos = motor_cur_pos[notify_motor];
+}
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num)
 {
@@ -273,56 +383,19 @@ void system_reboot(u8 reboot_type)
     }
     Panic(0x5AFF);
 }
-
-static void activity_handler(u16 id)
-{
-    u32 target_steps = cmd_get()->user_info.target_steps;
-    u32 current_steps = step_get();
-
-    if(current_steps > target_steps) {
-        activity_percent = 40; // total 40 grids
-    } else if(current_steps <= target_steps) {
-        activity_percent = (current_steps*40)/target_steps;
-    } else if(target_steps == 0) {
-        activity_percent = 0;
-    }
-    motor_activity_to_position(activity_percent);
-    
-    u16 length = 0; 
-    u8 rsp_buf[20];
-    u8 *tmp_buf = rsp_buf;
-    cmd_params_t* params = cmd_get_params();
-    BufWriteUint8((uint8 **)&tmp_buf, 0x01);
-    BufWriteUint8((uint8 **)&tmp_buf, 0x00);
-    BufWriteUint8((uint8 **)&tmp_buf, 0x00);
-    BufWriteUint16((uint8 **)&tmp_buf, params->clock->year);//SB100_data.AppApplyDateData.Year);
-    BufWriteUint8((uint8 **)&tmp_buf, params->clock->month);//SB100_data.AppApplyDateData.Month);
-    BufWriteUint8((uint8 **)&tmp_buf, params->clock->day);//SB100_data.AppApplyDateData.Date);
-    BufWriteUint16((uint8 **)&tmp_buf, params->steps);//(SB100_data.AppApplyData.StepCounts));
-    BufWriteUint8((uint8 **)&tmp_buf, params->steps>>16);//(SB100_data.AppApplyData.StepCounts>>16));
-    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->distance);//(SB100_data.AppApplyData.Distance));
-    BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->distance>>16);//(SB100_data.AppApplyData.Distance>>16));
-    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie);//(SB100_data.AppApplyData.Calorie));
-    BufWriteUint8((uint8 **)&tmp_buf, 0);//cmd_get_data->calorie>>16);//(SB100_data.AppApplyData.Calorie>>16));
-    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->floor_counts);//SB100_data.AppApplyData.FloorCounts);
-    BufWriteUint16((uint8 **)&tmp_buf, 0);//cmd_get_data->acute_sport_time);//SB100_data.AppApplyData.AcuteSportTimeCounts);
-    length = tmp_buf - rsp_buf;
-    BLE_SEND_DATA(rsp_buf, length);
-}
-
-void refresh_step(void)
-{
-    clock_t *clock = clock_get();
-    cmd_params_t* params = cmd_get_params();
-    params->steps = step_get();
-    params->clock = clock;
-    timer_event(10, activity_handler);
-}
-
 void sync_time(void)
 {
 	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
     clock_t* clock = clock_get();
+    u8 ble_log[10] = {CMD_TEST_SEND, BLE_LOG_SYNC_TIME, 0, 0, 0, 0, 0, 0, 0, 0};
+    ble_log[2] = time->year[1];
+    ble_log[3] = time->year[0];
+    ble_log[4] = time->month;
+    ble_log[5] = time->day;
+    ble_log[6] = time->hour;
+    ble_log[7] = time->minute;
+    ble_log[8] = time->second;
+    ble_log[9] = time->week;
 
     clock->year = time->year[1]<<8 | time->year[0];
     clock->month = time->month;
@@ -332,8 +405,8 @@ void sync_time(void)
     clock->minute = time->minute;
     clock->second = time->second;
 
-    BLE_SEND_LOG((u8*)time, sizeof(cmd_set_time_t));
-    refresh_step();
+    BLE_SEND_LOG(ble_log, 10);
+//    refresh_step();
 	motor_minute_to_position(clock->minute);
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
@@ -352,6 +425,21 @@ void motor_restore_position(REPORT_E cb)
         motor_battery_week_to_position(position);    
         motor_activity_to_position(activity_percent);
     }
+}
+
+STATE_E get_last_state(void)
+{
+    return state_last;
+}
+
+void set_last_state(STATE_E state)
+{
+    state_last = state;
+}
+
+s16 timer_remove(s16 tid)
+{
+	return adapter.drv->timer->timer_del(tid);
 }
 
 s16 timer_event(u16 ms, timer_cb cb)

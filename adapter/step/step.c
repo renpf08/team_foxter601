@@ -160,7 +160,6 @@ u16 GetXYZ_Acce_Data(void)
 }
 static void StepCountProce(void)
 {
-    return;
     uint8 i=0,StepFlag=0;
     uint16 Temp=0xFFFF;    
     if(Step_Count_data.Pro_Step==PRO_STEP_START)
@@ -329,14 +328,14 @@ static void StepCountProce(void)
 }
 static void step_sample_handler(u16 id)
 {
-    static u32 step_count = 0;
+//    static u32 step_count = 0;
 
     StepCountProce();
-    if(step_count != acc_steps)
-    {
-        step_count = acc_steps;
-        steps_cb(REFRESH_STEPS, NULL);
-    }    
+//    if(step_count != acc_steps)
+//    {
+//        step_count = acc_steps;
+//        steps_cb(REFRESH_STEPS, NULL);
+//    }    
     timer_event(280, step_sample_handler);
 }
 s16 step_sample_init(adapter_callback cb)

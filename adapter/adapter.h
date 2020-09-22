@@ -36,13 +36,16 @@ void system_pre_reboot_handler(reboot_type_t type);
 void system_post_reboot_handler(void);
 void charge_check(REPORT_E cb);
 void system_reboot(u8 reboot_type);
-void refresh_step(void);
+//void refresh_step(void);
 void sync_time(void);
 void motor_restore_position(REPORT_E cb);
 #if USE_UART_PRINT
 void print(u8 *buf, u16 num);
 void trace(u8 *buf, u16 num);
 #endif
+STATE_E get_last_state(void);
+void set_last_state(STATE_E state);
+s16 timer_remove(s16 tid);
 s16 timer_event(u16 ms, timer_cb cb);
 
 clock_t *clock_get(void);
@@ -72,6 +75,10 @@ s16 battery_init(adapter_callback cb);
 u8 battery_percent_read(void);
 
 s16 nvm_storage_init(adapter_callback cb);
+s16 nvm_storage_reset(void);
+
+//void key_click_handler(EVENT_E key_event);
+//u8 get_compass_stete(void);
 #if USE_PARAM_STORE
 s16 nvm_read_motor_init_flag(void);
 s16 nvm_write_motor_init_flag(void);
@@ -135,7 +142,8 @@ void ble_state_set(app_state cur_state);
 app_state ble_state_get(void);
 
 s16 vib_stop(void);
-s16 vib_run(u8 step_count);
+s16 vib_run(u8 step_count, u8 caller);
+u8 vib_state(void);
 
 s16 charge_status_get(void);
 
@@ -147,6 +155,7 @@ s16 charge_status_get(void);
 //u8 bcd_to_hex(u8 bcd_data);
 //u32 hex_to_bcd(u8 hex_data);
 
+extern key_sta_ctrl_t key_sta_ctrl;
 extern u8 stete_battery_week;
 extern const u8 date[];
 #if USE_CMD_TEST_LOG_TYPE_EN

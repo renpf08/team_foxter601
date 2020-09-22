@@ -1,10 +1,17 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
+#include <mem.h> 
 #include "../adapter.h"
+
+#define USE_MAG_SAMPLE_SMOOTH   0
 
 s16 mag_cb_handler(void *args);
 u8 calculate_angle(int16 x_val,int16 y_val,int16 z_val);
+#if USE_MAG_SAMPLE_SMOOTH
+void mag_get_measure_val(s16 temp_val_x, s16 temp_val_y, s16 temp_val_z);
+#else
 void mag_get_measure_val(void);
+#endif
 s16 mag_sample_init(void);
 
 typedef struct {
@@ -23,6 +30,10 @@ typedef struct {
 }mag_t;
 
 mag_t mag;
+#if USE_MAG_SAMPLE_SMOOTH
+static mag_data_t data_smooth[5];
+#endif
+
 
 s16 mag_cb_handler(void *args)
 {
@@ -41,7 +52,6 @@ s16 mag_cb_handler(void *args)
 
 u8 calculate_angle(int16 x_val,int16 y_val,int16 z_val)
 {
-    return 0;
 	u16 tan_table[45]={2,5,9,12,16,19,23,27,31,34,38,42,47,51,55,60,65,70,75,81,87,93,100,107,115,123,133,143,154,166,180,196,214,236,261,290,327,373,433,514,631,814,1143,1908,5729};/*jim magnetism*/
     u8 temp_angle=0,i=0;
     u16 x_temp=0xFF,y_temp=0xFF;
@@ -111,15 +121,17 @@ u8 calculate_angle(int16 x_val,int16 y_val,int16 z_val)
 	}
 	return x_temp;
 }
-
+#if USE_MAG_SAMPLE_SMOOTH
+void mag_get_measure_val(s16 temp_val_x, s16 temp_val_y, s16 temp_val_z)
+#else
 void mag_get_measure_val(void)
+#endif
 {
-    return;
     u8 temp_flag=0;/*X_Temp,Y_Temp,Z_Temp;*/
-    s16 temp_val_x=0x00,temp_val_y=0x00,temp_val_z=0x00;
     u16 Temp=0,Temp1=0;
+    #if !USE_MAG_SAMPLE_SMOOTH
+    s16 temp_val_x=0x00,temp_val_y=0x00,temp_val_z=0x00;
 	mag_data_t data;
-
     temp_flag = get_driver()->magnetometer->magnetometer_read((void*)&data);
 	//temp_flag=MAG3110_I2c_Read(OUT_X_MSB,data_temp,6);
     if(temp_flag != 0x00) {/*获取数据不正确*/
@@ -137,6 +149,7 @@ void mag_get_measure_val(void)
     temp_val_z=data.mag_zh;
     temp_val_z<<=8;
     temp_val_z|=data.mag_zl;
+    #endif
 
   //if(mag.measure_flag==4)
   {
@@ -182,28 +195,102 @@ void mag_get_measure_val(void)
 	}
 }
 
+#if USE_MAG_SAMPLE_SMOOTH
+static s16 mag_sample_bubble(s16 *value)
+{
+    u8 i = 0;
+    u8 j = 0;
+    s16 tmp_val = 0;
+
+    for(i = 0; i < 4; i++) {
+        for(j = i; j < 5; j++) {
+            if(value[i] > value[j]) {
+                tmp_val = value[i];
+                value[i] = value[j];
+                value[j] = tmp_val;
+            }
+        }
+    }
+    for(i = 1; i < 4; i++) {
+        tmp_val += value[i];
+    }
+    tmp_val /= 3;
+    return tmp_val;
+}
+static void mag_sample_smooth_handler(u16 id)
+{
+    static s16 temp_val_x[5]={0,0,0,0,0};
+    static s16 temp_val_y[5]={0,0,0,0,0};
+    static s16 temp_val_z[5]={0,0,0,0,0};
+    s16 val_x = 0;
+    s16 val_y = 0;
+    s16 val_z = 0;
+    static u8 sample_cnt = 0;
+	mag_data_t data;
+    u8 i = 0;
+
+    if(get_driver()->magnetometer->magnetometer_read((void*)&data) == 0x00) {/*获取数据正确*/
+        MemCopy(&data_smooth[sample_cnt], &data, sizeof(mag_data_t));
+        sample_cnt++;
+    }
+    if(sample_cnt >= 5) {
+        MemSet(&data, 0, sizeof(mag_data_t));
+        for(i = 0; i < 5; i++) {
+            data.mag_xh += data_smooth[i].mag_xh;
+            data.mag_xl += data_smooth[i].mag_xl;
+            data.mag_yh += data_smooth[i].mag_yh;
+            data.mag_yl += data_smooth[i].mag_yl;
+            data.mag_zh += data_smooth[i].mag_yh;
+            data.mag_zl += data_smooth[i].mag_yl;
+            
+            temp_val_x[i]=data.mag_xh;
+            temp_val_x[i]<<=8;
+            temp_val_x[i]|=data.mag_xl;
+
+            temp_val_y[i]=data.mag_yh;
+            temp_val_y[i]<<=8;
+            temp_val_y[i]|=data.mag_yl;
+
+            temp_val_z[i]=data.mag_zh;
+            temp_val_z[i]<<=8;
+            temp_val_z[i]|=data.mag_zl;
+        }
+        val_x = mag_sample_bubble(temp_val_x);
+        val_y = mag_sample_bubble(temp_val_y);
+        val_z = mag_sample_bubble(temp_val_z);
+        sample_cnt = 0;
+        mag_get_measure_val(val_x, val_y, val_z);
+        return;
+    }
+    timer_event(50, mag_sample_smooth_handler);
+}
+#endif
 static void mag_sample_handler(u16 id)
 {
+    #if USE_MAG_SAMPLE_SMOOTH
+    timer_event(1, mag_sample_smooth_handler);
+    #else
     mag_get_measure_val();
+    #endif
 
     #if 0
+    u8 ble_log[5] = {CMD_TEST_SEND, BLE_LOG_MAG_SAMPLE, 0};
     static u8 angle = 0;
-    u8 value[2] = {0, 0};
-    u8 cur = mag.angle_value;
-    if(angle != mag.angle_value)
+    volatile u8 cur = mag.angle_value;
+    if((angle != mag.angle_value) && (key_sta_ctrl.compass_adj_state == 0) && (key_sta_ctrl.compass_state == 0))
     {
-        value[0] = cur/100;
+        ble_log[2] = mag.angle_value;
+        ble_log[3] = cur/100;
         cur = cur%100;
-        value[1] = (cur/10<<4)&0xF0;
+        ble_log[4] = (cur/10<<4)&0xF0;
         cur = cur%10;
-        value[1] |= cur&0x0F;
-        send_ble(value, 2);
-        printf("angle: %d\r\n", mag.angle_value);
+        ble_log[4] |= cur&0x0F;
+        BLE_SEND_LOG(ble_log, 5);
     }
     angle = mag.angle_value;
     #endif
     
-	//timer_event(280, mag_sample_handler);
+	timer_event(280, mag_sample_handler);
 }
 
 s16 mag_sample_init(void)
