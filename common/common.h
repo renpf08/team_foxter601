@@ -391,6 +391,7 @@ typedef enum{
     BLE_LOG_VIB_STATE           = 0x0A,
     
     BLE_LOG_MAX,
+    BLE_LOG_BROADCAST           = 0xFF,
 }ble_log_type_t;
 //#endif
 

@@ -8,32 +8,61 @@
 //vib_log_t _vib_log_;
 
 LOG_VAR_DEF(vib_log, CMD_TEST_SEND, BLE_LOG_VIB_STATE, vib_log_t);
+LOG_VAR_DEF(state_log, CMD_TEST_SEND, BLE_LOG_STATE_MACHINE, state_log_t);
 
+static u8 null_ptr[20];
 log_group_t log_group[] = {
-    {BLE_LOG_VIB_STATE, sizeof(vib_log_t), &vib_log},
-    {0, 0, NULL},
+    {1, BLE_LOG_VIB_STATE, sizeof(vib_log_t), &vib_log},
+    {1, BLE_LOG_STATE_MACHINE, sizeof(state_log_t), &state_log},
+    {1, BLE_LOG_MAX, 0, NULL},
 };
+
+void log_set(log_en_t* log_en)
+{
+    u8 i = 0;
+
+    if(log_en->boradcast == BLE_LOG_BROADCAST) {
+        while(log_group[i].log_type != BLE_LOG_MAX) {
+            log_group[i].log_en = log_en->en;
+            i++;
+        }
+    } else {
+        while(log_group[i].log_type != BLE_LOG_MAX) {
+            if(log_en->type == log_group[i].log_type) {
+                log_group[i].log_en = log_en->en;
+                break;
+            }
+            i++;
+        }
+    }
+}
 
 void* log_get(ble_log_type_t log_type)
 {
     u8 i = 0;
 
-    for(i = 0; i < sizeof(log_group); i++) {
+    while(log_group[i].log_type != BLE_LOG_MAX) {
         if(log_type == log_group[i].log_type) {
-            return &log_group[i].log_type;
+            if(log_group[i].log_en == 0) {
+                return null_ptr;
+            }
+            return log_group[i].log_ptr;
         }
+        i++;
     }
-    return NULL;
+    return null_ptr;
 }
 
 void log_send(ble_log_type_t log_type)
 {
     u8 i = 0;
 
-    for(i = 0; i < sizeof(log_group); i++) {
+    while(log_group[i].log_type != BLE_LOG_MAX) {
         if(log_type == log_group[i].log_type) {
             BLE_SEND_LOG((u8*)log_group[i].log_ptr, log_group[i].log_len);
+            break;
         }
+        i++;
     }
 }
 

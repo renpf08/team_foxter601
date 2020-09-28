@@ -2,6 +2,7 @@
 #include <pio.h>            /* Programmable I/O configuration and control */
 #include "business.h"
 #include "state/state.h"
+#include "../log.h"
 
 #define STATE_FILL(init, event, next, function) {\
 						.init_state = init,\
@@ -79,7 +80,11 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
     s16 res = 0;
-    u8 st_cb[6] = {CMD_TEST_SEND, BLE_LOG_STATE_MACHINE, business.state_now, cb, 0, 0};
+    state_log_t* sta_log = (state_log_t*)log_get(BLE_LOG_STATE_MACHINE);
+
+    sta_log->sta_now = business.state_now;
+    sta_log->report = cb;
+    sta_log->result = 0;
 
 	//return 0;
     #if USE_UART_PRINT
@@ -96,12 +101,12 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 			set_last_state(business.state_now);
 			business.state_now = state[i].next_state;
 			res = state[i].func(cb, &business.state_now);
-            st_cb[5] = 1;
+            sta_log->result = 1;
             break;
 		}
 	}
-    st_cb[4] = business.state_now;
-    BLE_SEND_LOG(st_cb, 6);
+    sta_log->sta_next = business.state_now;
+    log_send(BLE_LOG_STATE_MACHINE);
 	return res;
 }
 

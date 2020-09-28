@@ -12,8 +12,6 @@
             .type = _type,                          \
         }                                           \
     };
-    
-
 
 typedef struct {
     cmd_app_send_t cmd;
@@ -28,13 +26,28 @@ typedef struct {
     u8 run_flag;
     u8 vib_en;
 }vib_log_t;
+typedef struct {
+    log_head_t head;
+    u8 sta_now;
+    u8 report;
+    u8 sta_next;
+    u8 result;
+}state_log_t;
 
 typedef struct {
+    u8 log_en; // set to 1 to enable ble log
     ble_log_type_t log_type;
     u8 log_len;
     void* log_ptr;
 }log_group_t;
 
+typedef struct {
+    u8 boradcast;
+    u8 en;
+    ble_log_type_t type;
+}log_en_t;
+
+void log_set(log_en_t* log_en);
 void* log_get(ble_log_type_t log_type);
 void log_send(ble_log_type_t log_type);
 void log_init(void);
