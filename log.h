@@ -8,7 +8,6 @@
 #define LOG_VAR_DEF(_name, _cmd, _type, _stru)      \
     static _stru _name = {                          \
         .head = {                                   \
-            .length = (sizeof(_stru)-1),            \
             .cmd = _cmd,                            \
             .type = _type,                          \
         }                                           \
@@ -17,7 +16,6 @@
 
 
 typedef struct {
-    u8 length;
     cmd_app_send_t cmd;
     ble_log_type_t type;
 }log_head_t;
@@ -31,10 +29,18 @@ typedef struct {
     u8 vib_en;
 }vib_log_t;
 
-void log_send(u8* params);
+typedef struct {
+    ble_log_type_t log_type;
+    u8 log_len;
+    void* log_ptr;
+}log_group_t;
+
+void* log_get(ble_log_type_t log_type);
+void log_send(ble_log_type_t log_type);
 void log_init(void);
 
-extern vib_log_t _vib_log_;
+//extern vib_log_t _vib_log_;
+extern log_group_t log_group[];
 
 #endif // __LOG_H__
 

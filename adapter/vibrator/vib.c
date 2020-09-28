@@ -27,6 +27,7 @@ static vib_cfg_t vib_cfg = {
 
 static void vib_cb_handler(u16 id)
 {
+    vib_log_t* vib_log = (vib_log_t*)log_get(BLE_LOG_VIB_STATE);
     vib_cfg.tid = TIMER_INVALID;
     
 	if(0 == vib_cfg.run_flag) {
@@ -39,18 +40,18 @@ static void vib_cb_handler(u16 id)
 	    vib_cfg.tid = vib_cfg.drv->timer->timer_start(200, vib_cb_handler);
 	}else {		
 		vib_cfg.drv->vibrator->vibrator_off(NULL);
-        _vib_log_.cur_step--;
+        vib_log->cur_step--;
 		//if run complete, then exit without have timer start again
 		if(0 == --vib_cfg.step_count) {
 			vib_cfg.run_flag = 0;
 			vib_cfg.status = idle;
-            _vib_log_.run_flag = 0;
+            vib_log->run_flag = 0;
 			return;
 		}else {
 			vib_cfg.status = run;
 	        vib_cfg.tid = vib_cfg.drv->timer->timer_start(800, vib_cb_handler);
 		}
-        log_send((u8*)&_vib_log_);
+        log_send(BLE_LOG_VIB_STATE);
 	}
 }
 
@@ -67,10 +68,11 @@ s16 vib_stop(void)
 
 s16 vib_run(u8 step_count, u8 caller)
 {
-    _vib_log_.caller = caller;
-    _vib_log_.steps = step_count;
-    _vib_log_.cur_step = step_count;
-    _vib_log_.run_flag = 1;
+    vib_log_t* vib_log = (vib_log_t*)log_get(BLE_LOG_VIB_STATE);
+    vib_log->caller = caller;
+    vib_log->steps = step_count;
+    vib_log->cur_step = step_count;
+    vib_log->run_flag = 1;
     
 	vib_cfg.status = run;
 	vib_cfg.run_flag = 1;
