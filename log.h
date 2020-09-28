@@ -5,13 +5,24 @@
 #include <mem.h>
 #include "common/common.h"
 
-#define LOG_VAR_DEF(_name, _cmd, _type, _stru)      \
-    static _stru _name = {                          \
-        .head = {                                   \
-            .cmd = _cmd,                            \
-            .type = _type,                          \
-        }                                           \
-    };
+//#if USE_CMD_TEST_LOG_TYPE_EN
+typedef enum{
+    BLE_LOG_PAIR_CODE           = 0x00,
+    BLE_LOG_STATE_MACHINE       = 0x01,
+    BLE_LOG_ZERO_ADJUST_JUMP    = 0x02,
+    BLE_LOG_NOTIFY_TYPE         = 0x03,
+    BLE_LOG_ANCS_APP_ID         = 0x04,
+    BLE_LOG_CHARGE_STATE        = 0x05,
+    BLE_LOG_MAG_SAMPLE          = 0x06,
+    BLE_LOG_COMPASS_ADJ         = 0x07,
+    BLE_LOG_SYNC_TIME           = 0x08,
+    BLE_LOG_RUN_TIME            = 0x09,
+    BLE_LOG_VIB_STATE           = 0x0A,
+    
+    BLE_LOG_MAX,
+    BLE_LOG_BROADCAST           = 0xFF,
+}ble_log_type_t;
+//#endif
 
 typedef struct {
     cmd_app_send_t cmd;

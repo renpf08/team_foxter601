@@ -7,10 +7,18 @@
 //-----------------------------------------------------------------------
 //vib_log_t _vib_log_;
 
+#define LOG_VAR_DEF(_name, _cmd, _type, _stru)      \
+    static _stru _name = {                          \
+        .head = {                                   \
+            .cmd = _cmd,                            \
+            .type = _type,                          \
+        }                                           \
+    };
+
 LOG_VAR_DEF(vib_log, CMD_TEST_SEND, BLE_LOG_VIB_STATE, vib_log_t);
 LOG_VAR_DEF(state_log, CMD_TEST_SEND, BLE_LOG_STATE_MACHINE, state_log_t);
 
-static u8 null_ptr[20];
+static u8 null_ptr[20] = {CMD_TEST_SEND, BLE_LOG_BROADCAST};
 log_group_t log_group[] = {
     {1, BLE_LOG_VIB_STATE, sizeof(vib_log_t), &vib_log},
     {1, BLE_LOG_STATE_MACHINE, sizeof(state_log_t), &state_log},

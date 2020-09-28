@@ -5,6 +5,7 @@
 
 #include "../common/common.h"
 #include "../driver/driver.h"
+#include "../log.h"
 
 typedef struct {
 	/*record motor pointer*/
