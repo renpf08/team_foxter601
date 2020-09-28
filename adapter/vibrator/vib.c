@@ -1,6 +1,9 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
 #include "../adapter.h"
+#include "../../common/common.h"
+
+#include "../../log.h"
 
 s16 vib_init(adapter_callback cb);
 
@@ -36,15 +39,18 @@ static void vib_cb_handler(u16 id)
 	    vib_cfg.tid = vib_cfg.drv->timer->timer_start(200, vib_cb_handler);
 	}else {		
 		vib_cfg.drv->vibrator->vibrator_off(NULL);
+        _vib_log_.cur_step--;
 		//if run complete, then exit without have timer start again
 		if(0 == --vib_cfg.step_count) {
 			vib_cfg.run_flag = 0;
 			vib_cfg.status = idle;
+            _vib_log_.run_flag = 0;
 			return;
 		}else {
 			vib_cfg.status = run;
 	        vib_cfg.tid = vib_cfg.drv->timer->timer_start(800, vib_cb_handler);
 		}
+        log_send((u8*)&_vib_log_);
 	}
 }
 
@@ -61,6 +67,11 @@ s16 vib_stop(void)
 
 s16 vib_run(u8 step_count, u8 caller)
 {
+    _vib_log_.caller = caller;
+    _vib_log_.steps = step_count;
+    _vib_log_.cur_step = step_count;
+    _vib_log_.run_flag = 1;
+    
 	vib_cfg.status = run;
 	vib_cfg.run_flag = 1;
 	vib_cfg.step_count = step_count;	

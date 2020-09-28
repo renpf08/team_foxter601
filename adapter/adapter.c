@@ -7,6 +7,7 @@
 #include <panic.h>
 #include <buf_utils.h>
 #include <csr_ota.h>
+#include "../log.h"
 
 u8 stete_battery_week = state_battery;
 u8 activity_percent = 0;
@@ -173,6 +174,7 @@ s16 adapter_init(adapter_callback cb)
 	vib_init(cb);
 	charge_status_init(cb);
     system_post_reboot_handler();
+    log_init();
 
     timer_event(1000, system_polling_handler);
 	return 0;
