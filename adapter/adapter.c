@@ -174,7 +174,7 @@ s16 adapter_init(adapter_callback cb)
 	vib_init(cb);
 	charge_status_init(cb);
     system_post_reboot_handler();
-    log_init();
+    log_init(cb);
 
     timer_event(1000, system_polling_handler);
 	return 0;

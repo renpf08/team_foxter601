@@ -27,6 +27,7 @@
 #include "app_gatt.h"
 #include "ancs_client.h"
 #include "adapter/adapter.h"
+#include "log.h"
 
 /*============================================================================*
  *  Private Definitions
@@ -189,6 +190,7 @@ extern void SerialHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
         case HANDLE_SERIAL_RECV_DATA:
         {
             cmd_parse((u8*)p_ind->value, (uint8)p_ind->size_value);
+            log_parse((u8*)p_ind->value, (uint8)p_ind->size_value);
         }
         break;
         

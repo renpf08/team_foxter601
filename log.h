@@ -63,10 +63,12 @@ typedef struct {
     ble_log_type_t type;
 }log_en_t;
 
+s16 log_init(adapter_callback cb);
 void log_set(log_en_t* log_en);
 void* log_get(ble_log_type_t log_type);
 void log_send(ble_log_type_t log_type);
-void log_init(void);
+
+void log_parse(u8* content, u8 length);
 
 //extern vib_log_t _vib_log_;
 extern log_group_t log_group[];
