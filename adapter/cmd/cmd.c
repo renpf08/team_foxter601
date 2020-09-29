@@ -92,7 +92,7 @@ static s16 cmd_set_time(u8 *buffer, u8 length)
     u16 year = 0;
     volatile cmd_set_time_t* set_time = (cmd_set_time_t*)buffer;
     u8 res = 0;
-//    u8 ble_log[11] = {LOG_CMD_SEND_DEBUG, LOG_SEND_SYNC_TIME, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+//    u8 ble_log[11] = {LOG_SEND_FLAG, LOG_SEND_SYNC_TIME, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     year = (u16)((set_time->year[1]<<8 & 0xFF00) | set_time->year[0]);
     days[2] = (0 == (year % 400) || (0 == (year % 4) && (0 != (year % 100))))?29:28;

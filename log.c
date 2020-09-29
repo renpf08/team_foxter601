@@ -104,13 +104,13 @@ static const log_rcvd_entry_t log_rcvd_list[] =
 // received log from peer device end
 //-------------------------------------------------------------------------
 // send log from local device begin
-LOG_SEND_VAR_DEF(log_send_sta_mc,           LOG_CMD_SEND_DEBUG, LOG_SEND_STATE_MACHINE);
-LOG_SEND_VAR_DEF(log_send_pair_code,        LOG_CMD_SEND_DEBUG, LOG_SEND_PAIR_CODE);
-LOG_SEND_VAR_DEF(log_send_notify    ,       LOG_CMD_SEND_DEBUG, LOG_SEND_NOTIFY_TYPE);
-LOG_SEND_VAR_DEF(log_send_ancs_id,          LOG_CMD_SEND_DEBUG, LOG_SEND_ANCS_APP_ID);
+LOG_SEND_VAR_DEF(log_send_sta_mc,             LOG_SEND_FLAG, LOG_SEND_STATE_MACHINE);
+LOG_SEND_VAR_DEF(log_send_pair_code,          LOG_SEND_FLAG, LOG_SEND_PAIR_CODE);
+LOG_SEND_VAR_DEF(log_send_notify,             LOG_SEND_FLAG, LOG_SEND_NOTIFY_TYPE);
+LOG_SEND_VAR_DEF(log_send_ancs_id,            LOG_SEND_FLAG, LOG_SEND_ANCS_APP_ID);
 
-LOG_SEND_VAR_DEF(log_send_vib_info,         LOG_CMD_SEND_DEBUG, LOG_SEND_VIB_STATE);
-LOG_SEND_VAR_DEF(log_send_null,             LOG_CMD_SEND_DEBUG, LOG_SEND_NULL);
+LOG_SEND_VAR_DEF(log_send_vib_info,           LOG_SEND_FLAG, LOG_SEND_VIB_STATE);
+LOG_SEND_VAR_DEF(log_send_null,               LOG_SEND_FLAG, LOG_SEND_NULL);
 log_send_group_t log_send_group[] = {
     {1, LOG_SEND_STATE_MACHINE,     LOG_SEND_VAR_SET(log_send_sta_mc)},
     {1, LOG_SEND_PAIR_CODE,         LOG_SEND_VAR_SET(log_send_pair_code)},
@@ -161,7 +161,7 @@ void log_send_initiate(log_send_type_t log_type)
             if(log_send_group[i].log_en == 0) {
                 break;
             }
-            if(LOG_CHK_PCK_HEAD(log_send_group[i].log_ptr) != LOG_CMD_SEND_DEBUG) {
+            if(LOG_CHK_PCK_HEAD(log_send_group[i].log_ptr) != LOG_SEND_FLAG) {
                 break;
             }
             BLE_SEND_LOG((u8*)log_send_group[i].log_ptr, log_send_group[i].log_len);
@@ -264,7 +264,7 @@ static void log_rcvd_req_sys_reboot(u8 *buffer, u8 length)
 }
 static void log_rcvd_req_charger_sta(u8 *buffer, u8 length)
 {
-    u8 ble_log[3] = {LOG_CMD_SEND_DEBUG, LOG_SEND_CHARGE_STATE, 0};
+    u8 ble_log[3] = {LOG_SEND_FLAG, LOG_SEND_CHARGE_STATE, 0};
     ble_log[2] = charge_status_get();
     
     BLE_SEND_LOG(ble_log, 3);
@@ -277,7 +277,7 @@ u8 log_rcvd_parse(u8* content, u8 length)
 	if(length == 0) {
 		return 1;
 	}
-    if(test->head != LOG_CMD_RCVD_DEBUG) {
+    if(test->head != LOG_RCVD_FLAG) {
         return 1;
     }
 

@@ -26,7 +26,7 @@ static clock_t clk = {
 static void send_run_time(void)
 {
     static u16 run_time_cnt = 0;
-    u8 ble_log[6] = {LOG_CMD_SEND_DEBUG, LOG_SEND_RUN_TIME, 0, 0, 0, 0};
+    u8 ble_log[6] = {LOG_SEND_FLAG, LOG_SEND_RUN_TIME, 0, 0, 0, 0};
     ble_log[2] = (run_time_cnt>>8) & 0x00FF;
     ble_log[3] = run_time_cnt & 0x00FF;
     ble_log[4] = key_sta_ctrl.ab_long_press;

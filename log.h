@@ -24,8 +24,8 @@ typedef enum{
 }log_send_type_t;
 
 typedef enum {
-    LOG_CMD_SEND_DEBUG          = 0x5F,
-    LOG_CMD_RCVD_DEBUG          = 0xAF,
+    LOG_SEND_FLAG               = 0x5F,
+    LOG_RCVD_FLAG               = 0xAF,
     CMD_CMD_MAX
 } log_cmd_t;
 
