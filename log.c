@@ -4,6 +4,7 @@
 #include "adapter/adapter.h"
 
 #define LOG_SEND_VAR_SET(param) sizeof(param##_t), &param
+#define LOG_SEND_PTR_RESERT(param, len)   MemSet(&((u8*)param)[2], 0, (len-2));
 #define LOG_SEND_VAR_RESERT(param)   MemSet(&((u8*)&param)[2], 0, (sizeof(param)-2));
 #define LOG_SEND_VAR_DEF(_name, _cmd, _type) \
     static _name##_t _name = {          \
@@ -145,27 +146,17 @@ s16 log_send_init(adapter_callback cb)
     return 0;
 }
 
-//#define LOG_SEND_PTR_RESERT(param)   MemSet(&(u8*)&param[2], 0, (sizeof(param)-2));
-//#define LOG_SEND_PTR_RESERT(param, len)   MemSet(&((u8*)param)[2], 0, (len-2));
-//static u8 reset_var(void* var, u8 len)
-//{
-//    volatile u8* ptr = &((u8*)var)[2];
-//    ptr[0] = 0x5A;
-//    return 0;
-//}
-#define LOG_SEND_PTR_RESERT(param, len)   MemSet(&((u8*)&param)[2], 0, (len-2));
 void* log_send_get_ptr(log_send_type_t log_type)
 {
     u8 i = 0;
+//    log_head_t log_head;
 
     while(log_send_group[i].log_type != LOG_SEND_MAX) {
         if(log_type == log_send_group[i].log_type) {
             if(log_send_group[i].log_en == 0) {
                 continue;
             }
-            //LOG_SEND_VAR_RESERT(((u8*)log_send_group[i].log_ptr)[0]);
-            //LOG_SEND_PTR_RESERT(log_send_group[i].log_ptr, log_send_group[i].log_en);
-            //reset_var(log_send_group[i].log_ptr, log_send_group[i].log_en);
+            LOG_SEND_PTR_RESERT(log_send_group[i].log_ptr, log_send_group[i].log_len);
             return log_send_group[i].log_ptr;
         }
         i++;
