@@ -92,7 +92,7 @@ static s16 cmd_set_time(u8 *buffer, u8 length)
     u16 year = 0;
     volatile cmd_set_time_t* set_time = (cmd_set_time_t*)buffer;
     u8 res = 0;
-//    u8 ble_log[11] = {CMD_TEST_SEND, BLE_LOG_SYNC_TIME, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+//    u8 ble_log[11] = {LOG_CMD_SEND_DEBUG, LOG_SEND_SYNC_TIME, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     year = (u16)((set_time->year[1]<<8 & 0xFF00) | set_time->year[0]);
     days[2] = (0 == (year % 400) || (0 == (year % 4) && (0 != (year % 100))))?29:28;
@@ -379,7 +379,7 @@ s16 cmd_init(adapter_callback cb)
     cmd_group.user_info.target_steps = DEFAULT_TARGET_STEPCOUNTS;
     #endif
     #if USE_CMD_TEST_LOG_TYPE_EN
-    MemSet(ble_log_type, 1, BLE_LOG_MAX);
+    MemSet(ble_log_type, 1, LOG_SEND_MAX);
     #endif
     
 	return 0;

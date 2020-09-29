@@ -276,7 +276,7 @@ static void charge_polling_check(void)
 {
     static s16 last_status = not_incharge;
     s16 now_status = charge_status_get();
-    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
+    u8 ble_log[3] = {LOG_CMD_SEND_DEBUG, LOG_SEND_CHARGE_STATE, 0};
     
 	if((last_status == not_incharge) && (now_status == incharge)) {
         ble_log[2] = 0;
@@ -389,7 +389,7 @@ void sync_time(void)
 {
 	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
     clock_t* clock = clock_get();
-    u8 ble_log[10] = {CMD_TEST_SEND, BLE_LOG_SYNC_TIME, 0, 0, 0, 0, 0, 0, 0, 0};
+    u8 ble_log[10] = {LOG_CMD_SEND_DEBUG, LOG_SEND_SYNC_TIME, 0, 0, 0, 0, 0, 0, 0, 0};
     ble_log[2] = time->year[1];
     ble_log[3] = time->year[0];
     ble_log[4] = time->month;

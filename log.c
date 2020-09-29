@@ -87,28 +87,28 @@ static void log_rcvd_req_charger_sta(u8 *buffer, u8 length);
 
 static const log_rcvd_entry_t log_rcvd_list[] =
 {
-    {LOG_RCVD_SET_NVM,       log_rcvd_set_nvm},
+    {LOG_RCVD_SET_NVM,              log_rcvd_set_nvm},
     {LOG_RCVD_SET_ZERO_ADJUST,      log_rcvd_set_zero_adjust},
     {LOG_RCVD_SET_STEP_COUNT,       log_rcvd_set_step_count},
-    {LOG_RCVD_SET_LOG_EN,      log_rcvd_set_log_en},
+    {LOG_RCVD_SET_LOG_EN,           log_rcvd_set_log_en},
     {LOG_RCVD_SET_VIBRATION,        log_rcvd_set_vibration},
     {LOG_RCVD_REQ_CHARGE_SWING,     log_rcvd_set_charge_swing},
 
     {LOG_RCVD_REQ_SYS_REBOOT,       log_rcvd_req_sys_reboot},
-    {LOG_RCVD_SET_CHARGE_STA,   log_rcvd_req_charger_sta},
+    {LOG_RCVD_SET_CHARGE_STA,       log_rcvd_req_charger_sta},
 
 	{LOG_RCVD_NONE,             NULL}
 };
 // received log from peer device end
 //-------------------------------------------------------------------------
 // send log from local device begin
-LOG_SEND_VAR_DEF(null_log, CMD_TEST_SEND, BLE_LOG_NULL);
-LOG_SEND_VAR_DEF(vib_log, CMD_TEST_SEND, BLE_LOG_VIB_STATE);
-LOG_SEND_VAR_DEF(state_log, CMD_TEST_SEND, BLE_LOG_STATE_MACHINE);
+LOG_SEND_VAR_DEF(log_send_null, LOG_CMD_SEND_DEBUG, LOG_SEND_NULL);
+LOG_SEND_VAR_DEF(log_send_vib_info, LOG_CMD_SEND_DEBUG, LOG_SEND_VIB_STATE);
+LOG_SEND_VAR_DEF(log_send_sta_mc, LOG_CMD_SEND_DEBUG, LOG_SEND_STATE_MACHINE);
 log_send_group_t log_send_group[] = {
-    {1, BLE_LOG_VIB_STATE, LOG_SEND_VAR_SET(vib_log)},
-    {1, BLE_LOG_STATE_MACHINE, LOG_SEND_VAR_SET(state_log)},
-    {1, BLE_LOG_MAX, LOG_SEND_VAR_SET(null_log)},
+    {1, LOG_SEND_VIB_STATE, LOG_SEND_VAR_SET(log_send_vib_info)},
+    {1, LOG_SEND_STATE_MACHINE, LOG_SEND_VAR_SET(log_send_sta_mc)},
+    {1, LOG_SEND_MAX, LOG_SEND_VAR_SET(log_send_null)},
 };
 // send log from local device end
 //-------------------------------------------------------------------------
@@ -118,8 +118,8 @@ static adapter_callback log_cb = NULL;
 s16 log_send_init(adapter_callback cb)
 {
 	log_cb = cb;
-    LOG_SEND_VAR_RESERT(vib_log);
-    LOG_SEND_VAR_RESERT(state_log);
+    LOG_SEND_VAR_RESERT(log_send_vib_info);
+    LOG_SEND_VAR_RESERT(log_send_sta_mc);
 
     return 0;
 }
@@ -129,13 +129,13 @@ void log_send_set_en(log_en_t* log_en)
 {
     u8 i = 0;
 
-    if(log_en->boradcast == BLE_LOG_BROADCAST) {
-        while(log_send_group[i].log_type != BLE_LOG_MAX) {
+    if(log_en->boradcast == LOG_SEND_BROADCAST) {
+        while(log_send_group[i].log_type != LOG_SEND_MAX) {
             log_send_group[i].log_en = log_en->en;
             i++;
         }
     } else {
-        while(log_send_group[i].log_type != BLE_LOG_MAX) {
+        while(log_send_group[i].log_type != LOG_SEND_MAX) {
             if(log_en->type == log_send_group[i].log_type) {
                 log_send_group[i].log_en = log_en->en;
                 break;
@@ -145,11 +145,11 @@ void log_send_set_en(log_en_t* log_en)
     }
 }
 
-void* log_send_get_ptr(ble_log_type_t log_type)
+void* log_send_get_ptr(log_send_type_t log_type)
 {
     u8 i = 0;
 
-    while(log_send_group[i].log_type != BLE_LOG_MAX) {
+    while(log_send_group[i].log_type != LOG_SEND_MAX) {
         if(log_type == log_send_group[i].log_type) {
             if(log_send_group[i].log_en == 0) {
                 continue;
@@ -161,11 +161,11 @@ void* log_send_get_ptr(ble_log_type_t log_type)
     return log_send_group[i].log_ptr;
 }
 
-void log_send_initiate(ble_log_type_t log_type)
+void log_send_initiate(log_send_type_t log_type)
 {
     u8 i = 0;
 
-    while(log_send_group[i].log_type != BLE_LOG_MAX) {
+    while(log_send_group[i].log_type != LOG_SEND_MAX) {
         if(log_type == log_send_group[i].log_type) {
             BLE_SEND_LOG((u8*)log_send_group[i].log_ptr, log_send_group[i].log_len);
             break;
@@ -220,7 +220,7 @@ static void log_rcvd_set_step_count(u8 *buffer, u8 length)
     u16 steps = (u16)(step->hi<<8 | step->lo);
     step_test(steps);
 }
-ble_log_type_t ble_log_type[BLE_LOG_MAX];
+log_send_type_t ble_log_type[LOG_SEND_MAX];
 static void log_rcvd_set_log_en(u8 *buffer, u8 length)
 {
     log_rcvd_set_log_en_t* log = (log_rcvd_set_log_en_t*)buffer;
@@ -252,7 +252,7 @@ static void log_rcvd_req_sys_reboot(u8 *buffer, u8 length)
 }
 static void log_rcvd_req_charger_sta(u8 *buffer, u8 length)
 {
-    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
+    u8 ble_log[3] = {LOG_CMD_SEND_DEBUG, LOG_SEND_CHARGE_STATE, 0};
     ble_log[2] = charge_status_get();
     
     BLE_SEND_LOG(ble_log, 3);
@@ -261,10 +261,14 @@ void log_rcvd_parse(u8* content, u8 length)
 {
     log_rcvd_t* test = (log_rcvd_t*)content;
 	u8 i = 0;
+    log_cmd_t log_cmd = (log_cmd_t)content[0];
 
 	if(length == 0) {
 		return;
 	}
+    if(log_cmd != LOG_CMD_SEND_DEBUG) {
+        return;
+    }
 
     while(log_rcvd_list[i].cmd != LOG_RCVD_NONE) {
         if(log_rcvd_list[i].cmd == test->cmd) {

@@ -100,7 +100,7 @@ s16 ancs_init(adapter_callback cb);
 void ancs_business_handle(packing_msg_t* pack_msg)
 {
     u8 i = 0;
-    u8 ble_log[20] = {CMD_TEST_SEND, BLE_LOG_ANCS_APP_ID};
+    u8 ble_log[20] = {LOG_CMD_SEND_DEBUG, LOG_SEND_ANCS_APP_ID};
     u8 app_id_len = 0;
     u8 app_id_start_pos = 3;
     u8 app_id_max_len = (20-app_id_start_pos);

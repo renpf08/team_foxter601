@@ -5,35 +5,39 @@
 #include <mem.h>
 #include "common/common.h"
 
-//#if USE_CMD_TEST_LOG_TYPE_EN
 typedef enum{
-    BLE_LOG_NULL                = 0x00,
-    BLE_LOG_STATE_MACHINE       = 0x01,
-    BLE_LOG_PAIR_CODE           = 0x02,
-    BLE_LOG_ZERO_ADJUST_JUMP    = 0x03,
-    BLE_LOG_NOTIFY_TYPE         = 0x04,
-    BLE_LOG_ANCS_APP_ID         = 0x05,
-    BLE_LOG_CHARGE_STATE        = 0x06,
-    BLE_LOG_MAG_SAMPLE          = 0x07,
-    BLE_LOG_COMPASS_ADJ         = 0x08,
-    BLE_LOG_SYNC_TIME           = 0x09,
-    BLE_LOG_RUN_TIME            = 0x0A,
-    BLE_LOG_VIB_STATE           = 0x0B,
+    LOG_SEND_NULL               = 0x00,
+    LOG_SEND_STATE_MACHINE      = 0x01,
+    LOG_SEND_PAIR_CODE          = 0x02,
+    LOG_SEND_ZERO_ADJUST_JUMP   = 0x03,
+    LOG_SEND_NOTIFY_TYPE        = 0x04,
+    LOG_SEND_ANCS_APP_ID        = 0x05,
+    LOG_SEND_CHARGE_STATE       = 0x06,
+    LOG_SEND_MAG_SAMPLE         = 0x07,
+    LOG_SEND_COMPASS_ADJ        = 0x08,
+    LOG_SEND_SYNC_TIME          = 0x09,
+    LOG_SEND_RUN_TIME           = 0x0A,
+    LOG_SEND_VIB_STATE          = 0x0B,
     
-    BLE_LOG_MAX,
-    BLE_LOG_BROADCAST           = 0xFF,
-}ble_log_type_t;
-//#endif
+    LOG_SEND_MAX,
+    LOG_SEND_BROADCAST          = 0xFF,
+}log_send_type_t;
+
+typedef enum {
+    LOG_CMD_SEND_DEBUG          = 0x5F,
+    LOG_CMD_RCVD_DEBUG          = 0xAF,
+    CMD_CMD_MAX
+} log_cmd_t;
 
 typedef struct {
     cmd_app_send_t cmd;
-    ble_log_type_t type;
+    log_send_type_t type;
 }log_head_t;
 
 typedef struct {
     log_head_t head;
     u8 null[18];
-}null_log_t;
+}log_send_null_t;
 typedef struct {
     log_head_t head;
     u8 caller;
@@ -41,18 +45,18 @@ typedef struct {
     u8 cur_step;
     u8 run_flag;
     u8 vib_en;
-}vib_log_t;
+}log_send_vib_info_t;
 typedef struct {
     log_head_t head;
     u8 sta_now;
     u8 report;
     u8 sta_next;
     u8 result;
-}state_log_t;
+}log_send_sta_mc_t;
 
 typedef struct {
     u8 log_en; // set to 1 to enable ble log
-    ble_log_type_t log_type;
+    log_send_type_t log_type;
     u8 log_len;
     void* log_ptr;
 }log_send_group_t;
@@ -60,13 +64,13 @@ typedef struct {
 typedef struct {
     u8 boradcast;
     u8 en;
-    ble_log_type_t type;
+    log_send_type_t type;
 }log_en_t;
 
 s16 log_send_init(adapter_callback cb);
 void log_send_set_en(log_en_t* log_en);
-void* log_send_get_ptr(ble_log_type_t log_type);
-void log_send_initiate(ble_log_type_t log_type);
+void* log_send_get_ptr(log_send_type_t log_type);
+void log_send_initiate(log_send_type_t log_type);
 
 void log_rcvd_parse(u8* content, u8 length);
 

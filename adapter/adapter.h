@@ -160,7 +160,7 @@ extern key_sta_ctrl_t key_sta_ctrl;
 extern u8 stete_battery_week;
 extern const u8 date[];
 #if USE_CMD_TEST_LOG_TYPE_EN
-extern ble_log_type_t ble_log_type[BLE_LOG_MAX];
+extern log_send_type_t ble_log_type[LOG_SEND_MAX];
 #endif
 
 #endif

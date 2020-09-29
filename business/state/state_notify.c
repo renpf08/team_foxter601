@@ -52,7 +52,7 @@ s16 state_notify(REPORT_E cb, void *args)
     u8 i = 0;
     u8 *en = cmd_get()->notify_switch.en;
     u32 msg_en = 0;
-    u8 ble_log[5] = {CMD_TEST_SEND, BLE_LOG_NOTIFY_TYPE, 0,0,0};
+    u8 ble_log[5] = {LOG_CMD_SEND_DEBUG, LOG_SEND_NOTIFY_TYPE, 0,0,0};
 
     for(i = 0; i < 4; i++) {
         msg_en  <<= 8;

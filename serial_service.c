@@ -360,7 +360,7 @@ extern bool ble_send_log(uint8 *data, uint16 size)
     typedef struct{u8 head; u8 type;}log_t;
     log_t* log = (log_t*)data;
 
-    if(log->head != CMD_TEST_SEND) {
+    if(log->head != LOG_CMD_SEND_DEBUG) {
         return false;
     }
     if(ble_log_type[log->type] == 0) {

@@ -274,7 +274,7 @@ static void mag_sample_handler(u16 id)
     #endif
 
     #if 0
-    u8 ble_log[5] = {CMD_TEST_SEND, BLE_LOG_MAG_SAMPLE, 0};
+    u8 ble_log[5] = {LOG_CMD_SEND_DEBUG, LOG_RCVD_MAG_SAMPLE, 0};
     static u8 angle = 0;
     volatile u8 cur = mag.angle_value;
     if((angle != mag.angle_value) && (key_sta_ctrl.compass_adj_state == 0) && (key_sta_ctrl.compass_state == 0))

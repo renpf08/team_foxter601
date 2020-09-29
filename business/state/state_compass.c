@@ -21,7 +21,7 @@ static void compass_begin_handler(u16 id)
     clock_t* clock = clock_get();
     volatile u16 minute_angle = 0;
     volatile u16 hour_angle = 0;
-    u8 ble_log[5] = {CMD_TEST_SEND, BLE_LOG_MAG_SAMPLE, 0, 0, 0};
+    u8 ble_log[5] = {LOG_CMD_SEND_DEBUG, LOG_SEND_MAG_SAMPLE, 0, 0, 0};
     
     compass_tid = TIMER_INVALID;
     if(key_sta_ctrl.compass_state == 0) {
