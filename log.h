@@ -48,6 +48,11 @@ typedef struct {
 }log_send_vib_info_t;
 typedef struct {
     log_head_t head;
+    u8 hour_code;
+    u8 minute_code;
+}log_send_pair_code_t;
+typedef struct {
+    log_head_t head;
     u8 sta_now;
     u8 report;
     u8 sta_next;

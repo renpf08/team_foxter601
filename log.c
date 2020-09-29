@@ -102,13 +102,15 @@ static const log_rcvd_entry_t log_rcvd_list[] =
 // received log from peer device end
 //-------------------------------------------------------------------------
 // send log from local device begin
-LOG_SEND_VAR_DEF(log_send_null, LOG_CMD_SEND_DEBUG, LOG_SEND_NULL);
-LOG_SEND_VAR_DEF(log_send_vib_info, LOG_CMD_SEND_DEBUG, LOG_SEND_VIB_STATE);
-LOG_SEND_VAR_DEF(log_send_sta_mc, LOG_CMD_SEND_DEBUG, LOG_SEND_STATE_MACHINE);
+LOG_SEND_VAR_DEF(log_send_sta_mc,           LOG_CMD_SEND_DEBUG, LOG_SEND_STATE_MACHINE);
+LOG_SEND_VAR_DEF(log_send_pair_code,        LOG_CMD_SEND_DEBUG, LOG_SEND_PAIR_CODE);
+LOG_SEND_VAR_DEF(log_send_vib_info,         LOG_CMD_SEND_DEBUG, LOG_SEND_VIB_STATE);
+LOG_SEND_VAR_DEF(log_send_null,             LOG_CMD_SEND_DEBUG, LOG_SEND_NULL);
 log_send_group_t log_send_group[] = {
-    {1, LOG_SEND_VIB_STATE, LOG_SEND_VAR_SET(log_send_vib_info)},
-    {1, LOG_SEND_STATE_MACHINE, LOG_SEND_VAR_SET(log_send_sta_mc)},
-    {1, LOG_SEND_MAX, LOG_SEND_VAR_SET(log_send_null)},
+    {1, LOG_SEND_STATE_MACHINE,     LOG_SEND_VAR_SET(log_send_sta_mc)},
+    {1, LOG_SEND_PAIR_CODE,         LOG_SEND_VAR_SET(log_send_pair_code)},
+    {1, LOG_SEND_VIB_STATE,         LOG_SEND_VAR_SET(log_send_vib_info)},
+    {1, LOG_SEND_MAX,               LOG_SEND_VAR_SET(log_send_null)},
 };
 // send log from local device end
 //-------------------------------------------------------------------------
@@ -118,8 +120,9 @@ static adapter_callback log_cb = NULL;
 s16 log_send_init(adapter_callback cb)
 {
 	log_cb = cb;
-    LOG_SEND_VAR_RESERT(log_send_vib_info);
     LOG_SEND_VAR_RESERT(log_send_sta_mc);
+    LOG_SEND_VAR_RESERT(log_send_pair_code);
+    LOG_SEND_VAR_RESERT(log_send_vib_info);
 
     return 0;
 }

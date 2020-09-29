@@ -91,10 +91,10 @@ void pair_code_generate(void)
         }
     }
 
-    u8 test_buf[4] = {LOG_CMD_SEND_DEBUG, LOG_SEND_PAIR_CODE, 0, 0};
-    test_buf[2] = hour;
-    test_buf[3] = minute;
-    BLE_SEND_LOG((u8*)&test_buf, 4);
+    log_send_pair_code_t* log = (log_send_pair_code_t*)log_send_get_ptr(LOG_SEND_PAIR_CODE);
+    log->hour_code = hour;
+    log->minute_code = minute;
+    log_send_initiate(LOG_SEND_PAIR_CODE);
 	
 	motor_hour_to_position(hour*5);
 	motor_minute_to_position(minute);
