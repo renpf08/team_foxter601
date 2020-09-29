@@ -362,10 +362,7 @@ extern bool ble_send_log(uint8 *data, uint16 size)
 
     if(log->head != LOG_CMD_SEND_DEBUG) {
         return false;
-    }
-    if(ble_log_type[log->type] == 0) {
-        return false;
-    }    
+    }  
     #endif
     
     if(g_app_data.state != app_connected) {

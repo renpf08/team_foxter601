@@ -124,27 +124,6 @@ s16 log_send_init(adapter_callback cb)
     return 0;
 }
 
-/** set log enable or disable */
-void log_send_set_en(log_en_t* log_en)
-{
-    u8 i = 0;
-
-    if(log_en->boradcast == LOG_SEND_BROADCAST) {
-        while(log_send_group[i].log_type != LOG_SEND_MAX) {
-            log_send_group[i].log_en = log_en->en;
-            i++;
-        }
-    } else {
-        while(log_send_group[i].log_type != LOG_SEND_MAX) {
-            if(log_en->type == log_send_group[i].log_type) {
-                log_send_group[i].log_en = log_en->en;
-                break;
-            }
-            i++;
-        }
-    }
-}
-
 void* log_send_get_ptr(log_send_type_t log_type)
 {
     u8 i = 0;
@@ -220,11 +199,26 @@ static void log_rcvd_set_step_count(u8 *buffer, u8 length)
     u16 steps = (u16)(step->hi<<8 | step->lo);
     step_test(steps);
 }
-log_send_type_t ble_log_type[LOG_SEND_MAX];
+
 static void log_rcvd_set_log_en(u8 *buffer, u8 length)
 {
     log_rcvd_set_log_en_t* log = (log_rcvd_set_log_en_t*)buffer;
-    ble_log_type[log->type] = log->en;
+    u8 i = 0;
+
+    if(log->en == LOG_SEND_BROADCAST) {
+        while(log_send_group[i].log_type != LOG_SEND_MAX) {
+            log_send_group[i].log_en = log->en;
+            i++;
+        }
+    } else {
+        while(log_send_group[i].log_type != LOG_SEND_MAX) {
+            if(log->type == log_send_group[i].log_type) {
+                log_send_group[i].log_en = log->en;
+                break;
+            }
+            i++;
+        }
+    }
 }
 static void log_rcvd_set_vibration(u8 *buffer, u8 length)
 {

@@ -68,7 +68,6 @@ typedef struct {
 }log_en_t;
 
 s16 log_send_init(adapter_callback cb);
-void log_send_set_en(log_en_t* log_en);
 void* log_send_get_ptr(log_send_type_t log_type);
 void log_send_initiate(log_send_type_t log_type);
 

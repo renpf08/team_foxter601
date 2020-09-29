@@ -378,9 +378,6 @@ s16 cmd_init(adapter_callback cb)
     #if !USE_PARAM_STORE
     cmd_group.user_info.target_steps = DEFAULT_TARGET_STEPCOUNTS;
     #endif
-    #if USE_CMD_TEST_LOG_TYPE_EN
-    MemSet(ble_log_type, 1, LOG_SEND_MAX);
-    #endif
     
 	return 0;
 }
