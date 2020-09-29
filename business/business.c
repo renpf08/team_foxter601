@@ -80,7 +80,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
     s16 res = 0;
-    state_log_t* sta_log = (state_log_t*)log_get(BLE_LOG_STATE_MACHINE);
+    state_log_t* sta_log = (state_log_t*)log_send_get_ptr(BLE_LOG_STATE_MACHINE);
 
     sta_log->sta_now = business.state_now;
     sta_log->report = cb;
@@ -106,7 +106,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 		}
 	}
     sta_log->sta_next = business.state_now;
-    log_send(BLE_LOG_STATE_MACHINE);
+    log_send_initiate(BLE_LOG_STATE_MACHINE);
 	return res;
 }
 

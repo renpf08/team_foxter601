@@ -55,7 +55,7 @@ typedef struct {
     ble_log_type_t log_type;
     u8 log_len;
     void* log_ptr;
-}log_group_t;
+}log_send_group_t;
 
 typedef struct {
     u8 boradcast;
@@ -63,15 +63,15 @@ typedef struct {
     ble_log_type_t type;
 }log_en_t;
 
-s16 log_init(adapter_callback cb);
-void log_set(log_en_t* log_en);
-void* log_get(ble_log_type_t log_type);
-void log_send(ble_log_type_t log_type);
+s16 log_send_init(adapter_callback cb);
+void log_send_set_en(log_en_t* log_en);
+void* log_send_get_ptr(ble_log_type_t log_type);
+void log_send_initiate(ble_log_type_t log_type);
 
-void log_parse(u8* content, u8 length);
+void log_rcvd_parse(u8* content, u8 length);
 
 //extern vib_log_t _vib_log_;
-extern log_group_t log_group[];
+extern log_send_group_t log_send_group[];
 
 #endif // __LOG_H__
 

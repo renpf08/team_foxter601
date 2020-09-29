@@ -52,7 +52,7 @@ static s16 cmd_find_watch(u8 *buffer, u8 length);
 static s16 cmd_set_ancs_bond_req(u8 *buffer, u8 length);
 static s16 cmd_read_steps_target(u8 *buffer, u8 length);
 
-void cmd_parse(u8* content, u8 length);
+void cmd_rcvd_parse(u8* content, u8 length);
 s16 cmd_init(adapter_callback cb);
 
 static const CMDENTRY cmd_list[] =
@@ -327,7 +327,7 @@ u8 cmd_resp(cmd_app_send_t cmd_type, u8 result, u8 *data)
 
     return length;
 }
-void cmd_parse(u8* content, u8 length)
+void cmd_rcvd_parse(u8* content, u8 length)
 {
 	u8 i = 0;
     s16 res = 0;

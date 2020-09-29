@@ -27,7 +27,7 @@ static vib_cfg_t vib_cfg = {
 
 static void vib_cb_handler(u16 id)
 {
-    vib_log_t* vib_log = (vib_log_t*)log_get(BLE_LOG_VIB_STATE);
+    vib_log_t* vib_log = (vib_log_t*)log_send_get_ptr(BLE_LOG_VIB_STATE);
     vib_cfg.tid = TIMER_INVALID;
     
 	if(0 == vib_cfg.run_flag) {
@@ -51,7 +51,7 @@ static void vib_cb_handler(u16 id)
 			vib_cfg.status = run;
 	        vib_cfg.tid = vib_cfg.drv->timer->timer_start(800, vib_cb_handler);
 		}
-        log_send(BLE_LOG_VIB_STATE);
+        log_send_initiate(BLE_LOG_VIB_STATE);
 	}
 }
 
@@ -68,7 +68,7 @@ s16 vib_stop(void)
 
 s16 vib_run(u8 step_count, u8 caller)
 {
-    vib_log_t* vib_log = (vib_log_t*)log_get(BLE_LOG_VIB_STATE);
+    vib_log_t* vib_log = (vib_log_t*)log_send_get_ptr(BLE_LOG_VIB_STATE);
     vib_log->caller = caller;
     vib_log->steps = step_count;
     vib_log->cur_step = step_count;
