@@ -52,6 +52,11 @@ typedef struct {
     NOTIFY_E msg_type; 
     u8 result;
 }log_send_notify_t;
+typedef struct {
+    log_head_t head;
+    u8 recognized;
+    u8 app_id[17];
+}log_send_ancs_id_t;
 
 typedef struct {
     log_head_t head;
