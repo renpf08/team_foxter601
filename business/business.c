@@ -83,7 +83,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
     log_send_sta_mc_t* log = (log_send_sta_mc_t*)log_send_get_ptr(LOG_SEND_STATE_MACHINE);
 
     log->sta_now = business.state_now;
-    log->report = cb;
+    log->sta_report = cb;
     log->result = 0;
 
 	//return 0;

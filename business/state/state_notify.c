@@ -52,7 +52,7 @@ s16 state_notify(REPORT_E cb, void *args)
     u8 i = 0;
     u8 *en = cmd_get()->notify_switch.en;
     u32 msg_en = 0;
-    u8 ble_log[5] = {LOG_CMD_SEND_DEBUG, LOG_SEND_NOTIFY_TYPE, 0,0,0};
+    log_send_notify_t* log = (log_send_notify_t*)log_send_get_ptr(LOG_SEND_NOTIFY_TYPE);
 
     for(i = 0; i < 4; i++) {
         msg_en  <<= 8;
@@ -65,7 +65,7 @@ s16 state_notify(REPORT_E cb, void *args)
         if(ancs_msg->type >= NOTIFY_MAX) ancs_msg->type = 0xFF;
         else ancs_msg->type = (u16)notif_convert_list[ancs_msg->type].disp_msg;
     }
-    ble_log[2] = cb; // aa
+    log->sta_report = cb; // aa
     i = 0;
     while(notif_convert_list[i].disp_msg != 0xFF) {
         if(notif_convert_list[i].disp_msg == ancs_msg->type) {
@@ -73,20 +73,20 @@ s16 state_notify(REPORT_E cb, void *args)
         }
         i++;
     }
-    ble_log[3] = notif_convert_list[i].disp_msg; // bb: msg type
+    log->msg_type = notif_convert_list[i].disp_msg; // bb: msg type
     if(notif_convert_list[i].disp_msg >= NOTIFY_DONE) { // notify not use or out of range
         ancs_msg->sta = NOTIFY_RESERVE;
-        ble_log[4] = 0xE1; // cc:notify not use or out of range
+        log->result = 0xE1; // cc:notify not use or out of range
     } else if((msg_en & (1UL<<i)) == 0) { // notify switch off
         ancs_msg->sta = NOTIFY_RESERVE;
-        ble_log[4] = 0xE2; // cc:notify switch off
+        log->result = 0xE2; // cc:notify switch off
     }
     if(ancs_msg->sta == NOTIFY_RESERVE) {
     	*state = CLOCK;
-        BLE_SEND_LOG(ble_log, 5);
+        log_send_initiate(LOG_SEND_NOTIFY_TYPE);
     	return 0;
     }
-    ble_log[4] = 0x01; // cc:notify OK
+    log->result = 0x01; // cc:notify OK
 	if(NOTIFY_ADD == ancs_msg->sta) {
 		if(ancs_msg->type < NOTIFY_DONE) {
             #if USE_UART_PRINT
@@ -105,7 +105,7 @@ s16 state_notify(REPORT_E cb, void *args)
 		motor_notify_to_position(NOTIFY_NONE);
         #endif
 	}
-    BLE_SEND_LOG(ble_log, 5);
+    log_send_initiate(LOG_SEND_NOTIFY_TYPE);
     vib_stop();
     vib_run(5, 0x03);
 

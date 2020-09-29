@@ -36,8 +36,23 @@ typedef struct {
 
 typedef struct {
     log_head_t head;
-    u8 null[18];
-}log_send_null_t;
+    u8 sta_now;
+    u8 sta_report;
+    u8 sta_next;
+    u8 result;
+}log_send_sta_mc_t;
+typedef struct {
+    log_head_t head;
+    u8 hour_code;
+    u8 minute_code;
+}log_send_pair_code_t;
+typedef struct {
+    log_head_t head;
+    u8 sta_report;
+    NOTIFY_E msg_type; 
+    u8 result;
+}log_send_notify_t;
+
 typedef struct {
     log_head_t head;
     u8 caller;
@@ -48,16 +63,8 @@ typedef struct {
 }log_send_vib_info_t;
 typedef struct {
     log_head_t head;
-    u8 hour_code;
-    u8 minute_code;
-}log_send_pair_code_t;
-typedef struct {
-    log_head_t head;
-    u8 sta_now;
-    u8 report;
-    u8 sta_next;
-    u8 result;
-}log_send_sta_mc_t;
+    u8 null[18];
+}log_send_null_t;
 
 typedef struct {
     u8 log_en; // set to 1 to enable ble log
