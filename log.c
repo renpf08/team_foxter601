@@ -1,4 +1,5 @@
 
+#include <mem.h>
 #include "log.h"
 #include "adapter/adapter.h"
 
@@ -14,6 +15,8 @@
             .type = _type,                          \
         }                                           \
     };
+
+#define RESET_VAR_MSG(param)    MemSet(&((u8*)&param)[2], 0, (sizeof(param)-2));
 
 LOG_VAR_DEF(vib_log, CMD_TEST_SEND, BLE_LOG_VIB_STATE, vib_log_t);
 LOG_VAR_DEF(state_log, CMD_TEST_SEND, BLE_LOG_STATE_MACHINE, state_log_t);
@@ -76,6 +79,8 @@ void log_send(ble_log_type_t log_type)
 
 void log_init(void)
 {
+    RESET_VAR_MSG(vib_log);
+    RESET_VAR_MSG(state_log);
 }
 
 
