@@ -7,27 +7,32 @@
 // define global log variables
 //-----------------------------------------------------------------------
 //vib_log_t _vib_log_;
-
-#define LOG_VAR_DEF(_name, _cmd, _type, _stru)      \
-    static _stru _name = {                          \
-        .head = {                                   \
-            .cmd = _cmd,                            \
-            .type = _type,                          \
-        }                                           \
+    
+#define LOG_VAR_SET(param) sizeof(param##_t), &param
+#define LOG_VAR_RESERT(param)   MemSet(&((u8*)&param)[2], 0, (sizeof(param)-2));
+#define LOG_VAR_DEF(_name, _cmd, _type) \
+    static _name##_t _name = {          \
+        .head = {                       \
+            .cmd = _cmd,                \
+            .type = _type,              \
+        }                               \
     };
-
-#define RESET_VAR_MSG(param)    MemSet(&((u8*)&param)[2], 0, (sizeof(param)-2));
-
-LOG_VAR_DEF(vib_log, CMD_TEST_SEND, BLE_LOG_VIB_STATE, vib_log_t);
-LOG_VAR_DEF(state_log, CMD_TEST_SEND, BLE_LOG_STATE_MACHINE, state_log_t);
-
-static u8 null_ptr[20] = {CMD_TEST_SEND, BLE_LOG_BROADCAST};
+LOG_VAR_DEF(null_log, CMD_TEST_SEND, BLE_LOG_NULL);
+LOG_VAR_DEF(vib_log, CMD_TEST_SEND, BLE_LOG_VIB_STATE);
+LOG_VAR_DEF(state_log, CMD_TEST_SEND, BLE_LOG_STATE_MACHINE);
 log_group_t log_group[] = {
-    {1, BLE_LOG_VIB_STATE, sizeof(vib_log_t), &vib_log},
-    {1, BLE_LOG_STATE_MACHINE, sizeof(state_log_t), &state_log},
-    {1, BLE_LOG_MAX, 0, NULL},
+    {1, BLE_LOG_VIB_STATE, LOG_VAR_SET(vib_log)},
+    {1, BLE_LOG_STATE_MACHINE, LOG_VAR_SET(state_log)},
+    {1, BLE_LOG_MAX, LOG_VAR_SET(null_log)},
 };
 
+void log_init(void)
+{
+    LOG_VAR_RESERT(vib_log);
+    LOG_VAR_RESERT(state_log);
+}
+
+/** set log enable or disable */
 void log_set(log_en_t* log_en)
 {
     u8 i = 0;
@@ -55,13 +60,13 @@ void* log_get(ble_log_type_t log_type)
     while(log_group[i].log_type != BLE_LOG_MAX) {
         if(log_type == log_group[i].log_type) {
             if(log_group[i].log_en == 0) {
-                return null_ptr;
+                continue;
             }
             return log_group[i].log_ptr;
         }
         i++;
     }
-    return null_ptr;
+    return log_group[i].log_ptr;
 }
 
 void log_send(ble_log_type_t log_type)
@@ -75,12 +80,6 @@ void log_send(ble_log_type_t log_type)
         }
         i++;
     }
-}
-
-void log_init(void)
-{
-    RESET_VAR_MSG(vib_log);
-    RESET_VAR_MSG(state_log);
 }
 
 
