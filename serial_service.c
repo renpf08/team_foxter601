@@ -356,15 +356,6 @@ extern bool ble_send_data(uint8 *data, uint16 size)
 */
 extern bool ble_send_log(uint8 *data, uint16 size)
 {
-    #if USE_CMD_TEST_LOG_TYPE_EN
-    typedef struct{u8 head; u8 type;}log_t;
-    log_t* log = (log_t*)data;
-
-    if(log->head != LOG_CMD_SEND_DEBUG) {
-        return false;
-    }  
-    #endif
-    
     if(g_app_data.state != app_connected) {
         return false;
     }

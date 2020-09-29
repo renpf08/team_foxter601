@@ -3,6 +3,7 @@
 #include "log.h"
 #include "adapter/adapter.h"
 
+#define LOG_SEND_PCK_HEAD(param) ((u8*)param)[0]
 #define LOG_SEND_VAR_SET(param) sizeof(param##_t), &param
 #define LOG_SEND_PTR_RESERT(param, len)   MemSet(&((u8*)param)[2], 0, (len-2));
 #define LOG_SEND_VAR_RESERT(param)   MemSet(&((u8*)&param)[2], 0, (sizeof(param)-2));
@@ -39,22 +40,22 @@ typedef struct { // LOG_RCVD_SET_STEP_COUNT         = 0x02
     u8 hi;      // hi:lo = set current step count value
     u8 lo;
 } log_rcvd_set_step_count_t;
-typedef struct { // LOG_RCVD_SET_LOG_EN        = 0x04
+typedef struct { // LOG_RCVD_SET_LOG_EN             = 0x03
     log_rcvd_t ctrl;
-    u8 type; 
-    u8 en;
+    u8 log_type; // set to  0xFF to be a broadcasting
+    u8 en; // set to 0 or non-zero is ok
 } log_rcvd_set_log_en_t;
-typedef struct { // LOG_RCVD_SET_VIBRATION          = 0x06
+typedef struct { // LOG_RCVD_REQ_CHARGE_SWING       = 0x04
+    log_rcvd_t ctrl;
+    u8 act;     // 00 - charge begin and swing
+                // 01 - charge swing stop
+} log_rcvd_set_chg_t;
+typedef struct { // LOG_RCVD_SET_VIBRATION          = 0x05
     log_rcvd_t ctrl;
     u8 type;    // 00 - set vibration off
                 // 01 - set vibration on
     u8 step;    // xx - vib times(if type = 1)
 } log_rcvd_set_vib_t;
-typedef struct { // LOG_RCVD_REQ_CHARGE_SWING       = 0x07
-    log_rcvd_t ctrl;
-    u8 act;     // 00 - charge begin and swing
-                // 01 - charge swing stop
-} log_rcvd_set_chg_t;
 
 typedef void (* log_rcvd_handler)(u8 *buffer, u8 length);
 typedef enum{
@@ -134,15 +135,6 @@ s16 log_send_init(adapter_callback cb)
     
     LOG_SEND_VAR_RESERT(log_send_vib_info);
 
-    log_send_pair_code_t* log = (log_send_pair_code_t*)log_send_get_ptr(LOG_SEND_PAIR_CODE);
-    log->hour_code = 0x12;
-    log->minute_code = 0x34;
-    log_send_initiate(LOG_SEND_PAIR_CODE);
-    log = (log_send_pair_code_t*)log_send_get_ptr(LOG_SEND_PAIR_CODE);
-    log->hour_code = 0x56;
-    log->minute_code = 0x78;
-    log_send_initiate(LOG_SEND_PAIR_CODE);
-
     return 0;
 }
 
@@ -151,7 +143,7 @@ void* log_send_get_ptr(log_send_type_t log_type)
     u8 i = 0;
 //    log_head_t log_head;
 
-    while(log_send_group[i].log_type != LOG_SEND_MAX) {
+    while(log_send_group[i].log_type < LOG_SEND_MAX) {
         if(log_type == log_send_group[i].log_type) {
             if(log_send_group[i].log_en == 0) {
                 continue;
@@ -168,8 +160,14 @@ void log_send_initiate(log_send_type_t log_type)
 {
     u8 i = 0;
 
-    while(log_send_group[i].log_type != LOG_SEND_MAX) {
+    while(log_send_group[i].log_type < LOG_SEND_MAX) {
         if(log_type == log_send_group[i].log_type) {
+            if(log_send_group[i].log_en == 0) {
+                break;
+            }
+            if(LOG_SEND_PCK_HEAD(log_send_group[i].log_ptr) != LOG_CMD_SEND_DEBUG) {
+                break;
+            }
             BLE_SEND_LOG((u8*)log_send_group[i].log_ptr, log_send_group[i].log_len);
             break;
         }
@@ -229,15 +227,15 @@ static void log_rcvd_set_log_en(u8 *buffer, u8 length)
     log_rcvd_set_log_en_t* log = (log_rcvd_set_log_en_t*)buffer;
     u8 i = 0;
 
-    if(log->en == LOG_SEND_BROADCAST) {
+    if(log->log_type == LOG_SEND_BROADCAST) {
         while(log_send_group[i].log_type != LOG_SEND_MAX) {
-            log_send_group[i].log_en = log->en;
+            log_send_group[i].log_en = (log->en==0)?0:1;
             i++;
         }
     } else {
         while(log_send_group[i].log_type != LOG_SEND_MAX) {
-            if(log->type == log_send_group[i].log_type) {
-                log_send_group[i].log_en = log->en;
+            if(log->log_type == log_send_group[i].log_type) {
+                log_send_group[i].log_en = (log->en==0)?0:1;
                 break;
             }
             i++;
@@ -279,16 +277,15 @@ void log_rcvd_parse(u8* content, u8 length)
 {
     log_rcvd_t* test = (log_rcvd_t*)content;
 	u8 i = 0;
-    log_cmd_t log_cmd = (log_cmd_t)content[0];
 
 	if(length == 0) {
 		return;
 	}
-    if(log_cmd != LOG_CMD_SEND_DEBUG) {
+    if(test->head != LOG_CMD_RCVD_DEBUG) {
         return;
     }
 
-    while(log_rcvd_list[i].cmd != LOG_RCVD_NONE) {
+    while(log_rcvd_list[i].cmd < LOG_RCVD_NONE) {
         if(log_rcvd_list[i].cmd == test->cmd) {
             log_rcvd_list[i].handler(content, length);
             break;
