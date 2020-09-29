@@ -88,7 +88,7 @@ s16 log_send_init(adapter_callback cb);
 void* log_send_get_ptr(log_send_type_t log_type);
 void log_send_initiate(log_send_type_t log_type);
 
-void log_rcvd_parse(u8* content, u8 length);
+u8 log_rcvd_parse(u8* content, u8 length);
 
 //extern vib_log_t _vib_log_;
 extern log_send_group_t log_send_group[];
