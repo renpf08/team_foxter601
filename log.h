@@ -57,6 +57,22 @@ typedef struct {
     u8 recognized;
     u8 app_id[17];
 }log_send_ancs_id_t;
+typedef struct {
+    log_head_t head;
+    u8 resv[18];
+}log_send_chg_sta_t;
+typedef struct {
+    log_head_t head;
+    u8 resv[18];
+}log_send_sync_time_t;
+typedef struct {
+    log_head_t head;
+    u8 resv[18];
+}log_send_run_time_t;
+typedef struct {
+    log_head_t head;
+    u8 resv[18];
+}log_send_mag_smpl_t;
 
 typedef struct {
     log_head_t head;

@@ -6,7 +6,7 @@
 #define LOG_CHK_PCK_HEAD(param) ((u8*)param)[0]
 #define LOG_SEND_VAR_SET(param) sizeof(param##_t), &param
 #define LOG_SEND_PTR_RESERT(param, len)   MemSet(&((u8*)param)[2], 0, (len-2));
-#define LOG_SEND_VAR_RESERT(param)   MemSet(&((u8*)&param)[2], 0, (sizeof(param)-2));
+//#define LOG_SEND_VAR_RESERT(param)   MemSet(&((u8*)&param)[2], 0, (sizeof(param)-2));
 #define LOG_SEND_VAR_DEF(_name, _cmd, _type) \
     static _name##_t _name = {          \
         .head = {                       \
@@ -45,7 +45,7 @@ typedef struct { // LOG_RCVD_SET_LOG_EN             = 0x03
     u8 log_type; // set to  0xFF to be a broadcasting
     u8 en; // set to 0 or non-zero is ok
 } log_rcvd_set_log_en_t;
-typedef struct { // LOG_RCVD_REQ_CHARGE_SWING       = 0x04
+typedef struct { // LOG_RCVD_SET_CHARGE_SWING       = 0x04
     log_rcvd_t ctrl;
     u8 act;     // 00 - charge begin and swing
                 // 01 - charge swing stop
@@ -64,12 +64,12 @@ typedef enum{
     LOG_RCVD_SET_ZERO_ADJUST    = 0x01,
     LOG_RCVD_SET_STEP_COUNT     = 0x02,
     LOG_RCVD_SET_LOG_EN         = 0x03,
-    LOG_RCVD_SET_CHARGE_STA     = 0x04,
+    LOG_RCVD_SET_CHARGE_SWING   = 0x04,
     LOG_RCVD_SET_VIBRATION      = 0x05,
 
     // log to request with no params(MSB=1)
     LOG_RCVD_REQ_SYS_REBOOT     = 0x80,
-    LOG_RCVD_REQ_CHARGE_SWING   = 0x81,
+    LOG_RCVD_REQ_CHARGE_STA     = 0x81,
     
     LOG_RCVD_NONE,
 }cmt_test_enum_t;
@@ -94,29 +94,35 @@ static const log_rcvd_entry_t log_rcvd_list[] =
     {LOG_RCVD_SET_STEP_COUNT,       log_rcvd_set_step_count},
     {LOG_RCVD_SET_LOG_EN,           log_rcvd_set_log_en},
     {LOG_RCVD_SET_VIBRATION,        log_rcvd_set_vibration},
-    {LOG_RCVD_REQ_CHARGE_SWING,     log_rcvd_set_charge_swing},
+    {LOG_RCVD_SET_CHARGE_SWING,     log_rcvd_set_charge_swing},
 
     {LOG_RCVD_REQ_SYS_REBOOT,       log_rcvd_req_sys_reboot},
-    {LOG_RCVD_SET_CHARGE_STA,       log_rcvd_req_charger_sta},
+    {LOG_RCVD_REQ_CHARGE_STA,       log_rcvd_req_charger_sta},
 
 	{LOG_RCVD_NONE,             NULL}
 };
 // received log from peer device end
 //-------------------------------------------------------------------------
 // send log from local device begin
-LOG_SEND_VAR_DEF(log_send_sta_mc,             LOG_SEND_FLAG, LOG_SEND_STATE_MACHINE);
-LOG_SEND_VAR_DEF(log_send_pair_code,          LOG_SEND_FLAG, LOG_SEND_PAIR_CODE);
-LOG_SEND_VAR_DEF(log_send_notify,             LOG_SEND_FLAG, LOG_SEND_NOTIFY_TYPE);
-LOG_SEND_VAR_DEF(log_send_ancs_id,            LOG_SEND_FLAG, LOG_SEND_ANCS_APP_ID);
-
-LOG_SEND_VAR_DEF(log_send_vib_info,           LOG_SEND_FLAG, LOG_SEND_VIB_STATE);
-LOG_SEND_VAR_DEF(log_send_null,               LOG_SEND_FLAG, LOG_SEND_NULL);
+LOG_SEND_VAR_DEF(log_send_sta_mc,           LOG_SEND_FLAG, LOG_SEND_STATE_MACHINE);
+LOG_SEND_VAR_DEF(log_send_pair_code,        LOG_SEND_FLAG, LOG_SEND_PAIR_CODE);
+LOG_SEND_VAR_DEF(log_send_notify,           LOG_SEND_FLAG, LOG_SEND_NOTIFY_TYPE);
+LOG_SEND_VAR_DEF(log_send_ancs_id,          LOG_SEND_FLAG, LOG_SEND_ANCS_APP_ID);
+LOG_SEND_VAR_DEF(log_send_chg_sta,          LOG_SEND_FLAG, LOG_SEND_CHARGE_STATE);
+LOG_SEND_VAR_DEF(log_send_sync_time,        LOG_SEND_FLAG, LOG_SEND_SYNC_TIME);
+LOG_SEND_VAR_DEF(log_send_run_time,         LOG_SEND_FLAG, LOG_SEND_RUN_TIME);
+LOG_SEND_VAR_DEF(log_send_mag_smpl,         LOG_SEND_FLAG, LOG_SEND_MAG_SAMPLE);
+LOG_SEND_VAR_DEF(log_send_vib_info,         LOG_SEND_FLAG, LOG_SEND_VIB_STATE);
+LOG_SEND_VAR_DEF(log_send_null,             LOG_SEND_FLAG, LOG_SEND_NULL);
 log_send_group_t log_send_group[] = {
     {1, LOG_SEND_STATE_MACHINE,     LOG_SEND_VAR_SET(log_send_sta_mc)},
     {1, LOG_SEND_PAIR_CODE,         LOG_SEND_VAR_SET(log_send_pair_code)},
     {1, LOG_SEND_NOTIFY_TYPE,       LOG_SEND_VAR_SET(log_send_notify)},
     {1, LOG_SEND_ANCS_APP_ID,       LOG_SEND_VAR_SET(log_send_ancs_id)},
-        
+    {1, LOG_SEND_CHARGE_STATE,      LOG_SEND_VAR_SET(log_send_chg_sta)},
+    {1, LOG_SEND_SYNC_TIME,         LOG_SEND_VAR_SET(log_send_sync_time)},
+    {1, LOG_SEND_RUN_TIME,          LOG_SEND_VAR_SET(log_send_run_time)},
+    {1, LOG_SEND_MAG_SAMPLE,        LOG_SEND_VAR_SET(log_send_mag_smpl)},
     {1, LOG_SEND_VIB_STATE,         LOG_SEND_VAR_SET(log_send_vib_info)},
     {1, LOG_SEND_MAX,               LOG_SEND_VAR_SET(log_send_null)}, // unknown msg, always send by ble
 };
@@ -128,12 +134,11 @@ static adapter_callback log_cb = NULL;
 s16 log_send_init(adapter_callback cb)
 {
 	log_cb = cb;
-    LOG_SEND_VAR_RESERT(log_send_sta_mc);
-    LOG_SEND_VAR_RESERT(log_send_pair_code);
-    LOG_SEND_VAR_RESERT(log_send_notify);
-    LOG_SEND_VAR_RESERT(log_send_ancs_id);
-    
-    LOG_SEND_VAR_RESERT(log_send_vib_info);
+//    LOG_SEND_VAR_RESERT(log_send_sta_mc);
+//    LOG_SEND_VAR_RESERT(log_send_pair_code);
+//    LOG_SEND_VAR_RESERT(log_send_notify);
+//    LOG_SEND_VAR_RESERT(log_send_ancs_id);    
+//    LOG_SEND_VAR_RESERT(log_send_vib_info);
 
     return 0;
 }
