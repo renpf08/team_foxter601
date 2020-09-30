@@ -108,16 +108,16 @@ static const log_rcvd_entry_t log_rcvd_list[] =
 // received log from peer device end
 //-------------------------------------------------------------------------
 log_send_group_t log_send_list[] = {
-    {0, LOG_SEND_STATE_MACHINE},
-    {0, LOG_SEND_PAIR_CODE},
-    {0, LOG_SEND_NOTIFY_TYPE},
-    {0, LOG_SEND_ANCS_APP_ID},
-    {0, LOG_SEND_GET_CHG_AUTO},
-    {0, LOG_SEND_GET_CHG_MANUAL},
+    {1, LOG_SEND_STATE_MACHINE},
+    {1, LOG_SEND_PAIR_CODE},
+    {1, LOG_SEND_NOTIFY_TYPE},
+    {1, LOG_SEND_ANCS_APP_ID},
+    {1, LOG_SEND_GET_CHG_AUTO},
+    {1, LOG_SEND_GET_CHG_MANUAL},
     {1, LOG_SEND_SYSTEM_TIME},
-    {0, LOG_SEND_RUN_TIME},
-    {0, LOG_SEND_COMPASS_ANGLE},
-    {0, LOG_SEND_VIB_STATE},
+    {1, LOG_SEND_RUN_TIME},
+    {1, LOG_SEND_COMPASS_ANGLE},
+    {1, LOG_SEND_VIB_STATE},
     {0, LOG_SEND_MAX},
 };
 // send log from local device end
