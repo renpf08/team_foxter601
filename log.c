@@ -35,7 +35,7 @@ typedef struct { // LOG_RCVD_SET_STEP_COUNT         = 0x02
 } log_rcvd_set_step_count_t;
 typedef struct { // LOG_RCVD_SET_LOG_EN             = 0x03
     log_rcvd_t ctrl;
-    u8 log_type; // set to  0xFF to be a broadcasting
+    log_send_type_t log_type; // set to  0xFF to be a broadcasting
     u8 en; // set to 0 or non-zero is ok
 } log_rcvd_set_log_en_t;
 typedef struct { // LOG_RCVD_SET_CHARGE_SWING       = 0x04
