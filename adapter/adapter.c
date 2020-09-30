@@ -276,15 +276,15 @@ static void charge_polling_check(void)
 {
     static s16 last_status = not_incharge;
     s16 now_status = charge_status_get();
-    u8 ble_log[3] = {LOG_SEND_FLAG, LOG_SEND_CHARGE_STATE, 0};
+    log_send_chg_sta_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_GET_CHG_AUTO, sizeof(log_send_chg_sta_t), 0}};
     
 	if((last_status == not_incharge) && (now_status == incharge)) {
-        ble_log[2] = 0;
-        BLE_SEND_LOG(ble_log, 3);
+        log_send.chg_sta = 0;
+        log_send_initiate(&log_send.head);
         adapter.cb(CHARGE_SWING, NULL);
 	} else if((last_status == incharge) && (now_status == not_incharge)) {
-        ble_log[2] = 1;
-        BLE_SEND_LOG(ble_log, 3);
+        log_send.chg_sta = 1;
+        log_send_initiate(&log_send.head);
 	    adapter.cb(CHARGE_STOP, NULL);
 	}
     last_status = now_status;
@@ -389,15 +389,17 @@ void sync_time(void)
 {
 	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
     clock_t* clock = clock_get();
-    u8 ble_log[10] = {LOG_SEND_FLAG, LOG_SEND_SYNC_TIME, 0, 0, 0, 0, 0, 0, 0, 0};
-    ble_log[2] = time->year[1];
-    ble_log[3] = time->year[0];
-    ble_log[4] = time->month;
-    ble_log[5] = time->day;
-    ble_log[6] = time->hour;
-    ble_log[7] = time->minute;
-    ble_log[8] = time->second;
-    ble_log[9] = time->week;
+    log_send_system_time_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_SYSTEM_TIME, sizeof(log_send_system_time_t), 0}};
+    
+    log_send.sys_time[0] = time->year[1];
+    log_send.sys_time[1] = time->year[0];
+    log_send.sys_time[2] = time->month;
+    log_send.sys_time[3] = time->day;
+    log_send.sys_time[4] = time->hour;
+    log_send.sys_time[5] = time->minute;
+    log_send.sys_time[6] = time->second;
+    log_send.sys_time[7] = time->week;
+    log_send_initiate(&log_send.head);
 
     clock->year = time->year[1]<<8 | time->year[0];
     clock->month = time->month;
@@ -407,7 +409,6 @@ void sync_time(void)
     clock->minute = time->minute;
     clock->second = time->second;
 
-    BLE_SEND_LOG(ble_log, 10);
 //    refresh_step();
 	motor_minute_to_position(clock->minute);
 	motor_hour_to_position(clock->hour);

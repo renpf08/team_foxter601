@@ -92,19 +92,9 @@ static s16 cmd_set_time(u8 *buffer, u8 length)
     u16 year = 0;
     volatile cmd_set_time_t* set_time = (cmd_set_time_t*)buffer;
     u8 res = 0;
-//    u8 ble_log[11] = {LOG_SEND_FLAG, LOG_SEND_SYNC_TIME, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     year = (u16)((set_time->year[1]<<8 & 0xFF00) | set_time->year[0]);
     days[2] = (0 == (year % 400) || (0 == (year % 4) && (0 != (year % 100))))?29:28;
-
-//    ble_log[2] = (year>>8)&0x00FF;
-//    ble_log[3] = year&0x00FF;
-//    ble_log[4] = set_time->month;
-//    ble_log[5] = set_time->day;
-//    ble_log[6] = set_time->hour;
-//    ble_log[7] = set_time->minute;
-//    ble_log[8] = set_time->second;
-//    ble_log[9] = set_time->week;
 
     if((year > 2120) || (year < 2020)) res = 1;
     else if(set_time->month > 12) res = 2;
@@ -113,8 +103,6 @@ static s16 cmd_set_time(u8 *buffer, u8 length)
     else if(set_time->minute > 59) res = 5;
     else if(set_time->second > 59) res = 6;
     else if(set_time->week > 07) res = 7;
-//    ble_log[10] = res;
-//    BLE_SEND_LOG(ble_log, 11);
     if(res != 0) {
         return res;
     }

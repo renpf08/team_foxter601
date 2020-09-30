@@ -1,5 +1,4 @@
 
-#include <mem.h>
 #include "log.h"
 #include "adapter/adapter.h"
 
@@ -43,7 +42,11 @@ typedef struct { // LOG_RCVD_SET_VIBRATION          = 0x05
     u8 type;    // 00 - set vibration off
                 // 01 - set vibration on
     u8 step;    // xx - vib times(if type = 1)
-} log_rcvd_set_vib_t;
+} log_rcvd_set_vibration_t;
+typedef struct { // LOG_RCVD_SET_VIBRATION          = 0x05
+    log_rcvd_t ctrl;
+    u8 en;      // set to non-zero to enable vibration
+} log_rcvd_set_vib_en_t;
 
 typedef void (* log_rcvd_handler)(u8 *buffer, u8 length);
 typedef enum{
@@ -54,12 +57,14 @@ typedef enum{
     LOG_RCVD_SET_LOG_EN         = 0x03,
     LOG_RCVD_SET_CHARGE_SWING   = 0x04,
     LOG_RCVD_SET_VIBRATION      = 0x05,
+    LOG_RCVD_SET_VIB_EN         = 0x06,
 
     // log to request with no params(MSB=1)
     LOG_RCVD_REQ_SYS_REBOOT     = 0x80,
     LOG_RCVD_REQ_CHARGE_STA     = 0x81,
     
     LOG_RCVD_NONE,
+    LOG_RCVD_BROADCAST          = 0xFF,
 }cmt_test_enum_t;
 typedef struct {
 	const cmt_test_enum_t cmd;
@@ -69,8 +74,9 @@ static void log_rcvd_set_nvm(u8 *buffer, u8 length);
 static void log_rcvd_set_zero_adjust(u8 *buffer, u8 length);
 static void log_rcvd_set_step_count(u8 *buffer, u8 length);
 static void log_rcvd_set_log_en(u8 *buffer, u8 length);
-static void log_rcvd_set_vibration(u8 *buffer, u8 length);
 static void log_rcvd_set_charge_swing(u8 *buffer, u8 length);
+static void log_rcvd_set_vibration(u8 *buffer, u8 length);
+static void log_rcvd_set_vib_en(u8 *buffer, u8 length);
 
 static void log_rcvd_req_sys_reboot(u8 *buffer, u8 length);
 static void log_rcvd_req_charger_sta(u8 *buffer, u8 length);
@@ -81,8 +87,9 @@ static const log_rcvd_entry_t log_rcvd_list[] =
     {LOG_RCVD_SET_ZERO_ADJUST,      log_rcvd_set_zero_adjust},
     {LOG_RCVD_SET_STEP_COUNT,       log_rcvd_set_step_count},
     {LOG_RCVD_SET_LOG_EN,           log_rcvd_set_log_en},
-    {LOG_RCVD_SET_VIBRATION,        log_rcvd_set_vibration},
     {LOG_RCVD_SET_CHARGE_SWING,     log_rcvd_set_charge_swing},
+    {LOG_RCVD_SET_VIBRATION,        log_rcvd_set_vibration},
+    {LOG_RCVD_SET_VIB_EN,           log_rcvd_set_vib_en},
 
     {LOG_RCVD_REQ_SYS_REBOOT,       log_rcvd_req_sys_reboot},
     {LOG_RCVD_REQ_CHARGE_STA,       log_rcvd_req_charger_sta},
@@ -92,21 +99,28 @@ static const log_rcvd_entry_t log_rcvd_list[] =
 // received log from peer device end
 //-------------------------------------------------------------------------
 log_send_group_t log_send_list[] = {
-    {1, LOG_SEND_STATE_MACHINE},
-    {1, LOG_SEND_PAIR_CODE},
-    {1, LOG_SEND_NOTIFY_TYPE},
-    {1, LOG_SEND_ANCS_APP_ID},
-    {1, LOG_SEND_CHARGE_STATE},
-    {1, LOG_SEND_SYNC_TIME},
-    {1, LOG_SEND_RUN_TIME},
-    {1, LOG_SEND_COMPASS_ANGLE},
+    {0, LOG_SEND_STATE_MACHINE},
+    {0, LOG_SEND_PAIR_CODE},
+    {0, LOG_SEND_NOTIFY_TYPE},
+    {0, LOG_SEND_ANCS_APP_ID},
+    {0, LOG_SEND_GET_CHG_AUTO},
+    {0, LOG_SEND_GET_CHG_MANUAL},
+    {0, LOG_SEND_SYSTEM_TIME},
+    {0, LOG_SEND_RUN_TIME},
+    {0, LOG_SEND_COMPASS_ANGLE},
     {1, LOG_SEND_VIB_STATE},
-    {1, LOG_SEND_MAX}, // unknown msg, always send by ble
+    {0, LOG_SEND_MAX},
 };
 // send log from local device end
 //-------------------------------------------------------------------------
 
 static adapter_callback log_cb = NULL;
+static u8 vib_en = 1;
+
+u8 get_vib_en(void)
+{
+    return vib_en;
+}
 
 s16 log_send_init(adapter_callback cb)
 {
@@ -115,23 +129,25 @@ s16 log_send_init(adapter_callback cb)
     return 0;
 }
 
-void log_send_initiate(log_head_t* log)
+void log_send_initiate(log_head_t* log_send)
 {
     u8 i = 0;
+    static u8 index = 0;
 
-    if(log->cmd != LOG_SEND_FLAG) {
+    if(log_send->cmd != LOG_SEND_FLAG) {
         return;
-    } else if(log->len == 0) {
+    } else if(log_send->len == 0) {
         return;
     }
 
     while(log_send_list[i].log_type <= LOG_SEND_MAX) {
-        if(log->type == log_send_list[i].log_type) {
+        if(log_send->type == log_send_list[i].log_type) {
             if(log_send_list[i].log_en == 0) {
                 return;
             }
-            log->len = (log->len>20)?20:log->len;
-            BLE_SEND_LOG((u8*)log, log->len);
+            log_send->len = (log_send->len>20)?20:log_send->len;
+            log_send->index = index++;
+            BLE_SEND_LOG((u8*)log_send, log_send->len);
             break;
         }
         i++;
@@ -140,8 +156,8 @@ void log_send_initiate(log_head_t* log)
 
 static void log_rcvd_set_nvm(u8 *buffer, u8 length)
 {
-    log_rcvd_set_nvm_t* adjust = (log_rcvd_set_nvm_t*)buffer;
-    switch(adjust->type) {
+    log_rcvd_set_nvm_t* log_recv = (log_rcvd_set_nvm_t*)buffer;
+    switch(log_recv->type) {
     case 0:
         nvm_write_test();
         break;
@@ -160,8 +176,8 @@ static void log_rcvd_set_nvm(u8 *buffer, u8 length)
 }
 static void log_rcvd_set_zero_adjust(u8 *buffer, u8 length)
 {
-    log_rcvd_set_zero_adjust_t* adjust = (log_rcvd_set_zero_adjust_t*)buffer;
-    switch(adjust->type) {
+    log_rcvd_set_zero_adjust_t* log_recv = (log_rcvd_set_zero_adjust_t*)buffer;
+    switch(log_recv->type) {
     case 0:
         log_cb(KEY_A_B_LONG_PRESS, NULL);
         break;
@@ -180,25 +196,25 @@ static void log_rcvd_set_zero_adjust(u8 *buffer, u8 length)
 }
 static void log_rcvd_set_step_count(u8 *buffer, u8 length)
 {
-    log_rcvd_set_step_count_t* step = (log_rcvd_set_step_count_t*)buffer;
-    u16 steps = (u16)(step->hi<<8 | step->lo);
+    log_rcvd_set_step_count_t* log_recv = (log_rcvd_set_step_count_t*)buffer;
+    u16 steps = (u16)(log_recv->hi<<8 | log_recv->lo);
     step_test(steps);
 }
 
 static void log_rcvd_set_log_en(u8 *buffer, u8 length)
 {
-    log_rcvd_set_log_en_t* log = (log_rcvd_set_log_en_t*)buffer;
+    log_rcvd_set_log_en_t* log_recv = (log_rcvd_set_log_en_t*)buffer;
     u8 i = 0;
 
-    if(log->log_type == LOG_SEND_BROADCAST) {
+    if(log_recv->log_type == LOG_RCVD_BROADCAST) {
         while(log_send_list[i].log_type != LOG_SEND_MAX) {
-            log_send_list[i].log_en = (log->en==0)?0:1;
+            log_send_list[i].log_en = (log_recv->en==0)?0:1;
             i++;
         }
     } else {
         while(log_send_list[i].log_type != LOG_SEND_MAX) {
-            if(log->log_type == log_send_list[i].log_type) {
-                log_send_list[i].log_en = (log->en==0)?0:1;
+            if(log_recv->log_type == log_send_list[i].log_type) {
+                log_send_list[i].log_en = (log_recv->en==0)?0:1;
                 break;
             }
             i++;
@@ -207,21 +223,27 @@ static void log_rcvd_set_log_en(u8 *buffer, u8 length)
 }
 static void log_rcvd_set_vibration(u8 *buffer, u8 length)
 {
-    log_rcvd_set_vib_t* vib = (log_rcvd_set_vib_t*)buffer;
+    log_rcvd_set_vibration_t* log_recv = (log_rcvd_set_vibration_t*)buffer;
 
-    if(vib->type == 0) {
+    if(log_recv->type == 0) {
         vib_stop();
-    } else if(vib->type == 1) {
-        vib_run(vib->step, 0x01);
+    } else if(log_recv->type == 1) {
+        vib_run(log_recv->step, 0x01);
     }
+}
+static void log_rcvd_set_vib_en(u8 *buffer, u8 length)
+{
+    log_rcvd_set_vib_en_t* vib = (log_rcvd_set_vib_en_t*)buffer;
+
+    vib_en = (vib->en==0)?0:1;
 }
 static void log_rcvd_set_charge_swing(u8 *buffer, u8 length)
 {
-    log_rcvd_set_chg_t* chg = (log_rcvd_set_chg_t*)buffer;
+    log_rcvd_set_chg_t* log_recv = (log_rcvd_set_chg_t*)buffer;
 
-    if(chg->act == 0) {
+    if(log_recv->act == 0) {
         log_cb(CHARGE_SWING, NULL);
-    } else if(chg->act == 1) {
+    } else if(log_recv->act == 1) {
         log_cb(CHARGE_STOP, NULL);
     }
 }
@@ -231,25 +253,24 @@ static void log_rcvd_req_sys_reboot(u8 *buffer, u8 length)
 }
 static void log_rcvd_req_charger_sta(u8 *buffer, u8 length)
 {
-    u8 ble_log[3] = {LOG_SEND_FLAG, LOG_SEND_CHARGE_STATE, 0};
-    ble_log[2] = charge_status_get();
-    
-    BLE_SEND_LOG(ble_log, 3);
+    log_send_chg_sta_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_GET_CHG_MANUAL, sizeof(log_send_chg_sta_t), 0}};
+    log_send.chg_sta = charge_status_get();
+    log_send_initiate(&log_send.head);
 }
 u8 log_rcvd_parse(u8* content, u8 length)
 {
-    log_rcvd_t* test = (log_rcvd_t*)content;
+    log_rcvd_t* log_recv_head = (log_rcvd_t*)content;
 	u8 i = 0;
 
 	if(length == 0) {
 		return 1;
 	}
-    if(test->head != LOG_RCVD_FLAG) {
+    if(log_recv_head->head != LOG_RCVD_FLAG) {
         return 1;
     }
 
     while(log_rcvd_list[i].cmd < LOG_RCVD_NONE) {
-        if(log_rcvd_list[i].cmd == test->cmd) {
+        if(log_rcvd_list[i].cmd == log_recv_head->cmd) {
             log_rcvd_list[i].handler(content, length);
             return 0;
         }

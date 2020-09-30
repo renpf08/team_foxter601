@@ -5,22 +5,22 @@
 #include <mem.h>
 #include "common/common.h"
 
+#define LOG_PREFIX_LENGTH       sizeof(log_head_t)
+
 typedef enum{
     LOG_SEND_NULL               = 0x00,
     LOG_SEND_STATE_MACHINE      = 0x01,
     LOG_SEND_PAIR_CODE          = 0x02,
-    LOG_SEND_ZERO_ADJUST_JUMP   = 0x03,
-    LOG_SEND_NOTIFY_TYPE        = 0x04,
-    LOG_SEND_ANCS_APP_ID        = 0x05,
-    LOG_SEND_CHARGE_STATE       = 0x06,
+    LOG_SEND_NOTIFY_TYPE        = 0x03,
+    LOG_SEND_ANCS_APP_ID        = 0x04,
+    LOG_SEND_GET_CHG_AUTO       = 0x05,
+    LOG_SEND_GET_CHG_MANUAL     = 0x06,
     LOG_SEND_COMPASS_ANGLE      = 0x07,
-    LOG_SEND_COMPASS_ADJ        = 0x08,
-    LOG_SEND_SYNC_TIME          = 0x09,
-    LOG_SEND_RUN_TIME           = 0x0A,
-    LOG_SEND_VIB_STATE          = 0x0B,
+    LOG_SEND_SYSTEM_TIME        = 0x08,
+    LOG_SEND_RUN_TIME           = 0x09,
+    LOG_SEND_VIB_STATE          = 0x0A,
     
     LOG_SEND_MAX,
-    LOG_SEND_BROADCAST          = 0xFF,
 }log_send_type_t;
 
 typedef enum {
@@ -33,6 +33,7 @@ typedef struct {
     cmd_app_send_t cmd;
     log_send_type_t type;
     u8 len;
+    u8 index;
 }log_head_t;
 
 typedef struct {
@@ -56,19 +57,20 @@ typedef struct {
 typedef struct {
     log_head_t head;
     u8 recognized;
-    u8 app_id[16];
+    u8 app_id[LOG_PREFIX_LENGTH];
 }log_send_ancs_id_t;
 typedef struct {
     log_head_t head;
-    u8 resv[18];
+    u8 chg_sta;
 }log_send_chg_sta_t;
 typedef struct {
     log_head_t head;
-    u8 resv[18];
-}log_send_sync_time_t;
+    u8 sys_time[8];
+}log_send_system_time_t;
 typedef struct {
     log_head_t head;
-    u8 resv[18];
+    u8 run_time[2];
+    u8 swing_lock[2];
 }log_send_run_time_t;
 typedef struct {
     log_head_t head;
@@ -76,8 +78,6 @@ typedef struct {
     u8 hour_pos;
     u8 angle[2]; // BCD format
 }log_send_compass_angle_t;
-
-
 typedef struct {
     log_head_t head;
     u8 caller;
@@ -86,13 +86,9 @@ typedef struct {
     u8 run_flag;
     u8 vib_en;
 }log_send_vib_info_t;
-typedef struct {
-    log_head_t head;
-    u8 null[18];
-}log_send_null_t;
 
 typedef struct {
-    u8 log_en; // set to 1 to enable ble log
+    u8 log_en; // set to non-zero to enable ble log
     log_send_type_t log_type;
 }log_send_group_t;
 
@@ -102,6 +98,7 @@ typedef struct {
     log_send_type_t type;
 }log_en_t;
 
+u8 get_vib_en(void);
 s16 log_send_init(adapter_callback cb);
 void log_send_initiate(log_head_t* log);
 

@@ -91,10 +91,10 @@ void pair_code_generate(void)
         }
     }
 
-    log_send_pair_code_t log = {.head = {LOG_SEND_FLAG, LOG_SEND_PAIR_CODE, sizeof(log_send_pair_code_t)}};
-    log.hour_code = hour;
-    log.minute_code = minute;
-    log_send_initiate(&log.head);
+    log_send_pair_code_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_PAIR_CODE, sizeof(log_send_pair_code_t), 0}};
+    log_send.hour_code = hour;
+    log_send.minute_code = minute;
+    log_send_initiate(&log_send.head);
 	
 	motor_hour_to_position(hour*5);
 	motor_minute_to_position(minute);
