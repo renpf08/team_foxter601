@@ -389,17 +389,6 @@ void sync_time(void)
 {
 	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
     clock_t* clock = clock_get();
-    log_send_system_time_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_SYSTEM_TIME, sizeof(log_send_system_time_t), 0}};
-    
-    log_send.sys_time[0] = time->year[1];
-    log_send.sys_time[1] = time->year[0];
-    log_send.sys_time[2] = time->month;
-    log_send.sys_time[3] = time->day;
-    log_send.sys_time[4] = time->hour;
-    log_send.sys_time[5] = time->minute;
-    log_send.sys_time[6] = time->second;
-    log_send.sys_time[7] = time->week;
-    log_send_initiate(&log_send.head);
 
     clock->year = time->year[1]<<8 | time->year[0];
     clock->month = time->month;

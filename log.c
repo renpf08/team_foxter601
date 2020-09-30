@@ -2,6 +2,12 @@
 #include "log.h"
 #include "adapter/adapter.h"
 
+#define USE_BCD_CONVERY 1
+#if USE_BCD_CONVERY
+#define HEX_TO_BCD(hex) ((hex % 10) + (hex/10 * 16))
+#define BCD_TO_HEX(bcd) ((((bcd >> 4) & 0x0F) * 10) + (bcd & 0x0F))
+#endif
+
 //-------------------------------------------------------------------------
 // received log from peer device begin
 typedef struct {
@@ -62,6 +68,7 @@ typedef enum{
     // log to request with no params(MSB=1)
     LOG_RCVD_REQ_SYS_REBOOT     = 0x80,
     LOG_RCVD_REQ_CHARGE_STA     = 0x81,
+    LOG_RCVD_REQ_SYSTEM_TIME    = 0x82,
     
     LOG_RCVD_NONE,
     LOG_RCVD_BROADCAST          = 0xFF,
@@ -80,6 +87,7 @@ static void log_rcvd_set_vib_en(u8 *buffer, u8 length);
 
 static void log_rcvd_req_sys_reboot(u8 *buffer, u8 length);
 static void log_rcvd_req_charger_sta(u8 *buffer, u8 length);
+static void log_rcvd_req_system_time(u8 *buffer, u8 length);
 
 static const log_rcvd_entry_t log_rcvd_list[] =
 {
@@ -93,6 +101,7 @@ static const log_rcvd_entry_t log_rcvd_list[] =
 
     {LOG_RCVD_REQ_SYS_REBOOT,       log_rcvd_req_sys_reboot},
     {LOG_RCVD_REQ_CHARGE_STA,       log_rcvd_req_charger_sta},
+    {LOG_RCVD_REQ_SYSTEM_TIME,      log_rcvd_req_system_time},
 
 	{LOG_RCVD_NONE,             NULL}
 };
@@ -105,10 +114,10 @@ log_send_group_t log_send_list[] = {
     {0, LOG_SEND_ANCS_APP_ID},
     {0, LOG_SEND_GET_CHG_AUTO},
     {0, LOG_SEND_GET_CHG_MANUAL},
-    {0, LOG_SEND_SYSTEM_TIME},
+    {1, LOG_SEND_SYSTEM_TIME},
     {0, LOG_SEND_RUN_TIME},
     {0, LOG_SEND_COMPASS_ANGLE},
-    {1, LOG_SEND_VIB_STATE},
+    {0, LOG_SEND_VIB_STATE},
     {0, LOG_SEND_MAX},
 };
 // send log from local device end
@@ -256,6 +265,33 @@ static void log_rcvd_req_charger_sta(u8 *buffer, u8 length)
     log_send_chg_sta_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_GET_CHG_MANUAL, sizeof(log_send_chg_sta_t), 0}};
     log_send.chg_sta = charge_status_get();
     log_send_initiate(&log_send.head);
+}
+static void log_rcvd_req_system_time(u8 *buffer, u8 length)
+{
+    clock_t* clock = clock_get();
+    log_send_system_time_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_SYSTEM_TIME, sizeof(log_send_system_time_t), 0}};
+
+    #if USE_BCD_CONVERY
+    log_send.sys_time[0] = HEX_TO_BCD(clock->year/100);
+    log_send.sys_time[1] = HEX_TO_BCD(clock->year%100);
+    log_send.sys_time[2] = HEX_TO_BCD(clock->month);
+    log_send.sys_time[3] = HEX_TO_BCD(clock->day);
+    log_send.sys_time[4] = HEX_TO_BCD(clock->hour);
+    log_send.sys_time[5] = HEX_TO_BCD(clock->minute);
+    log_send.sys_time[6] = HEX_TO_BCD(clock->second);
+    log_send.sys_time[7] = HEX_TO_BCD(clock->week);
+    log_send_initiate(&log_send.head);
+    #else
+    log_send.sys_time[0] = (clock->year>>8) & 0x00FF;
+    log_send.sys_time[1] = clock->year & 0x00FF;
+    log_send.sys_time[2] = clock->month;
+    log_send.sys_time[3] = clock->day;
+    log_send.sys_time[4] = clock->hour;
+    log_send.sys_time[5] = clock->minute;
+    log_send.sys_time[6] = clock->second;
+    log_send.sys_time[7] = clock->week;
+    log_send_initiate(&log_send.head);
+    #endif
 }
 u8 log_rcvd_parse(u8* content, u8 length)
 {
