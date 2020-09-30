@@ -26,7 +26,7 @@ static clock_t clk = {
 static void send_run_time(void)
 {
     static u16 run_time_cnt = 0;
-    log_send_run_time_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_RUN_TIME, sizeof(log_send_run_time_t), 0}};
+    log_send_run_time_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_RUN_TIME, sizeof(log_send_run_time_t), 0}};
 
     log_send.run_time[0] = (run_time_cnt>>8) & 0x00FF;
     log_send.run_time[1] = run_time_cnt & 0x00FF;

@@ -80,7 +80,7 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
     s16 res = 0;
-    log_send_sta_mc_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_STATE_MACHINE, sizeof(log_send_sta_mc_t), 0}};
+    log_send_sta_mc_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_STATE_MACHINE, sizeof(log_send_sta_mc_t), 0}};
 
     log_send.sta_now = business.state_now;
     log_send.sta_report = cb;

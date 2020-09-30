@@ -91,7 +91,7 @@ void pair_code_generate(void)
         }
     }
 
-    log_send_pair_code_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_PAIR_CODE, sizeof(log_send_pair_code_t), 0}};
+    log_send_pair_code_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_PAIR_CODE, sizeof(log_send_pair_code_t), 0}};
     log_send.hour_code = hour;
     log_send.minute_code = minute;
     log_send_initiate(&log_send.head);

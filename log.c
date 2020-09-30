@@ -2,17 +2,41 @@
 #include "log.h"
 #include "adapter/adapter.h"
 
-#define USE_BCD_CONVERY 1
-#if USE_BCD_CONVERY
+#define USE_BCD_CONVERT 1
+#if USE_BCD_CONVERT
 #define HEX_TO_BCD(hex) ((hex % 10) + (hex/10 * 16))
 #define BCD_TO_HEX(bcd) ((((bcd >> 4) & 0x0F) * 10) + (bcd & 0x0F))
 #endif
 
+typedef void (* log_rcvd_handler)(u8 *buffer, u8 length);
+typedef enum{
+    // log to set with params(MSB=0)
+    LOG_RCVD_SET_NVM            = 0x00,
+    LOG_RCVD_SET_ZERO_ADJUST    = 0x01,
+    LOG_RCVD_SET_STEP_COUNT     = 0x02,
+    LOG_RCVD_SET_LOG_EN         = 0x03,
+    LOG_RCVD_SET_CHARGE_SWING   = 0x04,
+    LOG_RCVD_SET_VIBRATION      = 0x05,
+    LOG_RCVD_SET_VIB_EN         = 0x06,
+
+    // log to request with no params(MSB=1)
+    LOG_RCVD_REQ_SYS_REBOOT     = 0x80,
+    LOG_RCVD_REQ_CHARGE_STA     = 0x81,
+    LOG_RCVD_REQ_SYSTEM_TIME    = 0x82,
+    
+    LOG_RCVD_NONE,
+    LOG_RCVD_BROADCAST          = 0xFF,
+}log_rcvd_type_t;
+typedef struct {
+	log_rcvd_type_t type;
+	log_rcvd_handler handler;
+} log_rcvd_head_t;
+
 //-------------------------------------------------------------------------
 // received log from peer device begin
 typedef struct {
-    u8 head;
-    u8 cmd;
+    log_cmd_t cmd;
+    log_rcvd_type_t type;
 } log_rcvd_t;
 typedef struct { // LOG_RCVD_SET_NVM     = 0x00,
     log_rcvd_t ctrl; 
@@ -54,29 +78,6 @@ typedef struct { // LOG_RCVD_SET_VIBRATION          = 0x05
     u8 en;      // set to non-zero to enable vibration
 } log_rcvd_set_vib_en_t;
 
-typedef void (* log_rcvd_handler)(u8 *buffer, u8 length);
-typedef enum{
-    // log to set with params(MSB=0)
-    LOG_RCVD_SET_NVM            = 0x00,
-    LOG_RCVD_SET_ZERO_ADJUST    = 0x01,
-    LOG_RCVD_SET_STEP_COUNT     = 0x02,
-    LOG_RCVD_SET_LOG_EN         = 0x03,
-    LOG_RCVD_SET_CHARGE_SWING   = 0x04,
-    LOG_RCVD_SET_VIBRATION      = 0x05,
-    LOG_RCVD_SET_VIB_EN         = 0x06,
-
-    // log to request with no params(MSB=1)
-    LOG_RCVD_REQ_SYS_REBOOT     = 0x80,
-    LOG_RCVD_REQ_CHARGE_STA     = 0x81,
-    LOG_RCVD_REQ_SYSTEM_TIME    = 0x82,
-    
-    LOG_RCVD_NONE,
-    LOG_RCVD_BROADCAST          = 0xFF,
-}cmt_test_enum_t;
-typedef struct {
-	const cmt_test_enum_t cmd;
-	log_rcvd_handler handler;
-} log_rcvd_entry_t;
 static void log_rcvd_set_nvm(u8 *buffer, u8 length);
 static void log_rcvd_set_zero_adjust(u8 *buffer, u8 length);
 static void log_rcvd_set_step_count(u8 *buffer, u8 length);
@@ -89,7 +90,7 @@ static void log_rcvd_req_sys_reboot(u8 *buffer, u8 length);
 static void log_rcvd_req_charger_sta(u8 *buffer, u8 length);
 static void log_rcvd_req_system_time(u8 *buffer, u8 length);
 
-static const log_rcvd_entry_t log_rcvd_list[] =
+static log_rcvd_head_t log_rcvd_list[] =
 {
     {LOG_RCVD_SET_NVM,              log_rcvd_set_nvm},
     {LOG_RCVD_SET_ZERO_ADJUST,      log_rcvd_set_zero_adjust},
@@ -103,11 +104,9 @@ static const log_rcvd_entry_t log_rcvd_list[] =
     {LOG_RCVD_REQ_CHARGE_STA,       log_rcvd_req_charger_sta},
     {LOG_RCVD_REQ_SYSTEM_TIME,      log_rcvd_req_system_time},
 
-	{LOG_RCVD_NONE,             NULL}
+	{LOG_RCVD_NONE,                 NULL}
 };
-// received log from peer device end
-//-------------------------------------------------------------------------
-log_send_group_t log_send_list[] = {
+static log_send_group_t log_send_list[] = {
     {1, LOG_SEND_STATE_MACHINE},
     {1, LOG_SEND_PAIR_CODE},
     {1, LOG_SEND_NOTIFY_TYPE},
@@ -120,8 +119,6 @@ log_send_group_t log_send_list[] = {
     {1, LOG_SEND_VIB_STATE},
     {0, LOG_SEND_MAX},
 };
-// send log from local device end
-//-------------------------------------------------------------------------
 
 static adapter_callback log_cb = NULL;
 static u8 vib_en = 1;
@@ -131,19 +128,19 @@ u8 get_vib_en(void)
     return vib_en;
 }
 
-s16 log_send_init(adapter_callback cb)
+s16 log_init(adapter_callback cb)
 {
 	log_cb = cb;
 
     return 0;
 }
 
-void log_send_initiate(log_head_t* log_send)
+void log_send_initiate(log_send_head_t* log_send)
 {
     u8 i = 0;
     static u8 index = 0;
 
-    if(log_send->cmd != LOG_SEND_FLAG) {
+    if(log_send->cmd != LOG_CMD_SEND) {
         return;
     } else if(log_send->len == 0) {
         return;
@@ -262,16 +259,16 @@ static void log_rcvd_req_sys_reboot(u8 *buffer, u8 length)
 }
 static void log_rcvd_req_charger_sta(u8 *buffer, u8 length)
 {
-    log_send_chg_sta_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_GET_CHG_MANUAL, sizeof(log_send_chg_sta_t), 0}};
+    log_send_chg_sta_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_GET_CHG_MANUAL, sizeof(log_send_chg_sta_t), 0}};
     log_send.chg_sta = charge_status_get();
     log_send_initiate(&log_send.head);
 }
 static void log_rcvd_req_system_time(u8 *buffer, u8 length)
 {
     clock_t* clock = clock_get();
-    log_send_system_time_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_SYSTEM_TIME, sizeof(log_send_system_time_t), 0}};
+    log_send_system_time_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_SYSTEM_TIME, sizeof(log_send_system_time_t), 0}};
 
-    #if USE_BCD_CONVERY
+    #if USE_BCD_CONVERT
     log_send.sys_time[0] = HEX_TO_BCD(clock->year/100);
     log_send.sys_time[1] = HEX_TO_BCD(clock->year%100);
     log_send.sys_time[2] = HEX_TO_BCD(clock->month);
@@ -301,12 +298,12 @@ u8 log_rcvd_parse(u8* content, u8 length)
 	if(length == 0) {
 		return 1;
 	}
-    if(log_recv_head->head != LOG_RCVD_FLAG) {
+    if(log_recv_head->cmd != LOG_CMD_RCVD) {
         return 1;
     }
 
-    while(log_rcvd_list[i].cmd < LOG_RCVD_NONE) {
-        if(log_rcvd_list[i].cmd == log_recv_head->cmd) {
+    while(log_rcvd_list[i].type < LOG_RCVD_NONE) {
+        if(log_rcvd_list[i].type == log_recv_head->type) {
             log_rcvd_list[i].handler(content, length);
             return 0;
         }

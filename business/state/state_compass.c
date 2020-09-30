@@ -23,7 +23,7 @@ static void compass_begin_handler(u16 id)
     clock_t* clock = clock_get();
     volatile u16 minute_angle = 0;
     volatile u16 hour_angle = 0;
-    log_send_compass_angle_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_COMPASS_ANGLE, sizeof(log_send_compass_angle_t), 0}};
+    log_send_compass_angle_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_COMPASS_ANGLE, sizeof(log_send_compass_angle_t), 0}};
 
     compass_tid = TIMER_INVALID;
     if(key_sta_ctrl.compass_state == 0) {

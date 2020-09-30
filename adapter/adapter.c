@@ -162,7 +162,7 @@ s16 adapter_init(adapter_callback cb)
 	adapter.cb = cb;
 
 	//module init
-    log_send_init(cb);
+    log_init(cb);
 	clock_init(cb);
 	ancs_init(cb);
     cmd_init(cb);
@@ -276,7 +276,7 @@ static void charge_polling_check(void)
 {
     static s16 last_status = not_incharge;
     s16 now_status = charge_status_get();
-    log_send_chg_sta_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_GET_CHG_AUTO, sizeof(log_send_chg_sta_t), 0}};
+    log_send_chg_sta_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_GET_CHG_AUTO, sizeof(log_send_chg_sta_t), 0}};
     
 	if((last_status == not_incharge) && (now_status == incharge)) {
         log_send.chg_sta = 0;

@@ -102,7 +102,7 @@ void ancs_business_handle(packing_msg_t* pack_msg)
     u8 i = 0;
     u8 app_id_len = 0;
     u8 app_id_max_len = (20-LOG_PREFIX_LENGTH);
-    log_send_ancs_id_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_ANCS_APP_ID, sizeof(log_send_ancs_id_t), 0}};
+    log_send_ancs_id_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_ANCS_APP_ID, sizeof(log_send_ancs_id_t), 0}};
     
     while(app_msg_list[i].app_id[0] != 0)
     {

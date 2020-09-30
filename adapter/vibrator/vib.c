@@ -24,7 +24,7 @@ static vib_cfg_t vib_cfg = {
 	.step_count = 0,
 	.tid = TIMER_INVALID,
 };
-log_send_vib_info_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_VIB_STATE, sizeof(log_send_vib_info_t), 0}};
+log_send_vib_info_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_VIB_STATE, sizeof(log_send_vib_info_t), 0}};
 
 static void vib_cb_handler(u16 id)
 {

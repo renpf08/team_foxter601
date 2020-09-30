@@ -52,7 +52,7 @@ s16 state_notify(REPORT_E cb, void *args)
     u8 i = 0;
     u8 *en = cmd_get()->notify_switch.en;
     u32 msg_en = 0;
-    log_send_notify_t log_send = {.head = {LOG_SEND_FLAG, LOG_SEND_NOTIFY_TYPE, sizeof(log_send_notify_t), 0}};
+    log_send_notify_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_NOTIFY_TYPE, sizeof(log_send_notify_t), 0}};
 
     for(i = 0; i < 4; i++) {
         msg_en  <<= 8;
