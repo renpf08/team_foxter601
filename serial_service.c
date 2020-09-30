@@ -189,7 +189,7 @@ extern void SerialHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
         
         case HANDLE_SERIAL_RECV_DATA:
         {
-            #if USE_CMD_TEST
+            #if USE_LOG_RCVD_DEBUG
             if(log_rcvd_parse((u8*)p_ind->value, (uint8)p_ind->size_value) == 1) {
                 cmd_rcvd_parse((u8*)p_ind->value, (uint8)p_ind->size_value);
             }

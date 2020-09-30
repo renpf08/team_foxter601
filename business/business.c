@@ -80,11 +80,15 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
     s16 res = 0;
-    log_send_sta_mc_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_STATE_MACHINE, sizeof(log_send_sta_mc_t), 0}};
+    LOG_SEND_STATE_MACHINE_VARIABLE_DEF(log_send, log_send_sta_mc_t, LOG_CMD_SEND, LOG_SEND_STATE_MACHINE);
+    //log_send_sta_mc_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_STATE_MACHINE, sizeof(log_send_sta_mc_t), 0}};
 
-    log_send.sta_now = business.state_now;
-    log_send.sta_report = cb;
-    log_send.result = 0;
+    LOG_SEND_STATE_MACHINE_VALUE_SET(log_send.sta_now, business.state_now);
+    LOG_SEND_STATE_MACHINE_VALUE_SET(log_send.sta_report, cb);
+    LOG_SEND_STATE_MACHINE_VALUE_SET(log_send.result, 0);
+//    log_send.sta_now = business.state_now;
+//    log_send.sta_report = cb;
+//    log_send.result = 0;
 
 	//return 0;
     #if USE_UART_PRINT
@@ -101,12 +105,15 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 			set_last_state(business.state_now);
 			business.state_now = state[i].next_state;
 			res = state[i].func(cb, &business.state_now);
-            log_send.result = 1;
+            LOG_SEND_STATE_MACHINE_VALUE_SET(log_send.result, 1);
+//            log_send.result = 1;
             break;
 		}
 	}
-    log_send.sta_next = business.state_now;
-    log_send_initiate(&log_send.head);
+    LOG_SEND_STATE_MACHINE_VALUE_SET(log_send.sta_next, business.state_now);
+    LOG_SEND_STATE_MACHINE_VALUE_SEND(log_send.head);
+//    log_send.sta_next = business.state_now;
+//    log_send_initiate(&log_send.head);
 	return res;
 }
 

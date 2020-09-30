@@ -162,7 +162,9 @@ s16 adapter_init(adapter_callback cb)
 	adapter.cb = cb;
 
 	//module init
+	#if USE_LOG_SEND_DEBUG
     log_init(cb);
+    #endif
 	clock_init(cb);
 	ancs_init(cb);
     cmd_init(cb);
@@ -276,15 +278,15 @@ static void charge_polling_check(void)
 {
     static s16 last_status = not_incharge;
     s16 now_status = charge_status_get();
-    log_send_chg_sta_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_GET_CHG_AUTO, sizeof(log_send_chg_sta_t), 0}};
+    LOG_SEND_GET_CHG_AUTO_VARIABLE_DEF(log_send, log_send_chg_sta_t, LOG_CMD_SEND, LOG_SEND_GET_CHG_AUTO);
     
 	if((last_status == not_incharge) && (now_status == incharge)) {
-        log_send.chg_sta = 0;
-        log_send_initiate(&log_send.head);
+        LOG_SEND_GET_CHG_AUTO_VALUE_SET(log_send.chg_sta, 0);
+        LOG_SEND_GET_CHG_AUTO_VALUE_SEND(log_send.head);
         adapter.cb(CHARGE_SWING, NULL);
 	} else if((last_status == incharge) && (now_status == not_incharge)) {
-        log_send.chg_sta = 1;
-        log_send_initiate(&log_send.head);
+        LOG_SEND_GET_CHG_AUTO_VALUE_SET(log_send.chg_sta, 1);
+        LOG_SEND_GET_CHG_AUTO_VALUE_SEND(log_send.head);
 	    adapter.cb(CHARGE_STOP, NULL);
 	}
     last_status = now_status;

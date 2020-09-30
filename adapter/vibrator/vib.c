@@ -24,11 +24,12 @@ static vib_cfg_t vib_cfg = {
 	.step_count = 0,
 	.tid = TIMER_INVALID,
 };
-log_send_vib_info_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_VIB_STATE, sizeof(log_send_vib_info_t), 0}};
+
+LOG_SEND_VIB_STATE_VARIABLE_DEF(log_send, log_send_vib_info_t, LOG_CMD_SEND, LOG_SEND_VIB_STATE);
 
 static void vib_cb_handler(u16 id)
 {
-    log_send.vib_en = get_vib_en();
+    LOG_SEND_VIB_STATE_VALUE_SET(log_send.vib_en, get_vib_en());
     vib_cfg.tid = TIMER_INVALID;
     
 	if(0 == vib_cfg.run_flag) {
@@ -36,27 +37,27 @@ static void vib_cb_handler(u16 id)
 	}
 
 	if(run == vib_cfg.status) {
-        if(log_send.vib_en == 1) {
+        if(LOG_SEND_VIB_STATE_VALUE_COMPARE(log_send.vib_en, 1)) {
 		    vib_cfg.drv->vibrator->vibrator_on(NULL);
         }
 		vib_cfg.status = idle;
 	    vib_cfg.tid = vib_cfg.drv->timer->timer_start(200, vib_cb_handler);
 	}else {		
-        if(log_send.vib_en == 1) {
+        if(LOG_SEND_VIB_STATE_VALUE_COMPARE(log_send.vib_en, 1)) {
 		    vib_cfg.drv->vibrator->vibrator_off(NULL);
         }
-        log_send.cur_step--;
+        LOG_SEND_VIB_STATE_VALUE_SUB(log_send.cur_step);
 		//if run complete, then exit without have timer start again
 		if(0 == --vib_cfg.step_count) {
 			vib_cfg.run_flag = 0;
 			vib_cfg.status = idle;
-            log_send.run_flag = 0;
+            LOG_SEND_VIB_STATE_VALUE_SET(log_send.run_flag, 0);
 			return;
 		}else {
 			vib_cfg.status = run;
 	        vib_cfg.tid = vib_cfg.drv->timer->timer_start(800, vib_cb_handler);
 		}
-        log_send_initiate(&log_send.head);
+        LOG_SEND_VIB_STATE_VALUE_SEND(log_send.head);
 	}
 }
 
@@ -67,7 +68,7 @@ s16 vib_stop(void)
 	vib_cfg.status = idle;
 	vib_cfg.run_flag = 0;
 	vib_cfg.step_count = 0;
-    if(log_send.vib_en == 1) {	
+    if(LOG_SEND_VIB_STATE_VALUE_COMPARE(log_send.vib_en, 1)) {	
 	    vib_cfg.drv->vibrator->vibrator_off(NULL);
     }
 	return 0;
@@ -75,19 +76,19 @@ s16 vib_stop(void)
 
 s16 vib_run(u8 step_count, u8 caller)
 {
-    log_send.caller = caller;
-    log_send.steps = step_count;
-    log_send.cur_step = step_count;
-    log_send.run_flag = 1;
-    log_send.vib_en = get_vib_en();
+    LOG_SEND_VIB_STATE_VALUE_SET(log_send.caller, caller);
+    LOG_SEND_VIB_STATE_VALUE_SET(log_send.steps, step_count);
+    LOG_SEND_VIB_STATE_VALUE_SET(log_send.cur_step, step_count);
+    LOG_SEND_VIB_STATE_VALUE_SET(log_send.run_flag, 1);
+    LOG_SEND_VIB_STATE_VALUE_SET(log_send.vib_en, get_vib_en());
     
 	vib_cfg.status = run;
 	vib_cfg.run_flag = 1;
 	vib_cfg.step_count = step_count;
-    if(log_send.vib_en == 1) {	
+    if(LOG_SEND_VIB_STATE_VALUE_COMPARE(log_send.vib_en, 1)) {	
 	    vib_cfg.drv->vibrator->vibrator_on(NULL);
     }
-    log_send_initiate(&log_send.head);
+    LOG_SEND_VIB_STATE_VALUE_SEND(log_send.head);
 	//return 0;
 	if(vib_cfg.step_count > 0) {
 		vib_cfg.tid = vib_cfg.drv->timer->timer_start(10, vib_cb_handler);

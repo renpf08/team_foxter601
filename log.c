@@ -8,7 +8,7 @@
 #define BCD_TO_HEX(bcd) ((((bcd >> 4) & 0x0F) * 10) + (bcd & 0x0F))
 #endif
 
-#if USE_CMD_TEST
+#if USE_LOG_RCVD_DEBUG
 typedef void (* log_rcvd_handler)(u8 *buffer, u8 length);
 typedef enum{
     // log to set with params(MSB=0)
@@ -180,7 +180,8 @@ static log_rcvd_head_t log_rcvd_list[] =
 
 	{LOG_RCVD_NONE,                 NULL}
 };
-#endif // USE_CMD_TEST
+#endif // USE_LOG_RCVD_DEBUG
+#if USE_LOG_SEND_DEBUG
 static log_send_group_t log_send_list[] = {
     {1, LOG_SEND_STATE_MACHINE},
     {1, LOG_SEND_PAIR_CODE},
@@ -234,6 +235,8 @@ void log_send_initiate(log_send_head_t* log_send)
         i++;
     }
 }
+#endif // USE_LOG_SEND_DEBUG
+
 #if USE_LOG_RCVD_SET_NVM
 static void log_rcvd_set_nvm(u8 *buffer, u8 length)
 {
@@ -349,41 +352,41 @@ static void log_rcvd_req_sys_reboot(u8 *buffer, u8 length)
 #if USE_LOG_RCVD_REQ_CHARGE_STA
 static void log_rcvd_req_charger_sta(u8 *buffer, u8 length)
 {
-    log_send_chg_sta_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_GET_CHG_MANUAL, sizeof(log_send_chg_sta_t), 0}};
-    log_send.chg_sta = charge_status_get();
-    log_send_initiate(&log_send.head);
+    LOG_SEND_GET_CHG_MANUAL_VARIABLE_DEF(log_send, log_send_chg_sta_t, LOG_CMD_SEND, LOG_SEND_GET_CHG_MANUAL);
+    LOG_SEND_GET_CHG_MANUAL_VALUE_SET(log_send.chg_sta, charge_status_get());
+    LOG_SEND_GET_CHG_MANUAL_VALUE_SEND(log_send.head);
 }
 #endif
 #if USE_LOG_RCVD_REQ_SYSTEM_TIME
 static void log_rcvd_req_system_time(u8 *buffer, u8 length)
 {
     clock_t* clock = clock_get();
-    log_send_system_time_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_SYSTEM_TIME, sizeof(log_send_system_time_t), 0}};
+    LOG_SEND_SYSTEM_TIME_VARIABLE_DEF(log_send, log_send_system_time_t, LOG_CMD_SEND, LOG_SEND_SYSTEM_TIME);
 
     #if USE_BCD_CONVERT
-    log_send.sys_time[0] = HEX_TO_BCD(clock->year/100);
-    log_send.sys_time[1] = HEX_TO_BCD(clock->year%100);
-    log_send.sys_time[2] = HEX_TO_BCD(clock->month);
-    log_send.sys_time[3] = HEX_TO_BCD(clock->day);
-    log_send.sys_time[4] = HEX_TO_BCD(clock->hour);
-    log_send.sys_time[5] = HEX_TO_BCD(clock->minute);
-    log_send.sys_time[6] = HEX_TO_BCD(clock->second);
-    log_send.sys_time[7] = HEX_TO_BCD(clock->week);
-    log_send_initiate(&log_send.head);
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[0], HEX_TO_BCD(clock->year/100));
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[1], HEX_TO_BCD(clock->year%100));
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[2], HEX_TO_BCD(clock->month));
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[3], HEX_TO_BCD(clock->day));
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[4], HEX_TO_BCD(clock->hour));
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[5], HEX_TO_BCD(clock->minute));
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[6], HEX_TO_BCD(clock->second));
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[7], HEX_TO_BCD(clock->week));
+    LOG_SEND_SYSTEM_TIME_VALUE_SEND(log_send.head);
     #else
-    log_send.sys_time[0] = (clock->year>>8) & 0x00FF;
-    log_send.sys_time[1] = clock->year & 0x00FF;
-    log_send.sys_time[2] = clock->month;
-    log_send.sys_time[3] = clock->day;
-    log_send.sys_time[4] = clock->hour;
-    log_send.sys_time[5] = clock->minute;
-    log_send.sys_time[6] = clock->second;
-    log_send.sys_time[7] = clock->week;
-    log_send_initiate(&log_send.head);
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[0], (clock->year>>8) & 0x00FF);
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[1], clock->year & 0x00FF);
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[2], clock->month);
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[3], clock->day);
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[4], clock->hour);
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[5], clock->minute);
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[6], clock->second);
+    LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[7], clock->week);
+    LOG_SEND_SYSTEM_TIME_VALUE_SEND(log_send.head);
     #endif
 }
 #endif
-#if USE_CMD_TEST
+#if USE_LOG_RCVD_DEBUG
 u8 log_rcvd_parse(u8* content, u8 length)
 {
     log_rcvd_t* log_recv_head = (log_rcvd_t*)content;

@@ -26,13 +26,13 @@ static clock_t clk = {
 static void send_run_time(void)
 {
     static u16 run_time_cnt = 0;
-    log_send_run_time_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_RUN_TIME, sizeof(log_send_run_time_t), 0}};
+    LOG_SEND_RUN_TIME_VARIABLE_DEF(log_send, log_send_run_time_t, LOG_CMD_SEND, LOG_SEND_RUN_TIME);
 
-    log_send.run_time[0] = (run_time_cnt>>8) & 0x00FF;
-    log_send.run_time[1] = run_time_cnt & 0x00FF;
-    log_send.swing_lock[0] = key_sta_ctrl.ab_long_press;
-    log_send.swing_lock[1] = key_sta_ctrl.compass_state;
-    log_send_initiate(&log_send.head);
+    LOG_SEND_RUN_TIME_VALUE_SET(log_send.run_time[0], (run_time_cnt>>8) & 0x00FF);
+    LOG_SEND_RUN_TIME_VALUE_SET(log_send.run_time[1], run_time_cnt & 0x00FF);
+    LOG_SEND_RUN_TIME_VALUE_SET(log_send.swing_lock[0], key_sta_ctrl.ab_long_press);
+    LOG_SEND_RUN_TIME_VALUE_SET(log_send.swing_lock[1], key_sta_ctrl.compass_state);
+    LOG_SEND_RUN_TIME_VALUE_SEND(log_send.head);
     run_time_cnt++;
 }
 

@@ -39,8 +39,8 @@ FO601
 #define USE_PAIR_CODE_0000  1 // test mode, use pair code of 0x0000 as a bypass code 
 #define USE_ACTIVITY_NOTIFY 0
 
-#define USE_CMD_TEST        0
-#if USE_CMD_TEST
+#define USE_LOG_RCVD_DEBUG              1
+#if USE_LOG_RCVD_DEBUG
 #define USE_LOG_RCVD_SET_NVM            1
 #define USE_LOG_RCVD_SET_ZERO_ADJUST    1
 #define USE_LOG_RCVD_SET_STEP_COUNT     1
@@ -62,6 +62,31 @@ FO601
 #define USE_LOG_RCVD_REQ_SYS_REBOOT     0
 #define USE_LOG_RCVD_REQ_CHARGE_STA     0
 #define USE_LOG_RCVD_REQ_SYSTEM_TIME    0
+#endif
+
+#define USE_LOG_SEND_DEBUG                1
+#if USE_LOG_SEND_DEBUG
+#define USE_LOG_SEND_STATE_MACHINE      1
+#define USE_LOG_SEND_PAIR_CODE          1
+#define USE_LOG_SEND_NOTIFY_TYPE        1
+#define USE_LOG_SEND_ANCS_APP_ID        1
+#define USE_LOG_SEND_GET_CHG_AUTO       1
+#define USE_LOG_SEND_GET_CHG_MANUAL     1
+#define USE_LOG_SEND_COMPASS_ANGLE      1
+#define USE_LOG_SEND_SYSTEM_TIME        1
+#define USE_LOG_SEND_RUN_TIME           1
+#define USE_LOG_SEND_VIB_STATE          1
+#else
+#define USE_LOG_SEND_STATE_MACHINE      0
+#define USE_LOG_SEND_PAIR_CODE          0
+#define USE_LOG_SEND_NOTIFY_TYPE        0
+#define USE_LOG_SEND_ANCS_APP_ID        0
+#define USE_LOG_SEND_GET_CHG_AUTO       0
+#define USE_LOG_SEND_GET_CHG_MANUAL     0
+#define USE_LOG_SEND_COMPASS_ANGLE      0
+#define USE_LOG_SEND_SYSTEM_TIME        0
+#define USE_LOG_SEND_RUN_TIME           0
+#define USE_LOG_SEND_VIB_STATE          0
 #endif
 
 /* Timer value for starting the Discovery Procedure once the connection is

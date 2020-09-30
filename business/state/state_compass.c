@@ -23,7 +23,7 @@ static void compass_begin_handler(u16 id)
     clock_t* clock = clock_get();
     volatile u16 minute_angle = 0;
     volatile u16 hour_angle = 0;
-    log_send_compass_angle_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_COMPASS_ANGLE, sizeof(log_send_compass_angle_t), 0}};
+    LOG_SEND_COMPASS_ANGLE_VARIABLE_DEF(log_send, log_send_compass_angle_t, LOG_CMD_SEND, LOG_SEND_COMPASS_ANGLE);
 
     compass_tid = TIMER_INVALID;
     if(key_sta_ctrl.compass_state == 0) {
@@ -38,13 +38,13 @@ static void compass_begin_handler(u16 id)
         while(minute_angle>60) minute_angle-=60;
     	motor_minute_to_position(minute_angle);
     	motor_hour_to_position(hour_angle);
-        log_send.minute_pos = minute_angle;
-        log_send.hour_pos = hour_angle;
+        LOG_SEND_COMPASS_ANGLE_VALUE_SET(log_send.minute_pos, minute_angle);
+        LOG_SEND_COMPASS_ANGLE_VALUE_SET(log_send.hour_pos, hour_angle);
         log_angle = angle;
-        log_send.angle[0] = log_angle/100;           log_angle %= 100;
-        log_send.angle[1] = (log_angle/10<<4)&0xF0;  log_angle = log_angle%10;
-        log_send.angle[1] |= log_angle&0x0F;
-        log_send_initiate(&log_send.head);
+        LOG_SEND_COMPASS_ANGLE_VALUE_SET(log_send.angle[0], log_angle/100);           log_angle %= 100;
+        LOG_SEND_COMPASS_ANGLE_VALUE_SET(log_send.angle[1], (log_angle/10<<4)&0xF0);  log_angle = log_angle%10;
+        LOG_SEND_COMPASS_ANGLE_VALUE_OR(log_send.angle[1], log_angle&0x0F);
+        LOG_SEND_COMPASS_ANGLE_VALUE_SEND(log_send.head);
     }
     last_angle = angle;
     timer_event(28, compass_begin_handler);
