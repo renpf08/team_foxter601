@@ -32,6 +32,7 @@ typedef enum {
 typedef struct {
     cmd_app_send_t cmd;
     log_send_type_t type;
+    u8 len;
 }log_head_t;
 
 typedef struct {
@@ -102,7 +103,7 @@ typedef struct {
 
 s16 log_send_init(adapter_callback cb);
 void* log_send_get_ptr(log_send_type_t log_type);
-void log_send_initiate(log_send_type_t log_type);
+void log_send_initiate(log_head_t* log);
 
 u8 log_rcvd_parse(u8* content, u8 length);
 

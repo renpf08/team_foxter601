@@ -24,10 +24,10 @@ static vib_cfg_t vib_cfg = {
 	.step_count = 0,
 	.tid = TIMER_INVALID,
 };
+log_send_vib_info_t log = {.head = {LOG_SEND_FLAG, LOG_SEND_VIB_STATE, sizeof(log_send_vib_info_t)}};
 
 static void vib_cb_handler(u16 id)
 {
-    log_send_vib_info_t* log = (log_send_vib_info_t*)log_send_get_ptr(LOG_SEND_VIB_STATE);
     vib_cfg.tid = TIMER_INVALID;
     
 	if(0 == vib_cfg.run_flag) {
@@ -40,18 +40,18 @@ static void vib_cb_handler(u16 id)
 	    vib_cfg.tid = vib_cfg.drv->timer->timer_start(200, vib_cb_handler);
 	}else {		
 		vib_cfg.drv->vibrator->vibrator_off(NULL);
-        log->cur_step--;
+        log.cur_step--;
 		//if run complete, then exit without have timer start again
 		if(0 == --vib_cfg.step_count) {
 			vib_cfg.run_flag = 0;
 			vib_cfg.status = idle;
-            log->run_flag = 0;
+            log.run_flag = 0;
 			return;
 		}else {
 			vib_cfg.status = run;
 	        vib_cfg.tid = vib_cfg.drv->timer->timer_start(800, vib_cb_handler);
 		}
-        log_send_initiate(LOG_SEND_VIB_STATE);
+        log_send_initiate(&log.head);
 	}
 }
 
@@ -68,11 +68,10 @@ s16 vib_stop(void)
 
 s16 vib_run(u8 step_count, u8 caller)
 {
-    log_send_vib_info_t* log = (log_send_vib_info_t*)log_send_get_ptr(LOG_SEND_VIB_STATE);
-    log->caller = caller;
-    log->steps = step_count;
-    log->cur_step = step_count;
-    log->run_flag = 1;
+    log.caller = caller;
+    log.steps = step_count;
+    log.cur_step = step_count;
+    log.run_flag = 1;
     
 	vib_cfg.status = run;
 	vib_cfg.run_flag = 1;

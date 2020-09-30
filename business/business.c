@@ -80,11 +80,11 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
     s16 res = 0;
-    log_send_sta_mc_t* log = (log_send_sta_mc_t*)log_send_get_ptr(LOG_SEND_STATE_MACHINE);
+    log_send_sta_mc_t log = {.head = {LOG_SEND_FLAG, LOG_SEND_STATE_MACHINE, sizeof(log_send_sta_mc_t)}};
 
-    log->sta_now = business.state_now;
-    log->sta_report = cb;
-    log->result = 0;
+    log.sta_now = business.state_now;
+    log.sta_report = cb;
+    log.result = 0;
 
 	//return 0;
     #if USE_UART_PRINT
@@ -101,12 +101,12 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 			set_last_state(business.state_now);
 			business.state_now = state[i].next_state;
 			res = state[i].func(cb, &business.state_now);
-            log->result = 1;
+            log.result = 1;
             break;
 		}
 	}
-    log->sta_next = business.state_now;
-    log_send_initiate(LOG_SEND_STATE_MACHINE);
+    log.sta_next = business.state_now;
+    log_send_initiate(&log.head);
 	return res;
 }
 

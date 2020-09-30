@@ -157,19 +157,22 @@ void* log_send_get_ptr(log_send_type_t log_type)
     return log_send_group[i].log_ptr; // log_send_null
 }
 
-void log_send_initiate(log_send_type_t log_type)
+void log_send_initiate(log_head_t* log)
 {
     u8 i = 0;
 
+    if(log->cmd != LOG_SEND_FLAG) {
+        return;
+    } else if(log->len == 0) {
+        return;
+    }
+
     while(log_send_group[i].log_type <= LOG_SEND_MAX) {
-        if(log_type == log_send_group[i].log_type) {
+        if(log->type == log_send_group[i].log_type) {
             if(log_send_group[i].log_en == 0) {
-                break;
+                return;
             }
-            if(LOG_CHK_PCK_HEAD(log_send_group[i].log_ptr) != LOG_SEND_FLAG) {
-                break;
-            }
-            BLE_SEND_LOG((u8*)log_send_group[i].log_ptr, log_send_group[i].log_len);
+            BLE_SEND_LOG((u8*)log, log->len);
             break;
         }
         i++;
