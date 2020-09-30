@@ -1766,13 +1766,13 @@ extern void WriteApplicationAndServiceDataToNVM(void)
  *      Nothing.
  *
  *----------------------------------------------------------------------------*/
- #if USE_LOG_RCVD_NVM_ACCESS
+ #if USE_LOG_RCVD_SET_NVM
 u8 panic_code = 0;
 u8 panic_get(void)
 {
     return panic_code;
 }
-#endif //  #if USE_LOG_RCVD_NVM_ACCESS
+#endif //  #if USE_LOG_RCVD_SET_NVM
 extern void ReportPanic(const char* file, const char* func, unsigned line, app_panic_code code)
 {
     /* If we want any debug prints, we can put them here */
@@ -1784,9 +1784,9 @@ extern void ReportPanic(const char* file, const char* func, unsigned line, app_p
     panic_buf[6] = code/10 + '0';
     panic_buf[7] = code%10 + '0';
     print(panic_buf, 8);
-    #if USE_LOG_RCVD_NVM_ACCESS
+    #if USE_LOG_RCVD_SET_NVM
     panic_code = code;
-    #endif //USE_LOG_RCVD_NVM_ACCESS
+    #endif //USE_LOG_RCVD_SET_NVM
     #endif //USE_UART_PRINT
 #endif
 }

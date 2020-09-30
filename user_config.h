@@ -41,25 +41,25 @@ FO601
 
 #define USE_CMD_TEST        0
 #if USE_CMD_TEST
-#define USE_LOG_RCVD_NVM_ACCESS         1
-#define USE_LOG_RCVD_ZERO_ADJUST        1
-#define USE_LOG_RCVD_STEP_COUNT         1
+#define USE_LOG_RCVD_SET_NVM            1
+#define USE_LOG_RCVD_SET_ZERO_ADJUST    1
+#define USE_LOG_RCVD_SET_STEP_COUNT     1
 #define USE_LOG_RCVD_SET_LOG_EN         1
-#define USE_LOG_RCVD_CHARGE_SWING       1
-#define USE_LOG_RCVD_VIBRATION          1
-#define USE_LOG_RCVD_VIB_EN             1
-#define USE_LOG_RCVD_SYS_REBOOT         1
+#define USE_LOG_RCVD_SET_CHARGE_SWING   1
+#define USE_LOG_RCVD_SET_VIBRATION      1
+#define USE_LOG_RCVD_SET_VIB_EN         1
+#define USE_LOG_RCVD_REQ_SYS_REBOOT     1
 #define USE_LOG_RCVD_REQ_CHARGE_STA     1
 #define USE_LOG_RCVD_REQ_SYSTEM_TIME    1
 #else
-#define USE_LOG_RCVD_NVM_ACCESS         0
-#define USE_LOG_RCVD_ZERO_ADJUST        0
-#define USE_LOG_RCVD_STEP_COUNT         0
+#define USE_LOG_RCVD_SET_NVM            0
+#define USE_LOG_RCVD_SET_ZERO_ADJUST    0
+#define USE_LOG_RCVD_SET_STEP_COUNT     0
 #define USE_LOG_RCVD_SET_LOG_EN         0
-#define USE_LOG_RCVD_CHARGE_SWING       0
-#define USE_LOG_RCVD_VIBRATION          0
-#define USE_LOG_RCVD_VIB_EN             0
-#define USE_LOG_RCVD_SYS_REBOOT         0
+#define USE_LOG_RCVD_SET_CHARGE_SWING   0
+#define USE_LOG_RCVD_SET_VIBRATION      0
+#define USE_LOG_RCVD_SET_VIB_EN         0
+#define USE_LOG_RCVD_REQ_SYS_REBOOT     0
 #define USE_LOG_RCVD_REQ_CHARGE_STA     0
 #define USE_LOG_RCVD_REQ_SYSTEM_TIME    0
 #endif

@@ -355,7 +355,7 @@ void step_clear(void)
 {
     acc_steps = 0;
 }
-#if USE_LOG_RCVD_STEP_COUNT
+#if USE_LOG_RCVD_SET_STEP_COUNT
 void step_test(u32 steps)
 {
     acc_steps += steps;

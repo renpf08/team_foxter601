@@ -12,30 +12,30 @@
 typedef void (* log_rcvd_handler)(u8 *buffer, u8 length);
 typedef enum{
     // log to set with params(MSB=0)
-    #if USE_LOG_RCVD_NVM_ACCESS
+    #if USE_LOG_RCVD_SET_NVM
     LOG_RCVD_SET_NVM            = 0x00,
     #endif
-    #if USE_LOG_RCVD_ZERO_ADJUST
+    #if USE_LOG_RCVD_SET_ZERO_ADJUST
     LOG_RCVD_SET_ZERO_ADJUST    = 0x01,
     #endif
-    #if USE_LOG_RCVD_STEP_COUNT
+    #if USE_LOG_RCVD_SET_STEP_COUNT
     LOG_RCVD_SET_STEP_COUNT     = 0x02,
     #endif
     #if USE_LOG_RCVD_SET_LOG_EN
     LOG_RCVD_SET_LOG_EN         = 0x03,
     #endif
-    #if USE_LOG_RCVD_CHARGE_SWING
+    #if USE_LOG_RCVD_SET_CHARGE_SWING
     LOG_RCVD_SET_CHARGE_SWING   = 0x04,
     #endif
-    #if USE_LOG_RCVD_VIBRATION
+    #if USE_LOG_RCVD_SET_VIBRATION
     LOG_RCVD_SET_VIBRATION      = 0x05,
     #endif
-    #if USE_LOG_RCVD_VIB_EN
+    #if USE_LOG_RCVD_SET_VIB_EN
     LOG_RCVD_SET_VIB_EN         = 0x06,
     #endif
 
     // log to request with no params(MSB=1)
-    #if USE_LOG_RCVD_SYS_REBOOT
+    #if USE_LOG_RCVD_REQ_SYS_REBOOT
     LOG_RCVD_REQ_SYS_REBOOT     = 0x80,
     #endif
     #if USE_LOG_RCVD_REQ_CHARGE_STA
@@ -59,7 +59,7 @@ typedef struct {
     log_cmd_t cmd;
     log_rcvd_type_t type;
 } log_rcvd_t;
-#if USE_LOG_RCVD_NVM_ACCESS
+#if USE_LOG_RCVD_SET_NVM
 typedef struct { // LOG_RCVD_SET_NVM     = 0x00,
     log_rcvd_t ctrl; 
     u8 type;    // 00 - write one day data
@@ -68,7 +68,7 @@ typedef struct { // LOG_RCVD_SET_NVM     = 0x00,
                 // 03 - read one day data
 } log_rcvd_set_nvm_t;
 #endif
-#if USE_LOG_RCVD_ZERO_ADJUST
+#if USE_LOG_RCVD_SET_ZERO_ADJUST
 typedef struct {
     log_rcvd_t ctrl; // LOG_RCVD_SET_ZERO_ADJUST    = 0x01
     u8 type;    // 00 - KEY_A_B_LONG_PRESS
@@ -77,7 +77,7 @@ typedef struct {
                 // 03 - KEY_B_SHORT_PRESS
 } log_rcvd_set_zero_adjust_t;
 #endif
-#if USE_LOG_RCVD_STEP_COUNT
+#if USE_LOG_RCVD_SET_STEP_COUNT
 typedef struct { // LOG_RCVD_SET_STEP_COUNT         = 0x02
     log_rcvd_t ctrl; 
     u8 hi;      // hi:lo = set current step count value
@@ -91,14 +91,14 @@ typedef struct { // LOG_RCVD_SET_LOG_EN             = 0x03
     u8 en; // set to 0 or non-zero is ok
 } log_rcvd_set_log_en_t;
 #endif
-#if USE_LOG_RCVD_CHARGE_SWING
+#if USE_LOG_RCVD_SET_CHARGE_SWING
 typedef struct { // LOG_RCVD_SET_CHARGE_SWING       = 0x04
     log_rcvd_t ctrl;
     u8 act;     // 00 - charge begin and swing
                 // 01 - charge swing stop
 } log_rcvd_set_chg_swing_t;
 #endif
-#if USE_LOG_RCVD_VIBRATION
+#if USE_LOG_RCVD_SET_VIBRATION
 typedef struct { // LOG_RCVD_SET_VIBRATION          = 0x05
     log_rcvd_t ctrl;
     u8 type;    // 00 - set vibration off
@@ -106,35 +106,35 @@ typedef struct { // LOG_RCVD_SET_VIBRATION          = 0x05
     u8 step;    // xx - vib times(if type = 1)
 } log_rcvd_set_vibration_t;
 #endif
-#if USE_LOG_RCVD_VIB_EN
+#if USE_LOG_RCVD_SET_VIB_EN
 typedef struct { // LOG_RCVD_SET_VIBRATION          = 0x05
     log_rcvd_t ctrl;
     u8 en;      // set to non-zero to enable vibration
 } log_rcvd_set_vib_en_t;
 #endif
-#if USE_LOG_RCVD_NVM_ACCESS
+#if USE_LOG_RCVD_SET_NVM
 static void log_rcvd_set_nvm(u8 *buffer, u8 length);
 #endif
-#if USE_LOG_RCVD_ZERO_ADJUST
+#if USE_LOG_RCVD_SET_ZERO_ADJUST
 static void log_rcvd_set_zero_adjust(u8 *buffer, u8 length);
 #endif
-#if USE_LOG_RCVD_STEP_COUNT
+#if USE_LOG_RCVD_SET_STEP_COUNT
 static void log_rcvd_set_step_count(u8 *buffer, u8 length);
 #endif
 #if USE_LOG_RCVD_SET_LOG_EN
 static void log_rcvd_set_log_en(u8 *buffer, u8 length);
 #endif
-#if USE_LOG_RCVD_CHARGE_SWING
+#if USE_LOG_RCVD_SET_CHARGE_SWING
 static void log_rcvd_set_charge_swing(u8 *buffer, u8 length);
 #endif
-#if USE_LOG_RCVD_VIBRATION
+#if USE_LOG_RCVD_SET_VIBRATION
 static void log_rcvd_set_vibration(u8 *buffer, u8 length);
 #endif
-#if USE_LOG_RCVD_VIB_EN
+#if USE_LOG_RCVD_SET_VIB_EN
 static void log_rcvd_set_vib_en(u8 *buffer, u8 length);
 #endif
 
-#if USE_LOG_RCVD_SYS_REBOOT
+#if USE_LOG_RCVD_REQ_SYS_REBOOT
 static void log_rcvd_req_sys_reboot(u8 *buffer, u8 length);
 #endif
 #if USE_LOG_RCVD_REQ_CHARGE_STA
@@ -146,29 +146,29 @@ static void log_rcvd_req_system_time(u8 *buffer, u8 length);
 
 static log_rcvd_head_t log_rcvd_list[] =
 {
-    #if USE_LOG_RCVD_NVM_ACCESS
+    #if USE_LOG_RCVD_SET_NVM
     {LOG_RCVD_SET_NVM,              log_rcvd_set_nvm},
     #endif
-    #if USE_LOG_RCVD_ZERO_ADJUST
+    #if USE_LOG_RCVD_SET_ZERO_ADJUST
     {LOG_RCVD_SET_ZERO_ADJUST,      log_rcvd_set_zero_adjust},
     #endif
-    #if USE_LOG_RCVD_STEP_COUNT
+    #if USE_LOG_RCVD_SET_STEP_COUNT
     {LOG_RCVD_SET_STEP_COUNT,       log_rcvd_set_step_count},
     #endif
     #if USE_LOG_RCVD_SET_LOG_EN
     {LOG_RCVD_SET_LOG_EN,           log_rcvd_set_log_en},
     #endif
-    #if USE_LOG_RCVD_CHARGE_SWING
+    #if USE_LOG_RCVD_SET_CHARGE_SWING
     {LOG_RCVD_SET_CHARGE_SWING,     log_rcvd_set_charge_swing},
     #endif
-    #if USE_LOG_RCVD_VIBRATION
+    #if USE_LOG_RCVD_SET_VIBRATION
     {LOG_RCVD_SET_VIBRATION,        log_rcvd_set_vibration},
     #endif
-    #if USE_LOG_RCVD_VIB_EN
+    #if USE_LOG_RCVD_SET_VIB_EN
     {LOG_RCVD_SET_VIB_EN,           log_rcvd_set_vib_en},
     #endif
 
-    #if USE_LOG_RCVD_SYS_REBOOT
+    #if USE_LOG_RCVD_REQ_SYS_REBOOT
     {LOG_RCVD_REQ_SYS_REBOOT,       log_rcvd_req_sys_reboot},
     #endif
     #if USE_LOG_RCVD_REQ_CHARGE_STA
@@ -234,7 +234,7 @@ void log_send_initiate(log_send_head_t* log_send)
         i++;
     }
 }
-#if USE_LOG_RCVD_NVM_ACCESS
+#if USE_LOG_RCVD_SET_NVM
 static void log_rcvd_set_nvm(u8 *buffer, u8 length)
 {
     log_rcvd_set_nvm_t* log_recv = (log_rcvd_set_nvm_t*)buffer;
@@ -256,7 +256,7 @@ static void log_rcvd_set_nvm(u8 *buffer, u8 length)
     }
 }
 #endif
-#if USE_LOG_RCVD_ZERO_ADJUST
+#if USE_LOG_RCVD_SET_ZERO_ADJUST
 static void log_rcvd_set_zero_adjust(u8 *buffer, u8 length)
 {
     log_rcvd_set_zero_adjust_t* log_recv = (log_rcvd_set_zero_adjust_t*)buffer;
@@ -278,7 +278,7 @@ static void log_rcvd_set_zero_adjust(u8 *buffer, u8 length)
     }
 }
 #endif
-#if USE_LOG_RCVD_STEP_COUNT
+#if USE_LOG_RCVD_SET_STEP_COUNT
 static void log_rcvd_set_step_count(u8 *buffer, u8 length)
 {
     log_rcvd_set_step_count_t* log_recv = (log_rcvd_set_step_count_t*)buffer;
@@ -308,7 +308,7 @@ static void log_rcvd_set_log_en(u8 *buffer, u8 length)
     }
 }
 #endif
-#if USE_LOG_RCVD_CHARGE_SWING
+#if USE_LOG_RCVD_SET_CHARGE_SWING
 static void log_rcvd_set_charge_swing(u8 *buffer, u8 length)
 {
     log_rcvd_set_chg_swing_t* log_recv = (log_rcvd_set_chg_swing_t*)buffer;
@@ -320,7 +320,7 @@ static void log_rcvd_set_charge_swing(u8 *buffer, u8 length)
     }
 }
 #endif
-#if USE_LOG_RCVD_VIBRATION
+#if USE_LOG_RCVD_SET_VIBRATION
 static void log_rcvd_set_vibration(u8 *buffer, u8 length)
 {
     log_rcvd_set_vibration_t* log_recv = (log_rcvd_set_vibration_t*)buffer;
@@ -332,7 +332,7 @@ static void log_rcvd_set_vibration(u8 *buffer, u8 length)
     }
 }
 #endif
-#if USE_LOG_RCVD_VIB_EN
+#if USE_LOG_RCVD_SET_VIB_EN
 static void log_rcvd_set_vib_en(u8 *buffer, u8 length)
 {
     log_rcvd_set_vib_en_t* vib = (log_rcvd_set_vib_en_t*)buffer;
@@ -340,7 +340,7 @@ static void log_rcvd_set_vib_en(u8 *buffer, u8 length)
     vib_en = (vib->en==0)?0:1;
 }
 #endif
-#if USE_LOG_RCVD_SYS_REBOOT
+#if USE_LOG_RCVD_REQ_SYS_REBOOT
 static void log_rcvd_req_sys_reboot(u8 *buffer, u8 length)
 {
     system_pre_reboot_handler(REBOOT_TYPE_CMD);
