@@ -3,6 +3,7 @@
 #define __LOG_H__
 
 #include <mem.h>
+#include "user_config.h"
 #include "common/common.h"
 
 #define LOG_PREFIX_LENGTH       sizeof(log_send_head_t)
@@ -95,8 +96,9 @@ typedef struct {
 u8 get_vib_en(void);
 s16 log_init(adapter_callback cb);
 void log_send_initiate(log_send_head_t* log);
-
+#if USE_CMD_TEST
 u8 log_rcvd_parse(u8* content, u8 length);
+#endif
 
 //extern vib_log_t _vib_log_;
 extern log_send_group_t log_send_group[];

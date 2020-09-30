@@ -110,7 +110,7 @@ s16 nvm_write_ctrl(his_ctrl_t *ctrl);
 s16 nvm_read_data(his_data_t *data);
 s16 nvm_write_data(his_data_t *data);
 u8 nvm_get_days(void);
-#if USE_CMD_TEST_NVM_ACCESS
+#if USE_LOG_RCVD_NVM_ACCESS
 u8 panic_get(void);
 s16 nvm_read_oneday(u8 index);
 s16 nvm_read_test(void);
@@ -130,7 +130,7 @@ u8 angle_get(void);
 void Update_BodyInfo(uint8 Gender, uint8 Height, uint8 Weight);
 void One_Minute_Sport_Info_Pro(clock_t *clock);
 u32 step_get(void);
-#if USE_CMD_TEST_STEP_COUNT
+#if USE_LOG_RCVD_STEP_COUNT
 void step_test(u32 steps);
 #endif
 void step_clear(void);
