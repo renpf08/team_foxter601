@@ -3,18 +3,6 @@
 #include "log.h"
 #include "adapter/adapter.h"
 
-#define LOG_CHK_PCK_HEAD(param) ((u8*)param)[0]
-#define LOG_SEND_VAR_SET(param) sizeof(param##_t), &param
-#define LOG_SEND_PTR_RESERT(param, len)   MemSet(&((u8*)param)[2], 0, (len-2));
-//#define LOG_SEND_VAR_RESERT(param)   MemSet(&((u8*)&param)[2], 0, (sizeof(param)-2));
-#define LOG_SEND_VAR_DEF(_name, _cmd, _type) \
-    static _name##_t _name = {          \
-        .head = {                       \
-            .cmd = _cmd,                \
-            .type = _type,              \
-        }                               \
-    };
-
 //-------------------------------------------------------------------------
 // received log from peer device begin
 typedef struct {
@@ -103,28 +91,17 @@ static const log_rcvd_entry_t log_rcvd_list[] =
 };
 // received log from peer device end
 //-------------------------------------------------------------------------
-// send log from local device begin
-LOG_SEND_VAR_DEF(log_send_sta_mc,           LOG_SEND_FLAG, LOG_SEND_STATE_MACHINE);
-LOG_SEND_VAR_DEF(log_send_pair_code,        LOG_SEND_FLAG, LOG_SEND_PAIR_CODE);
-LOG_SEND_VAR_DEF(log_send_notify,           LOG_SEND_FLAG, LOG_SEND_NOTIFY_TYPE);
-LOG_SEND_VAR_DEF(log_send_ancs_id,          LOG_SEND_FLAG, LOG_SEND_ANCS_APP_ID);
-LOG_SEND_VAR_DEF(log_send_chg_sta,          LOG_SEND_FLAG, LOG_SEND_CHARGE_STATE);
-LOG_SEND_VAR_DEF(log_send_sync_time,        LOG_SEND_FLAG, LOG_SEND_SYNC_TIME);
-LOG_SEND_VAR_DEF(log_send_run_time,         LOG_SEND_FLAG, LOG_SEND_RUN_TIME);
-LOG_SEND_VAR_DEF(log_send_mag_smpl,         LOG_SEND_FLAG, LOG_SEND_MAG_SAMPLE);
-LOG_SEND_VAR_DEF(log_send_vib_info,         LOG_SEND_FLAG, LOG_SEND_VIB_STATE);
-LOG_SEND_VAR_DEF(log_send_null,             LOG_SEND_FLAG, LOG_SEND_NULL);
-log_send_group_t log_send_group[] = {
-    {1, LOG_SEND_STATE_MACHINE,     LOG_SEND_VAR_SET(log_send_sta_mc)},
-    {1, LOG_SEND_PAIR_CODE,         LOG_SEND_VAR_SET(log_send_pair_code)},
-    {1, LOG_SEND_NOTIFY_TYPE,       LOG_SEND_VAR_SET(log_send_notify)},
-    {1, LOG_SEND_ANCS_APP_ID,       LOG_SEND_VAR_SET(log_send_ancs_id)},
-    {1, LOG_SEND_CHARGE_STATE,      LOG_SEND_VAR_SET(log_send_chg_sta)},
-    {1, LOG_SEND_SYNC_TIME,         LOG_SEND_VAR_SET(log_send_sync_time)},
-    {1, LOG_SEND_RUN_TIME,          LOG_SEND_VAR_SET(log_send_run_time)},
-    {1, LOG_SEND_MAG_SAMPLE,        LOG_SEND_VAR_SET(log_send_mag_smpl)},
-    {1, LOG_SEND_VIB_STATE,         LOG_SEND_VAR_SET(log_send_vib_info)},
-    {1, LOG_SEND_MAX,               LOG_SEND_VAR_SET(log_send_null)}, // unknown msg, always send by ble
+log_send_group_t log_send_list[] = {
+    {1, LOG_SEND_STATE_MACHINE},
+    {1, LOG_SEND_PAIR_CODE},
+    {1, LOG_SEND_NOTIFY_TYPE},
+    {1, LOG_SEND_ANCS_APP_ID},
+    {1, LOG_SEND_CHARGE_STATE},
+    {1, LOG_SEND_SYNC_TIME},
+    {1, LOG_SEND_RUN_TIME},
+    {1, LOG_SEND_COMPASS_ANGLE},
+    {1, LOG_SEND_VIB_STATE},
+    {1, LOG_SEND_MAX}, // unknown msg, always send by ble
 };
 // send log from local device end
 //-------------------------------------------------------------------------
@@ -134,27 +111,8 @@ static adapter_callback log_cb = NULL;
 s16 log_send_init(adapter_callback cb)
 {
 	log_cb = cb;
-//    LOG_SEND_VAR_RESERT(log_send_sta_mc);
-//    LOG_SEND_VAR_RESERT(log_send_pair_code);
-//    LOG_SEND_VAR_RESERT(log_send_notify);
-//    LOG_SEND_VAR_RESERT(log_send_ancs_id);    
-//    LOG_SEND_VAR_RESERT(log_send_vib_info);
 
     return 0;
-}
-
-void* log_send_get_ptr(log_send_type_t log_type)
-{
-    u8 i = 0;
-
-    while(log_send_group[i].log_type != LOG_SEND_MAX) {
-        if(log_type == log_send_group[i].log_type) {
-            LOG_SEND_PTR_RESERT(log_send_group[i].log_ptr, log_send_group[i].log_len);
-            return log_send_group[i].log_ptr;
-        }
-        i++;
-    }
-    return log_send_group[i].log_ptr; // log_send_null
 }
 
 void log_send_initiate(log_head_t* log)
@@ -167,11 +125,12 @@ void log_send_initiate(log_head_t* log)
         return;
     }
 
-    while(log_send_group[i].log_type <= LOG_SEND_MAX) {
-        if(log->type == log_send_group[i].log_type) {
-            if(log_send_group[i].log_en == 0) {
+    while(log_send_list[i].log_type <= LOG_SEND_MAX) {
+        if(log->type == log_send_list[i].log_type) {
+            if(log_send_list[i].log_en == 0) {
                 return;
             }
+            log->len = (log->len>20)?20:log->len;
             BLE_SEND_LOG((u8*)log, log->len);
             break;
         }
@@ -232,14 +191,14 @@ static void log_rcvd_set_log_en(u8 *buffer, u8 length)
     u8 i = 0;
 
     if(log->log_type == LOG_SEND_BROADCAST) {
-        while(log_send_group[i].log_type != LOG_SEND_MAX) {
-            log_send_group[i].log_en = (log->en==0)?0:1;
+        while(log_send_list[i].log_type != LOG_SEND_MAX) {
+            log_send_list[i].log_en = (log->en==0)?0:1;
             i++;
         }
     } else {
-        while(log_send_group[i].log_type != LOG_SEND_MAX) {
-            if(log->log_type == log_send_group[i].log_type) {
-                log_send_group[i].log_en = (log->en==0)?0:1;
+        while(log_send_list[i].log_type != LOG_SEND_MAX) {
+            if(log->log_type == log_send_list[i].log_type) {
+                log_send_list[i].log_en = (log->en==0)?0:1;
                 break;
             }
             i++;

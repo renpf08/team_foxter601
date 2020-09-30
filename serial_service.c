@@ -360,7 +360,6 @@ extern bool ble_send_log(uint8 *data, uint16 size)
     if(g_app_data.state != app_connected) {
         return false;
     }
-    size = (size>20)?20:size;
     return SerialSendNotification(data, size, HANDLE_SERIAL_SEND_LOG);
 }
 #endif

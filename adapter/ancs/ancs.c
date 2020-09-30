@@ -101,7 +101,7 @@ void ancs_business_handle(packing_msg_t* pack_msg)
 {
     u8 i = 0;
     u8 app_id_len = 0;
-    u8 app_id_start_pos = 3;
+    u8 app_id_start_pos = 4;
     u8 app_id_max_len = (20-app_id_start_pos);
     log_send_ancs_id_t log = {.head = {LOG_SEND_FLAG, LOG_SEND_ANCS_APP_ID, sizeof(log_send_ancs_id_t)}};
     

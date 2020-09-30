@@ -13,7 +13,7 @@ typedef enum{
     LOG_SEND_NOTIFY_TYPE        = 0x04,
     LOG_SEND_ANCS_APP_ID        = 0x05,
     LOG_SEND_CHARGE_STATE       = 0x06,
-    LOG_SEND_MAG_SAMPLE         = 0x07,
+    LOG_SEND_COMPASS_ANGLE      = 0x07,
     LOG_SEND_COMPASS_ADJ        = 0x08,
     LOG_SEND_SYNC_TIME          = 0x09,
     LOG_SEND_RUN_TIME           = 0x0A,
@@ -56,7 +56,7 @@ typedef struct {
 typedef struct {
     log_head_t head;
     u8 recognized;
-    u8 app_id[17];
+    u8 app_id[16];
 }log_send_ancs_id_t;
 typedef struct {
     log_head_t head;
@@ -72,8 +72,11 @@ typedef struct {
 }log_send_run_time_t;
 typedef struct {
     log_head_t head;
-    u8 resv[18];
-}log_send_mag_smpl_t;
+    u8 minute_pos;
+    u8 hour_pos;
+    u8 angle[2]; // BCD format
+}log_send_compass_angle_t;
+
 
 typedef struct {
     log_head_t head;
@@ -91,8 +94,6 @@ typedef struct {
 typedef struct {
     u8 log_en; // set to 1 to enable ble log
     log_send_type_t log_type;
-    u8 log_len;
-    void* log_ptr;
 }log_send_group_t;
 
 typedef struct {
@@ -102,7 +103,6 @@ typedef struct {
 }log_en_t;
 
 s16 log_send_init(adapter_callback cb);
-void* log_send_get_ptr(log_send_type_t log_type);
 void log_send_initiate(log_head_t* log);
 
 u8 log_rcvd_parse(u8* content, u8 length);
