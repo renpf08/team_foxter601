@@ -233,17 +233,12 @@ static void activity_polling_check(void)
     last_steps = current_steps;
 }
 
-//void refresh_step(void)
-//{
-//    clock_t *clock = clock_get();
-//    cmd_params_t* params = cmd_get_params();
-//    params->steps = step_get();
-//    params->clock = clock;
-//    //timer_event(10, activity_handler);
-//}
+static s16 charge_tid = TIMER_INVALID;
 static void clock_charge_swing(u16 id)
 {
 	u8 battery_level = BAT_PECENT_0;
+	charge_tid = TIMER_INVALID;
+	
     if(charge_start == 0) {
         swing_state = 0;
 		battery_level = battery_percent_read();
@@ -252,21 +247,24 @@ static void clock_charge_swing(u16 id)
     }
     if(swing_state == 0) {
         swing_state = 1;
-        motor_battery_week_to_position(BAT_PECENT_0);
+		battery_level = battery_percent_read();
+		motor_battery_week_to_position(battery_level);
+        //motor_battery_week_to_position(BAT_PECENT_0);
     } else {
         swing_state = 0;
         motor_battery_week_to_position(BAT_PECENT_100);
     }
-    timer_event(1500, clock_charge_swing);
+    charge_tid = timer_event(1500, clock_charge_swing);
 }
 void charge_check(REPORT_E cb)
 {
     if(cb == CHARGE_SWING) {
         if(charge_start == 0) {
-            timer_event(1, clock_charge_swing);
+            charge_tid = timer_event(1, clock_charge_swing);
         }
         charge_start = 1;
     } else if(cb == CHARGE_STOP) {
+		timer_remove(charge_tid);
         charge_start = 0;
     }
 }
