@@ -170,89 +170,6 @@ s16 motor_notify_to_position(u8 notify)
 	return 0;
 }
 
-#if 0
-static void motor_battery_week_change(u16 id)
-{
-	if((BAT_PECENT_100 == motor_manager.motor_status[battery_week_motor].cur_pos) &&
-		(0 == motor_manager.motor_status[battery_week_motor].run_flag)) {
-		
-		if(BAT_PECENT_100 == motor_manager.bat_week_dst) {
-			return;
-		}
-		
-		motor_manager.motor_status[battery_week_motor].dst_pos = motor_manager.bat_week_dst;
-		if(motor_manager.bat_week_dst > BAT_PECENT_100) {
-			motor_manager.motor_status[battery_week_motor].unit_interval_step = BAT_INTERVAL_STEP;
-		}else {
-			motor_manager.motor_status[battery_week_motor].unit_interval_step = WEEK_INTERVAL_STEP;
-		}
-		
-		motor_manager.motor_status[battery_week_motor].run_flag = 1;
-	}else {
-		timer_event(100, motor_battery_week_change);
-	}
-}
-
-s16 motor_battery_week_to_position(u8 battery_week)
-{
-	if((motor_manager.motor_status[battery_week_motor].cur_pos > BAT_PECENT_100) &&
-		(battery_week <= BAT_PECENT_100)) {
-		motor_manager.motor_status[battery_week_motor].dst_pos = BAT_PECENT_100;
-		motor_manager.bat_week_dst = battery_week;
-		timer_event(motor_manager.run_interval_ms, motor_battery_week_change);
-	}else if((motor_manager.motor_status[battery_week_motor].cur_pos < BAT_PECENT_100) &&
-		(battery_week >= BAT_PECENT_100)) {
-		motor_manager.motor_status[battery_week_motor].dst_pos = BAT_PECENT_100;
-		motor_manager.bat_week_dst = battery_week;
-		timer_event(motor_manager.run_interval_ms, motor_battery_week_change);
-	}else if(BAT_PECENT_100 == motor_manager.motor_status[battery_week_motor].cur_pos) {		
-		motor_manager.bat_week_dst = BATTERY_WEEK_MAX;
-		motor_manager.motor_status[battery_week_motor].dst_pos = battery_week;
-		if(motor_manager.motor_status[battery_week_motor].dst_pos > BAT_PECENT_100) {
-			motor_manager.motor_status[battery_week_motor].unit_interval_step = BAT_INTERVAL_STEP;
-		}else {
-			motor_manager.motor_status[battery_week_motor].unit_interval_step = WEEK_INTERVAL_STEP;
-		}
-	}else {	
-		motor_manager.bat_week_dst = BATTERY_WEEK_MAX;
-		motor_manager.motor_status[battery_week_motor].dst_pos = battery_week;
-		if(motor_manager.motor_status[battery_week_motor].dst_pos > BAT_PECENT_100) {
-			motor_manager.motor_status[battery_week_motor].unit_interval_step = BAT_INTERVAL_STEP;
-		}else {
-			motor_manager.motor_status[battery_week_motor].unit_interval_step = WEEK_INTERVAL_STEP;
-		}
-	}
-
-	if(motor_manager.motor_status[battery_week_motor].dst_pos != 
-	   motor_manager.motor_status[battery_week_motor].cur_pos) {
-		motor_manager.motor_status[battery_week_motor].run_flag = 1;
-	}
-	return 0;
-}
-
-static void motor_battery_week_change(u16 id)
-{
-	if((BAT_PECENT_100 == motor_manager.motor_status[battery_week_motor].cur_pos) &&
-		(0 == motor_manager.motor_status[battery_week_motor].run_flag)) {
-		
-		if(BAT_PECENT_100 == motor_manager.bat_week_dst) {
-			return;
-		}
-		
-		motor_manager.motor_status[battery_week_motor].dst_pos = motor_manager.bat_week_dst;
-		if(motor_manager.bat_week_dst > BAT_PECENT_100) {
-			motor_manager.motor_status[battery_week_motor].unit_interval_step = BAT_INTERVAL_STEP;
-		}else {
-			motor_manager.motor_status[battery_week_motor].unit_interval_step = WEEK_INTERVAL_STEP;
-		}
-		
-		motor_manager.motor_status[battery_week_motor].run_flag = 1;
-	}else {
-		timer_event(100, motor_battery_week_change);
-	}
-}
-#else
-
 s16 motor_battery_week_to_position(u8 battery_week)
 {
 	if((motor_manager.motor_status[battery_week_motor].cur_pos > BAT_PECENT_100) &&
@@ -287,7 +204,6 @@ s16 motor_battery_week_to_position(u8 battery_week)
 	}
 	return 0;
 }
-#endif
 
 s16 motor_activity_to_position(u8 activity)
 {
@@ -323,15 +239,35 @@ s16 motor_minute_one_step(u8 minute_step)
 
 static void motor_run_continue_check(void)
 {
+	u8 max = 0;
+	u8 min = 0;
 	motor_manager.run_step_num++;
 	if(motor_manager.run_step_num == motor_manager.motor_status[motor_manager.run_motor_num].unit_interval_step) {
 		motor_manager.run_step_num = 0;
 
-		/*motor position update*/
-		if(pos == motor_manager.run_direction) {
-			motor_manager.motor_status[motor_manager.run_motor_num].cur_pos++;
+		if(motor_manager.run_motor_num < activity_motor) {
+			max = (minute_motor == motor_manager.run_motor_num)? MINUTE_60: HOUR12_0;
+			min = (minute_motor == motor_manager.run_motor_num)? MINUTE_0: HOUR0_0;
+			if(pos == motor_manager.run_direction) {
+				/*pos cur++,if to max,then back to min*/
+				motor_manager.motor_status[motor_manager.run_motor_num].cur_pos++;
+				if(max == motor_manager.motor_status[motor_manager.run_motor_num].cur_pos) {
+					motor_manager.motor_status[motor_manager.run_motor_num].cur_pos = min;
+				}
+			}else {
+				/*if cur = min,then back to max,next to decrese*/
+				if(min == motor_manager.motor_status[motor_manager.run_motor_num].cur_pos) {
+					motor_manager.motor_status[motor_manager.run_motor_num].cur_pos = max;
+				}
+				motor_manager.motor_status[motor_manager.run_motor_num].cur_pos--;
+			}
 		}else {
-			motor_manager.motor_status[motor_manager.run_motor_num].cur_pos--;
+			/*motor position update*/
+			if(pos == motor_manager.run_direction) {
+				motor_manager.motor_status[motor_manager.run_motor_num].cur_pos++;
+			}else {
+				motor_manager.motor_status[motor_manager.run_motor_num].cur_pos--;
+			}
 		}
 
 		/*motor continue run or not check*/
@@ -351,30 +287,6 @@ static void motor_run_continue_check(void)
 	}
 }
 
-#if 0
-static void motor_time_adjust_run_continue_check(void)
-{
-	motor_manager.run_step_num++;
-	if(motor_manager.run_step_num == motor_manager.motor_status[motor_manager.run_motor_num].unit_interval_step) {
-		motor_manager.run_step_num = 0;
-		
-		/*motor position update*/
-		if(pos == motor_manager.run_direction) {
-			motor_manager.motor_status[motor_manager.run_motor_num].cur_pos++;
-		}else {
-			motor_manager.motor_status[motor_manager.run_motor_num].cur_pos--;
-		}
-		
-		motor_manager.motor_status[motor_manager.run_motor_num].run_flag = 0;
-	}else {
-		if(pos == motor_manager.run_direction) {
-			motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
-		}else {
-			motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
-		}
-	}
-}
-#endif
 static void motor_run_positive_one_unit(u16 id)
 {
 	motor_manager.drv->timer->timer_del(motor_manager.tid);
@@ -436,6 +348,44 @@ static void motor_run_negtive_one_unit(u16 id)
 	}
 }
 
+static void motor_hour_minute_direction_judge(u8 motor_num)
+{
+	u8 max = 0;
+	u8 pos_step = 0;
+	u8 neg_step = 0;
+
+	max = (minute_motor == motor_num)? MINUTE_60: HOUR12_0;
+	/*if dst > cur; then judge dst-cur and cur+max-dst*/
+	if(motor_manager.motor_status[motor_manager.run_motor_num].dst_pos > 
+	   motor_manager.motor_status[motor_manager.run_motor_num].cur_pos) {
+		/*if (dst-cur) > (cur+max-dst)*/
+	    pos_step = motor_manager.motor_status[motor_manager.run_motor_num].dst_pos - \
+	    			motor_manager.motor_status[motor_manager.run_motor_num].cur_pos;
+		neg_step = motor_manager.motor_status[motor_manager.run_motor_num].cur_pos + max - \
+					motor_manager.motor_status[motor_manager.run_motor_num].dst_pos;
+	    if(pos_step > neg_step) {
+			motor_manager.run_direction = neg;
+			motor_manager.tid = motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
+	    }else {
+			motor_manager.run_direction = pos;
+			motor_manager.tid = motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
+	    }
+	}else {/*if dst < cur*/
+		/*if (cur - dst) > (dst+max-cur)*/
+		neg_step = motor_manager.motor_status[motor_manager.run_motor_num].cur_pos - \
+					motor_manager.motor_status[motor_manager.run_motor_num].dst_pos;
+		pos_step = motor_manager.motor_status[motor_manager.run_motor_num].dst_pos + max - \
+					motor_manager.motor_status[motor_manager.run_motor_num].cur_pos;
+		if(pos_step > neg_step) {
+			motor_manager.run_direction = neg;
+			motor_manager.tid = motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
+		}else {
+			motor_manager.run_direction = pos;
+			motor_manager.tid = motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
+		}
+	}
+}
+
 void motor_run_handler(u16 id)
 {
 	u8 i = 0;
@@ -443,19 +393,6 @@ void motor_run_handler(u16 id)
 	motor_manager.drv->timer->timer_del(motor_manager.tid);
 	motor_manager.tid = TIMER_INVALID;
 
-	#if 0
-	if(BATTERY_WEEK_MAX != motor_manager.bat_week_dst) {
-		if(BAT_PECENT_100 == motor_manager.bat_week_dst) {
-			motor_manager.bat_week_dst = BATTERY_WEEK_MAX;
-			goto loop;
-		}
-		
-		motor_battery_week_change(motor_manager.bat_week_dst);
-		motor_manager.motor_status[battery_week_motor].dst_pos = motor_manager.bat_week_dst;		
-		motor_manager.bat_week_dst = BATTERY_WEEK_MAX;
-		motor_manager.motor_status[battery_week_motor].run_flag = 1;
-	}
-	#else
 	if((BAT_PECENT_100 == motor_manager.motor_status[battery_week_motor].cur_pos) &&
 		(0 == motor_manager.motor_status[battery_week_motor].run_flag) &&
 		(BATTERY_WEEK_MAX != motor_manager.bat_week_dst)) {
@@ -475,7 +412,6 @@ void motor_run_handler(u16 id)
 		motor_manager.bat_week_dst = BATTERY_WEEK_MAX;
 		motor_manager.motor_status[battery_week_motor].run_flag = 1;
 	}
-	#endif
 
 	/*search for run motor*/
 	/*from run_next_motor_num pos to max_motor*/
@@ -503,7 +439,7 @@ void motor_run_handler(u16 id)
 	}
 
 	/*loop*/
-loop:	
+loop:
 	motor_manager.run_motor = NULL;
 	motor_manager.run_motor_num = max_motor;
 	motor_manager.run_next_motor_num = 0;
@@ -514,15 +450,20 @@ loop:
 run:
 	/*motor run start*/
 	motor_manager.run_step_num = 0;
-	if(motor_manager.motor_status[motor_manager.run_motor_num].dst_pos > 
-	   motor_manager.motor_status[motor_manager.run_motor_num].cur_pos) {
-		motor_manager.run_direction = pos;
-		motor_manager.tid = motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
-	}else {
-		motor_manager.run_direction = neg;
-		motor_manager.tid = motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
+	/*minute and hour motor*/
+	if(motor_manager.run_motor_num < activity_motor) {
+		motor_hour_minute_direction_judge(motor_manager.run_motor_num);
+	}else {/*other motor*/
+		if(motor_manager.motor_status[motor_manager.run_motor_num].dst_pos > 
+		   motor_manager.motor_status[motor_manager.run_motor_num].cur_pos) {
+			motor_manager.run_direction = pos;
+			motor_manager.tid = motor_manager.drv->timer->timer_start(1, motor_run_positive_one_unit);
+		}else {
+			motor_manager.run_direction = neg;
+			motor_manager.tid = motor_manager.drv->timer->timer_start(1, motor_run_negtive_one_unit);
+		}
 	}
-
+	
 	/*update next motor num*/
 	motor_manager.run_next_motor_num++;
 	if(max_motor == motor_manager.run_next_motor_num) {
@@ -584,11 +525,6 @@ static void motor_run_neg_one_step(u16 id)
 	}
 }
 
-#if 0
-.run_step_motor = NULL,
-.run_step_motor_num = max_motor,
-.run_step_direction = pos,
-#endif
 void motor_run_one_step(u8 motor_num, u8 direction)
 {
 	motor_manager.run_step_motor = motor_manager.motor_status[motor_num].motor_ptr;
