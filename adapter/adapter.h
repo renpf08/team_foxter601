@@ -53,13 +53,11 @@ clock_t *clock_get(void);
 s16 motor_manager_init(void);
 motor_run_status_t *motor_get_status(void);
 void motor_run_one_step(u8 motor_num, u8 direction);
-#if 0
-void motor_time_adjust_mode_on(void);
-void motor_time_adjust_mode_off(void);
-void motor_run_one_unit(u8 motor_num, u8 direction);
-#endif
 
+/*clock hour:considering the minute position*/
 s16 motor_hour_to_position(u8 hour);
+/*not clock hour,just hour position*/
+s16 motor_pure_hour_to_position(u8 hour);
 s16 motor_hour_one_step(u8 hour_step);
 //s16 motor_hour_test_run(u8 direction);
 

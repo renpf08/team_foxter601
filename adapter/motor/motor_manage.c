@@ -96,6 +96,16 @@ u8 hour_list[] = {
 	HOUR12_0,
 };
 
+s16 motor_pure_hour_to_position(u8 hour)
+{
+	motor_manager.motor_status[hour_motor].dst_pos = hour;
+	if(motor_manager.motor_status[hour_motor].dst_pos != 
+	   motor_manager.motor_status[hour_motor].cur_pos) {
+		motor_manager.motor_status[hour_motor].run_flag = 1;
+	}
+	return 0;
+}
+
 s16 motor_hour_to_position(u8 hour)
 {
     if((key_sta_ctrl.compass_state == 0) && (key_sta_ctrl.pair_code_disp == 0)) {
