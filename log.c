@@ -233,6 +233,7 @@ static log_send_group_t log_send_list[] = {
     {1, LOG_SEND_RUN_TIME},
     {1, LOG_SEND_COMPASS_ANGLE},
     {1, LOG_SEND_VIB_STATE},
+    {1, LOG_SEND_BAT_WEEK_MOTOR},
     {0, LOG_SEND_MAX},
 };
 

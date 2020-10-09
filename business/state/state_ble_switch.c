@@ -121,7 +121,7 @@ static s16 ble_pair(void *args)
     #else
     } else if(pairing_code == pair_code) {
     #endif
-        BLE_SEND_LOG((u8*)&"pair matched", 12);
+        //BLE_SEND_LOG((u8*)&"pair matched", 12);
         key_sta_ctrl.pair_code_disp = 0;
         ble_state_set(app_pairing_ok);
         #if USE_PARAM_STORE
@@ -130,7 +130,7 @@ static s16 ble_pair(void *args)
         #endif
         *state = CLOCK;
     } else if(key_sta_ctrl.pair_code_disp == 1) {
-        BLE_SEND_LOG((u8*)&"pair mis-match", 14);
+        //BLE_SEND_LOG((u8*)&"pair mis-match", 14);
         pair_code_generate();
         ble_state_set(app_pairing);
         res = 1;

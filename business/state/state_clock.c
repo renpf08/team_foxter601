@@ -45,7 +45,7 @@ static void alarm_clock_check(clock_t *clock)
         if((alarm_clock->aclk[i].en == 1) && 
           ((alarm_clock->aclk[i].week&0x80) || (alarm_clock->aclk[i].week&(1<<clock->week))) &&
           ((alarm_clock->aclk[i].hour==clock->hour)&&(alarm_clock->aclk[i].minute==clock->minute)&&(clock->minute==0))) {
-            BLE_SEND_LOG((u8*)&i, 1);
+            //BLE_SEND_LOG((u8*)&i, 1);
             break;
         }
     }
