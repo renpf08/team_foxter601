@@ -108,6 +108,16 @@
 #define LOG_SEND_VIB_STATE_VALUE_SEND(data)
 #define LOG_SEND_VIB_STATE_VARIABLE_DEF(name, stru, cmd, type)
 #endif
+#if USE_LOG_SEND_BAT_WEEK_MOTOR
+#define LOG_SEND_BAT_WEEK_MOTOR_VALUE_SET(dst, src) (dst = src)
+#define LOG_SEND_BAT_WEEK_MOTOR_VALUE_SEND(data) log_send_initiate(&data)
+#define LOG_SEND_BAT_WEEK_MOTOR_VARIABLE_DEF(name, stru, cmd, type) stru name = {.head={cmd, type, sizeof(stru), 0}}
+#else
+#define LOG_SEND_BAT_WEEK_MOTOR_VALUE_SET(dst, src)
+#define LOG_SEND_BAT_WEEK_MOTOR_VALUE_SEND(data)
+#define LOG_SEND_BAT_WEEK_MOTOR_VARIABLE_DEF(name, stru, cmd, type)
+#endif
+
 
 #if USE_LOG_SEND_DEBUG
 typedef enum{
@@ -122,6 +132,7 @@ typedef enum{
     LOG_SEND_SYSTEM_TIME        = 0x08,
     LOG_SEND_RUN_TIME           = 0x09,
     LOG_SEND_VIB_STATE          = 0x0A,
+    LOG_SEND_BAT_WEEK_MOTOR     = 0x0B,
     
     LOG_SEND_MAX,
 }log_send_type_t;
@@ -189,6 +200,16 @@ typedef struct {
     u8 run_flag;
     u8 vib_en;
 }log_send_vib_info_t;
+#if USE_LOG_SEND_BAT_WEEK_MOTOR
+typedef struct {
+    u8 cur_pos;
+    u8 dst_pos;
+}motor_pos_t;
+typedef struct {
+    log_send_head_t head;
+    motor_pos_t motor[max_motor]; // motor[motor_num*6][motor_pos*2]
+}log_send_bat_week_motor_t;
+#endif
 
 typedef struct {
     u8 log_en; // set to non-zero to enable ble log

@@ -33,6 +33,12 @@ typedef enum{
     #if USE_LOG_RCVD_SET_VIB_EN
     LOG_RCVD_SET_VIB_EN         = 0x06,
     #endif
+    #if USE_LOG_RCVD_SET_LOG_SWITCH
+    LOG_RCVD_SET_LOG_SWITCH     = 0x07,
+    #endif
+    #if USE_LOG_RCVD_SET_MOTOR_REST
+    LOG_RCVD_SET_MOTOR_REST     = 0x08,
+    #endif
 
     // log to request with no params(MSB=1)
     #if USE_LOG_RCVD_REQ_SYS_REBOOT
@@ -43,6 +49,9 @@ typedef enum{
     #endif
     #if USE_LOG_RCVD_REQ_SYSTEM_TIME
     LOG_RCVD_REQ_SYSTEM_TIME    = 0x82,
+    #endif
+    #if USE_LOG_RCVD_REQ_BAT_WEEK_MOTOR
+    LOG_RCVD_REQ_BAT_WEEK_MOTOR = 0x83,
     #endif
     
     LOG_RCVD_NONE,
@@ -107,11 +116,24 @@ typedef struct { // LOG_RCVD_SET_VIBRATION          = 0x05
 } log_rcvd_set_vibration_t;
 #endif
 #if USE_LOG_RCVD_SET_VIB_EN
-typedef struct { // LOG_RCVD_SET_VIBRATION          = 0x05
+typedef struct { // LOG_RCVD_SET_VIBRATION          = 0x06
     log_rcvd_t ctrl;
     u8 en;      // set to non-zero to enable vibration
 } log_rcvd_set_vib_en_t;
 #endif
+#if USE_LOG_RCVD_SET_LOG_SWITCH
+typedef struct { // LOG_RCVD_SET_LOG_SWITCH          = 0x07
+    log_rcvd_t ctrl;
+    u8 en;      // set to non-zero to switch on
+} log_rcvd_set_log_switch_t;
+#endif
+#if USE_LOG_RCVD_SET_MOTOR_REST
+typedef struct { // USE_LOG_RCVD_SET_MOTOR_REST          = 0x08
+    log_rcvd_t ctrl;
+    u8 motor_num;      // motor_num = motor_max to set all motor
+} log_rcvd_set_motor_reset_t;
+#endif
+
 #if USE_LOG_RCVD_SET_NVM
 static void log_rcvd_set_nvm(u8 *buffer, u8 length);
 #endif
@@ -133,6 +155,12 @@ static void log_rcvd_set_vibration(u8 *buffer, u8 length);
 #if USE_LOG_RCVD_SET_VIB_EN
 static void log_rcvd_set_vib_en(u8 *buffer, u8 length);
 #endif
+#if USE_LOG_RCVD_SET_LOG_SWITCH
+static void log_rcvd_set_log_switch(u8 *buffer, u8 length);
+#endif
+#if USE_LOG_RCVD_SET_MOTOR_REST
+static void log_rcvd_set_motor_reset(u8 *buffer, u8 length);
+#endif
 
 #if USE_LOG_RCVD_REQ_SYS_REBOOT
 static void log_rcvd_req_sys_reboot(u8 *buffer, u8 length);
@@ -142,6 +170,9 @@ static void log_rcvd_req_charger_sta(u8 *buffer, u8 length);
 #endif
 #if USE_LOG_RCVD_REQ_SYSTEM_TIME
 static void log_rcvd_req_system_time(u8 *buffer, u8 length);
+#endif
+#if USE_LOG_RCVD_REQ_BAT_WEEK_MOTOR
+static void log_rcvd_req_bat_week_motor(u8 *buffer, u8 length);
 #endif
 
 static log_rcvd_head_t log_rcvd_list[] =
@@ -167,6 +198,12 @@ static log_rcvd_head_t log_rcvd_list[] =
     #if USE_LOG_RCVD_SET_VIB_EN
     {LOG_RCVD_SET_VIB_EN,           log_rcvd_set_vib_en},
     #endif
+    #if USE_LOG_RCVD_SET_LOG_SWITCH
+    {LOG_RCVD_SET_LOG_SWITCH,       log_rcvd_set_log_switch},
+    #endif
+    #if USE_LOG_RCVD_SET_MOTOR_REST
+    {LOG_RCVD_SET_MOTOR_REST,       log_rcvd_set_motor_reset},
+    #endif
 
     #if USE_LOG_RCVD_REQ_SYS_REBOOT
     {LOG_RCVD_REQ_SYS_REBOOT,       log_rcvd_req_sys_reboot},
@@ -176,6 +213,9 @@ static log_rcvd_head_t log_rcvd_list[] =
     #endif
     #if USE_LOG_RCVD_REQ_SYSTEM_TIME
     {LOG_RCVD_REQ_SYSTEM_TIME,      log_rcvd_req_system_time},
+    #endif
+    #if USE_LOG_RCVD_REQ_BAT_WEEK_MOTOR
+    {LOG_RCVD_REQ_BAT_WEEK_MOTOR,   log_rcvd_req_bat_week_motor},
     #endif
 
 	{LOG_RCVD_NONE,                 NULL}
@@ -198,6 +238,9 @@ static log_send_group_t log_send_list[] = {
 
 static adapter_callback log_cb = NULL;
 static u8 vib_en = 1;
+#if USE_LOG_RCVD_SET_LOG_SWITCH
+static u8 log_switch = 1;
+#endif
 
 u8 get_vib_en(void)
 {
@@ -213,6 +256,11 @@ s16 log_init(adapter_callback cb)
 
 void log_send_initiate(log_send_head_t* log_send)
 {
+    #if USE_LOG_RCVD_SET_LOG_SWITCH
+    if(log_switch == 0) {
+        return;
+    }
+    #endif
     u8 i = 0;
     static u8 index = 0;
 
@@ -338,9 +386,48 @@ static void log_rcvd_set_vibration(u8 *buffer, u8 length)
 #if USE_LOG_RCVD_SET_VIB_EN
 static void log_rcvd_set_vib_en(u8 *buffer, u8 length)
 {
-    log_rcvd_set_vib_en_t* vib = (log_rcvd_set_vib_en_t*)buffer;
+    log_rcvd_set_vib_en_t* log_recv = (log_rcvd_set_vib_en_t*)buffer;
 
-    vib_en = (vib->en==0)?0:1;
+    vib_en = (log_recv->en==0)?0:1;
+}
+#endif
+#if USE_LOG_RCVD_SET_LOG_SWITCH
+static void log_rcvd_set_log_switch(u8 *buffer, u8 length)
+{
+    log_rcvd_set_log_switch_t* log_recv = (log_rcvd_set_log_switch_t*)buffer;
+
+    log_switch = log_recv->en; 
+}
+#endif
+#if USE_LOG_RCVD_SET_MOTOR_REST
+static void log_rcvd_set_motor_reset(u8 *buffer, u8 length)
+{
+    u8 motor_cur_pos[max_motor] = {MINUTE_0, HOUR0_0, ACTIVITY_0, DAY_1, BAT_PECENT_0, NOTIFY_NONE};
+    log_rcvd_set_motor_reset_t* log_recv = (log_rcvd_set_motor_reset_t*)buffer;
+    motor_run_status_t *motor_sta = motor_get_status();
+
+    if((log_recv->motor_num == minute_motor) || (log_recv->motor_num >= max_motor)) {
+        motor_sta[minute_motor].cur_pos = motor_cur_pos[minute_motor];
+        motor_sta[minute_motor].dst_pos = motor_cur_pos[minute_motor];
+    } else if((log_recv->motor_num == hour_motor) || (log_recv->motor_num >= max_motor)) {
+        motor_sta[hour_motor].cur_pos = motor_cur_pos[hour_motor];
+        motor_sta[hour_motor].dst_pos = motor_cur_pos[hour_motor];
+    } else if((log_recv->motor_num == activity_motor) || (log_recv->motor_num >= max_motor)) {
+        motor_sta[activity_motor].cur_pos = motor_cur_pos[activity_motor];
+        motor_sta[activity_motor].dst_pos = motor_cur_pos[activity_motor];
+    } else if((log_recv->motor_num == date_motor) || (log_recv->motor_num >= max_motor)) {
+        motor_sta[date_motor].cur_pos = motor_cur_pos[date_motor];
+        motor_sta[date_motor].dst_pos = motor_cur_pos[date_motor];
+    } else if((log_recv->motor_num == battery_week_motor) || (log_recv->motor_num >= max_motor)) {
+        motor_sta[battery_week_motor].cur_pos = motor_cur_pos[battery_week_motor];
+        motor_sta[battery_week_motor].dst_pos = motor_cur_pos[battery_week_motor];
+    } else if((log_recv->motor_num == notify_motor) || (log_recv->motor_num >= max_motor)) {
+        motor_sta[notify_motor].cur_pos = motor_cur_pos[notify_motor];
+        motor_sta[notify_motor].dst_pos = motor_cur_pos[notify_motor];
+    }
+    #if USE_PARAM_STORE
+    nvm_write_motor_current_position((u16*)motor_cur_pos, 0);
+    #endif
 }
 #endif
 #if USE_LOG_RCVD_REQ_SYS_REBOOT
@@ -384,6 +471,25 @@ static void log_rcvd_req_system_time(u8 *buffer, u8 length)
     LOG_SEND_SYSTEM_TIME_VALUE_SET(log_send.sys_time[7], clock->week);
     LOG_SEND_SYSTEM_TIME_VALUE_SEND(log_send.head);
     #endif
+}
+#endif
+#if USE_LOG_RCVD_REQ_BAT_WEEK_MOTOR
+static void log_rcvd_req_bat_week_motor(u8 *buffer, u8 length)
+{
+    LOG_SEND_BAT_WEEK_MOTOR_VARIABLE_DEF(log_send, log_send_bat_week_motor_t, LOG_CMD_SEND, LOG_SEND_BAT_WEEK_MOTOR);
+    LOG_SEND_BAT_WEEK_MOTOR_VALUE_SET(log_send.motor[minute_motor].cur_pos, motor_get_status()[minute_motor].cur_pos);
+    LOG_SEND_BAT_WEEK_MOTOR_VALUE_SET(log_send.motor[minute_motor].dst_pos, motor_get_status()[minute_motor].dst_pos);
+    LOG_SEND_BAT_WEEK_MOTOR_VALUE_SET(log_send.motor[hour_motor].cur_pos, motor_get_status()[hour_motor].cur_pos);
+    LOG_SEND_BAT_WEEK_MOTOR_VALUE_SET(log_send.motor[hour_motor].dst_pos, motor_get_status()[hour_motor].dst_pos);
+    LOG_SEND_BAT_WEEK_MOTOR_VALUE_SET(log_send.motor[activity_motor].cur_pos, motor_get_status()[activity_motor].cur_pos);
+    LOG_SEND_BAT_WEEK_MOTOR_VALUE_SET(log_send.motor[activity_motor].dst_pos, motor_get_status()[activity_motor].dst_pos);
+    LOG_SEND_BAT_WEEK_MOTOR_VALUE_SET(log_send.motor[date_motor].cur_pos, motor_get_status()[date_motor].cur_pos);
+    LOG_SEND_BAT_WEEK_MOTOR_VALUE_SET(log_send.motor[date_motor].dst_pos, motor_get_status()[date_motor].dst_pos);
+    LOG_SEND_BAT_WEEK_MOTOR_VALUE_SET(log_send.motor[battery_week_motor].cur_pos, motor_get_status()[battery_week_motor].cur_pos);
+    LOG_SEND_BAT_WEEK_MOTOR_VALUE_SET(log_send.motor[battery_week_motor].dst_pos, motor_get_status()[battery_week_motor].dst_pos);
+    LOG_SEND_BAT_WEEK_MOTOR_VALUE_SET(log_send.motor[notify_motor].cur_pos, motor_get_status()[notify_motor].cur_pos);
+    LOG_SEND_BAT_WEEK_MOTOR_VALUE_SET(log_send.motor[notify_motor].dst_pos, motor_get_status()[notify_motor].dst_pos);
+    LOG_SEND_BAT_WEEK_MOTOR_VALUE_SEND(log_send.head);
 }
 #endif
 #if USE_LOG_RCVD_DEBUG
