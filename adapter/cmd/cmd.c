@@ -95,6 +95,7 @@ static s16 cmd_set_time(u8 *buffer, u8 length)
 
     year = (u16)((set_time->year[1]<<8 & 0xFF00) | set_time->year[0]);
     days[2] = (0 == (year % 400) || (0 == (year % 4) && (0 != (year % 100))))?29:28;
+    set_time->week--;
 
     if((year > 2120) || (year < 2020)) res = 1;
     else if(set_time->month > 12) res = 2;
