@@ -409,19 +409,24 @@ static void log_rcvd_set_motor_reset(u8 *buffer, u8 length)
     if((log_recv->motor_num == minute_motor) || (log_recv->motor_num >= max_motor)) {
         motor_sta[minute_motor].cur_pos = motor_cur_pos[minute_motor];
         motor_sta[minute_motor].dst_pos = motor_cur_pos[minute_motor];
-    } else if((log_recv->motor_num == hour_motor) || (log_recv->motor_num >= max_motor)) {
+    }
+    if((log_recv->motor_num == hour_motor) || (log_recv->motor_num >= max_motor)) {
         motor_sta[hour_motor].cur_pos = motor_cur_pos[hour_motor];
         motor_sta[hour_motor].dst_pos = motor_cur_pos[hour_motor];
-    } else if((log_recv->motor_num == activity_motor) || (log_recv->motor_num >= max_motor)) {
+    }
+    if((log_recv->motor_num == activity_motor) || (log_recv->motor_num >= max_motor)) {
         motor_sta[activity_motor].cur_pos = motor_cur_pos[activity_motor];
         motor_sta[activity_motor].dst_pos = motor_cur_pos[activity_motor];
-    } else if((log_recv->motor_num == date_motor) || (log_recv->motor_num >= max_motor)) {
+    }
+    if((log_recv->motor_num == date_motor) || (log_recv->motor_num >= max_motor)) {
         motor_sta[date_motor].cur_pos = motor_cur_pos[date_motor];
         motor_sta[date_motor].dst_pos = motor_cur_pos[date_motor];
-    } else if((log_recv->motor_num == battery_week_motor) || (log_recv->motor_num >= max_motor)) {
+    }
+    if((log_recv->motor_num == battery_week_motor) || (log_recv->motor_num >= max_motor)) {
         motor_sta[battery_week_motor].cur_pos = motor_cur_pos[battery_week_motor];
         motor_sta[battery_week_motor].dst_pos = motor_cur_pos[battery_week_motor];
-    } else if((log_recv->motor_num == notify_motor) || (log_recv->motor_num >= max_motor)) {
+    }
+    if((log_recv->motor_num == notify_motor) || (log_recv->motor_num >= max_motor)) {
         motor_sta[notify_motor].cur_pos = motor_cur_pos[notify_motor];
         motor_sta[notify_motor].dst_pos = motor_cur_pos[notify_motor];
     }
