@@ -53,6 +53,9 @@ static void notify_swing_cb_handler(u16 id)
     	motor_minute_to_position(clock->minute);
     	motor_hour_to_position(clock->hour);
         motor_date_to_position(date[clock->day]);
+        #if USE_WEEK_FORCE_UPDATE
+        motor_battery_week_to_position(clock->week);
+        #endif
     } else if(notify_swing_start == TRUE) {
         notify_swing_start = FALSE;
         #if USE_ACTIVITY_NOTIFY

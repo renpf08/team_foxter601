@@ -29,15 +29,16 @@ FO601
 #define HARDWARE_REVISION       "v1.0.0"
 #define FIRMWARE_REVISION       "v1.2.0"
 
-#define USE_BLE_LOG         1
-#define USE_PARAM_STORE     1
-#define USE_UART_PRINT      0
-#define USE_PANIC_PRINT     0
-#define USE_WHITELIST_ADV   0 
-#define USE_ADV_DATA        1  
-#define USE_NEW_DAV_NAME    1
-#define USE_PAIR_CODE_0000  1 // test mode, use pair code of 0x0000 as a bypass code 
-#define USE_ACTIVITY_NOTIFY 0
+#define USE_BLE_LOG             1
+#define USE_PARAM_STORE         1
+#define USE_UART_PRINT          0
+#define USE_PANIC_PRINT         0
+#define USE_WHITELIST_ADV       0 
+#define USE_ADV_DATA            1  
+#define USE_NEW_DAV_NAME        1
+#define USE_PAIR_CODE_0000      1 // test mode, use pair code of 0x0000 as a bypass code 
+#define USE_ACTIVITY_NOTIFY     0
+#define USE_WEEK_FORCE_UPDATE   1
 
 #define USE_LOG_RCVD_DEBUG              1
 #if USE_LOG_RCVD_DEBUG

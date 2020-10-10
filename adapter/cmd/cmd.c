@@ -103,7 +103,7 @@ static s16 cmd_set_time(u8 *buffer, u8 length)
     else if(set_time->hour > 23) res = 4;
     else if(set_time->minute > 59) res = 5;
     else if(set_time->second > 59) res = 6;
-    else if(set_time->week > 07) res = 7;
+    else if(set_time->week > 6) res = 6; // week:from 0 to 1
     if(res != 0) {
         return res;
     }

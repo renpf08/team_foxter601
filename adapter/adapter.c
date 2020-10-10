@@ -404,6 +404,9 @@ void sync_time(void)
 	motor_minute_to_position(clock->minute);
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
+    #if USE_WEEK_FORCE_UPDATE
+    motor_battery_week_to_position(clock->week);
+    #endif
 }
 
 void motor_restore_position(REPORT_E cb)
