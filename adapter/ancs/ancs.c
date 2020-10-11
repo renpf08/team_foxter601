@@ -100,10 +100,11 @@ s16 ancs_init(adapter_callback cb);
 void ancs_business_handle(packing_msg_t* pack_msg)
 {
     u8 i = 0;
-    u8 ble_log[20] = {CMD_TEST_SEND, BLE_LOG_ANCS_APP_ID};
+    #if USE_LOG_SEND_DEBUG
     u8 app_id_len = 0;
-    u8 app_id_start_pos = 3;
-    u8 app_id_max_len = (20-app_id_start_pos);
+    u8 app_id_max_len = (20-LOG_PREFIX_LENGTH);
+    #endif
+    LOG_SEND_ANCS_APP_ID_VARIABLE_DEF(log_send, log_send_ancs_id_t, LOG_CMD_SEND, LOG_SEND_ANCS_APP_ID);
     
     while(app_msg_list[i].app_id[0] != 0)
     {
@@ -121,28 +122,31 @@ void ancs_business_handle(packing_msg_t* pack_msg)
     {
         ancs_msg.level = 255; //! invalid if proMst.msgType = 255
         ancs_msg.type = 255; //! indicated unknown message
-        ble_log[2] = 0x00; // app id not recognized
+        LOG_SEND_ANCS_APP_ID_VALUE_SET(log_send.recognized, 0x00); // app id not recognized
 
     }
     else
     {
         ancs_msg.level = app_msg_list[i].msg_level;
         ancs_msg.type = app_msg_list[i].app_index;
-        ble_log[2] = 0x01; // app id recognized
+        LOG_SEND_ANCS_APP_ID_VALUE_SET(log_send.recognized, 0x01); // app id recognized
     }
     
     ancs_msg.sta = pack_msg->evt_id;
     ancs_msg.cnt = pack_msg->cat_cnt;
+    #if USE_LOG_SEND_DEBUG
     app_id_len = StrLen((char*)pack_msg->attr_id_app_id);
     if(app_id_len > app_id_max_len) {
-        MemCopy(&ble_log[app_id_start_pos], pack_msg->attr_id_app_id, app_id_max_len);
-        BLE_SEND_LOG(ble_log, 20);
-        MemCopy(&ble_log[app_id_start_pos], &pack_msg->attr_id_app_id[app_id_max_len], (app_id_len-app_id_max_len)); // assume the remain bytes less then 18
-        BLE_SEND_LOG(ble_log, (app_id_len-app_id_max_len));
+        LOG_SEND_ANCS_APP_ID_VALUE_COPY(log_send.app_id, pack_msg->attr_id_app_id, app_id_max_len);
+        LOG_SEND_ANCS_APP_ID_VALUE_SEND(log_send.head);
+        LOG_SEND_ANCS_APP_ID_VALUE_RESET(log_send.app_id, 0, app_id_max_len);
+        LOG_SEND_ANCS_APP_ID_VALUE_COPY(log_send.app_id, &pack_msg->attr_id_app_id[app_id_max_len], (app_id_len-app_id_max_len)); // assume the remain bytes less then 18
+        LOG_SEND_ANCS_APP_ID_VALUE_SEND(log_send.head);
     } else {
-        MemCopy(&ble_log[app_id_start_pos], pack_msg->attr_id_app_id, app_id_len);
-        BLE_SEND_LOG(ble_log, app_id_len);
+        LOG_SEND_ANCS_APP_ID_VALUE_COPY(log_send.app_id, pack_msg->attr_id_app_id, app_id_len);
+        LOG_SEND_ANCS_APP_ID_VALUE_SEND(log_send.head);
     }
+    #endif
     if(NULL != ancs_cb) {
 		ancs_cb(ANCS_NOTIFY_INCOMING, NULL);
     }

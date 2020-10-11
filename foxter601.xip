@@ -121,6 +121,8 @@
   <file path="gatt_service.c" />
   <file path="lcd_display.c" />
   <file path="serial_service.c" />
+  <file path="log.c" />
+  <file path="log.h" />
  </folder>
  <folder name="Header Files" >
   <extension name="h" />

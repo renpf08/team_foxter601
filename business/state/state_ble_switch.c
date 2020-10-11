@@ -53,6 +53,9 @@ static void notify_swing_cb_handler(u16 id)
     	motor_minute_to_position(clock->minute);
     	motor_hour_to_position(clock->hour);
         motor_date_to_position(date[clock->day]);
+        #if USE_WEEK_FORCE_UPDATE
+        motor_battery_week_to_position(clock->week);
+        #endif
     } else if(notify_swing_start == TRUE) {
         notify_swing_start = FALSE;
         #if USE_ACTIVITY_NOTIFY
@@ -91,10 +94,10 @@ void pair_code_generate(void)
         }
     }
 
-    u8 test_buf[4] = {CMD_TEST_SEND, BLE_LOG_PAIR_CODE, 0, 0};
-    test_buf[2] = hour;
-    test_buf[3] = minute;
-    BLE_SEND_LOG((u8*)&test_buf, 4);
+    LOG_SEND_PAIR_CODE_VARIABLE_DEF(log_send, log_send_pair_code_t, LOG_CMD_SEND, LOG_SEND_PAIR_CODE);
+    LOG_SEND_PAIR_CODE_VALUE_SET(log_send.hour_code, hour);
+    LOG_SEND_PAIR_CODE_VALUE_SET(log_send.minute_code, minute);
+    LOG_SEND_PAIR_CODE_VALUE_SEND(log_send.head);
 	
 	motor_hour_to_position(hour*5);
 	motor_minute_to_position(minute);
@@ -121,7 +124,7 @@ static s16 ble_pair(void *args)
     #else
     } else if(pairing_code == pair_code) {
     #endif
-        BLE_SEND_LOG((u8*)&"pair matched", 12);
+        //BLE_SEND_LOG((u8*)&"pair matched", 12);
         key_sta_ctrl.pair_code_disp = 0;
         ble_state_set(app_pairing_ok);
         #if USE_PARAM_STORE
@@ -130,7 +133,7 @@ static s16 ble_pair(void *args)
         #endif
         *state = CLOCK;
     } else if(key_sta_ctrl.pair_code_disp == 1) {
-        BLE_SEND_LOG((u8*)&"pair mis-match", 14);
+        //BLE_SEND_LOG((u8*)&"pair mis-match", 14);
         pair_code_generate();
         ble_state_set(app_pairing);
         res = 1;

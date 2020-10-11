@@ -31,14 +31,13 @@ static clock_cfg_t clock_cfg = {
 u8 day[13] = {0, 31,28,31,30,31,30,31,31,30,31,30,31};
 static void clock_timer_increase(void)
 {
+    u8 update_flag = 0;
     day[2] = (((clock_cfg.clock.year%4==0) && (clock_cfg.clock.year%100!=0))||(clock_cfg.clock.year%400==0))?29:28;
     
 	if(clock_cfg.clock.second > 59) {
 		clock_cfg.clock.second = 0;
 		clock_cfg.clock.minute++;
-		if(NULL != clock_cfg.cb) {
-			clock_cfg.cb(CLOCK_1_MINUTE, NULL);
-		}
+        update_flag = 1;
 	}
 
 	if(clock_cfg.clock.minute > 59) {
@@ -50,8 +49,8 @@ static void clock_timer_increase(void)
 		clock_cfg.clock.hour = 0;
 		clock_cfg.clock.day++;
 		clock_cfg.clock.week++;
-		if(7 == clock_cfg.clock.week) {
-			clock_cfg.clock.week = SUNDAY;
+		if(clock_cfg.clock.week > SUNDAY) {
+			clock_cfg.clock.week = MONDAY;
 		}
 	}
 
@@ -64,6 +63,12 @@ static void clock_timer_increase(void)
 		clock_cfg.clock.month = 1;
 		clock_cfg.clock.year++;
 	}
+
+    if(update_flag == 1) {
+		if(NULL != clock_cfg.cb) {
+			clock_cfg.cb(CLOCK_1_MINUTE, NULL);
+		}
+    }
     /*
     cmd_set_time_t time;
     time.cmd = 02;

@@ -5,6 +5,7 @@
 
 #include "../common/common.h"
 #include "../driver/driver.h"
+#include "../log.h"
 
 typedef struct {
 	/*record motor pointer*/
@@ -107,7 +108,7 @@ s16 nvm_write_ctrl(his_ctrl_t *ctrl);
 s16 nvm_read_data(his_data_t *data);
 s16 nvm_write_data(his_data_t *data);
 u8 nvm_get_days(void);
-#if USE_CMD_TEST_NVM_ACCESS
+#if USE_LOG_RCVD_SET_NVM
 u8 panic_get(void);
 s16 nvm_read_oneday(u8 index);
 s16 nvm_read_test(void);
@@ -127,7 +128,7 @@ u8 angle_get(void);
 void Update_BodyInfo(uint8 Gender, uint8 Height, uint8 Weight);
 void One_Minute_Sport_Info_Pro(clock_t *clock);
 u32 step_get(void);
-#if USE_CMD_TEST_STEP_COUNT
+#if USE_LOG_RCVD_SET_STEP_COUNT
 void step_test(u32 steps);
 #endif
 void step_clear(void);
@@ -156,8 +157,5 @@ s16 charge_status_get(void);
 extern key_sta_ctrl_t key_sta_ctrl;
 extern u8 stete_battery_week;
 extern const u8 date[];
-#if USE_CMD_TEST_LOG_TYPE_EN
-extern ble_log_type_t ble_log_type[BLE_LOG_MAX];
-#endif
 
 #endif

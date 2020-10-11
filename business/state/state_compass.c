@@ -14,15 +14,17 @@ static void compass_end_handler(u16 id)
     m_click_tid = TIMER_INVALID;
     key_sta_ctrl.m_double_click = 0;
 }
+
 static void compass_begin_handler(u16 id)
 {
     static u8 last_angle = 0;
+    u8 log_angle = 0;
     u8 angle = angle_get();
     clock_t* clock = clock_get();
     volatile u16 minute_angle = 0;
     volatile u16 hour_angle = 0;
-    u8 ble_log[5] = {CMD_TEST_SEND, BLE_LOG_MAG_SAMPLE, 0, 0, 0};
-    
+    LOG_SEND_COMPASS_ANGLE_VARIABLE_DEF(log_send, log_send_compass_angle_t, LOG_CMD_SEND, LOG_SEND_COMPASS_ANGLE);
+
     compass_tid = TIMER_INVALID;
     if(key_sta_ctrl.compass_state == 0) {
     	motor_minute_to_position(clock->minute);
@@ -36,10 +38,13 @@ static void compass_begin_handler(u16 id)
         while(minute_angle>60) minute_angle-=60;
     	motor_minute_to_position(minute_angle);
     	motor_hour_to_position(hour_angle);
-        ble_log[2] = angle;
-        ble_log[3] = minute_angle;
-        ble_log[4] = hour_angle;
-        BLE_SEND_LOG(ble_log, 5);
+        LOG_SEND_COMPASS_ANGLE_VALUE_SET(log_send.minute_pos, minute_angle);
+        LOG_SEND_COMPASS_ANGLE_VALUE_SET(log_send.hour_pos, hour_angle);
+        log_angle = angle;
+        LOG_SEND_COMPASS_ANGLE_VALUE_SET(log_send.angle[0], log_angle/100);           log_angle %= 100;
+        LOG_SEND_COMPASS_ANGLE_VALUE_SET(log_send.angle[1], (log_angle/10<<4)&0xF0);  log_angle = log_angle%10;
+        LOG_SEND_COMPASS_ANGLE_VALUE_OR(log_send.angle[1], log_angle&0x0F);
+        LOG_SEND_COMPASS_ANGLE_VALUE_SEND(log_send.head);
     }
     last_angle = angle;
     timer_event(28, compass_begin_handler);

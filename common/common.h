@@ -376,22 +376,6 @@ typedef struct
 } app_msg_t;
 typedef app_msg_t cmd_recv_notify_t;
 
-//#if USE_CMD_TEST_LOG_TYPE_EN
-typedef enum{
-    BLE_LOG_PAIR_CODE           = 0x00,
-    BLE_LOG_STATE_MACHINE       = 0x01,
-    BLE_LOG_ZERO_ADJUST_JUMP    = 0x02,
-    BLE_LOG_NOTIFY_TYPE         = 0x03,
-    BLE_LOG_ANCS_APP_ID         = 0x04,
-    BLE_LOG_CHARGE_STATE        = 0x05,
-    BLE_LOG_MAG_SAMPLE          = 0x06,
-    BLE_LOG_COMPASS_ADJ         = 0x07,
-    BLE_LOG_SYNC_TIME           = 0x08,
-    
-    BLE_LOG_MAX,
-}ble_log_type_t;
-//#endif
-
 typedef enum {
     CMD_PAIRING_CODE        = 0x00,
     CMD_USER_INFO           = 0x01,
@@ -409,8 +393,6 @@ typedef enum {
     CMD_SET_ANCS_BOND_REQ   = 0x0D,
     CMD_READ_STEPS_TARGET   = 0x0E,
 
-    CMD_TEST_SEND           = 0x5F,
-    CMD_TEST_RCVD           = 0xAF,
     CMD_APP_NONE            = 0xFF
 } cmd_app_send_t;
 

@@ -27,6 +27,7 @@
 #include "app_gatt.h"
 #include "ancs_client.h"
 #include "adapter/adapter.h"
+#include "log.h"
 
 /*============================================================================*
  *  Private Definitions
@@ -62,7 +63,7 @@ typedef struct _SERIAL_DATA_T
 /* Battery Service data instance */
 static SERIAL_DATA_T g_serial_data;
 
-void cmd_parse(u8* content, u8 length);
+void cmd_rcvd_parse(u8* content, u8 length);
 
 /*============================================================================*
  *  Public Function Implementations
@@ -188,7 +189,13 @@ extern void SerialHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
         
         case HANDLE_SERIAL_RECV_DATA:
         {
-            cmd_parse((u8*)p_ind->value, (uint8)p_ind->size_value);
+            #if USE_LOG_RCVD_DEBUG
+            if(log_rcvd_parse((u8*)p_ind->value, (uint8)p_ind->size_value) == 1) {
+                cmd_rcvd_parse((u8*)p_ind->value, (uint8)p_ind->size_value);
+            }
+            #else
+            cmd_rcvd_parse((u8*)p_ind->value, (uint8)p_ind->size_value);
+            #endif
         }
         break;
         
@@ -354,22 +361,9 @@ extern bool ble_send_data(uint8 *data, uint16 size)
 */
 extern bool ble_send_log(uint8 *data, uint16 size)
 {
-    #if USE_CMD_TEST_LOG_TYPE_EN
-    typedef struct{u8 head; u8 type;}log_t;
-    log_t* log = (log_t*)data;
-
-    if(log->head != CMD_TEST_SEND) {
-        return false;
-    }
-    if(ble_log_type[log->type] == 0) {
-        return false;
-    }    
-    #endif
-    
     if(g_app_data.state != app_connected) {
         return false;
     }
-    size = (size>20)?20:size;
     return SerialSendNotification(data, size, HANDLE_SERIAL_SEND_LOG);
 }
 #endif

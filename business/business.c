@@ -2,6 +2,7 @@
 #include <pio.h>            /* Programmable I/O configuration and control */
 #include "business.h"
 #include "state/state.h"
+#include "../log.h"
 
 #define STATE_FILL(init, event, next, function) {\
 						.init_state = init,\
@@ -79,7 +80,15 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 {
 	u16 i = 0;
     s16 res = 0;
-    u8 st_cb[6] = {CMD_TEST_SEND, BLE_LOG_STATE_MACHINE, business.state_now, cb, 0, 0};
+    LOG_SEND_STATE_MACHINE_VARIABLE_DEF(log_send, log_send_sta_mc_t, LOG_CMD_SEND, LOG_SEND_STATE_MACHINE);
+    //log_send_sta_mc_t log_send = {.head = {LOG_CMD_SEND, LOG_SEND_STATE_MACHINE, sizeof(log_send_sta_mc_t), 0}};
+
+    LOG_SEND_STATE_MACHINE_VALUE_SET(log_send.sta_now, business.state_now);
+    LOG_SEND_STATE_MACHINE_VALUE_SET(log_send.sta_report, cb);
+    LOG_SEND_STATE_MACHINE_VALUE_SET(log_send.result, 0);
+//    log_send.sta_now = business.state_now;
+//    log_send.sta_report = cb;
+//    log_send.result = 0;
 
 	//return 0;
     #if USE_UART_PRINT
@@ -96,12 +105,15 @@ static s16 adapter_cb_handler(REPORT_E cb, void *args)
 			set_last_state(business.state_now);
 			business.state_now = state[i].next_state;
 			res = state[i].func(cb, &business.state_now);
-            st_cb[5] = 1;
+            LOG_SEND_STATE_MACHINE_VALUE_SET(log_send.result, 1);
+//            log_send.result = 1;
             break;
 		}
 	}
-    st_cb[4] = business.state_now;
-    BLE_SEND_LOG(st_cb, 6);
+    LOG_SEND_STATE_MACHINE_VALUE_SET(log_send.sta_next, business.state_now);
+    LOG_SEND_STATE_MACHINE_VALUE_SEND(log_send.head);
+//    log_send.sta_next = business.state_now;
+//    log_send_initiate(&log_send.head);
 	return res;
 }
 

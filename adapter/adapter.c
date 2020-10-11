@@ -7,6 +7,7 @@
 #include <panic.h>
 #include <buf_utils.h>
 #include <csr_ota.h>
+#include "../log.h"
 
 u8 stete_battery_week = state_battery;
 u8 activity_percent = 0;
@@ -161,6 +162,9 @@ s16 adapter_init(adapter_callback cb)
 	adapter.cb = cb;
 
 	//module init
+	#if USE_LOG_SEND_DEBUG
+    log_init(cb);
+    #endif
 	clock_init(cb);
 	ancs_init(cb);
     cmd_init(cb);
@@ -272,15 +276,15 @@ static void charge_polling_check(void)
 {
     static s16 last_status = not_incharge;
     s16 now_status = charge_status_get();
-    u8 ble_log[3] = {CMD_TEST_SEND, BLE_LOG_CHARGE_STATE, 0};
+    LOG_SEND_GET_CHG_AUTO_VARIABLE_DEF(log_send, log_send_chg_sta_t, LOG_CMD_SEND, LOG_SEND_GET_CHG_AUTO);
     
 	if((last_status == not_incharge) && (now_status == incharge)) {
-        ble_log[2] = 0;
-        BLE_SEND_LOG(ble_log, 3);
+        LOG_SEND_GET_CHG_AUTO_VALUE_SET(log_send.chg_sta, 0);
+        LOG_SEND_GET_CHG_AUTO_VALUE_SEND(log_send.head);
         adapter.cb(CHARGE_SWING, NULL);
 	} else if((last_status == incharge) && (now_status == not_incharge)) {
-        ble_log[2] = 1;
-        BLE_SEND_LOG(ble_log, 3);
+        LOG_SEND_GET_CHG_AUTO_VALUE_SET(log_send.chg_sta, 1);
+        LOG_SEND_GET_CHG_AUTO_VALUE_SEND(log_send.head);
 	    adapter.cb(CHARGE_STOP, NULL);
 	}
     last_status = now_status;
@@ -385,15 +389,6 @@ void sync_time(void)
 {
 	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
     clock_t* clock = clock_get();
-    u8 ble_log[10] = {CMD_TEST_SEND, BLE_LOG_SYNC_TIME, 0, 0, 0, 0, 0, 0, 0, 0};
-    ble_log[2] = time->year[1];
-    ble_log[3] = time->year[0];
-    ble_log[4] = time->month;
-    ble_log[5] = time->day;
-    ble_log[6] = time->hour;
-    ble_log[7] = time->minute;
-    ble_log[8] = time->second;
-    ble_log[9] = time->week;
 
     clock->year = time->year[1]<<8 | time->year[0];
     clock->month = time->month;
@@ -403,11 +398,13 @@ void sync_time(void)
     clock->minute = time->minute;
     clock->second = time->second;
 
-    BLE_SEND_LOG(ble_log, 10);
 //    refresh_step();
 	motor_minute_to_position(clock->minute);
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
+    #if USE_WEEK_FORCE_UPDATE
+    motor_battery_week_to_position(clock->week);
+    #endif
 }
 
 void motor_restore_position(REPORT_E cb)

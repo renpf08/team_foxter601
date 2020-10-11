@@ -166,7 +166,7 @@ void nvm_write(u16 *buffer, u16 length, u16 offset)
 {
     get_driver()->flash->flash_write(buffer, length, offset);
 }
-#if 0//USE_CMD_TEST_NVM_ACCESS
+#if 0//USE_LOG_RCVD_SET_NVM
 static u8 panic_check(u8 caller)
 {
     u8 hexCharTbl[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
@@ -440,7 +440,7 @@ u8 nvm_get_days(void)
 
     return his_days;
 }
-#if USE_CMD_TEST_NVM_ACCESS
+#if USE_LOG_RCVD_SET_NVM
 s16 nvm_read_oneday(u8 index)
 {
     his_data_t data;
@@ -460,7 +460,7 @@ s16 nvm_read_oneday(u8 index)
     #if USE_UART_PRINT
     print((u8*)buf, len);
     #endif
-    BLE_SEND_LOG((u8*)buf, len);
+    //BLE_SEND_LOG((u8*)buf, len);
     
     return 0;
 }
@@ -485,7 +485,7 @@ s16 nvm_read_test(void)
         #if USE_UART_PRINT
         print((u8*)buf, len);
         #endif
-        BLE_SEND_LOG((u8*)buf, len);
+        //BLE_SEND_LOG((u8*)buf, len);
     }
 
     return 0;
@@ -530,4 +530,4 @@ s16 nvm_write_test(void)
     return 0;
 }
 
-#endif //! USE_CMD_TEST_NVM_ACCESS
+#endif //! USE_LOG_RCVD_SET_NVM

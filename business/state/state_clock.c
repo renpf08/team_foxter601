@@ -1,6 +1,7 @@
 #include <debug.h>          /* Simple host interface to the UART driver */
 #include <pio.h>            /* Programmable I/O configuration and control */
 #include <mem.h>
+#include <buf_utils.h>
 
 #include "../../common/common.h"
 #include "../../adapter/adapter.h"
@@ -22,6 +23,19 @@ static clock_t clk = {
 };
 #endif
 
+static void send_run_time(void)
+{
+    static u16 run_time_cnt = 0;
+    LOG_SEND_RUN_TIME_VARIABLE_DEF(log_send, log_send_run_time_t, LOG_CMD_SEND, LOG_SEND_RUN_TIME);
+
+    LOG_SEND_RUN_TIME_VALUE_SET(log_send.run_time[0], (run_time_cnt>>8) & 0x00FF);
+    LOG_SEND_RUN_TIME_VALUE_SET(log_send.run_time[1], run_time_cnt & 0x00FF);
+    LOG_SEND_RUN_TIME_VALUE_SET(log_send.swing_lock[0], key_sta_ctrl.ab_long_press);
+    LOG_SEND_RUN_TIME_VALUE_SET(log_send.swing_lock[1], key_sta_ctrl.compass_state);
+    LOG_SEND_RUN_TIME_VALUE_SEND(log_send.head);
+    run_time_cnt++;
+}
+
 static void alarm_clock_check(clock_t *clock)
 {
     cmd_set_alarm_clock_t *alarm_clock = (cmd_set_alarm_clock_t*)&cmd_get()->set_alarm_clock;
@@ -31,7 +45,7 @@ static void alarm_clock_check(clock_t *clock)
         if((alarm_clock->aclk[i].en == 1) && 
           ((alarm_clock->aclk[i].week&0x80) || (alarm_clock->aclk[i].week&(1<<clock->week))) &&
           ((alarm_clock->aclk[i].hour==clock->hour)&&(alarm_clock->aclk[i].minute==clock->minute)&&(clock->minute==0))) {
-            BLE_SEND_LOG((u8*)&i, 1);
+            //BLE_SEND_LOG((u8*)&i, 1);
             break;
         }
     }
@@ -53,6 +67,7 @@ static void minutely_check(REPORT_E cb)
     params->steps = step_get();
     params->clock = clock;
     alarm_clock_check(clock);
+    send_run_time();
 }
 static void read_current_step(void)
 {
@@ -164,6 +179,9 @@ s16 state_clock(REPORT_E cb, void *args)
 	motor_minute_to_position(clk->minute);
 	motor_hour_to_position(clk->hour);
     motor_date_to_position(date[clk->day]);
+    #if USE_WEEK_FORCE_UPDATE
+    motor_battery_week_to_position(clk->week);
+    #endif
     minutely_check(cb);
 	#else
 	clk.minute++;
@@ -185,6 +203,9 @@ s16 state_clock(REPORT_E cb, void *args)
 	motor_minute_to_position(clk.minute);
 	motor_hour_to_position(clk.hour);
     motor_date_to_position(date[clk.day]);
+    #if USE_WEEK_FORCE_UPDATE
+    motor_battery_week_to_position(clk.week);
+    #endif
     //minutely_check(cb);
 	#endif
 
