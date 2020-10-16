@@ -40,7 +40,7 @@ FO601
 #define USE_ACTIVITY_NOTIFY     0
 #define USE_WEEK_FORCE_UPDATE   1
 
-#define USE_LOG_RCVD_DEBUG              1
+#define USE_LOG_RCVD_DEBUG              0
 #if USE_LOG_RCVD_DEBUG
 #define USE_LOG_RCVD_SET_NVM            1
 #define USE_LOG_RCVD_SET_ZERO_ADJUST    1
@@ -71,7 +71,7 @@ FO601
 #define USE_LOG_RCVD_REQ_BAT_WEEK_MOTOR 0
 #endif
 
-#define USE_LOG_SEND_DEBUG              1
+#define USE_LOG_SEND_DEBUG              0
 #if USE_LOG_SEND_DEBUG
 #define USE_LOG_SEND_STATE_MACHINE      1
 #define USE_LOG_SEND_PAIR_CODE          1

@@ -209,7 +209,7 @@ static void upload_current_steps(void)
     length = tmp_buf - rsp_buf;
     BLE_SEND_DATA(rsp_buf, length);
 }
-static void activity_polling_check(void)
+void refresh_step(void)
 {
     u32 target_steps = cmd_get()->user_info.target_steps;
     u32 current_steps = step_get();
@@ -294,7 +294,7 @@ static void charge_polling_check(void)
 static void system_polling_handler(u16 id)
 {
     charge_polling_check();
-    activity_polling_check();
+    adapter.cb(REFRESH_STEPS, NULL);
     
     timer_event(1000, system_polling_handler);
 }

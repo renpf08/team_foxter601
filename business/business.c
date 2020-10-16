@@ -24,7 +24,7 @@ static state_t state[] = {
 	STATE_FILL(CLOCK,               KEY_A_SHORT_PRESS,     	CLOCK,                  state_clock),
 	//STATE_FILL(CLOCK,               KEY_M_SHORT_PRESS,     	CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               SET_TIME,               CLOCK,                  state_clock),
-//	STATE_FILL(CLOCK,               REFRESH_STEPS,          CLOCK,                  state_clock),
+	STATE_FILL(CLOCK,               REFRESH_STEPS,          CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               READ_HISDAYS,           CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               READ_HISDATA,           CLOCK,                  state_clock),
 	STATE_FILL(CLOCK,               READ_CURDATA,           CLOCK,                  state_clock),
@@ -52,7 +52,7 @@ static state_t state[] = {
 	STATE_FILL(BLE_SWITCH,          BLE_CHANGE,   	        BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(BLE_SWITCH,          BLE_PAIR,               BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(BLE_SWITCH,          SET_TIME,               BLE_SWITCH,             state_ble_switch),
-//	STATE_FILL(BLE_SWITCH,          REFRESH_STEPS,          BLE_SWITCH,             state_ble_switch),
+	STATE_FILL(BLE_SWITCH,          REFRESH_STEPS,          BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(BLE_SWITCH,          CHARGE_SWING,           BLE_SWITCH,             state_ble_switch),
 	STATE_FILL(BLE_SWITCH,          CHARGE_STOP,            BLE_SWITCH,             state_ble_switch),
 	/*notify*/

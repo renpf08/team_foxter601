@@ -83,7 +83,7 @@ typedef enum {
     READ_HISDAYS = 36,                  /* 0x24 */
     READ_HISDATA = 37,                  /* 0x25 */
     READ_CURDATA = 38,                  /* 0x26 */
-//    REFRESH_STEPS = 39,                 /* 0x27 */
+    REFRESH_STEPS = 39,                 /* 0x27 */
     #if USE_PARAM_STORE                 
     READ_SYS_PARAMS = 40,               /* 0x28 */
     #endif
