@@ -332,11 +332,56 @@ extern bool SerialSendNotification(uint8 *data, uint16 size, uint16 handle)
     return FALSE;
 }
 
+#define BLE_QUEUE_DEPTH 64
+typedef enum {
+    ble_TYPE_DATA,
+    ble_TYPE_LOG,
+}ble_type_t;
+typedef struct {
+	u8 data_buf[BLE_QUEUE_DEPTH][20];
+    u8 data_len[BLE_QUEUE_DEPTH];
+    u8 data_type[BLE_QUEUE_DEPTH]; // 0:data; 1:log
+    u8 head;
+    u8 tail;
+} ble_queue_t;
+ble_queue_t ble_queue;
+static s16 ble_queue_id = TIMER_INVALID;
+void ble_dequeue(u16 id);
+void ble_enqueue(uint8 *data, uint16 size, ble_type_t type);
+void ble_dequeue(u16 id)
+{
+    if(ble_queue.tail != ble_queue.head) {
+        if(ble_queue.data_type[ble_queue.tail] == 0) {
+            SerialSendNotification(ble_queue.data_buf[ble_queue.tail], ble_queue.data_len[ble_queue.tail], HANDLE_SERIAL_SEND_DATA);
+        } else if(ble_queue.data_type[ble_queue.tail] == 1) {
+            SerialSendNotification(ble_queue.data_buf[ble_queue.tail], ble_queue.data_len[ble_queue.tail], HANDLE_SERIAL_SEND_LOG);
+        }
+        ble_queue.tail = (ble_queue.tail+1)%BLE_QUEUE_DEPTH;
+        timer_event(100, ble_dequeue);
+    }
+}
+void ble_enqueue(uint8 *data, uint16 size, ble_type_t type)
+{
+    /** queue is fulled, discard the oldest one */
+    if(ble_queue.tail == (ble_queue.head+1)%BLE_QUEUE_DEPTH) {
+        ble_queue.tail = (ble_queue.tail+1)%BLE_QUEUE_DEPTH;
+    }
+    MemCopy(&ble_queue.data_buf[ble_queue.head], data, size);
+    ble_queue.data_len[ble_queue.head] = size;
+    ble_queue.data_type[ble_queue.head] = type;
+    ble_queue.head = (ble_queue.head+1)%BLE_QUEUE_DEPTH;
+    timer_remove(ble_queue_id);
+    ble_queue_id = TIMER_INVALID;
+    ble_queue_id = timer_event(10, ble_dequeue);
+}
+
 extern bool ble_send_data(uint8 *data, uint16 size)
 {
     if(g_app_data.state != app_connected) return false;
     size = (size>20)?20:size;
-    return SerialSendNotification(data, size, HANDLE_SERIAL_SEND_DATA);
+    ble_enqueue(data, size, ble_TYPE_DATA);
+
+    return true;
 }
 #if USE_BLE_LOG
 /**
@@ -361,10 +406,11 @@ extern bool ble_send_data(uint8 *data, uint16 size)
 */
 extern bool ble_send_log(uint8 *data, uint16 size)
 {
-    if(g_app_data.state != app_connected) {
-        return false;
-    }
-    return SerialSendNotification(data, size, HANDLE_SERIAL_SEND_LOG);
+    if(g_app_data.state != app_connected) return false;
+    size = (size>20)?20:size;
+    ble_enqueue(data, size, ble_TYPE_LOG);
+
+    return true;
 }
 #endif
 

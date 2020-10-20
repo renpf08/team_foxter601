@@ -38,7 +38,7 @@ FO601
 #define USE_NEW_DAV_NAME        1
 #define USE_PAIR_CODE_0000      1 // test mode, use pair code of 0x0000 as a bypass code 
 #define USE_ACTIVITY_NOTIFY     0
-#define USE_WEEK_FORCE_UPDATE   1
+#define USE_WEEK_FORCE_UPDATE   0
 
 #define USE_LOG_RCVD_DEBUG              0
 #if USE_LOG_RCVD_DEBUG
