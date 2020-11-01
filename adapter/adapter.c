@@ -243,10 +243,14 @@ static void clock_charge_swing(u16 id)
 	u8 battery_level = BAT_PECENT_0;
 	charge_tid = TIMER_INVALID;
 	
-    if(charge_start == 0) {
+    if((charge_start == 0) || (key_sta_ctrl.ab_long_press == 1)) {
         swing_state = 0;
-		battery_level = battery_percent_read();
-		motor_battery_week_to_position(battery_level);
+        if(key_sta_ctrl.ab_long_press == 1) {// when enter zero adjust mode
+            motor_battery_week_to_position(BAT_PECENT_0);
+        } else {
+    		battery_level = battery_percent_read();
+    		motor_battery_week_to_position(battery_level);
+        }
         return;
     }
     if(swing_state == 0) {
@@ -268,7 +272,8 @@ void charge_check(REPORT_E cb)
         }
         charge_start = 1;
     } else if(cb == CHARGE_STOP) {
-		timer_remove(charge_tid);
+		//timer_remove(charge_tid);
+        //charge_tid = TIMER_INVALID;
         charge_start = 0;
     }
 }
@@ -277,6 +282,11 @@ static void charge_polling_check(void)
     static s16 last_status = not_incharge;
     s16 now_status = charge_status_get();
     LOG_SEND_GET_CHG_AUTO_VARIABLE_DEF(log_send, log_send_chg_sta_t, LOG_CMD_SEND, LOG_SEND_GET_CHG_AUTO);
+
+    if(key_sta_ctrl.ab_long_press == 1) { // when in zero adjust mode, do not check charge state
+        last_status = now_status;
+        return;
+    }
     
 	if((last_status == not_incharge) && (now_status == incharge)) {
         LOG_SEND_GET_CHG_AUTO_VALUE_SET(log_send.chg_sta, 0);

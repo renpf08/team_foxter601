@@ -40,7 +40,7 @@ FO601
 #define USE_ACTIVITY_NOTIFY     0
 #define USE_WEEK_FORCE_UPDATE   0
 
-#define USE_LOG_RCVD_DEBUG              0
+#define USE_LOG_RCVD_DEBUG              1
 #if USE_LOG_RCVD_DEBUG
 #define USE_LOG_RCVD_SET_NVM            1
 #define USE_LOG_RCVD_SET_ZERO_ADJUST    1
@@ -71,19 +71,19 @@ FO601
 #define USE_LOG_RCVD_REQ_BAT_WEEK_MOTOR 0
 #endif
 
-#define USE_LOG_SEND_DEBUG              0
+#define USE_LOG_SEND_DEBUG              1
 #if USE_LOG_SEND_DEBUG
-#define USE_LOG_SEND_STATE_MACHINE      1
-#define USE_LOG_SEND_PAIR_CODE          1
-#define USE_LOG_SEND_NOTIFY_TYPE        1
-#define USE_LOG_SEND_ANCS_APP_ID        1
+#define USE_LOG_SEND_STATE_MACHINE      0
+#define USE_LOG_SEND_PAIR_CODE          0
+#define USE_LOG_SEND_NOTIFY_TYPE        0
+#define USE_LOG_SEND_ANCS_APP_ID        0
 #define USE_LOG_SEND_GET_CHG_AUTO       1
 #define USE_LOG_SEND_GET_CHG_MANUAL     1
-#define USE_LOG_SEND_COMPASS_ANGLE      1
-#define USE_LOG_SEND_SYSTEM_TIME        1
-#define USE_LOG_SEND_RUN_TIME           1
-#define USE_LOG_SEND_VIB_STATE          1
-#define USE_LOG_SEND_BAT_WEEK_MOTOR     1
+#define USE_LOG_SEND_COMPASS_ANGLE      0
+#define USE_LOG_SEND_SYSTEM_TIME        0
+#define USE_LOG_SEND_RUN_TIME           0
+#define USE_LOG_SEND_VIB_STATE          0
+#define USE_LOG_SEND_BAT_WEEK_MOTOR     0
 #else
 #define USE_LOG_SEND_STATE_MACHINE      0
 #define USE_LOG_SEND_PAIR_CODE          0
