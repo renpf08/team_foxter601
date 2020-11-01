@@ -54,7 +54,7 @@ typedef enum{
     LOG_RCVD_REQ_BAT_WEEK_MOTOR = 0x83,
     #endif
     
-    LOG_RCVD_NONE,
+    LOG_RCVD_NONE               = 0xFE,
     LOG_RCVD_BROADCAST          = 0xFF,
 }log_rcvd_type_t;
 typedef struct {
