@@ -53,9 +53,10 @@ static void notify_swing_cb_handler(u16 id)
     	motor_minute_to_position(clock->minute);
     	motor_hour_to_position(clock->hour);
         motor_date_to_position(date[clock->day]);
-        #if USE_WEEK_FORCE_UPDATE
-        motor_battery_week_to_position(clock->week);
-        #endif
+        motor_week_to_position(clock->week);
+//        #if USE_WEEK_FORCE_UPDATE
+//        motor_battery_week_to_position(clock->week);
+//        #endif
     } else if(notify_swing_start == TRUE) {
         notify_swing_start = FALSE;
         #if USE_ACTIVITY_NOTIFY
@@ -165,6 +166,8 @@ static u16 ble_change(void *args)
     //if((last_state_ble == app_connected) && ((state_ble != app_connected) || (state_ble == app_idle))) {
     if((last_state_ble == app_connected) && (state_ble != app_connected)) {
         discon_vib_timer_id = timer_event(NOTIFY_SWING_INTERVAL*3, disconect_vib_handler);
+    } else if(state_ble == app_connected) {
+        vib_stop();
     }
     last_state_ble = state_ble;    
     if(state_ble == app_advertising) { // advertising start

@@ -8,6 +8,7 @@
 #include <buf_utils.h>
 #include <csr_ota.h>
 #include "../log.h"
+#include "../business/state/state.h"
 
 u8 stete_battery_week = state_battery;
 u8 activity_percent = 0;
@@ -253,6 +254,9 @@ static void clock_charge_swing(u16 id)
         }
         return;
     }
+    if(state_battery_week_status_get() != state_battery) {
+        state_battery_week_status_set(state_battery);
+    }
     if(swing_state == 0) {
         swing_state = 1;
 		battery_level = battery_percent_read();
@@ -395,6 +399,14 @@ void system_reboot(u8 reboot_type)
     }
     Panic(0x5AFF);
 }
+void motor_week_to_position(u8 week)
+{
+	s16 battery_week_status;
+	battery_week_status = state_battery_week_status_get();
+	if((battery_week_status == state_week) && (charge_start != 1)) {
+		motor_battery_week_to_position(week);
+	}
+}
 void sync_time(void)
 {
 	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
@@ -412,9 +424,10 @@ void sync_time(void)
 	motor_minute_to_position(clock->minute);
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
-    #if USE_WEEK_FORCE_UPDATE
-    motor_battery_week_to_position(clock->week);
-    #endif
+    motor_week_to_position(clock->week);
+//    #if USE_WEEK_FORCE_UPDATE
+//    motor_battery_week_to_position(clock->week);
+//    #endif
 }
 
 void motor_restore_position(REPORT_E cb)

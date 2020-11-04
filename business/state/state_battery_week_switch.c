@@ -47,6 +47,10 @@ s16 state_battery_week_status_get(void)
 {
 	return state_battery_week.cur_state;
 }
+void state_battery_week_status_set(u8 state)
+{
+	state_battery_week.cur_state = state;
+}
 
 #if 0
 static adapter_callback battery_week_cb = NULL;
