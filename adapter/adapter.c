@@ -8,6 +8,7 @@
 #include <buf_utils.h>
 #include <csr_ota.h>
 #include "../log.h"
+#include "../business/state/state.h"
 
 u8 stete_battery_week = state_battery;
 u8 activity_percent = 0;
@@ -243,11 +244,18 @@ static void clock_charge_swing(u16 id)
 	u8 battery_level = BAT_PECENT_0;
 	charge_tid = TIMER_INVALID;
 	
-    if(charge_start == 0) {
+    if((charge_start == 0) || (key_sta_ctrl.ab_long_press == 1)) {
         swing_state = 0;
-		battery_level = battery_percent_read();
-		motor_battery_week_to_position(battery_level);
+        if(key_sta_ctrl.ab_long_press == 1) {// when enter zero adjust mode
+            motor_battery_week_to_position(BAT_PECENT_0);
+        } else {
+    		battery_level = battery_percent_read();
+    		motor_battery_week_to_position(battery_level);
+        }
         return;
+    }
+    if(state_battery_week_status_get() != state_battery) {
+        state_battery_week_status_set(state_battery);
     }
     if(swing_state == 0) {
         swing_state = 1;
@@ -268,7 +276,8 @@ void charge_check(REPORT_E cb)
         }
         charge_start = 1;
     } else if(cb == CHARGE_STOP) {
-		timer_remove(charge_tid);
+		//timer_remove(charge_tid);
+        //charge_tid = TIMER_INVALID;
         charge_start = 0;
     }
 }
@@ -277,6 +286,11 @@ static void charge_polling_check(void)
     static s16 last_status = not_incharge;
     s16 now_status = charge_status_get();
     LOG_SEND_GET_CHG_AUTO_VARIABLE_DEF(log_send, log_send_chg_sta_t, LOG_CMD_SEND, LOG_SEND_GET_CHG_AUTO);
+
+    if(key_sta_ctrl.ab_long_press == 1) { // when in zero adjust mode, do not check charge state
+        last_status = now_status;
+        return;
+    }
     
 	if((last_status == not_incharge) && (now_status == incharge)) {
         LOG_SEND_GET_CHG_AUTO_VALUE_SET(log_send.chg_sta, 0);
@@ -385,6 +399,14 @@ void system_reboot(u8 reboot_type)
     }
     Panic(0x5AFF);
 }
+void motor_week_to_position(u8 week)
+{
+	s16 battery_week_status;
+	battery_week_status = state_battery_week_status_get();
+	if((battery_week_status == state_week) && (charge_start != 1)) {
+		motor_battery_week_to_position(week);
+	}
+}
 void sync_time(void)
 {
 	cmd_set_time_t *time = (cmd_set_time_t *)&cmd_get()->set_time;
@@ -402,9 +424,10 @@ void sync_time(void)
 	motor_minute_to_position(clock->minute);
 	motor_hour_to_position(clock->hour);
     motor_date_to_position(date[clock->day]);
-    #if USE_WEEK_FORCE_UPDATE
-    motor_battery_week_to_position(clock->week);
-    #endif
+    motor_week_to_position(clock->week);
+//    #if USE_WEEK_FORCE_UPDATE
+//    motor_battery_week_to_position(clock->week);
+//    #endif
 }
 
 void motor_restore_position(REPORT_E cb)

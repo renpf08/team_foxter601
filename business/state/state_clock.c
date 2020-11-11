@@ -179,9 +179,10 @@ s16 state_clock(REPORT_E cb, void *args)
 	motor_minute_to_position(clk->minute);
 	motor_hour_to_position(clk->hour);
     motor_date_to_position(date[clk->day]);
-    #if USE_WEEK_FORCE_UPDATE
-    motor_battery_week_to_position(clk->week);
-    #endif
+    motor_week_to_position(clk->week);
+//    #if USE_WEEK_FORCE_UPDATE
+//    motor_battery_week_to_position(clk->week);
+//    #endif
     minutely_check(cb);
 	#else
 	clk.minute++;

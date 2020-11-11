@@ -453,7 +453,7 @@ static void log_rcvd_req_charger_sta(u8 *buffer, u8 length)
 #if USE_LOG_RCVD_REQ_SYSTEM_TIME
 static void log_rcvd_req_system_time(u8 *buffer, u8 length)
 {
-    clock_t* clock = clock_get();
+    //clock_t* clock = clock_get();
     LOG_SEND_SYSTEM_TIME_VARIABLE_DEF(log_send, log_send_system_time_t, LOG_CMD_SEND, LOG_SEND_SYSTEM_TIME);
 
     #if USE_BCD_CONVERT

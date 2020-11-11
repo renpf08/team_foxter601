@@ -38,6 +38,7 @@ void system_post_reboot_handler(void);
 void charge_check(REPORT_E cb);
 void system_reboot(u8 reboot_type);
 //void refresh_step(void);
+void motor_week_to_position(u8 week);
 void sync_time(void);
 void motor_restore_position(REPORT_E cb);
 #if USE_UART_PRINT
